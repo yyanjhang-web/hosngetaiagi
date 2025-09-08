@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>你的專屬圖片</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        img {
+            max-width: 90%;
+            max-height: 70vh;
+            border: 5px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <img id="myImage" src="" alt="隨機圖片">
+    <button id="changeImageBtn">換一張</button>
+
+    <script src="images.js"></script>
+    
+    <script>
+        // 取得圖片和按鈕的元素
+        const imageElement = document.getElementById('myImage');
+        const changeImageBtn = document.getElementById('changeImageBtn');
+
+        let lastIndex = -1; // 用來記錄上一張圖片的索引
+
+        // 函式：隨機選擇一張圖片並顯示
+        function showRandomImage() {
+            let newIndex;
+            // 使用 do...while 迴圈確保新索引不等於上一個索引
+            do {
+                newIndex = Math.floor(Math.random() * images.length);
+            } while (newIndex === lastIndex);
+
+            // 更新圖片並記錄當前的索引
+            imageElement.src = images[newIndex];
+            lastIndex = newIndex;
+        }
+
+        // 網頁載入時，先顯示一張隨機圖片
+        window.onload = showRandomImage;
+
+        // 當按鈕被點擊時，執行函式
+        changeImageBtn.addEventListener('click', showRandomImage);
+    </script>
+</body>
+</html>
