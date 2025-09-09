@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>你的專屬圖片</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        img {
+            max-width: 90%;
+            max-height: 60vh; /* 調整圖片高度，為文字留出空間 */
+            border: 5px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .rule {
+            margin-top: 20px;
+            font-size: 1em; /* 規則行字體大小 */
+            color: #333;
+        }
+        .designer-info {
+            font-size: 0.8em; /* 設計者行字體大小，比規則行小 */
+            color: #555;
+            margin-top: 5px; /* 與規則行的間距 */
+        }
+    </style>
+</head>
+<body>
+    <img id="myImage" src="" alt="隨機圖片">
+    <button id="changeImageBtn">換一張</button>
+
+    <div class="rule">規則：找出任兩張中一樣的，並大聲說出來</div>
+    <div class="designer-info">(設計者：Iônn. 採用spot it generator製作)</div>
+
+    <script src="images.js"></script>
+    
+    <script>
+        const imageElement = document.getElementById('myImage');
+        const changeImageBtn = document.getElementById('changeImageBtn');
+        let lastIndex = -1;
+
+        function showRandomImage() {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * images.length);
+            } while (newIndex === lastIndex);
+            imageElement.src = images[newIndex];
+            lastIndex = newIndex;
+        }
+
+        window.onload = showRandomImage;
+        changeImageBtn.addEventListener('click', showRandomImage);
+    </script>
+</body>
+</html>
