@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第四套遊戲</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px; /* 兩張圖片之間的間距 */
+        }
+        img {
+            max-width: 45%; /* 每張圖片佔用容器的45%寬度 */
+            max-height: 50vh; /* 調整圖片高度 */
+            border: 5px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .rule {
+            margin-top: 20px;
+            font-size: 1em;
+            color: #333;
+        }
+        .designer-info {
+            font-size: 0.8em;
+            color: #555;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="image-container">
+        <img id="image1" src="" alt="隨機圖片1">
+        <img id="image2" src="" alt="隨機圖片2">
+    </div>
+    
+    <button id="changeImageBtn">換一張</button>
+
+    <div class="rule">規則：找出任兩張中一樣的，並大聲說出來</div>
+    <div class="designer-info">(設計者：Iônn. 採用spot it generator製作)</div>
+
+    <script src="images.js"></script>
+    
+    <script>
+        const image1Element = document.getElementById('image1');
+        const image2Element = document.getElementById('image2');
+        const changeImageBtn = document.getElementById('changeImageBtn');
+
+        let lastIndex1 = -1;
+        let lastIndex2 = -1;
+
+        function showRandomImages() {
+            let newIndex1;
+            let newIndex2;
+
+            // 確保第一張圖與上一張不重複
+            do {
+                newIndex1 = Math.floor(Math.random() * images.length);
+            } while (newIndex1 === lastIndex1);
+
+            // 確保第二張圖與上一張不重複，且不與第一張圖重複
+            do {
+                newIndex2 = Math.floor(Math.random() * images.length);
+            } while (newIndex2 === lastIndex2 || newIndex2 === newIndex1);
+
+            // 更新圖片並記錄新的索引
+            image1Element.src = images[newIndex1];
+            image2Element.src = images[newIndex2];
+            
+            lastIndex1 = newIndex1;
+            lastIndex2 = newIndex2;
+        }
+
+        window.onload = showRandomImages;
+        changeImageBtn.addEventListener('click', showRandomImages);
+    </script>
+</body>
+</html>
