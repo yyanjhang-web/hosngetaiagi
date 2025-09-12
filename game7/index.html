@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B1L1我會曉煮菜_賓果</title>
+    <title>台語賓果</title>
     <style>
         body {
             display: flex;
@@ -37,7 +37,8 @@
             display: grid;
             gap: 10px;
             width: 90vw;
-            max-width: 500px;
+            max-width: 500px; /* 在這裡加上最大寬度限制 */
+            aspect-ratio: 1 / 1; /* 設定寬高比為 1:1，確保是正方形 */
             padding: 10px;
             background-color: #fff;
             border-radius: 10px;
@@ -64,7 +65,7 @@
             border-color: #28a745;
             transform: scale(1.05);
         }
-        .tight-spacing { /* 新增一個專門用於緊湊字元的樣式 */
+        .tight-spacing {
             letter-spacing: -0.1em;
             white-space: nowrap;
         }
@@ -88,9 +89,10 @@
 
     <script>
         const words = [
-            'mê-kak', '拉圇仔燒', 'lā', '粕', '煠', '蔥仔珠', 'kam-á-bi̍t', 'sâi', '芡', '炕', 'kûn', 
-'牽粉', '剾皮', '揀菜', 'lóo', '抹鹽', 'bô-lōo-lâi', 'tshiú-lōo-tshài', 'tsiâu', '款',
-'hó-sè', 'hán-tit', 'tsia̍h-si̍t', '濫', '摻'
+            '鋩角', '拉圇仔燒', '抐', '粕', '煠', '柑仔蜜', '蔥仔珠', '饞', '芡', '炕',
+            '火君',
+            '牽粉', '剾皮', '揀菜', '滷', '抹鹽', '無路來', '手路菜', '齊', '款',
+            '好勢', '罕得', '反', '濫', '摻'
         ];
 
         const bingoGrid = document.getElementById('bingoGrid');
@@ -124,14 +126,16 @@
                 const cell = document.createElement('div');
                 cell.className = 'bingo-cell';
                 
-                // 判斷是否為 "火君"，如果是則額外加上樣式
                 if (word === '火君') {
                     cell.classList.add('tight-spacing');
                 }
 
                 cell.textContent = word;
                 cell.style.fontSize = fontSize;
-                cell.style.height = `calc((90vw - ${gridSize*10}px) / ${gridSize})`;
+                
+                // 移除這個高度計算，改用新的 aspect-ratio
+                // cell.style.height = `calc((90vw - ${gridSize*10}px) / ${gridSize})`;
+
                 cell.addEventListener('click', () => {
                     cell.classList.toggle('marked');
                 });
