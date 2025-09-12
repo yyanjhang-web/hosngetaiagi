@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台語賓果</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: '微軟正黑體', 'Arial', sans-serif;
+            text-align: center;
+        }
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 90vw;
+            max-width: 500px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .bingo-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc((90vw - 20px) / 3 - 10px);
+            max-height: calc(500px / 3);
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 1.8em; /* 在這裡調整了字體大小 */
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, transform 0.2s;
+            user-select: none;
+        }
+        .bingo-cell.marked {
+            background-color: #28a745;
+            color: #fff;
+            border-color: #28a745;
+            transform: scale(1.05);
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .designer-info {
+            font-size: 0.8em;
+            color: #555;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="bingo-grid" id="bingoGrid"></div>
+    <button id="regenerateBtn">換一張</button>
+    <div class="designer-info">遊戲設計者：Iônn</div>
+
+    <script>
+        const words = [
+            '鋩角', '拉圇仔燒', '抐', '粕', '煠', '柑仔蜜', '蔥仔珠', '饞', '芡', '炕',
+            '(火君)', '牽粉', '剾皮', '揀菜', '滷', '抹鹽', '無路來', '手路菜', '齊', '款',
+            '好勢', '罕得'
+        ];
+
+        const bingoGrid = document.getElementById('bingoGrid');
+        const regenerateBtn = document.getElementById('regenerateBtn');
+
+        function getRandomWords(count) {
+            const shuffled = [...words].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function generateBingoGrid() {
+            const selectedWords = getRandomWords(9);
+            bingoGrid.innerHTML = '';
+
+            selectedWords.forEach(word => {
+                const cell = document.createElement('div');
+                cell.className = 'bingo-cell';
+                cell.textContent = word;
+                cell.addEventListener('click', () => {
+                    cell.classList.toggle('marked');
+                });
+                bingoGrid.appendChild(cell);
+            });
+        }
+
+        window.onload = generateBingoGrid;
+        regenerateBtn.addEventListener('click', generateBingoGrid);
+    </script>
+</body>
+</html>
