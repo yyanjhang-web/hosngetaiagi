@@ -54,7 +54,7 @@
             cursor: pointer;
             transition: background-color 0.2s, color 0.2s, transform 0.2s;
             user-select: none;
-            word-break: break-word; /* 允許文字自動換行 */
+            word-break: break-word;
             padding: 5px;
             box-sizing: border-box;
         }
@@ -63,6 +63,10 @@
             color: #fff;
             border-color: #28a745;
             transform: scale(1.05);
+        }
+        .tight-spacing { /* 新增一個專門用於緊湊字元的樣式 */
+            letter-spacing: -0.1em;
+            white-space: nowrap;
         }
         .designer-info {
             font-size: 0.8em;
@@ -85,14 +89,15 @@
     <script>
         const words = [
             '鋩角', '拉圇仔燒', '抐', '粕', '煠', '柑仔蜜', '蔥仔珠', '饞', '芡', '炕',
-            '(火君)', '牽粉', '剾皮', '揀菜', '滷', '抹鹽', '無路來', '手路菜', '齊', '款',
+            '火君', // 移除括號
+            '牽粉', '剾皮', '揀菜', '滷', '抹鹽', '無路來', '手路菜', '齊', '款',
             '好勢', '罕得', '反', '濫', '摻'
         ];
 
         const bingoGrid = document.getElementById('bingoGrid');
         const regenerateBtn = document.getElementById('regenerateBtn');
         const sizeButtons = document.querySelectorAll('.grid-size-btn');
-        let currentSize = 3; // 預設為3x3
+        let currentSize = 3;
 
         function getRandomWords(count) {
             const shuffled = [...words].sort(() => 0.5 - Math.random());
@@ -107,7 +112,6 @@
             bingoGrid.innerHTML = '';
             bingoGrid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
             
-            // 根據格子數量調整字體大小，保持可讀性
             let fontSize;
             if (gridSize === 3) {
                 fontSize = '1.8em';
@@ -120,6 +124,12 @@
             selectedWords.forEach(word => {
                 const cell = document.createElement('div');
                 cell.className = 'bingo-cell';
+                
+                // 判斷是否為 "火君"，如果是則額外加上樣式
+                if (word === '火君') {
+                    cell.classList.add('tight-spacing');
+                }
+
                 cell.textContent = word;
                 cell.style.fontSize = fontSize;
                 cell.style.height = `calc((90vw - ${gridSize*10}px) / ${gridSize})`;
@@ -130,7 +140,6 @@
             });
         }
 
-        // 監聽尺寸按鈕點擊事件
         sizeButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 currentSize = parseInt(e.target.dataset.size);
@@ -138,10 +147,7 @@
             });
         });
 
-        // 監聽換一張按鈕
         regenerateBtn.addEventListener('click', generateBingoGrid);
-
-        // 網頁載入時預設產生3x3表格
         window.onload = generateBingoGrid;
     </script>
 </body>
