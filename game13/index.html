@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B3L3_綴會著時代的老教授</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: '微軟正黑體', 'Arial', sans-serif;
+            text-align: center;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .grid-size-btn, .regenerate-btn {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s;
+            margin: 0 5px;
+        }
+        .grid-size-btn:hover, .regenerate-btn:hover {
+            background-color: #0056b3;
+        }
+        .bingo-grid {
+            display: grid;
+            gap: 10px;
+            width: 90vw;
+            max-width: 500px; /* 在這裡加上最大寬度限制 */
+            aspect-ratio: 1 / 1; /* 設定寬高比為 1:1，確保是正方形 */
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
+        }
+        .bingo-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, transform 0.2s;
+            user-select: none;
+            word-break: break-word;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        .bingo-cell.marked {
+            background-color: #28a745;
+            color: #fff;
+            border-color: #28a745;
+            transform: scale(1.05);
+        }
+        .tight-spacing {
+            letter-spacing: -0.1em;
+            white-space: nowrap;
+        }
+        .designer-info {
+            font-size: 0.8em;
+            color: #555;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button class="grid-size-btn" data-size="3">3×3</button>
+        <button class="grid-size-btn" data-size="4">4×4</button>
+        <button class="grid-size-btn" data-size="5">5×5</button>
+    </div>
+
+    <div class="bingo-grid" id="bingoGrid"></div>
+    <button class="regenerate-btn" id="regenerateBtn">換一張</button>
+    <div class="designer-info">設計者：Iônn</div>
+
+    <script>
+        const words = [
+        '倚', '四序', 'mé-lia̍h', 'tsih-tsiap', 'khóo-to̍k', '搝', 
+        '走揣', 'huê', 'tìm-thâu', '電甲金爍爍', 
+        '好勢', 'tuè-bē-tio̍h', 'tsia̍p', 'si̍k-sāi', '線頂', 
+        'tshin-sin', '無偌久', 'bô-tshái', '那講那(扌回)', '鬥相報', 
+        '開破', '時行', '" sam-put-gōo-sî"', 'tshù-pinn-tau', 'hit kuá'       
+        ];
+
+        const bingoGrid = document.getElementById('bingoGrid');
+        const regenerateBtn = document.getElementById('regenerateBtn');
+        const sizeButtons = document.querySelectorAll('.grid-size-btn');
+        let currentSize = 3;
+
+        function getRandomWords(count) {
+            const shuffled = [...words].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function generateBingoGrid() {
+            const gridSize = currentSize;
+            const totalCells = gridSize * gridSize;
+            const selectedWords = getRandomWords(totalCells);
+
+            bingoGrid.innerHTML = '';
+            bingoGrid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            
+            let fontSize;
+            if (gridSize === 3) {
+                fontSize = '1.8em';
+            } else if (gridSize === 4) {
+                fontSize = '1.4em';
+            } else { // gridSize === 5
+                fontSize = '1.2em';
+            }
+
+            selectedWords.forEach(word => {
+                const cell = document.createElement('div');
+                cell.className = 'bingo-cell';
+                
+                if (word === '火君') {
+                    cell.classList.add('tight-spacing');
+                }
+
+                cell.textContent = word;
+                cell.style.fontSize = fontSize;
+                
+                // 移除這個高度計算，改用新的 aspect-ratio
+                // cell.style.height = `calc((90vw - ${gridSize*10}px) / ${gridSize})`;
+
+                cell.addEventListener('click', () => {
+                    cell.classList.toggle('marked');
+                });
+                bingoGrid.appendChild(cell);
+            });
+        }
+
+        sizeButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                currentSize = parseInt(e.target.dataset.size);
+                generateBingoGrid();
+            });
+        });
+
+        regenerateBtn.addEventListener('click', generateBingoGrid);
+        window.onload = generateBingoGrid;
+    </script>
+</body>
+</html>
