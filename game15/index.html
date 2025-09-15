@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dobble羅馬字</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: '微軟正黑體', 'Arial', sans-serif;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .card-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+        .card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        .dobble-card {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            aspect-ratio: 3 / 2;
+        }
+        #card1 {
+            background-color: #e6f7ff; /* 淺藍色 */
+        }
+        #card2 {
+            background-color: #e6ffe6; /* 淺綠色 */
+        }
+        .dobble-element {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            border-radius: 8px;
+            font-size: 2em;
+            font-weight: bold;
+            /* 修正：移除 text-transform: lowercase; */
+            padding: 10px;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .card-number {
+            display: none;
+        }
+        .rule-text {
+            font-size: 1em; /* 規則文字大小 */
+            color: #333;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        .designer-info {
+            font-size: 0.8em; /* 設計者資訊大小 */
+            color: #555;
+            margin-top: 10px;
+        }
+        @media (min-width: 768px) {
+            .card-wrapper {
+                width: calc(50% - 10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="card-wrapper">
+            <div class="dobble-card" id="card1"></div>
+        </div>
+        <div class="card-wrapper">
+            <div class="dobble-card" id="card2"></div>
+        </div>
+    </div>
+    
+    <button id="changeCardsBtn">換一張</button>
+    <div class="rule-text">規則：找出兩張卡中相同的元素，並大聲說出來</div>
+    <div class="designer-info">設計者：Iônn, Àn-tsiong</div>
+
+    <script>
+        const cards = {
+            1: ['n', 'ian', 'tsh', 'b', 'a', 'e'],
+            2: ['th', 'ng-', 'an', 'u', 'b', 'o'],
+            3: ['s', 't', 'n', 'an', 'ts', 'oo'],
+            4: ['t', 'e', 'j', 'ng-', 'ann', 'h'],
+            5: ['p', 'u', 'oo', 'g', 'h', 'ian'],
+            6: ['iau', 'e', 'p', 'th', 's', 'kh'],
+            7: ['ian', 'an', 'ann', 'ui', 'iau', 'am'],
+            8: ['b', 'iu', 'i', 'h', 'iau', 'ts'],
+            9: ['u', 'iu', 'm', 'n', 'kh', 'ann'],
+            10: ['m', 's', 'o', 'am', 'h', 'tsh'],
+            11: ['j', 'oo', 'am', 'k', 'kh', 'b'],
+            12: ['k', 'g', 'i', 'an', 'm', 'e'],
+            13: ['ui', 't', 'm', 'p', 'b', 'ph'],
+            14: ['ann', 's', 'b', 'g', 'L', 'io'],
+            15: ['th', 'io', 'ts', 'j', 'm', 'ian'],
+            16: ['ph', 'ian', 'k', 's', 'iu', 'ng-'],
+            17: ['m', 'a', 'iau', 'ng-', 'oo', 'L'],
+            18: ['p', 'n', 'i', 'am', 'ng-', 'io'],
+            19: ['tsh', 'iau', 'k', 't', 'u', 'io'],
+            20: ['e', 'L', 'u', 'ph', 'am', 'ts'],
+            21: ['j', 'g', 'ph', 'n', 'o', 'iau'],
+            22: ['h', 'ui', 'L', 'th', 'k', 'n'],
+            23: ['o', 'ts', 'k', 'a', 'ann', 'p'],
+            24: ['oo', 'tsh', 'ph', 'i', 'th', 'ann'],
+            25: ['am', 'iu', 't', 'g', 'a', 'th'],
+            26: ['ts', 'tsh', 'ui', 'ng-', 'kh', 'g'],
+            27: ['io', 'a', 'h', 'kh', 'ph', 'an'],
+            28: ['ian', 'L', 't', 'i', 'kh', 'o'],
+            29: ['iu', 'tsh', 'p', 'an', 'j', 'L'],
+            30: ['io', 'iu', 'o', 'oo', 'e', 'ui'],
+            31: ['s', 'i', 'ui', 'j', 'u', 'a']
+        };
+
+        const card1Element = document.getElementById('card1');
+        const card2Element = document.getElementById('card2');
+        const changeCardsBtn = document.getElementById('changeCardsBtn');
+        const cardKeys = Object.keys(cards);
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function showRandomCards() {
+            let card1Key, card2Key;
+            
+            do {
+                card1Key = cardKeys[Math.floor(Math.random() * cardKeys.length)];
+                card2Key = cardKeys[Math.floor(Math.random() * cardKeys.length)];
+            } while (card1Key === card2Key);
+
+            const shuffledCard1 = shuffleArray([...cards[card1Key]]);
+            const shuffledCard2 = shuffleArray([...cards[card2Key]]);
+
+            card1Element.innerHTML = '';
+            shuffledCard1.forEach(item => {
+                const element = document.createElement('div');
+                element.className = 'dobble-element';
+                element.textContent = item;
+                card1Element.appendChild(element);
+            });
+
+            card2Element.innerHTML = '';
+            shuffledCard2.forEach(item => {
+                const element = document.createElement('div');
+                element.className = 'dobble-element';
+                element.textContent = item;
+                card2Element.appendChild(element);
+            });
+        }
+
+        window.onload = showRandomCards;
+        changeCardsBtn.addEventListener('click', showRandomCards);
+    </script>
+</body>
+</html>
