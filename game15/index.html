@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基礎版_無入聲_雙表格</title>
+    <title>Dobble羅馬字</title>
     <style>
         body {
             display: flex;
@@ -15,18 +15,25 @@
             background-color: #f0f0f0;
             font-family: '微軟正黑體', 'Arial', sans-serif;
             text-align: center;
-            padding: 20px;
+            padding: 2vh 2vw; /* 調整padding為相對單位 */
             box-sizing: border-box;
         }
         .card-container {
             display: flex;
+            flex-direction: column; /* 小螢幕時堆疊 */
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 2vh; /* 調整間距為相對單位 */
+            margin-bottom: 2vh;
             width: 100%;
             max-width: 900px;
+        }
+        @media (min-width: 768px) {
+            .card-container {
+                flex-direction: row; /* 大螢幕時橫向排列 */
+                gap: 2vw;
+            }
         }
         .card-wrapper {
             display: flex;
@@ -37,19 +44,24 @@
         }
         .dobble-card {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1vh; /* 調整網格間距為相對單位 */
             width: 100%;
-            padding: 20px;
+            padding: 2vw; /* 調整卡片padding為相對單位 */
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            aspect-ratio: 3 / 2;
+            aspect-ratio: 2 / 3;
+            transition: background-color 0.3s;
         }
         #card1 {
-            background-color: #e6f7ff; /* 淺藍色 */
+            background-color: #e6f7ff;
         }
         #card2 {
-            background-color: #e6ffe6; /* 淺綠色 */
+            background-color: #e6ffe6;
+        }
+        .dobble-card.darken {
+            background-color: #999;
+            opacity: 0.3;
         }
         .dobble-element {
             display: flex;
@@ -57,15 +69,21 @@
             align-items: center;
             background-color: #fff;
             border-radius: 8px;
-            font-size: 2em;
+            font-size: 5vw; /* 根據視窗寬度調整字體大小 */
             font-weight: bold;
-            /* 修正：移除 text-transform: lowercase; */
-            padding: 10px;
+            padding: 1vw;
             box-sizing: border-box;
             user-select: none;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        @media (min-width: 768px) {
+            .dobble-element {
+                font-size: 3vw; /* 大螢幕時字體大小調整 */
+            }
         }
         button {
-            padding: 10px 20px;
+            padding: 1.5vh 3vw;
             font-size: 1.2em;
             cursor: pointer;
             border: none;
@@ -81,20 +99,15 @@
             display: none;
         }
         .rule-text {
-            font-size: 1em; /* 規則文字大小 */
+            font-size: 1em;
             color: #333;
-            margin-top: 15px;
-            margin-bottom: 5px;
+            margin-top: 1.5vh;
+            margin-bottom: 0.5vh;
         }
         .designer-info {
-            font-size: 0.8em; /* 設計者資訊大小 */
+            font-size: 0.8em;
             color: #555;
-            margin-top: 10px;
-        }
-        @media (min-width: 768px) {
-            .card-wrapper {
-                width: calc(50% - 10px);
-            }
+            margin-top: 1vh;
         }
     </style>
 </head>
@@ -151,6 +164,7 @@
         const card2Element = document.getElementById('card2');
         const changeCardsBtn = document.getElementById('changeCardsBtn');
         const cardKeys = Object.keys(cards);
+        let commonElement = '';
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -160,7 +174,44 @@
             return array;
         }
 
+        function findCommonElement(arr1, arr2) {
+            const set1 = new Set(arr1);
+            for (const item of arr2) {
+                if (set1.has(item)) {
+                    return item;
+                }
+            }
+            return null;
+        }
+
+        function clearFeedback() {
+            card1Element.classList.remove('darken');
+            card2Element.classList.remove('darken');
+            document.querySelectorAll('.dobble-element').forEach(el => {
+                el.classList.remove('highlight');
+            });
+        }
+
+        function handleElementClick(e) {
+            clearFeedback();
+
+            const clickedElementText = e.target.textContent;
+
+            if (clickedElementText === commonElement) {
+                document.querySelectorAll('.dobble-element').forEach(el => {
+                    if (el.textContent === commonElement) {
+                        el.classList.add('highlight');
+                    }
+                });
+            } else {
+                card1Element.classList.add('darken');
+                card2Element.classList.add('darken');
+            }
+        }
+
         function showRandomCards() {
+            clearFeedback();
+
             let card1Key, card2Key;
             
             do {
@@ -168,14 +219,20 @@
                 card2Key = cardKeys[Math.floor(Math.random() * cardKeys.length)];
             } while (card1Key === card2Key);
 
-            const shuffledCard1 = shuffleArray([...cards[card1Key]]);
-            const shuffledCard2 = shuffleArray([...cards[card2Key]]);
+            const card1Data = cards[card1Key];
+            const card2Data = cards[card2Key];
+
+            commonElement = findCommonElement(card1Data, card2Data);
+
+            const shuffledCard1 = shuffleArray([...card1Data]);
+            const shuffledCard2 = shuffleArray([...card2Data]);
 
             card1Element.innerHTML = '';
             shuffledCard1.forEach(item => {
                 const element = document.createElement('div');
                 element.className = 'dobble-element';
                 element.textContent = item;
+                element.addEventListener('click', handleElementClick);
                 card1Element.appendChild(element);
             });
 
@@ -184,6 +241,7 @@
                 const element = document.createElement('div');
                 element.className = 'dobble-element';
                 element.textContent = item;
+                element.addEventListener('click', handleElementClick);
                 card2Element.appendChild(element);
             });
         }
