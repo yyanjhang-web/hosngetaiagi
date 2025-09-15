@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dobble羅馬字</title>
+    <title>基礎版_無入聲_表格回饋版</title>
     <style>
         body {
             display: flex;
@@ -77,24 +77,21 @@
             cursor: pointer;
             transition: background-color 0.2s, transform 0.2s, font-size 0.2s;
         }
-        /* 答對回饋樣式 - 必須放在較後面的位置，避免被其他樣式覆蓋 */
         .dobble-element.highlight {
-            background-color: #ffcc00; /* 亮黃色 */
-            transform: scale(1.05); /* 放大效果 */
+            background-color: #ffcc00;
+            transform: scale(1.05);
             border: 2px solid #e0b300;
         }
-
         /* 手機版字體大小 */
         @media (max-width: 767px) {
             .dobble-element {
-                font-size: 8vw; /* 在小螢幕上使用vw單位 */
+                font-size: 8vw;
             }
         }
-
         /* 電腦版字體大小 */
         @media (min-width: 768px) {
             .dobble-element {
-                font-size: 3vw; /* 在大螢幕上使用vw單位 */
+                font-size: 3vw;
             }
         }
         button {
@@ -180,6 +177,7 @@
         const changeCardsBtn = document.getElementById('changeCardsBtn');
         const cardKeys = Object.keys(cards);
         let commonElement = '';
+        let gameLocked = false; // 新增狀態變數
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -208,23 +206,31 @@
         }
 
         function handleElementClick(e) {
-            clearFeedback();
+            if (gameLocked) { // 檢查遊戲是否已鎖定
+                return; // 如果鎖定，直接退出函式，不做任何事
+            }
+            
+            clearFeedback(); // 每次點擊都先清除之前的回饋
 
             const clickedElementText = e.target.textContent;
 
             if (clickedElementText === commonElement) {
+                // 如果答對，標亮共同元素
                 document.querySelectorAll('.dobble-element').forEach(el => {
                     if (el.textContent === commonElement) {
                         el.classList.add('highlight');
                     }
                 });
             } else {
+                // 如果答錯，整張卡牌變暗並鎖定遊戲
                 card1Element.classList.add('darken');
                 card2Element.classList.add('darken');
+                gameLocked = true; // 設置遊戲為鎖定狀態
             }
         }
 
         function showRandomCards() {
+            gameLocked = false; // 重置遊戲鎖定狀態
             clearFeedback();
 
             let card1Key, card2Key;
