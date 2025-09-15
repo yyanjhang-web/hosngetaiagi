@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基礎版_無入聲_回饋雙表格</title>
+    <title>基礎版_無入聲_對戰回饋</title>
     <style>
         body {
             display: flex;
@@ -25,7 +25,7 @@
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
-            gap: 5vmin; /* 增加左右兩張卡牌之間的間距 */
+            gap: 5vmin;
             margin-bottom: 2vmin;
             width: 100%;
             max-width: 90vmin;
@@ -78,10 +78,17 @@
             cursor: pointer;
             transition: background-color 0.2s, transform 0.2s, font-size 0.2s;
         }
-        .dobble-element.highlight {
-            background-color: #ffcc00;
+        /* 答對回饋 - 淺藍色 */
+        .dobble-element.highlight-blue {
+            background-color: #add8e6;
             transform: scale(1.05);
-            border: 2px solid #e0b300;
+            border: 2px solid #5a94a6;
+        }
+        /* 答對回饋 - 淺綠色 */
+        .dobble-element.highlight-green {
+            background-color: #90ee90;
+            transform: scale(1.05);
+            border: 2px solid #4a8a4a;
         }
         button {
             padding: 1.5vmin 3vmin;
@@ -187,7 +194,7 @@
             card1Element.classList.remove('darken');
             card2Element.classList.remove('darken');
             document.querySelectorAll('.dobble-element').forEach(el => {
-                el.classList.remove('highlight');
+                el.classList.remove('highlight-blue', 'highlight-green');
             });
         }
 
@@ -199,14 +206,20 @@
             clearFeedback();
 
             const clickedElementText = e.target.textContent;
+            const clickedCardId = e.target.parentNode.id;
 
             if (clickedElementText === commonElement) {
+                // 答對，根據點擊的卡牌上色並鎖定遊戲
+                gameLocked = true;
+                const highlightClass = (clickedCardId === 'card1') ? 'highlight-blue' : 'highlight-green';
+                
                 document.querySelectorAll('.dobble-element').forEach(el => {
                     if (el.textContent === commonElement) {
-                        el.classList.add('highlight');
+                        el.classList.add(highlightClass);
                     }
                 });
             } else {
+                // 答錯，卡牌變暗並鎖定遊戲
                 card1Element.classList.add('darken');
                 card2Element.classList.add('darken');
                 gameLocked = true;
