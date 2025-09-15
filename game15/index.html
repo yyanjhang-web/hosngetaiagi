@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基礎版_無入聲_對戰回饋</title>
+    <title>Dobble羅馬字</title>
     <style>
         body {
             display: flex;
@@ -60,8 +60,14 @@
         #card2 {
             background-color: #e6ffe6;
         }
-        .dobble-card.darken {
-            background-color: #999;
+        /* 答錯回饋 - 左邊（深藍色） */
+        #card1.darken-left, #card2.darken-left {
+            background-color: #1E517C;
+            opacity: 0.3;
+        }
+        /* 答錯回饋 - 右邊（淺橄欖綠） */
+        #card1.darken-right, #card2.darken-right {
+            background-color: #84B685;
             opacity: 0.3;
         }
         .dobble-element {
@@ -110,7 +116,7 @@
             margin-bottom: 0.5vmin;
         }
         .designer-info {
-            font-size: 1.5vmin;
+            font-size: 1.5vmin; /* 調整為1.5vmin，比規則小但比1.2vmin大 */
             color: #555;
             margin-top: 1vmin;
         }
@@ -128,7 +134,7 @@
     
     <button id="changeCardsBtn">換一張</button>
     <div class="rule-text">規則：找出兩張卡中相同的元素，並大聲說出來</div>
-    <div class="designer-info">設計者：Iônn, Àn-tsiong</div>
+    <div class="designer-info">設計者：Iônn, Àn-tsiong；技術支援：Hibiki</div>
 
     <script>
         const cards = {
@@ -191,8 +197,8 @@
         }
 
         function clearFeedback() {
-            card1Element.classList.remove('darken');
-            card2Element.classList.remove('darken');
+            card1Element.classList.remove('darken-left', 'darken-right');
+            card2Element.classList.remove('darken-left', 'darken-right');
             document.querySelectorAll('.dobble-element').forEach(el => {
                 el.classList.remove('highlight-blue', 'highlight-green');
             });
@@ -209,7 +215,6 @@
             const clickedCardId = e.target.parentNode.id;
 
             if (clickedElementText === commonElement) {
-                // 答對，根據點擊的卡牌上色並鎖定遊戲
                 gameLocked = true;
                 const highlightClass = (clickedCardId === 'card1') ? 'highlight-blue' : 'highlight-green';
                 
@@ -219,10 +224,10 @@
                     }
                 });
             } else {
-                // 答錯，卡牌變暗並鎖定遊戲
-                card1Element.classList.add('darken');
-                card2Element.classList.add('darken');
                 gameLocked = true;
+                const darkenClass = (clickedCardId === 'card1') ? 'darken-left' : 'darken-right';
+                card1Element.classList.add(darkenClass);
+                card2Element.classList.add(darkenClass);
             }
         }
 
