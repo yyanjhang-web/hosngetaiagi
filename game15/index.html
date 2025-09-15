@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基礎版_無入聲_雙表格含回饋</title>
+    <title>Dobble羅馬字</title>
     <style>
         body {
             display: flex;
@@ -15,23 +15,24 @@
             background-color: #f0f0f0;
             font-family: '微軟正黑體', 'Arial', sans-serif;
             text-align: center;
-            padding: 2vh 2vw; /* 調整padding為相對單位 */
+            padding: 2vh 2vw;
             box-sizing: border-box;
+            overflow: hidden; /* 隱藏滾動條 */
         }
         .card-container {
             display: flex;
-            flex-direction: column; /* 小螢幕時堆疊 */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
-            gap: 2vh; /* 調整間距為相對單位 */
+            gap: 2vh;
             margin-bottom: 2vh;
             width: 100%;
             max-width: 900px;
         }
         @media (min-width: 768px) {
             .card-container {
-                flex-direction: row; /* 大螢幕時橫向排列 */
+                flex-direction: row;
                 gap: 2vw;
             }
         }
@@ -45,13 +46,13 @@
         .dobble-card {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 1vh; /* 調整網格間距為相對單位 */
+            gap: 1.5vh;
             width: 100%;
-            padding: 2vw; /* 調整卡片padding為相對單位 */
+            padding: 2vh;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             aspect-ratio: 2 / 3;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, opacity 0.3s;
         }
         #card1 {
             background-color: #e6f7ff;
@@ -69,17 +70,31 @@
             align-items: center;
             background-color: #fff;
             border-radius: 8px;
-            font-size: 5vw; /* 根據視窗寬度調整字體大小 */
             font-weight: bold;
             padding: 1vw;
             box-sizing: border-box;
             user-select: none;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.2s;
+            transition: background-color 0.2s, transform 0.2s, font-size 0.2s;
         }
+        /* 答對回饋樣式 - 必須放在較後面的位置，避免被其他樣式覆蓋 */
+        .dobble-element.highlight {
+            background-color: #ffcc00; /* 亮黃色 */
+            transform: scale(1.05); /* 放大效果 */
+            border: 2px solid #e0b300;
+        }
+
+        /* 手機版字體大小 */
+        @media (max-width: 767px) {
+            .dobble-element {
+                font-size: 8vw; /* 在小螢幕上使用vw單位 */
+            }
+        }
+
+        /* 電腦版字體大小 */
         @media (min-width: 768px) {
             .dobble-element {
-                font-size: 3vw; /* 大螢幕時字體大小調整 */
+                font-size: 3vw; /* 在大螢幕上使用vw單位 */
             }
         }
         button {
