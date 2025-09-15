@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基礎版_無入聲_表格回饋版</title>
+    <title>基礎版_無入聲_回饋雙表格</title>
     <style>
         body {
             display: flex;
@@ -15,9 +15,9 @@
             background-color: #f0f0f0;
             font-family: '微軟正黑體', 'Arial', sans-serif;
             text-align: center;
-            padding: 2vh 2vw;
+            padding: 2vmin;
             box-sizing: border-box;
-            overflow: hidden; /* 隱藏滾動條 */
+            overflow: hidden;
         }
         .card-container {
             display: flex;
@@ -25,15 +25,15 @@
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
-            gap: 2vh;
-            margin-bottom: 2vh;
+            gap: 5vmin; /* 增加左右兩張卡牌之間的間距 */
+            margin-bottom: 2vmin;
             width: 100%;
-            max-width: 900px;
+            max-width: 90vmin;
         }
         @media (min-width: 768px) {
             .card-container {
                 flex-direction: row;
-                gap: 2vw;
+                gap: 5vmin;
             }
         }
         .card-wrapper {
@@ -41,14 +41,14 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 400px;
+            max-width: 40vmin;
         }
         .dobble-card {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 1.5vh;
+            gap: 1.5vmin;
             width: 100%;
-            padding: 2vh;
+            padding: 2vmin;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             aspect-ratio: 2 / 3;
@@ -71,7 +71,8 @@
             background-color: #fff;
             border-radius: 8px;
             font-weight: bold;
-            padding: 1vw;
+            font-size: 5vmin;
+            padding: 1vmin;
             box-sizing: border-box;
             user-select: none;
             cursor: pointer;
@@ -82,21 +83,9 @@
             transform: scale(1.05);
             border: 2px solid #e0b300;
         }
-        /* 手機版字體大小 */
-        @media (max-width: 767px) {
-            .dobble-element {
-                font-size: 8vw;
-            }
-        }
-        /* 電腦版字體大小 */
-        @media (min-width: 768px) {
-            .dobble-element {
-                font-size: 3vw;
-            }
-        }
         button {
-            padding: 1.5vh 3vw;
-            font-size: 1.2em;
+            padding: 1.5vmin 3vmin;
+            font-size: 2vmin;
             cursor: pointer;
             border: none;
             border-radius: 5px;
@@ -107,19 +96,16 @@
         button:hover {
             background-color: #0056b3;
         }
-        .card-number {
-            display: none;
-        }
         .rule-text {
-            font-size: 1em;
+            font-size: 2vmin;
             color: #333;
-            margin-top: 1.5vh;
-            margin-bottom: 0.5vh;
+            margin-top: 1.5vmin;
+            margin-bottom: 0.5vmin;
         }
         .designer-info {
-            font-size: 0.8em;
+            font-size: 1.5vmin;
             color: #555;
-            margin-top: 1vh;
+            margin-top: 1vmin;
         }
     </style>
 </head>
@@ -177,7 +163,7 @@
         const changeCardsBtn = document.getElementById('changeCardsBtn');
         const cardKeys = Object.keys(cards);
         let commonElement = '';
-        let gameLocked = false; // 新增狀態變數
+        let gameLocked = false;
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -206,31 +192,29 @@
         }
 
         function handleElementClick(e) {
-            if (gameLocked) { // 檢查遊戲是否已鎖定
-                return; // 如果鎖定，直接退出函式，不做任何事
+            if (gameLocked) {
+                return;
             }
             
-            clearFeedback(); // 每次點擊都先清除之前的回饋
+            clearFeedback();
 
             const clickedElementText = e.target.textContent;
 
             if (clickedElementText === commonElement) {
-                // 如果答對，標亮共同元素
                 document.querySelectorAll('.dobble-element').forEach(el => {
                     if (el.textContent === commonElement) {
                         el.classList.add('highlight');
                     }
                 });
             } else {
-                // 如果答錯，整張卡牌變暗並鎖定遊戲
                 card1Element.classList.add('darken');
                 card2Element.classList.add('darken');
-                gameLocked = true; // 設置遊戲為鎖定狀態
+                gameLocked = true;
             }
         }
 
         function showRandomCards() {
-            gameLocked = false; // 重置遊戲鎖定狀態
+            gameLocked = false;
             clearFeedback();
 
             let card1Key, card2Key;
