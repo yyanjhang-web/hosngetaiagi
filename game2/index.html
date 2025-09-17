@@ -3,29 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>韻母與入聲</title>
+    <title>韻母_入聲</title>
     <style>
         body {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
+            font-family: '微軟正黑體', 'Arial', sans-serif;
             text-align: center;
+            padding: 2vmin;
+            box-sizing: border-box;
+            overflow: hidden;
         }
-        img {
-            max-width: 90%;
-            max-height: 60vh; /* 調整圖片高度，為文字留出空間 */
-            border: 5px solid #fff;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5vmin;
+            margin-bottom: 2vmin;
+            width: 100%;
+            max-width: 90vmin;
+        }
+        @media (min-width: 768px) {
+            .card-container {
+                flex-direction: row;
+                gap: 5vmin;
+            }
+        }
+        .card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 40vmin;
+        }
+        .dobble-card {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5vmin;
+            width: 100%;
+            padding: 2vmin;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            aspect-ratio: 2 / 3;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+        #card1 {
+            background-color: #e6f7ff;
+        }
+        #card2 {
+            background-color: #e6ffe6;
+        }
+        /* 答錯回饋 - 左邊（深藍色） */
+        #card1.darken-left, #card2.darken-left {
+            background-color: #1E517C;
+            opacity: 0.3;
+        }
+        /* 答錯回饋 - 右邊（淺橄欖綠） */
+        #card1.darken-right, #card2.darken-right {
+            background-color: #84B685;
+            opacity: 0.3;
+        }
+        .dobble-element {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 5vmin;
+            padding: 1vmin;
+            box-sizing: border-box;
+            user-select: none;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s, font-size 0.2s;
+        }
+        /* 答對回饋 - 淺藍色 */
+        .dobble-element.highlight-blue {
+            background-color: #add8e6;
+            transform: scale(1.05);
+            border: 2px solid #5a94a6;
+        }
+        /* 答對回饋 - 淺綠色 */
+        .dobble-element.highlight-green {
+            background-color: #90ee90;
+            transform: scale(1.05);
+            border: 2px solid #4a8a4a;
         }
         button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 1.2em;
+            padding: 1.5vmin 3vmin;
+            font-size: 2vmin;
             cursor: pointer;
             border: none;
             border-radius: 5px;
@@ -36,43 +109,168 @@
         button:hover {
             background-color: #0056b3;
         }
-        .rule {
-            margin-top: 20px;
-            font-size: 1em; /* 規則行字體大小 */
+        .rule-text {
+            font-size: 2vmin;
             color: #333;
+            margin-top: 1.5vmin;
+            margin-bottom: 0.5vmin;
         }
         .designer-info {
-            font-size: 0.8em; /* 設計者行字體大小，比規則行小 */
+            font-size: 1.5vmin; /* 調整為1.5vmin，比規則小但比1.2vmin大 */
             color: #555;
-            margin-top: 5px; /* 與規則行的間距 */
+            margin-top: 1vmin;
         }
     </style>
 </head>
 <body>
-    <img id="myImage" src="" alt="隨機圖片">
-    <button id="changeImageBtn">換一張</button>
-
-    <div class="rule">規則：找出任兩張中一樣的，並大聲說出來</div>
-    <div class="designer-info">(設計者：Iônn. 採用spot it generator製作)</div>
-
-    <script src="images.js"></script>
+    <div class="card-container">
+        <div class="card-wrapper">
+            <div class="dobble-card" id="card1"></div>
+        </div>
+        <div class="card-wrapper">
+            <div class="dobble-card" id="card2"></div>
+        </div>
+    </div>
     
-    <script>
-        const imageElement = document.getElementById('myImage');
-        const changeImageBtn = document.getElementById('changeImageBtn');
-        let lastIndex = -1;
+    <button id="changeCardsBtn">換一張</button>
+    <div class="rule-text">規則：找出兩張卡中相同的元素，並大聲說出來</div>
+    <div class="designer-info">設計者：Iônn, Àn-tsiong；技術支援：フォックスコンの響き</div>
 
-        function showRandomImage() {
-            let newIndex;
-            do {
-                newIndex = Math.floor(Math.random() * images.length);
-            } while (newIndex === lastIndex);
-            imageElement.src = images[newIndex];
-            lastIndex = newIndex;
+    <script>
+        const cards = {
+            1: ['-ann', '-uah', '-iu', '-ok', '-iunn', '-am'],
+            2: ['-ann', '-io', '-ang', '-iau', '-ap', '-ui'],
+            3: ['-iu', '-iok', '-ui', '-png', '-iat', '-ue'],
+            4: ['-iok', '-ooh', '-iau', '-am', '-onn', 'ts'],
+            5: ['-ue', 'n̂g', '-enn', 'ts', 'tsh', '-ann'],
+            6: ['-ang', '-ue', '-ak', '-an', '-am', '-ong'],
+            7: ['-iat', '-io', '-au', '-at', '-am', 'tsh'],
+            8: ['-at', '-ian', '-enn', '-iau', '-iu', '-ong'],
+            9: ['n̂g', '-at', '-uah', '-oh', '-ang', '-iok'],
+            10: ['-iat', '-enn', '-an', '-ooh', '-uah', '-ap'],
+            11: ['-uah', '-au', '-ue', '-ua', '-iau', '-ai'],
+            12: ['-iunn', '-ian', '-ai', 'ts', '-iat', '-ang'],
+            13: ['-inn', '-onn', '-ap', '-iunn', '-ue', '-at'],
+            14: ['-iok', '-ap', 'tsh', '-ong', '-ai', '-ok'],
+            15: ['-ok', '-ak', 'n̂g', '-inn', '-iau', '-iat'],
+            16: ['-ak', '-at', '-ai', '-ooh', '-ann', '-png'],
+            17: ['-oh', '-iau', '-png', '-iunn', 'tsh', '-an'],
+            18: ['-ian', '-onn', '-ak', '-ui', '-uah', 'tsh'],
+            19: ['-am', 'n̂g', '-ian', '-ap', '-png', '-ua'],
+            20: ['-an', '-ua', '-at', 'ts', '-ui', '-ok'],
+            21: ['-inn', '-ui', '-enn', '-ai', '-am', '-oh'],
+            22: ['-au', '-ang', '-onn', '-enn', '-png', '-ok'],
+            23: ['-ian', '-iok', '-au', '-ann', '-an', '-inn'],
+            24: ['-ooh', '-io', '-ok', '-oh', '-ue', '-ian'],
+            25: ['-iat', '-ann', '-ong', '-ua', '-oh', '-onn'],
+            26: ['-oh', 'ts', '-iu', '-ap', '-ak', '-au'],
+            27: ['ts', '-png', '-ong', '-uah', '-inn', '-io'],
+            28: ['-ua', '-ooh', '-inn', 'tsh', '-iu', '-ang'],
+            29: ['-ui', '-ooh', '-au', '-iunn', 'n̂g', '-ong'],
+            30: ['-enn', '-ak', '-iok', '-ua', '-io', '-iunn'],
+            31: ['-iu', 'n̂g', '-onn', '-ai', '-an', '-io'],
+        };
+
+        const card1Element = document.getElementById('card1');
+        const card2Element = document.getElementById('card2');
+        const changeCardsBtn = document.getElementById('changeCardsBtn');
+        const cardKeys = Object.keys(cards);
+        let commonElement = '';
+        let gameLocked = false;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
         }
 
-        window.onload = showRandomImage;
-        changeImageBtn.addEventListener('click', showRandomImage);
+        function findCommonElement(arr1, arr2) {
+            const set1 = new Set(arr1);
+            for (const item of arr2) {
+                if (set1.has(item)) {
+                    return item;
+                }
+            }
+            return null;
+        }
+
+        function clearFeedback() {
+            card1Element.classList.remove('darken-left', 'darken-right');
+            card2Element.classList.remove('darken-left', 'darken-right');
+            document.querySelectorAll('.dobble-element').forEach(el => {
+                el.classList.remove('highlight-blue', 'highlight-green');
+            });
+        }
+
+        function handleElementClick(e) {
+            if (gameLocked) {
+                return;
+            }
+            
+            clearFeedback();
+
+            const clickedElementText = e.target.textContent;
+            const clickedCardId = e.target.parentNode.id;
+
+            if (clickedElementText === commonElement) {
+                gameLocked = true;
+                const highlightClass = (clickedCardId === 'card1') ? 'highlight-blue' : 'highlight-green';
+                
+                document.querySelectorAll('.dobble-element').forEach(el => {
+                    if (el.textContent === commonElement) {
+                        el.classList.add(highlightClass);
+                    }
+                });
+            } else {
+                gameLocked = true;
+                const darkenClass = (clickedCardId === 'card1') ? 'darken-left' : 'darken-right';
+                card1Element.classList.add(darkenClass);
+                card2Element.classList.add(darkenClass);
+            }
+        }
+
+        function showRandomCards() {
+            gameLocked = false;
+            clearFeedback();
+
+            let card1Key, card2Key;
+            
+            do {
+                card1Key = cardKeys[Math.floor(Math.random() * cardKeys.length)];
+                card2Key = cardKeys[Math.floor(Math.random() * cardKeys.length)];
+            } while (card1Key === card2Key);
+
+            const card1Data = cards[card1Key];
+            const card2Data = cards[card2Key];
+
+            commonElement = findCommonElement(card1Data, card2Data);
+
+            const shuffledCard1 = shuffleArray([...card1Data]);
+            const shuffledCard2 = shuffleArray([...card2Data]);
+
+            card1Element.innerHTML = '';
+            shuffledCard1.forEach(item => {
+                const element = document.createElement('div');
+                element.className = 'dobble-element';
+                element.textContent = item;
+                element.addEventListener('click', handleElementClick);
+                card1Element.appendChild(element);
+            });
+
+            card2Element.innerHTML = '';
+            shuffledCard2.forEach(item => {
+                const element = document.createElement('div');
+                element.className = 'dobble-element';
+                element.textContent = item;
+                element.addEventListener('click', handleElementClick);
+                card2Element.appendChild(element);
+            });
+        }
+
+        window.onload = showRandomCards;
+        changeCardsBtn.addEventListener('click', showRandomCards);
     </script>
 </body>
 </html>
