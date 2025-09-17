@@ -86,6 +86,8 @@
             cursor: pointer;
             transition: background-color 0.2s, transform 0.2s, font-size 0.2s;
             text-align: center;
+            /* 修正：使用更穩定的換行方法 */
+            word-wrap: break-word;
             word-break: normal;
             hyphens: auto;
         }
@@ -210,9 +212,8 @@
             if (!clickedElement) return;
 
             const clickedCardId = clickedElement.parentNode.id;
-
-            // 修正：從 innerHTML 獲取內容，並移除所有可能的特殊符號（零寬度空格和軟連字號）
-            const clickedText = clickedElement.innerHTML.replace(/&#8203;|&shy;/g, '').replace(/[\s\t\n\r]/g, '');
+            // 修正: 直接從textContent獲取文字，沒有特殊符號干擾
+            const clickedText = clickedElement.textContent.trim();
 
             const isCorrect = (clickedText === correctPair.hanji || clickedText === correctPair.loma);
 
@@ -222,7 +223,8 @@
 
                 const allElements = document.querySelectorAll('.dobble-element');
                 allElements.forEach(el => {
-                    const elText = el.innerHTML.replace(/&#8203;|&shy;/g, '').replace(/[\s\t\n\r]/g, '');
+                    // 修正: 直接用textContent比對，並移除前後空格
+                    const elText = el.textContent.trim();
                     if (elText === correctPair.hanji || elText === correctPair.loma) {
                         el.classList.add(highlightClass);
                     }
@@ -327,7 +329,8 @@
                 const element = document.createElement('div');
                 element.className = 'dobble-element';
                 element.classList.add(vocabulary[text] ? 'hanji' : 'loma');
-                element.innerHTML = text.replace(/-/g, '&#8203;&shy;');
+                // 修正: 不再對文字進行特殊處理，直接顯示
+                element.textContent = text;
                 element.addEventListener('click', handleElementClick);
                 cardElement.appendChild(element);
             });
