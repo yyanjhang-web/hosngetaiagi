@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B1L1_我會曉煮菜_對對碰</title>
+    <title>B1L1我會曉煮菜_對對碰</title>
     <style>
         body {
             display: flex;
@@ -160,7 +160,7 @@
             '炕': 'khòng',
             '(火君)': 'kûn',
             '牽粉': 'khan-hún',
-            '剾皮': 'khau-phuê', // 修正為你要求的拼寫
+            '剾皮': 'khau-phuê',
             '揀菜': 'kíng-tshài',
             '滷': 'lóo',
             '抹鹽': 'buah-iâm',
@@ -282,17 +282,28 @@
                     }
                 }
             }
-
-            // 4. 將詞彙分配到兩張卡片，確保每張卡有2個漢字，2個羅馬字
-            const card1Hanji = [correctPair.hanji, interferenceHanji[0]];
-            const card1Loma = [interferenceLoma[0], interferenceLoma[1]];
             
-            const card2Hanji = [interferenceHanji[1], interferenceHanji[2]];
-            const card2Loma = [correctPair.loma, interferenceLoma[2]];
+            // 4. 將詞彙分配到兩張卡片，確保每張卡有2個漢字，2個羅馬字
+            const cardA_Hanji = [correctPair.hanji, interferenceHanji[0]];
+            const cardA_Loma = [interferenceLoma[0], interferenceLoma[1]];
+            
+            const cardB_Hanji = [interferenceHanji[1], interferenceHanji[2]];
+            const cardB_Loma = [correctPair.loma, interferenceLoma[2]];
 
-            // 5. 組合成最終的卡片內容，並隨機打亂
-            const card1Content = shuffleArray([...card1Hanji, ...card1Loma]);
-            const card2Content = shuffleArray([...card2Hanji, ...card2Loma]);
+            // 5. 根據你的建議，加入50%的機率來交換卡片內容
+            const swapCards = Math.random() < 0.5;
+
+            let card1Content, card2Content;
+
+            if (swapCards) {
+                // 交換卡片內容，使正確答案的羅馬字出現在左邊
+                card1Content = shuffleArray([...cardB_Hanji, ...cardB_Loma]);
+                card2Content = shuffleArray([...cardA_Hanji, ...cardA_Loma]);
+            } else {
+                // 保持原樣，正確答案的漢字詞出現在左邊
+                card1Content = shuffleArray([...cardA_Hanji, ...cardA_Loma]);
+                card2Content = shuffleArray([...cardB_Hanji, ...cardB_Loma]);
+            }
 
             // 6. 渲染卡片
             updateCard(card1Element, card1Content);
