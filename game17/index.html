@@ -210,7 +210,9 @@
             if (!clickedElement) return;
 
             const clickedCardId = clickedElement.parentNode.id;
-            const clickedText = clickedElement.textContent.replace(/\s/g, '');
+
+            // 修正：從 innerHTML 獲取內容，並移除所有可能的特殊符號（零寬度空格和軟連字號）
+            const clickedText = clickedElement.innerHTML.replace(/&#8203;|&shy;/g, '').replace(/[\s\t\n\r]/g, '');
 
             const isCorrect = (clickedText === correctPair.hanji || clickedText === correctPair.loma);
 
@@ -220,7 +222,8 @@
 
                 const allElements = document.querySelectorAll('.dobble-element');
                 allElements.forEach(el => {
-                    if (el.textContent.replace(/\s/g, '') === correctPair.hanji || el.textContent.replace(/\s/g, '') === correctPair.loma) {
+                    const elText = el.innerHTML.replace(/&#8203;|&shy;/g, '').replace(/[\s\t\n\r]/g, '');
+                    if (elText === correctPair.hanji || elText === correctPair.loma) {
                         el.classList.add(highlightClass);
                     }
                 });
