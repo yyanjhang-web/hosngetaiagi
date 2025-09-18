@@ -238,37 +238,44 @@
             gameLocked = false;
             clearFeedback();
 
-            // 從所有詞彙中隨機選取一組作為正確配對
+            // 1. 隨機選取一組唯一的正確配對
             const correctPairEntry = vocabularyEntries[Math.floor(Math.random() * vocabularyEntries.length)];
             correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
 
-            // 隨機選取所有非正確配對的詞彙
-            const nonCorrectPairs = vocabularyEntries.filter(pair => pair[0] !== correctPair.hanji);
+            // 2. 隨機選取三個不與正確配對相關的漢字和羅馬字作為干擾項
+            const allHanji = vocabularyEntries.map(p => p[0]);
+            const allLoma = vocabularyEntries.map(p => p[1]);
+            const remainingHanji = allHanji.filter(h => h !== correctPair.hanji);
+            const remainingLoma = allLoma.filter(l => l !== correctPair.loma);
 
-            // 隨機從非正確配對中選取三個漢字詞和三個羅馬字作為干擾項
-            const shuffledNonCorrect = shuffleArray([...nonCorrectPairs]);
-            let interferenceHanji = shuffledNonCorrect.map(p => p[0]).slice(0, 3);
-            let interferenceLoma = shuffledNonCorrect.map(p => p[1]).slice(0, 3);
+            const shuffledHanji = shuffleArray([...remainingHanji]);
+            const shuffledLoma = shuffleArray([...remainingLoma]);
 
-            // 確保干擾項中沒有任何意外的配對
-            for (let i = 0; i < interferenceHanji.length; i++) {
-                const hanji = interferenceHanji[i];
-                const expectedLoma = vocabulary[hanji];
-                if (interferenceLoma.includes(expectedLoma)) {
-                    // 如果出現配對，替換掉羅馬字
-                    const index = interferenceLoma.indexOf(expectedLoma);
-                    const newLoma = vocabularyEntries.find(p => !interferenceLoma.includes(p[1]) && p[1] !== correctPair.loma)?.[1];
-                    if (newLoma) {
-                        interferenceLoma[index] = newLoma;
-                    }
+            let interferenceHanji = [];
+            let interferenceLoma = [];
+
+            // 挑選干擾詞，並確保它們之間沒有任何配對關係
+            while (interferenceHanji.length < 3) {
+                const hanji = shuffledHanji.pop();
+                const loma = vocabulary[hanji];
+                if (!shuffledLoma.includes(loma) && !interferenceLoma.includes(loma)) {
+                    interferenceHanji.push(hanji);
                 }
             }
 
-            // 構建卡片內容，確保只有一個正確配對
+            while (interferenceLoma.length < 3) {
+                const loma = shuffledLoma.pop();
+                const hanji = lomaToHanji[loma];
+                if (!shuffledHanji.includes(hanji) && !interferenceHanji.includes(hanji)) {
+                    interferenceLoma.push(loma);
+                }
+            }
+
+            // 3. 構建卡片內容，確保只有一個正確配對
             const card1Content = [correctPair.hanji, interferenceHanji[0], interferenceLoma[0], interferenceLoma[1]];
             const card2Content = [correctPair.loma, interferenceHanji[1], interferenceHanji[2], interferenceLoma[2]];
 
-            // 打亂每張卡片的內容順序
+            // 4. 打亂每張卡片的內容順序
             updateCard(card1Element, shuffleArray(card1Content));
             updateCard(card2Element, shuffleArray(card2Content));
         }
