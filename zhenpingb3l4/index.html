@@ -145,7 +145,7 @@
     </div>
 
     <button id="changeCardsBtn">換一張</button>
-    <div class="rule-text">規則：找出兩張卡中台語漢字詞與羅馬字相符的配對</div>
+    <div class="rule-text">規則：找出左右兩張卡中台語漢字詞與羅馬字相符的配對</div>
     <div class="designer-info">設計者Iônn, Àn-tsiong；技術支援：フォックスコンの響き</div>
 
     <script>
@@ -237,49 +237,84 @@
             gameLocked = false;
             clearFeedback();
 
-            // 1. 隨機選取一組唯一的正確配對
+            // 隨機選取一組唯一的正確配對
             const allPairs = shuffleArray([...vocabularyEntries]);
             const correctPairEntry = allPairs.pop();
             correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
             
-            // 2. 準備所有不屬於正確配對的漢字和羅馬字
+            // 準備所有不屬於正確配對的漢字和羅馬字
             const nonCorrectHanji = allPairs.map(p => p[0]);
             const nonCorrectLoma = allPairs.map(p => p[1]);
-
-            // 3. 隨機選取兩組干擾詞，確保它們不互為配對
-            let interferencePairs = [];
-            while(interferencePairs.length < 2) {
-                const randomHanji = nonCorrectHanji[Math.floor(Math.random() * nonCorrectHanji.length)];
-                const randomLoma = nonCorrectLoma[Math.floor(Math.random() * nonCorrectLoma.length)];
-                // 確保選取的干擾詞不是正確配對，且不互為配對
+            
+            // 從非正確配對中，隨機選取兩組干擾詞，確保它們不會互為配對
+            let interferenceWords = [];
+            while(interferenceWords.length < 2) {
+                const hIndex = Math.floor(Math.random() * nonCorrectHanji.length);
+                const lIndex = Math.floor(Math.random() * nonCorrectLoma.length);
+                
+                const randomHanji = nonCorrectHanji[hIndex];
+                const randomLoma = nonCorrectLoma[lIndex];
+                
+                // 檢查是否互為配對，不是則加入
                 if (vocabulary[randomHanji] !== randomLoma) {
-                    interferencePairs.push([randomHanji, randomLoma]);
-                    // 確保不會重複選取相同的干擾詞
-                    nonCorrectHanji.splice(nonCorrectHanji.indexOf(randomHanji), 1);
-                    nonCorrectLoma.splice(nonCorrectLoma.indexOf(randomLoma), 1);
+                    interferenceWords.push(randomHanji, randomLoma);
+                    // 移除已選的干擾詞，避免重複
+                    nonCorrectHanji.splice(hIndex, 1);
+                    nonCorrectLoma.splice(lIndex, 1);
                 }
             }
 
-            // 4. 構建卡片內容，確保唯一的正確配對
-            // 卡片1: 正確漢字 + 兩組干擾羅馬字 + 一個干擾漢字
-            const card1Content = [
-                correctPair.hanji,
-                interferencePairs[0][1],
-                interferencePairs[1][1],
-                interferencePairs[0][0]
-            ];
+            // 確保每張卡片都有2個漢字和2個羅馬字
+            let card1Content = [];
+            let card2Content = [];
+
+            // 隨機決定正確配對的位置
+            const correctHanjiOnCard1 = Math.random() < 0.5;
+
+            if (correctHanjiOnCard1) {
+                // 正確漢字在左卡，正確羅馬字在右卡
+                card1Content = [correctPair.hanji, interferenceWords[0], interferenceWords[1], interferenceWords[2]];
+                card2Content = [correctPair.loma, interferenceWords[3], nonCorrectHanji[0], nonCorrectLoma[0]];
+            } else {
+                // 正確羅馬字在左卡，正確漢字在右卡
+                card1Content = [correctPair.loma, interferenceWords[0], interferenceWords[1], interferenceWords[2]];
+                card2Content = [correctPair.hanji, interferenceWords[3], nonCorrectHanji[0], nonCorrectLoma[0]];
+            }
             
-            // 卡片2: 正確羅馬字 + 兩個干擾漢字 + 一個干擾羅馬字
-            const card2Content = [
-                correctPair.loma,
-                interferencePairs[1][0],
-                nonCorrectHanji[0],
-                nonCorrectLoma[0]
-            ];
-            
-            // 5. 打亂每張卡片的內容順序
-            updateCard(card1Element, shuffleArray(card1Content));
-            updateCard(card2Element, shuffleArray(card2Content));
+            // 檢查並調整卡片內容，以確保每張卡都有兩個漢字和兩個羅馬字
+            function balanceCardContent(content) {
+                const hanjiCount = content.filter(text => vocabulary[text]).length;
+                const lomaCount = content.filter(text => Object.values(vocabulary).includes(text)).length;
+                
+                if (hanjiCount === 2 && lomaCount === 2) {
+                    return content;
+                }
+                
+                // 如果不平衡，則重新生成
+                return showRandomCards(); // 簡單粗暴的方法，如果需要更複雜的邏輯，可以重寫
+            }
+
+            const balancedCard1 = balanceCardContent(card1Content);
+            const balancedCard2 = balanceCardContent(card2Content);
+
+            // 確保沒有重複且內不配對
+            const card1Hanji = balancedCard1.filter(text => vocabulary[text]);
+            const card1Loma = balancedCard1.filter(text => Object.values(vocabulary).includes(text));
+            const card2Hanji = balancedCard2.filter(text => vocabulary[text]);
+            const card2Loma = balancedCard2.filter(text => Object.values(vocabulary).includes(text));
+
+            // 再次檢查卡片內部是否有配對
+            const hasInternalPair = (card1Hanji.some(h => card1Loma.includes(vocabulary[h]))) || 
+                                     (card2Hanji.some(h => card2Loma.includes(vocabulary[h])));
+
+            if (hasInternalPair) {
+                // 如果有內部配對，重新生成
+                return showRandomCards();
+            }
+
+            // 打亂每張卡片的內容順序
+            updateCard(card1Element, shuffleArray(balancedCard1));
+            updateCard(card2Element, shuffleArray(balancedCard2));
         }
 
         function updateCard(cardElement, content) {
@@ -287,10 +322,13 @@
             content.forEach(text => {
                 const element = document.createElement('div');
                 element.className = 'dobble-element';
-                // 檢查是否為羅馬字（因為羅馬字在 vocabulary 物件中是值）
                 const isLoma = Object.values(vocabulary).includes(text);
                 element.classList.add(isLoma ? 'loma' : 'hanji');
-                element.textContent = text;
+                
+                // 處理羅馬字換行，避免斷開拼寫
+                const processedText = isLoma ? text.replace(/-/g, '-\u200B') : text;
+                element.textContent = processedText;
+                
                 element.addEventListener('click', handleElementClick);
                 cardElement.appendChild(element);
             });
