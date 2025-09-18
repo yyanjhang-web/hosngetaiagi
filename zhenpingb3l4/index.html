@@ -241,18 +241,43 @@
             const allPairs = shuffleArray([...vocabularyEntries]);
             const correctPairEntry = allPairs.pop();
             correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
-
-            // 2. 隨機選取三組不與正確配對相關的干擾詞彙
-            const interferencePairs = shuffleArray(allPairs).slice(0, 3);
-            const interferenceHanji = interferencePairs.map(p => p[0]);
-            const interferenceLoma = interferencePairs.map(p => p[1]);
             
-            // 3. 構建卡片內容，確保唯一的正確配對
-            // 將正確配對拆分到兩張卡片上，並加入干擾詞
-            const card1Content = [correctPair.hanji, interferenceHanji[0], interferenceLoma[0], interferenceLoma[1]];
-            const card2Content = [correctPair.loma, interferenceHanji[1], interferenceHanji[2], interferenceLoma[2]];
+            // 2. 準備所有不屬於正確配對的漢字和羅馬字
+            const nonCorrectHanji = allPairs.map(p => p[0]);
+            const nonCorrectLoma = allPairs.map(p => p[1]);
 
-            // 4. 打亂每張卡片的內容順序
+            // 3. 隨機選取兩組干擾詞，確保它們不互為配對
+            let interferencePairs = [];
+            while(interferencePairs.length < 2) {
+                const randomHanji = nonCorrectHanji[Math.floor(Math.random() * nonCorrectHanji.length)];
+                const randomLoma = nonCorrectLoma[Math.floor(Math.random() * nonCorrectLoma.length)];
+                // 確保選取的干擾詞不是正確配對，且不互為配對
+                if (vocabulary[randomHanji] !== randomLoma) {
+                    interferencePairs.push([randomHanji, randomLoma]);
+                    // 確保不會重複選取相同的干擾詞
+                    nonCorrectHanji.splice(nonCorrectHanji.indexOf(randomHanji), 1);
+                    nonCorrectLoma.splice(nonCorrectLoma.indexOf(randomLoma), 1);
+                }
+            }
+
+            // 4. 構建卡片內容，確保唯一的正確配對
+            // 卡片1: 正確漢字 + 兩組干擾羅馬字 + 一個干擾漢字
+            const card1Content = [
+                correctPair.hanji,
+                interferencePairs[0][1],
+                interferencePairs[1][1],
+                interferencePairs[0][0]
+            ];
+            
+            // 卡片2: 正確羅馬字 + 兩個干擾漢字 + 一個干擾羅馬字
+            const card2Content = [
+                correctPair.loma,
+                interferencePairs[1][0],
+                nonCorrectHanji[0],
+                nonCorrectLoma[0]
+            ];
+            
+            // 5. 打亂每張卡片的內容順序
             updateCard(card1Element, shuffleArray(card1Content));
             updateCard(card2Element, shuffleArray(card2Content));
         }
