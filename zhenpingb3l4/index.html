@@ -232,3 +232,100 @@
                 const darkenClass = (clickedCardId === 'card1') ? 'darken-left' : 'darken-right';
                 card1Element.classList.add(darkenClass);
                 card2Element.classList.add(darkenClass);
+            }
+        }
+
+        function showRandomCards() {
+            gameLocked = false;
+            clearFeedback();
+
+            let hasValidCards = false;
+            let cardA_Hanji, cardA_Loma, cardB_Hanji, cardB_Loma;
+
+            while (!hasValidCards) {
+                const shuffledVocab = shuffleArray([...vocabularyEntries]);
+                const correctPairEntry = shuffledVocab[0];
+                correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
+                
+                const remainingPairs = shuffledVocab.slice(1);
+                const remainingHanji = remainingPairs.map(p => p[0]);
+                const remainingLoma = remainingPairs.map(p => p[1]);
+                
+                const shuffledHanji = shuffleArray([...remainingHanji]);
+                const shuffledLoma = shuffleArray([...remainingLoma]);
+                
+                let interferenceHanji = [];
+                let interferenceLoma = [];
+
+                while (interferenceHanji.length < 3) {
+                    const item = shuffledHanji.pop();
+                    if (item !== correctPair.hanji) {
+                        interferenceHanji.push(item);
+                    }
+                }
+                while (interferenceLoma.length < 3) {
+                    const item = shuffledLoma.pop();
+                    if (item !== correctPair.loma) {
+                        interferenceLoma.push(item);
+                    }
+                }
+
+                for (let i = 0; i < interferenceHanji.length; i++) {
+                    const hanji = interferenceHanji[i];
+                    const expectedLoma = vocabulary[hanji];
+                    if (interferenceLoma.includes(expectedLoma)) {
+                        const index = interferenceLoma.indexOf(expectedLoma);
+                        const newLoma = shuffledLoma.find(l => !interferenceLoma.includes(l) && l !== correctPair.loma);
+                        if (newLoma) {
+                            interferenceLoma[index] = newLoma;
+                        }
+                    }
+                }
+
+                cardA_Hanji = [correctPair.hanji, interferenceHanji[0]];
+                cardA_Loma = [interferenceLoma[0], interferenceLoma[1]];
+                
+                cardB_Hanji = [interferenceHanji[1], interferenceHanji[2]];
+                cardB_Loma = [correctPair.loma, interferenceLoma[2]];
+
+                const isCardA_Invalid = cardA_Hanji.some(hanji => cardA_Loma.includes(vocabulary[hanji]));
+                const isCardB_Invalid = cardB_Hanji.some(hanji => cardB_Loma.includes(vocabulary[hanji]));
+
+                if (!isCardA_Invalid && !isCardB_Invalid) {
+                    hasValidCards = true;
+                }
+            }
+
+            const swapCards = Math.random() < 0.5;
+
+            let card1Content, card2Content;
+
+            if (swapCards) {
+                card1Content = shuffleArray([...cardB_Hanji, ...cardB_Loma]);
+                card2Content = shuffleArray([...cardA_Hanji, ...cardA_Loma]);
+            } else {
+                card1Content = shuffleArray([...cardA_Hanji, ...cardA_Loma]);
+                card2Content = shuffleArray([...cardB_Hanji, ...cardB_Loma]);
+            }
+
+            updateCard(card1Element, card1Content);
+            updateCard(card2Element, card2Content);
+        }
+
+        function updateCard(cardElement, content) {
+            cardElement.innerHTML = '';
+            content.forEach(text => {
+                const element = document.createElement('div');
+                element.className = 'dobble-element';
+                element.classList.add(vocabulary[text] ? 'hanji' : 'loma');
+                element.textContent = text;
+                element.addEventListener('click', handleElementClick);
+                cardElement.appendChild(element);
+            });
+        }
+
+        window.onload = showRandomCards;
+        changeCardsBtn.addEventListener('click', showRandomCards);
+    </script>
+</body>
+</html>
