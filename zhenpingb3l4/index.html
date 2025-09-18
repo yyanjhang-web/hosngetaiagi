@@ -181,7 +181,6 @@
         const card2Element = document.getElementById('card2');
         const changeCardsBtn = document.getElementById('changeCardsBtn');
         const vocabularyEntries = Object.entries(vocabulary);
-        const lomaToHanji = Object.fromEntries(vocabularyEntries.map(([hanji, loma]) => [loma, hanji]));
 
         let gameLocked = false;
         let correctPair = {};
@@ -239,39 +238,17 @@
             clearFeedback();
 
             // 1. 隨機選取一組唯一的正確配對
-            const correctPairEntry = vocabularyEntries[Math.floor(Math.random() * vocabularyEntries.length)];
+            const allPairs = shuffleArray([...vocabularyEntries]);
+            const correctPairEntry = allPairs.pop();
             correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
 
-            // 2. 隨機選取三個不與正確配對相關的漢字和羅馬字作為干擾項
-            const allHanji = vocabularyEntries.map(p => p[0]);
-            const allLoma = vocabularyEntries.map(p => p[1]);
-            const remainingHanji = allHanji.filter(h => h !== correctPair.hanji);
-            const remainingLoma = allLoma.filter(l => l !== correctPair.loma);
-
-            const shuffledHanji = shuffleArray([...remainingHanji]);
-            const shuffledLoma = shuffleArray([...remainingLoma]);
-
-            let interferenceHanji = [];
-            let interferenceLoma = [];
-
-            // 挑選干擾詞，並確保它們之間沒有任何配對關係
-            while (interferenceHanji.length < 3) {
-                const hanji = shuffledHanji.pop();
-                const loma = vocabulary[hanji];
-                if (!shuffledLoma.includes(loma) && !interferenceLoma.includes(loma)) {
-                    interferenceHanji.push(hanji);
-                }
-            }
-
-            while (interferenceLoma.length < 3) {
-                const loma = shuffledLoma.pop();
-                const hanji = lomaToHanji[loma];
-                if (!shuffledHanji.includes(hanji) && !interferenceHanji.includes(hanji)) {
-                    interferenceLoma.push(loma);
-                }
-            }
-
-            // 3. 構建卡片內容，確保只有一個正確配對
+            // 2. 隨機選取三組不與正確配對相關的干擾詞彙
+            const interferencePairs = shuffleArray(allPairs).slice(0, 3);
+            const interferenceHanji = interferencePairs.map(p => p[0]);
+            const interferenceLoma = interferencePairs.map(p => p[1]);
+            
+            // 3. 構建卡片內容，確保唯一的正確配對
+            // 將正確配對拆分到兩張卡片上，並加入干擾詞
             const card1Content = [correctPair.hanji, interferenceHanji[0], interferenceLoma[0], interferenceLoma[1]];
             const card2Content = [correctPair.loma, interferenceHanji[1], interferenceHanji[2], interferenceLoma[2]];
 
@@ -285,7 +262,9 @@
             content.forEach(text => {
                 const element = document.createElement('div');
                 element.className = 'dobble-element';
-                element.classList.add(vocabulary[text] ? 'hanji' : 'loma');
+                // 檢查是否為羅馬字（因為羅馬字在 vocabulary 物件中是值）
+                const isLoma = Object.values(vocabulary).includes(text);
+                element.classList.add(isLoma ? 'loma' : 'hanji');
                 element.textContent = text;
                 element.addEventListener('click', handleElementClick);
                 cardElement.appendChild(element);
