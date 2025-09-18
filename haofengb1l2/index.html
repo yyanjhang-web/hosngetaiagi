@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B1L2_我愛交朋友_對對碰</title>
+    <title>B3L4_好奇號上火星_對對碰</title>
     <style>
         body {
             display: flex;
@@ -86,7 +86,6 @@
             cursor: pointer;
             transition: background-color 0.2s, transform 0.2s, font-size 0.2s;
             text-align: center;
-            /* 修正：使用更穩定的換行方法 */
             word-wrap: break-word;
             word-break: normal;
             hyphens: auto;
@@ -151,42 +150,42 @@
 
     <script>
         const vocabulary = {
-            "詼": "khue",
-            "緣投": "iân-tâu",
-            "空喙哺舌": "khang-tshuì-pōo-tsi̍h",
-            "喝賣": "huah-bē",
-            "漢草": "hàn-tsháu",
-            "細粒子": "sè-lia̍p-tsí",
-            "尪仔面": "ang-á-bīn",
-            "斯文": "su-bûn",
-            "膨皮": "phòng-puê",
-            "躼跤": "lò-kha",
-            "飄撇": "phiau-phiat",
-            "瘦卑巴": "sán-pi-pa",
-            "(足百)": "peh",
-            "曲痀": "khiau-ku",
-            "相偃": "sio-ián",
-            "司奶": "sai-nai",
-            "都著": "to-tio̍h",
-            "乎": "--honnh",
-            "按呢": "án-ne",
-            "毋通": "m̄-thang",
-            "閉思": "pì-sù",
-            "(禾黑)": "bái",
-            "隱痀": "ún-ku",
-            "侗戇": "tòng-gōng",
-            "煙腸": "ian-tshiâng/tshiân"
+    "詼": "khue",
+    "緣投": "iân-tâu",
+    "空喙哺舌": "khang-tshuì-pōo-tsi̍h",
+    "喝賣": "huah-bē",
+    "漢草": "hàn-tsháu",
+    "細粒子": "sè-lia̍p-tsí",
+    "尪仔面": "ang-á-bīn",
+    "斯文": "su-bûn",
+    "膨皮": "phòng-puê",
+    "躼跤": "lò-kha",
+    "飄撇": "phiau-phiat",
+    "瘦卑巴": "sán-pi-pa",
+    "(足百)": "peh",
+    "曲痀": "khiau-ku",
+    "相偃": "sio-ián",
+    "司奶": "sai-nai",
+    "都著": "to-tio̍h",
+    "乎": "--honnh",
+    "按呢": "án-ne",
+    "毋通": "m̄-thang",
+    "閉思": "pì-sù",
+    "(禾黑)": "bái",
+    "隱痀": "ún-ku",
+    "侗戇": "tòng-gōng",
+    "煙腸": "ian-tshiâng"
         };
 
         const card1Element = document.getElementById('card1');
         const card2Element = document.getElementById('card2');
         const changeCardsBtn = document.getElementById('changeCardsBtn');
         const vocabularyEntries = Object.entries(vocabulary);
-        const lomaToHanji = Object.fromEntries(vocabularyEntries.map(([hanji, loma]) => [loma, hanji]));
 
         let gameLocked = false;
         let correctPair = {};
 
+        // 輔助函式：隨機打亂陣列
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -195,6 +194,20 @@
             return array;
         }
 
+        // 輔助函式：根據詞彙內容判斷類型（漢字或羅馬字）
+        function getWordType(word) {
+            if (vocabulary[word] !== undefined) {
+                return 'hanji';
+            }
+            for (const key in vocabulary) {
+                if (vocabulary[key] === word) {
+                    return 'loma';
+                }
+            }
+            return null; // 不在字典中
+        }
+
+        // 輔助函式：清除回饋樣式
         function clearFeedback() {
             card1Element.classList.remove('darken-left', 'darken-right');
             card2Element.classList.remove('darken-left', 'darken-right');
@@ -203,6 +216,7 @@
             });
         }
 
+        // 點擊事件處理
         function handleElementClick(e) {
             if (gameLocked) return;
 
@@ -212,17 +226,18 @@
             if (!clickedElement) return;
 
             const clickedCardId = clickedElement.parentNode.id;
-            const clickedText = clickedElement.textContent.trim();
+            // 處理羅馬字的零寬度空格，確保正確比對
+            const clickedText = clickedElement.textContent.trim().replace(/\u200B/g, '');
 
             const isCorrect = (clickedText === correctPair.hanji || clickedText === correctPair.loma);
 
             if (isCorrect) {
                 gameLocked = true;
                 const highlightClass = (clickedCardId === 'card1') ? 'highlight-blue' : 'highlight-green';
-
                 const allElements = document.querySelectorAll('.dobble-element');
+
                 allElements.forEach(el => {
-                    const elText = el.textContent.trim();
+                    const elText = el.textContent.trim().replace(/\u200B/g, '');
                     if (elText === correctPair.hanji || elText === correctPair.loma) {
                         el.classList.add(highlightClass);
                     }
@@ -234,91 +249,81 @@
                 card2Element.classList.add(darkenClass);
             }
         }
-
+        
+        // 生成新卡片
         function showRandomCards() {
             gameLocked = false;
             clearFeedback();
 
-            let hasValidCards = false;
-            let cardA_Hanji, cardA_Loma, cardB_Hanji, cardB_Loma;
+            // 隨機選取一組唯一的正確配對
+            const allPairs = shuffleArray([...vocabularyEntries]);
+            const correctPairEntry = allPairs.pop();
+            correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
 
-            while (!hasValidCards) {
-                const shuffledVocab = shuffleArray([...vocabularyEntries]);
-                const correctPairEntry = shuffledVocab[0];
-                correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
-                
-                const remainingPairs = shuffledVocab.slice(1);
-                const remainingHanji = remainingPairs.map(p => p[0]);
-                const remainingLoma = remainingPairs.map(p => p[1]);
-                
-                const shuffledHanji = shuffleArray([...remainingHanji]);
-                const shuffledLoma = shuffleArray([...remainingLoma]);
-                
-                let interferenceHanji = [];
-                let interferenceLoma = [];
-
-                while (interferenceHanji.length < 3) {
-                    const item = shuffledHanji.pop();
-                    if (item !== correctPair.hanji) {
-                        interferenceHanji.push(item);
-                    }
-                }
-                while (interferenceLoma.length < 3) {
-                    const item = shuffledLoma.pop();
-                    if (item !== correctPair.loma) {
-                        interferenceLoma.push(item);
-                    }
-                }
-
-                for (let i = 0; i < interferenceHanji.length; i++) {
-                    const hanji = interferenceHanji[i];
-                    const expectedLoma = vocabulary[hanji];
-                    if (interferenceLoma.includes(expectedLoma)) {
-                        const index = interferenceLoma.indexOf(expectedLoma);
-                        const newLoma = shuffledLoma.find(l => !interferenceLoma.includes(l) && l !== correctPair.loma);
-                        if (newLoma) {
-                            interferenceLoma[index] = newLoma;
-                        }
-                    }
-                }
-
-                cardA_Hanji = [correctPair.hanji, interferenceHanji[0]];
-                cardA_Loma = [interferenceLoma[0], interferenceLoma[1]];
-                
-                cardB_Hanji = [interferenceHanji[1], interferenceHanji[2]];
-                cardB_Loma = [correctPair.loma, interferenceLoma[2]];
-
-                const isCardA_Invalid = cardA_Hanji.some(hanji => cardA_Loma.includes(vocabulary[hanji]));
-                const isCardB_Invalid = cardB_Hanji.some(hanji => cardB_Loma.includes(vocabulary[hanji]));
-
-                if (!isCardA_Invalid && !isCardB_Invalid) {
-                    hasValidCards = true;
-                }
-            }
-
-            const swapCards = Math.random() < 0.5;
+            // 將剩餘的詞彙分成漢字和羅馬字池
+            const hanjiPool = allPairs.map(p => p[0]);
+            const lomaPool = allPairs.map(p => p[1]);
 
             let card1Content, card2Content;
 
-            if (swapCards) {
-                card1Content = shuffleArray([...cardB_Hanji, ...cardB_Loma]);
-                card2Content = shuffleArray([...cardA_Hanji, ...cardA_Loma]);
-            } else {
-                card1Content = shuffleArray([...cardA_Hanji, ...cardA_Loma]);
-                card2Content = shuffleArray([...cardB_Hanji, ...cardB_Loma]);
+            // 確保生成符合規則的卡片內容
+            while (true) {
+                // 隨機選取干擾詞彙
+                const selectedHanji = shuffleArray([...hanjiPool]).slice(0, 3);
+                const selectedLoma = shuffleArray([...lomaPool]).slice(0, 3);
+                
+                // 檢查選取的干擾詞之間是否有配對
+                const hasInternalPairInPool = selectedHanji.some(h => selectedLoma.includes(vocabulary[h]));
+                if (hasInternalPairInPool) {
+                    continue; // 有內部配對，重新選取
+                }
+                
+                // 隨機決定正確配對在左卡還是右卡
+                const correctHanjiOnCard1 = Math.random() < 0.5;
+
+                // 構建卡片內容，確保每張卡片有 2 漢字 2 羅馬字
+                if (correctHanjiOnCard1) {
+                    // 左卡: 正確漢字 + 1 漢字干擾 + 2 羅馬字干擾
+                    card1Content = [correctPair.hanji, selectedHanji[0], selectedLoma[0], selectedLoma[1]];
+                    // 右卡: 正確羅馬字 + 2 漢字干擾 + 1 羅馬字干擾
+                    card2Content = [correctPair.loma, selectedHanji[1], selectedHanji[2], selectedLoma[2]];
+                } else {
+                    // 左卡: 正確羅馬字 + 2 漢字干擾 + 1 羅馬字干擾
+                    card1Content = [correctPair.loma, selectedHanji[0], selectedHanji[1], selectedLoma[0]];
+                    // 右卡: 正確漢字 + 1 漢字干擾 + 2 羅馬字干擾
+                    card2Content = [correctPair.hanji, selectedHanji[2], selectedLoma[1], selectedLoma[2]];
+                }
+                
+                // 再次檢查是否有內部配對，以防萬一
+                const checkInternalPair = (content) => {
+                    const hanjiInCard = content.filter(w => getWordType(w) === 'hanji');
+                    const lomaInCard = content.filter(w => getWordType(w) === 'loma');
+                    return hanjiInCard.some(h => lomaInCard.includes(vocabulary[h]));
+                };
+
+                if (!checkInternalPair(card1Content) && !checkInternalPair(card2Content)) {
+                    break; // 符合所有規則，跳出迴圈
+                }
             }
 
-            updateCard(card1Element, card1Content);
-            updateCard(card2Element, card2Content);
+            // 打亂每張卡片的內容順序
+            updateCard(card1Element, shuffleArray(card1Content));
+            updateCard(card2Element, shuffleArray(card2Content));
         }
 
+        // 更新卡片內容
         function updateCard(cardElement, content) {
             cardElement.innerHTML = '';
             content.forEach(text => {
                 const element = document.createElement('div');
                 element.className = 'dobble-element';
-                element.classList.add(vocabulary[text] ? 'hanji' : 'loma');
-                element.textContent = text;
+                const wordType = getWordType(text);
+                element.classList.add(wordType === 'loma' ? 'loma' : 'hanji');
+                
+                // 處理羅馬字換行，使用 Unicode Zero-width space
+                const processedText = wordType === 'loma' ? text.replace(/-/g, '-\u200B') : text;
+                element.textContent = processedText;
+                
                 element.addEventListener('click', handleElementClick);
                 cardElement.appendChild(element);
             });
