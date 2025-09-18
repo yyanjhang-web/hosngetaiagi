@@ -86,7 +86,6 @@
             cursor: pointer;
             transition: background-color 0.2s, transform 0.2s, font-size 0.2s;
             text-align: center;
-            /* 修正：使用更穩定的換行方法 */
             word-wrap: break-word;
             word-break: normal;
             hyphens: auto;
@@ -239,77 +238,39 @@
             gameLocked = false;
             clearFeedback();
 
-            let hasValidCards = false;
-            let cardA_Hanji, cardA_Loma, cardB_Hanji, cardB_Loma;
+            // 從所有詞彙中隨機選取一組作為正確配對
+            const correctPairEntry = vocabularyEntries[Math.floor(Math.random() * vocabularyEntries.length)];
+            correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
 
-            while (!hasValidCards) {
-                const shuffledVocab = shuffleArray([...vocabularyEntries]);
-                const correctPairEntry = shuffledVocab[0];
-                correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
-                
-                const remainingPairs = shuffledVocab.slice(1);
-                const remainingHanji = remainingPairs.map(p => p[0]);
-                const remainingLoma = remainingPairs.map(p => p[1]);
-                
-                const shuffledHanji = shuffleArray([...remainingHanji]);
-                const shuffledLoma = shuffleArray([...remainingLoma]);
-                
-                let interferenceHanji = [];
-                let interferenceLoma = [];
+            // 隨機選取所有非正確配對的詞彙
+            const nonCorrectPairs = vocabularyEntries.filter(pair => pair[0] !== correctPair.hanji);
 
-                while (interferenceHanji.length < 3) {
-                    const item = shuffledHanji.pop();
-                    if (item !== correctPair.hanji) {
-                        interferenceHanji.push(item);
+            // 隨機從非正確配對中選取三個漢字詞和三個羅馬字作為干擾項
+            const shuffledNonCorrect = shuffleArray([...nonCorrectPairs]);
+            let interferenceHanji = shuffledNonCorrect.map(p => p[0]).slice(0, 3);
+            let interferenceLoma = shuffledNonCorrect.map(p => p[1]).slice(0, 3);
+
+            // 確保干擾項中沒有任何意外的配對
+            for (let i = 0; i < interferenceHanji.length; i++) {
+                const hanji = interferenceHanji[i];
+                const expectedLoma = vocabulary[hanji];
+                if (interferenceLoma.includes(expectedLoma)) {
+                    // 如果出現配對，替換掉羅馬字
+                    const index = interferenceLoma.indexOf(expectedLoma);
+                    const newLoma = vocabularyEntries.find(p => !interferenceLoma.includes(p[1]) && p[1] !== correctPair.loma)?.[1];
+                    if (newLoma) {
+                        interferenceLoma[index] = newLoma;
                     }
-                }
-                while (interferenceLoma.length < 3) {
-                    const item = shuffledLoma.pop();
-                    if (item !== correctPair.loma) {
-                        interferenceLoma.push(item);
-                    }
-                }
-
-                for (let i = 0; i < interferenceHanji.length; i++) {
-                    const hanji = interferenceHanji[i];
-                    const expectedLoma = vocabulary[hanji];
-                    if (interferenceLoma.includes(expectedLoma)) {
-                        const index = interferenceLoma.indexOf(expectedLoma);
-                        const newLoma = shuffledLoma.find(l => !interferenceLoma.includes(l) && l !== correctPair.loma);
-                        if (newLoma) {
-                            interferenceLoma[index] = newLoma;
-                        }
-                    }
-                }
-
-                cardA_Hanji = [correctPair.hanji, interferenceHanji[0]];
-                cardA_Loma = [interferenceLoma[0], interferenceLoma[1]];
-                
-                cardB_Hanji = [interferenceHanji[1], interferenceHanji[2]];
-                cardB_Loma = [correctPair.loma, interferenceLoma[2]];
-
-                const isCardA_Invalid = cardA_Hanji.some(hanji => cardA_Loma.includes(vocabulary[hanji]));
-                const isCardB_Invalid = cardB_Hanji.some(hanji => cardB_Loma.includes(vocabulary[hanji]));
-
-                if (!isCardA_Invalid && !isCardB_Invalid) {
-                    hasValidCards = true;
                 }
             }
 
-            const swapCards = Math.random() < 0.5;
+            // 構建卡片內容，確保只有一個正確配對
+            const card1Content = [correctPair.hanji, interferenceHanji[0], interferenceLoma[0], interferenceLoma[1]];
+            const card2Content = [correctPair.loma, interferenceHanji[1], interferenceHanji[2], interferenceLoma[2]];
 
-            let card1Content, card2Content;
-
-            if (swapCards) {
-                card1Content = shuffleArray([...cardB_Hanji, ...cardB_Loma]);
-                card2Content = shuffleArray([...cardA_Hanji, ...cardA_Loma]);
-            } else {
-                card1Content = shuffleArray([...cardA_Hanji, ...cardA_Loma]);
-                card2Content = shuffleArray([...cardB_Hanji, ...cardB_Loma]);
-            }
-
-            updateCard(card1Element, card1Content);
-            updateCard(card2Element, card2Content);
+            // 打亂每張卡片的內容順序
+            updateCard(card1Element, shuffleArray(card1Content));
+            updateCard(card2Element, shuffleArray(card2Content));
         }
 
         function updateCard(cardElement, content) {
