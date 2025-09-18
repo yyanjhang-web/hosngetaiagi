@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B3L4_好奇號上火星_對對碰</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: '微軟正黑體', 'Arial', sans-serif;
+            text-align: center;
+            padding: 2vmin;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5vmin;
+            margin-bottom: 2vmin;
+            width: 100%;
+            max-width: 90vmin;
+        }
+        @media (min-width: 768px) {
+            .card-container {
+                flex-direction: row;
+                gap: 5vmin;
+            }
+        }
+        .card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 40vmin;
+        }
+        .dobble-card {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 1.5vmin;
+            width: 100%;
+            padding: 2vmin;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            aspect-ratio: 1 / 1;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+        #card1 {
+            background-color: #e6f7ff;
+        }
+        #card2 {
+            background-color: #e6ffe6;
+        }
+        /* 答錯回饋 - 左邊（深藍色） */
+        #card1.darken-left, #card2.darken-left {
+            background-color: #1E517C;
+            opacity: 0.3;
+        }
+        /* 答錯回饋 - 右邊（淺橄欖綠） */
+        #card1.darken-right, #card2.darken-right {
+            background-color: #84B685;
+            opacity: 0.3;
+        }
+        .dobble-element {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 5vmin;
+            padding: 1vmin;
+            box-sizing: border-box;
+            user-select: none;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s, font-size 0.2s;
+            text-align: center;
+            /* 修正：使用更穩定的換行方法 */
+            word-wrap: break-word;
+            word-break: normal;
+            hyphens: auto;
+        }
+        .dobble-element.hanji {
+            font-size: 5vmin;
+        }
+        .dobble-element.loma {
+            font-size: 3vmin;
+        }
+        /* 答對回饋 - 淺藍色 */
+        .dobble-element.highlight-blue {
+            background-color: #add8e6;
+            transform: scale(1.05);
+            border: 2px solid #5a94a6;
+        }
+        /* 答對回饋 - 淺綠色 */
+        .dobble-element.highlight-green {
+            background-color: #90ee90;
+            transform: scale(1.05);
+            border: 2px solid #4a8a4a;
+        }
+        button {
+            padding: 1.5vmin 3vmin;
+            font-size: 2vmin;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .rule-text {
+            font-size: 2vmin;
+            color: #333;
+            margin-top: 1.5vmin;
+            margin-bottom: 0.5vmin;
+        }
+        .designer-info {
+            font-size: 1.5vmin;
+            color: #555;
+            margin-top: 1vmin;
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="card-wrapper">
+            <div class="dobble-card" id="card1"></div>
+        </div>
+        <div class="card-wrapper">
+            <div class="dobble-card" id="card2"></div>
+        </div>
+    </div>
+
+    <button id="changeCardsBtn">換一張</button>
+    <div class="rule-text">規則：找出兩張卡中台語漢字詞與羅馬字相符的配對</div>
+    <div class="designer-info">設計者Iônn, Àn-tsiong；技術支援：フォックスコンの響き</div>
+
+    <script>
+        const vocabulary = {
+            "華裔": "huâ-è",
+            "開眼界": "khai-gán-kài",
+            "奧妙": "ò-biāu",
+            "白鶴": "pe̍h-ho̍h",
+            "探索": "thàm-soh",
+            "躼躼長": "lò-lò-tn̂g",
+            "礙著": "gāi-tio̍h",
+            "盤山過嶺": "puânn-suann-kuè-niá",
+            "好玄": "hònn-hiân",
+            "風神": "hong-sîn",
+            "精光": "tsing-kong",
+            "拋拋走": "pha-pha-tsáu",
+            "攑頭": "gia̍h-thâu",
+            "枵狗數想豬肝骨": "iau-káu siàu-siūnn ti-kuann-kut",
+            "金金看": "kim-kim-khuànn",
+            "倚佇遐": "uá tī hia",
+            "當咧": "tng-teh",
+            "雖罔": "sui-bóng",
+            "向望": "ǹg-bāng",
+            "水土": "tsuí-thóo",
+            "初一": "tshe-it",
+            "彼當時": "hit-tang-sî",
+            "敢若": "kán-ná",
+            "斟酌": "tsim-tsiok",
+            "無的確": "bô-tik-khak"
+        };
+
+        const card1Element = document.getElementById('card1');
+        const card2Element = document.getElementById('card2');
+        const changeCardsBtn = document.getElementById('changeCardsBtn');
+        const vocabularyEntries = Object.entries(vocabulary);
+        const lomaToHanji = Object.fromEntries(vocabularyEntries.map(([hanji, loma]) => [loma, hanji]));
+
+        let gameLocked = false;
+        let correctPair = {};
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function clearFeedback() {
+            card1Element.classList.remove('darken-left', 'darken-right');
+            card2Element.classList.remove('darken-left', 'darken-right');
+            document.querySelectorAll('.dobble-element').forEach(el => {
+                el.classList.remove('highlight-blue', 'highlight-green');
+            });
+        }
+
+        function handleElementClick(e) {
+            if (gameLocked) return;
+
+            clearFeedback();
+
+            const clickedElement = e.target.closest('.dobble-element');
+            if (!clickedElement) return;
+
+            const clickedCardId = clickedElement.parentNode.id;
+            const clickedText = clickedElement.textContent.trim();
+
+            const isCorrect = (clickedText === correctPair.hanji || clickedText === correctPair.loma);
+
+            if (isCorrect) {
+                gameLocked = true;
+                const highlightClass = (clickedCardId === 'card1') ? 'highlight-blue' : 'highlight-green';
+
+                const allElements = document.querySelectorAll('.dobble-element');
+                allElements.forEach(el => {
+                    const elText = el.textContent.trim();
+                    if (elText === correctPair.hanji || elText === correctPair.loma) {
+                        el.classList.add(highlightClass);
+                    }
+                });
+            } else {
+                gameLocked = true;
+                const darkenClass = (clickedCardId === 'card1') ? 'darken-left' : 'darken-right';
+                card1Element.classList.add(darkenClass);
+                card2Element.classList.add(darkenClass);
