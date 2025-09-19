@@ -5,6 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B1L2_我愛交朋友_賓果</title>
     <style>
+        :root {
+            /* 預設風格1的變數 (清新藍綠) */
+            --bg-color: #f0f9ff;
+            --container-bg-color: #e0f2f7;
+            --btn-color: #20b2aa;
+            --btn-hover-color: #008b8b;
+            --card-front-color: #b3e0ff;
+            --card-back-color: #81c784;
+            --card-front-text: #005f99;
+            --card-back-text: #004085;
+        }
+
+        /* 風格2 (活潑暖陽) */
+        .theme-style2 {
+            --bg-color: #fffaf0;
+            --container-bg-color: #ffeccf;
+            --btn-color: #f59e0b;
+            --btn-hover-color: #d97706;
+            --card-front-color: #fbd38d;
+            --card-back-color: #fdba74;
+            --card-front-text: #92400e;
+            --card-back-text: #c05621;
+        }
+
+        /* 風格3 (深邃科技) */
+        .theme-style3 {
+            --bg-color: #1a202c;
+            --container-bg-color: #2d3748;
+            --btn-color: #4299e1;
+            --btn-hover-color: #2b6cb0;
+            --card-front-color: #4a5568;
+            --card-back-color: #718096;
+            --card-front-text: #e2e8f0;
+            --card-back-text: #fff;
+        }
+
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -12,38 +48,43 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #f0f9ff;
+            background-color: var(--bg-color);
             color: #333;
+            transition: background-color 0.5s;
+        }
+        .style-buttons {
+            margin-bottom: 10px;
         }
         .size-buttons {
             margin-bottom: 20px;
         }
-        .size-btn {
+        .style-btn, .size-btn {
             padding: 8px 16px;
             font-size: 1em;
             cursor: pointer;
-            background-color: #20b2aa;
+            background-color: var(--btn-color);
             color: white;
             border: none;
             border-radius: 5px;
             margin: 0 5px;
             transition: background-color 0.3s;
         }
-        .size-btn:hover {
-            background-color: #008b8b;
+        .style-btn:hover, .size-btn:hover {
+            background-color: var(--btn-hover-color);
         }
         .container {
             display: grid;
             gap: 15px;
             padding: 20px;
-            background-color: #e0f2f7;
+            background-color: var(--container-bg-color);
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.5s;
         }
         .card {
             width: 120px;
             height: 80px;
-            background-color: #a7d9f2;
+            background-color: var(--card-front-color);
             border-radius: 10px;
             display: flex;
             justify-content: center;
@@ -52,7 +93,7 @@
             perspective: 1000px;
             font-size: 1.2em;
             font-weight: bold;
-            color: #005f99;
+            color: var(--card-front-text);
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
             transition: transform 0.6s, background-color 0.3s, box-shadow 0.3s;
             position: relative;
@@ -61,6 +102,27 @@
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
         }
+
+        /* 風格2的卡片動畫 */
+        .theme-style2 .card-inner.flipped {
+            animation: bounce 0.6s forwards;
+        }
+        @keyframes bounce {
+            0% { transform: rotateY(0deg) scale(1); }
+            50% { transform: rotateY(90deg) scale(1.1); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        /* 風格3的卡片動畫 */
+        .theme-style3 .card-inner.flipped {
+            animation: zoomFlip 0.6s forwards;
+        }
+        @keyframes zoomFlip {
+            0% { transform: rotateY(0deg) scale(1); }
+            50% { transform: rotateY(90deg) scale(0.9); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
         .card-inner {
             position: relative;
             width: 100%;
@@ -85,16 +147,15 @@
             box-sizing: border-box;
         }
         .card-front {
-            background-color: #b3e0ff;
-            color: #005f99;
+            background-color: var(--card-front-color);
+            color: var(--card-front-text);
         }
         .card-back {
-            background-color: #81c784;
+            background-color: var(--card-back-color);
             transform: rotateY(180deg);
-            color: #004085;
+            color: var(--card-back-text);
         }
         
-        /* 標記鈕的樣式 */
         .mark-btn {
             position: absolute;
             bottom: 5px;
@@ -114,20 +175,26 @@
         }
         
         .footer {
-            margin-top: 5px; /* 調整這裡的間距 */
+            margin-top: 5px;
             text-align: center;
             font-size: 0.85em;
             color: #666;
         }
         .info-text {
             margin-top: 15px;
-            margin-bottom: 5px; /* 調整這裡的間距 */
+            margin-bottom: 5px;
             font-size: 0.9em;
             color: #555;
         }
     </style>
 </head>
-<body>
+<body class="theme-style1">
+
+    <div class="style-buttons">
+        <button class="style-btn" onclick="applyStyle('theme-style1')">風格1</button>
+        <button class="style-btn" onclick="applyStyle('theme-style2')">風格2</button>
+        <button class="style-btn" onclick="applyStyle('theme-style3')">風格3</button>
+    </div>
 
     <div class="size-buttons">
         <button class="size-btn" onclick="shuffleCards(3)">3×3</button>
@@ -173,6 +240,7 @@
         ];
 
         const container = document.querySelector('.container');
+        let currentSize = 3;
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -201,8 +269,15 @@
                 `;
                 container.appendChild(cardElement);
 
+                const cardInner = cardElement.querySelector('.card-inner');
                 cardElement.addEventListener('click', () => {
                     cardElement.classList.toggle('flipped');
+                    // 確保動畫在正確的元素上觸發
+                    if (cardElement.classList.contains('flipped')) {
+                        cardInner.classList.add('flipped');
+                    } else {
+                        cardInner.classList.remove('flipped');
+                    }
                 });
 
                 const markBtn = cardElement.querySelector('.mark-btn');
@@ -214,11 +289,21 @@
         }
 
         function shuffleCards(size) {
-            renderCards(originalCards, size);
+            currentSize = size;
+            renderCards(originalCards, currentSize);
         }
 
-        // 預設為3x3表格
-        window.onload = () => shuffleCards(3);
+        function applyStyle(styleName) {
+            const body = document.body;
+            body.className = ''; // 清除所有現有class
+            body.classList.add(styleName); // 新增選定的風格class
+        }
+
+        // 預設為3x3表格，並套用風格1
+        window.onload = () => {
+            shuffleCards(3);
+            applyStyle('theme-style1');
+        };
     </script>
 
 </body>
