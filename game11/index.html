@@ -51,7 +51,7 @@
             background-color: var(--bg-color);
             color: #333;
             transition: background-color 0.5s;
-            box-sizing: border-box; /* 確保 padding 和 border 不會增加元素總寬度 */
+            box-sizing: border-box;
         }
         .size-buttons {
             margin-bottom: 20px;
@@ -79,18 +79,19 @@
         }
         .container {
             display: grid;
-            gap: 15px;
-            padding: 20px;
+            gap: 2.5vw; /* 使用 vw 讓間距隨著螢幕寬度變化 */
+            padding: 2.5vw;
             background-color: var(--container-bg-color);
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: background-color 0.5s;
-            max-width: 90%; /* 限制最大寬度以適應手機螢幕 */
+            width: 90%; /* 確保容器不會超出螢幕 */
+            max-width: 600px; /* 在大螢幕上限制最大寬度 */
             box-sizing: border-box;
         }
         .card {
-            width: 100%; /* 讓卡片寬度充滿其網格容器 */
-            padding-bottom: 70%; /* 使用 padding-bottom 來保持長寬比 (例如 100px x 70px) */
+            width: 100%;
+            padding-bottom: 70%; /* 維持長寬比 */
             height: 0;
             background-color: var(--card-front-color);
             border-radius: 10px;
@@ -105,6 +106,7 @@
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
             transition: transform 0.6s, background-color 0.3s, box-shadow 0.3s;
             position: relative;
+            box-sizing: border-box;
         }
         .card:hover {
             transform: translateY(-5px);
@@ -125,16 +127,25 @@
             overflow: hidden;
             text-align: center;
         }
-        /* 調整字體大小以適應不同螢幕 */
-        @media (max-width: 600px) {
-            .card {
-                padding-bottom: 70%; /* 保持卡片比例 */
+
+        /* 媒體查詢：針對小螢幕（手機直向模式）進行優化 */
+        @media (max-width: 600px) and (orientation: portrait) {
+            .container {
+                gap: 10px; /* 縮小間距 */
+                padding: 10px; /* 縮小內邊距 */
             }
             .card .card-face {
-                font-size: 0.8em;
+                font-size: 0.9em; /* 讓字體更小 */
+                line-height: 1.2; /* 增加行高以改善可讀性 */
             }
         }
+        
+        /* 針對平板或電腦橫向模式 */
         @media (min-width: 601px) {
+            .container {
+                gap: 15px;
+                padding: 20px;
+            }
             .card {
                 width: 120px;
                 height: 80px;
@@ -144,7 +155,7 @@
                 font-size: 1.2em;
             }
         }
-
+        
         /* 風格2的卡片動畫 */
         .theme-style2 .card-inner.flipped {
             animation: bounce 0.6s forwards;
@@ -204,15 +215,15 @@
             right: 5px;
             width: 15px;
             height: 15px;
-            border: none; /* 移除邊框 */
-            background-color: rgba(240, 240, 240, 0.5); /* 帶透明度的白色 */
+            border: none;
+            background-color: rgba(240, 240, 240, 0.5);
             border-radius: 50%;
             cursor: pointer;
             transition: background-color 0.2s;
             z-index: 10;
         }
         .mark-btn.marked {
-            background-color: rgba(255, 82, 82, 0.6); /* 帶透明度的紅色 */
+            background-color: rgba(255, 82, 82, 0.6);
         }
         
         .footer {
