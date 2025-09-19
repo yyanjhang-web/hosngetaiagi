@@ -1,158 +1,241 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B1L2_我愛交朋友</title>
+    <title>B1L2_我愛交朋友_賓果</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-            font-family: '微軟正黑體', 'Arial', sans-serif;
-            text-align: center;
+            min-height: 100vh;
+            background-color: #f0f9ff;
+            color: #333;
         }
-        .controls {
+        .size-buttons {
             margin-bottom: 20px;
         }
-        .grid-size-btn, .regenerate-btn {
-            padding: 10px 20px;
-            font-size: 1.2em;
+        .size-btn {
+            padding: 8px 16px;
+            font-size: 1em;
             cursor: pointer;
+            background-color: #20b2aa;
+            color: white;
             border: none;
             border-radius: 5px;
-            background-color: #007BFF;
-            color: white;
-            transition: background-color 0.3s;
             margin: 0 5px;
+            transition: background-color 0.3s;
         }
-        .grid-size-btn:hover, .regenerate-btn:hover {
-            background-color: #0056b3;
+        .size-btn:hover {
+            background-color: #008b8b;
         }
-        .bingo-grid {
+        .container {
             display: grid;
-            gap: 10px;
-            width: 90vw;
-            max-width: 500px; /* 在這裡加上最大寬度限制 */
-            aspect-ratio: 1 / 1; /* 設定寬高比為 1:1，確保是正方形 */
-            padding: 10px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            box-sizing: border-box;
+            gap: 15px;
+            padding: 20px;
+            background-color: #e0f2f7;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .bingo-cell {
+        .card {
+            width: 120px;
+            height: 80px;
+            background-color: #a7d9f2;
+            border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.2s, color 0.2s, transform 0.2s;
-            user-select: none;
-            word-break: break-word;
+            perspective: 1000px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #005f99;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.6s, background-color 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
             padding: 5px;
             box-sizing: border-box;
         }
-        .bingo-cell.marked {
-            background-color: #28a745;
-            color: #fff;
-            border-color: #28a745;
-            transform: scale(1.05);
+        .card-front {
+            background-color: #b3e0ff;
+            color: #005f99;
         }
-        .tight-spacing {
-            letter-spacing: -0.1em;
-            white-space: nowrap;
+        .card-back {
+            background-color: #81c784;
+            transform: rotateY(180deg);
+            color: #004085;
         }
-        .designer-info {
-            font-size: 0.8em;
-            color: #555;
-            margin-top: 20px;
+        
+        /* 標記鈕的樣式 */
+        .mark-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 15px;
+            height: 15px;
+            border: 2px solid #ccc;
+            background-color: #f0f0f0;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            z-index: 10;
+        }
+        .mark-btn.marked {
+            background-color: #ff5252;
+            border-color: #ff5252;
+        }
+        
+        .button-container {
+            margin-top: 25px;
+        }
+        .shuffle-btn {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            background-color: #20b2aa;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+        }
+        .shuffle-btn:hover {
+            background-color: #008b8b;
+            transform: translateY(-2px);
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="controls">
-        <button class="grid-size-btn" data-size="3">3×3</button>
-        <button class="grid-size-btn" data-size="4">4×4</button>
-        <button class="grid-size-btn" data-size="5">5×5</button>
+
+    <div class="size-buttons">
+        <button class="size-btn" onclick="shuffleCards(3)">3×3</button>
+        <button class="size-btn" onclick="shuffleCards(4)">4×4</button>
+        <button class="size-btn" onclick="shuffleCards(5)">5×5</button>
     </div>
 
-    <div class="bingo-grid" id="bingoGrid"></div>
-    <button class="regenerate-btn" id="regenerateBtn">換一張</button>
-    <div class="designer-info">設計者Iônn, Àn-tsiong；技術支援：フォックスコンの響き</div>
+    <div class="container"></div>
+
+    <div class="button-container">
+        <button class="shuffle-btn" onclick="shuffleCards(currentSize)">重新打亂</button>
+    </div>
+
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong</p>
+        <p>技術支援：フォックスコンの響き</p>
+    </div>
 
     <script>
-        const words = [
-           '詼', '緣投', 'khang-tshuì-pōo-tsi̍h', '喝賣', 'hàn-tsháu', '細粒子', 
-            '尪仔面', '斯文', '膨皮', 'lò-kha', 'phiau-phiat', 'sán-pi-pa',
-            'peh', 'khiau-ku', '相偃', '司奶', '都著', '--honnh', 'án-ne', 
-            'm̄-thang', '閉思', 'bái', '隱痀', '侗戇', 'ian-tshiâng/tshiân'
+        const originalCards = [
+            { hanzi: '詼', roman: 'khue' },
+            { hanzi: '緣投', roman: 'iân-tâu' },
+            { hanzi: '空喙哺舌', roman: 'khang-tshuì-pōo-tsi̍h' },
+            { hanzi: '喝賣', roman: 'huah-bē' },
+            { hanzi: '漢草', roman: 'hàn-tsháu' },
+            { hanzi: '細粒子', roman: 'sè-lia̍p-tsí' },
+            { hanzi: '尪仔面', roman: 'ang-á-bīn' },
+            { hanzi: '斯文', roman: 'su-bûn' },
+            { hanzi: '膨皮', roman: 'phòng-puê' },
+            { hanzi: '躼跤', roman: 'lò-kha' },
+            { hanzi: '飄撇', roman: 'phiau-phiat' },
+            { hanzi: '瘦卑巴', roman: 'sán-pi-pa' },
+            { hanzi: '(足百)', roman: 'peh' },
+            { hanzi: '曲痀', roman: 'khiau-ku' },
+            { hanzi: '相偃', roman: 'sio-ián' },
+            { hanzi: '司奶', roman: 'sai-nai' },
+            { hanzi: '都著', roman: 'to-tio̍h' },
+            { hanzi: '乎', roman: '--honnh' },
+            { hanzi: '按呢', roman: 'án-ne' },
+            { hanzi: '毋通', roman: 'm̄-thang' },
+            { hanzi: '閉思', roman: 'pì-sù' },
+            { hanzi: '(禾黑)', roman: 'bái' },
+            { hanzi: '隱痀', roman: 'ún-ku' },
+            { hanzi: '侗戇', roman: 'tòng-gōng' },
+            { hanzi: '煙腸', roman: 'ian-tshiâng/tshiân' }
         ];
 
-        const bingoGrid = document.getElementById('bingoGrid');
-        const regenerateBtn = document.getElementById('regenerateBtn');
-        const sizeButtons = document.querySelectorAll('.grid-size-btn');
-        let currentSize = 3;
+        const container = document.querySelector('.container');
+        let currentSize = 5;
 
-        function getRandomWords(count) {
-            const shuffled = [...words].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
-        }
-
-        function generateBingoGrid() {
-            const gridSize = currentSize;
-            const totalCells = gridSize * gridSize;
-            const selectedWords = getRandomWords(totalCells);
-
-            bingoGrid.innerHTML = '';
-            bingoGrid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
-            
-            let fontSize;
-            if (gridSize === 3) {
-                fontSize = '1.8em';
-            } else if (gridSize === 4) {
-                fontSize = '1.4em';
-            } else { // gridSize === 5
-                fontSize = '1.2em';
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
+            return array;
+        }
 
-            selectedWords.forEach(word => {
-                const cell = document.createElement('div');
-                cell.className = 'bingo-cell';
-                
-                if (word === '火君') {
-                    cell.classList.add('tight-spacing');
-                }
+        function renderCards(cards, size) {
+            container.innerHTML = '';
+            container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            
+            const cardCount = size * size;
+            const selectedCards = shuffleArray([...originalCards]).slice(0, cardCount);
 
-                cell.textContent = word;
-                cell.style.fontSize = fontSize;
-                
-                // 移除這個高度計算，改用新的 aspect-ratio
-                // cell.style.height = `calc((90vw - ${gridSize*10}px) / ${gridSize})`;
+            selectedCards.forEach(cardData => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-face card-front">${cardData.roman}</div>
+                        <div class="card-face card-back">${cardData.hanzi}</div>
+                    </div>
+                    <div class="mark-btn"></div>
+                `;
+                container.appendChild(cardElement);
 
-                cell.addEventListener('click', () => {
-                    cell.classList.toggle('marked');
+                cardElement.addEventListener('click', () => {
+                    cardElement.classList.toggle('flipped');
                 });
-                bingoGrid.appendChild(cell);
+
+                const markBtn = cardElement.querySelector('.mark-btn');
+                markBtn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    markBtn.classList.toggle('marked');
+                });
             });
         }
 
-        sizeButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                currentSize = parseInt(e.target.dataset.size);
-                generateBingoGrid();
-            });
-        });
+        function shuffleCards(size) {
+            currentSize = size;
+            renderCards(originalCards, currentSize);
+        }
 
-        regenerateBtn.addEventListener('click', generateBingoGrid);
-        window.onload = generateBingoGrid;
+        window.onload = () => shuffleCards(5);
     </script>
+
 </body>
 </html>
-
