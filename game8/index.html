@@ -17,28 +17,28 @@
             --card-back-text: #004085;
         }
 
-        /* 風格2 (活潑暖陽) */
+        /* 風格2 (活潑暖陽 - 翻牌後粉紫色) */
         .theme-style2 {
             --bg-color: #fffaf0;
             --container-bg-color: #ffeccf;
             --btn-color: #f59e0b;
             --btn-hover-color: #d97706;
             --card-front-color: #fbd38d;
-            --card-back-color: #fdba74;
+            --card-back-color: #d8b4fe; /* 粉紫色 */
             --card-front-text: #92400e;
-            --card-back-text: #c05621;
+            --card-back-text: #6b21a8; /* 深紫色 */
         }
 
-        /* 風格3 (深邃科技) */
+        /* 風格3 (深邃科技 - 翻牌後亮黃色) */
         .theme-style3 {
             --bg-color: #1a202c;
             --container-bg-color: #2d3748;
             --btn-color: #4299e1;
             --btn-hover-color: #2b6cb0;
             --card-front-color: #4a5568;
-            --card-back-color: #718096;
+            --card-back-color: #fcd34d; /* 亮黃色 */
             --card-front-text: #e2e8f0;
-            --card-back-text: #fff;
+            --card-back-text: #713f12; /* 深棕色 */
         }
 
         body {
@@ -52,11 +52,11 @@
             color: #333;
             transition: background-color 0.5s;
         }
-        .style-buttons {
-            margin-bottom: 10px;
-        }
         .size-buttons {
             margin-bottom: 20px;
+        }
+        .style-buttons {
+            margin-top: 10px;
         }
         .style-btn, .size-btn {
             padding: 8px 16px;
@@ -68,6 +68,10 @@
             border-radius: 5px;
             margin: 0 5px;
             transition: background-color 0.3s;
+        }
+        .style-btn {
+            font-size: 0.9em;
+            padding: 5px 10px;
         }
         .style-btn:hover, .size-btn:hover {
             background-color: var(--btn-hover-color);
@@ -190,12 +194,6 @@
 </head>
 <body class="theme-style1">
 
-    <div class="style-buttons">
-        <button class="style-btn" onclick="applyStyle('theme-style1')">風格1</button>
-        <button class="style-btn" onclick="applyStyle('theme-style2')">風格2</button>
-        <button class="style-btn" onclick="applyStyle('theme-style3')">風格3</button>
-    </div>
-
     <div class="size-buttons">
         <button class="size-btn" onclick="shuffleCards(3)">3×3</button>
         <button class="size-btn" onclick="shuffleCards(4)">4×4</button>
@@ -205,6 +203,12 @@
     <div class="container"></div>
 
     <p class="info-text">點擊上方按鈕可重新發牌或調整大小</p>
+
+    <div class="style-buttons">
+        <button class="style-btn" onclick="applyStyle('theme-style1')">式1</button>
+        <button class="style-btn" onclick="applyStyle('theme-style2')">式2</button>
+        <button class="style-btn" onclick="applyStyle('theme-style3')">式3</button>
+    </div>
 
     <div class="footer">
         <p>設計者：Iônn, Àn-tsiong；技術支援：フォックスコンの響き</p>
@@ -295,11 +299,10 @@
 
         function applyStyle(styleName) {
             const body = document.body;
-            body.className = ''; // 清除所有現有class
-            body.classList.add(styleName); // 新增選定的風格class
+            body.className = '';
+            body.classList.add(styleName);
         }
 
-        // 預設為3x3表格，並套用風格1
         window.onload = () => {
             shuffleCards(3);
             applyStyle('theme-style1');
