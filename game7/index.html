@@ -81,13 +81,15 @@
         }
         .container {
             display: grid;
-            gap: 10px; /* 固定間距 */
+            /* 使用 fr 單位確保空間平均分配 */
+            grid-template-columns: repeat(var(--grid-size), 1fr);
+            gap: 10px;
             padding: 20px;
             background-color: var(--container-bg-color);
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: background-color 0.5s;
-            max-width: 90vw; /* 確保容器寬度在任何螢幕上都不會超出 */
+            max-width: 90vw;
         }
         .card {
             background-color: var(--card-front-color);
@@ -104,19 +106,18 @@
             position: relative;
             text-align: center;
             padding: 5px;
-            /* 使用 min-height 確保文字有足夠空間 */
-            min-height: 60px;
+            /* 使用 aspect-ratio 確保卡片為正方形 */
+            aspect-ratio: 1 / 1;
         }
         
         /* 根據不同的版面大小調整卡片的字體大小 */
-        .container[style*="grid-template-columns: repeat(3, 1fr)"] .card {
-            font-size: clamp(1em, 5vw, 2em);
-        }
-        .container[style*="grid-template-columns: repeat(4, 1fr)"] .card {
-            font-size: clamp(0.9em, 4vw, 1.8em);
-        }
-        .container[style*="grid-template-columns: repeat(5, 1fr)"] .card {
+        .card {
             font-size: clamp(0.8em, 3.5vw, 1.5em);
+        }
+        @media (orientation: landscape) {
+            .card {
+                font-size: clamp(0.8em, 2.5vh, 1.5em);
+            }
         }
 
         .card:hover {
