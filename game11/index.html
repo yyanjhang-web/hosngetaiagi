@@ -95,15 +95,12 @@
             height: 0;
             background-color: var(--card-front-color);
             border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             cursor: pointer;
             perspective: 1000px;
             font-weight: bold;
             color: var(--card-front-text);
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-            transition: transform 0.6s, background-color 0.3s, box-shadow 0.3s;
+            transition: transform 0.6s, box-shadow 0.3s;
             position: relative;
             box-sizing: border-box;
         }
@@ -118,6 +115,9 @@
                 gap: 10px;
                 padding: 10px;
             }
+            .card-face {
+                font-size: 0.9em;
+            }
         }
         
         /* 針對平板或電腦橫向模式 */
@@ -130,6 +130,9 @@
                 width: 120px;
                 height: 80px;
                 padding-bottom: 0;
+            }
+            .card-face {
+                font-size: 1.2em;
             }
         }
         
@@ -154,9 +157,11 @@
         }
 
         .card-inner {
-            position: relative;
+            position: absolute;
             width: 100%;
             height: 100%;
+            top: 0;
+            left: 0;
             text-align: center;
             transition: transform 0.6s;
             transform-style: preserve-3d;
@@ -169,34 +174,22 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             border-radius: 10px;
             padding: 5px;
             box-sizing: border-box;
-
-            /* 新的定位方式：使用絕對定位來居中內容 */
-            position: absolute;
+            
+            /* 新的定位與換行設定，確保內容在任何情況下都居中且不溢出 */
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 100%;
-            height: 100%;
-            display: flex; /* 再次使用 flex 來處理文字內容 */
-            justify-content: center;
-            align-items: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.2;
             text-align: center;
-            word-wrap: break-word; /* 避免文字溢出 */
-            overflow-wrap: break-word; /* 避免文字溢出 */
-            line-height: 1.2; /* 增加行高，避免文字太擠 */
-            font-size: 1.2em; /* 恢復預設字體大小 */
         }
-        
-        /* 針對手機直向畫面調整字體大小，避免過大 */
-        @media (max-width: 600px) and (orientation: portrait) {
-            .card-face {
-                font-size: 0.9em;
-            }
-        }
-
         .card-front {
             background-color: var(--card-front-color);
             color: var(--card-front-text);
