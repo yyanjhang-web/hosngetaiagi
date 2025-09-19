@@ -87,9 +87,9 @@
             transition: background-color 0.5s;
         }
         .card {
-            /* 調整為更彈性的寬度，確保所有尺寸都能正常顯示 */
             width: clamp(80px, 22vw, 120px);
-            height: clamp(60px, 15vw, 80px);
+            /* 修正為最小高度，讓內容有足夠空間顯示 */
+            min-height: 80px; 
             background-color: var(--card-front-color);
             border-radius: 10px;
             display: flex;
