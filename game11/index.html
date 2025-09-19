@@ -100,7 +100,6 @@
             align-items: center;
             cursor: pointer;
             perspective: 1000px;
-            font-size: 1.2em;
             font-weight: bold;
             color: var(--card-front-text);
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
@@ -112,31 +111,12 @@
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
         }
-        .card-content {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 5px;
-            box-sizing: border-box;
-            word-break: break-all;
-            overflow: hidden;
-            text-align: center;
-        }
 
         /* 媒體查詢：針對小螢幕（手機直向模式）進行優化 */
         @media (max-width: 600px) and (orientation: portrait) {
             .container {
                 gap: 10px;
                 padding: 10px;
-            }
-            .card .card-face {
-                font-size: 0.9em;
-                line-height: 1.2;
             }
         }
         
@@ -150,9 +130,6 @@
                 width: 120px;
                 height: 80px;
                 padding-bottom: 0;
-            }
-            .card .card-face {
-                font-size: 1.2em;
             }
         }
         
@@ -192,14 +169,34 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            display: flex;
-            /* 新增這兩行，讓內容垂直與水平居中 */
-            justify-content: center;
-            align-items: center;
             border-radius: 10px;
             padding: 5px;
             box-sizing: border-box;
+
+            /* 新的定位方式：使用絕對定位來居中內容 */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            display: flex; /* 再次使用 flex 來處理文字內容 */
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            word-wrap: break-word; /* 避免文字溢出 */
+            overflow-wrap: break-word; /* 避免文字溢出 */
+            line-height: 1.2; /* 增加行高，避免文字太擠 */
+            font-size: 1.2em; /* 恢復預設字體大小 */
         }
+        
+        /* 針對手機直向畫面調整字體大小，避免過大 */
+        @media (max-width: 600px) and (orientation: portrait) {
+            .card-face {
+                font-size: 0.9em;
+            }
+        }
+
         .card-front {
             background-color: var(--card-front-color);
             color: var(--card-front-text);
