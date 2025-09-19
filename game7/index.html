@@ -87,7 +87,7 @@
             transition: background-color 0.5s;
         }
         .card {
-            width: 120px;
+            width: 22vw; /* 已修正為動態寬度，以適應手機螢幕 */
             height: 80px;
             background-color: var(--card-front-color);
             border-radius: 10px;
@@ -160,7 +160,7 @@
             transform: rotateY(180deg);
             color: var(--card-back-text);
         }
-        
+
         .mark-btn {
             position: absolute;
             bottom: 5px;
@@ -178,7 +178,7 @@
             background-color: #ff5252;
             border-color: #ff5252;
         }
-        
+
         .footer {
             margin-top: 5px;
             text-align: center;
@@ -258,7 +258,7 @@
         function renderCards(cards, size) {
             container.innerHTML = '';
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-            
+
             const cardCount = size * size;
             const selectedCards = shuffleArray([...originalCards]).slice(0, cardCount);
 
