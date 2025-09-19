@@ -113,29 +113,16 @@
             border-color: #ff5252;
         }
         
-        .button-container {
-            margin-top: 25px;
-        }
-        .shuffle-btn {
-            padding: 12px 25px;
-            font-size: 1.1em;
-            cursor: pointer;
-            background-color: #20b2aa;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            transition: background-color 0.3s, transform 0.2s;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-        }
-        .shuffle-btn:hover {
-            background-color: #008b8b;
-            transform: translateY(-2px);
-        }
         .footer {
             margin-top: 30px;
             text-align: center;
             font-size: 0.85em;
             color: #666;
+        }
+        .info-text {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #555;
         }
     </style>
 </head>
@@ -149,9 +136,7 @@
 
     <div class="container"></div>
 
-    <div class="button-container">
-        <button class="shuffle-btn" onclick="shuffleCards(currentSize)">重新打亂</button>
-    </div>
+    <p class="info-text">點擊上方按鈕可重新發牌或調整大小</p>
 
     <div class="footer">
         <p>設計者：Iônn, Àn-tsiong</p>
@@ -188,7 +173,6 @@
         ];
 
         const container = document.querySelector('.container');
-        let currentSize = 5;
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -230,8 +214,8 @@
         }
 
         function shuffleCards(size) {
-            currentSize = size;
-            renderCards(originalCards, currentSize);
+            // 這個函數會被3個按鈕呼叫，同時處理發牌和改變大小
+            renderCards(originalCards, size);
         }
 
         window.onload = () => shuffleCards(5);
