@@ -85,10 +85,11 @@
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: background-color 0.5s;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* 方案二的核心修改 */
         }
         .card {
-            width: 18vw; /* 修正為更小的寬度，適用 5x5 */
-            height: 12vw; /* 保持比例 */
+            width: 120px;
+            height: 80px;
             background-color: var(--card-front-color);
             border-radius: 10px;
             display: flex;
@@ -248,67 +249,4 @@
         let currentSize = 3;
 
         function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function renderCards(cards, size) {
-            container.innerHTML = '';
-            container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-
-            const cardCount = size * size;
-            const selectedCards = shuffleArray([...originalCards]).slice(0, cardCount);
-
-            selectedCards.forEach(cardData => {
-                const cardElement = document.createElement('div');
-                cardElement.classList.add('card');
-                cardElement.innerHTML = `
-                    <div class="card-inner">
-                        <div class="card-face card-front">${cardData.roman}</div>
-                        <div class="card-face card-back">${cardData.hanzi}</div>
-                    </div>
-                    <div class="mark-btn"></div>
-                `;
-                container.appendChild(cardElement);
-
-                const cardInner = cardElement.querySelector('.card-inner');
-                cardElement.addEventListener('click', () => {
-                    cardElement.classList.toggle('flipped');
-                    // 確保動畫在正確的元素上觸發
-                    if (cardElement.classList.contains('flipped')) {
-                        cardInner.classList.add('flipped');
-                    } else {
-                        cardInner.classList.remove('flipped');
-                    }
-                });
-
-                const markBtn = cardElement.querySelector('.mark-btn');
-                markBtn.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    markBtn.classList.toggle('marked');
-                });
-            });
-        }
-
-        function shuffleCards(size) {
-            currentSize = size;
-            renderCards(originalCards, currentSize);
-        }
-
-        function applyStyle(styleName) {
-            const body = document.body;
-            body.className = '';
-            body.classList.add(styleName);
-        }
-
-        window.onload = () => {
-            shuffleCards(3);
-            applyStyle('theme-style1');
-        };
-    </script>
-
-</body>
-</html>
+            for (let i
