@@ -85,11 +85,11 @@
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: background-color 0.5s;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* 方案二的核心修改 */
         }
         .card {
-            width: 120px;
-            height: 80px;
+            /* 調整為更彈性的寬度，確保所有尺寸都能正常顯示 */
+            width: clamp(80px, 22vw, 120px);
+            height: clamp(60px, 15vw, 80px);
             background-color: var(--card-front-color);
             border-radius: 10px;
             display: flex;
@@ -104,6 +104,19 @@
             transition: transform 0.6s, background-color 0.3s, box-shadow 0.3s;
             position: relative;
         }
+
+        /* 根據不同尺寸調整字體大小，避免文字過大或過小 */
+        @media (max-width: 400px) {
+            .card {
+                font-size: 0.9em;
+            }
+        }
+        @media (min-width: 600px) {
+            .card {
+                font-size: 1.5em;
+            }
+        }
+
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
