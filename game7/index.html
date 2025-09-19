@@ -80,16 +80,17 @@
         .container {
             display: grid;
             gap: 15px;
-            padding: 20px;
+            padding: 20px; /* 內距調整 */
             background-color: var(--container-bg-color);
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: background-color 0.5s;
         }
         .card {
-            width: clamp(80px, 22vw, 120px);
-            /* 修正為最小高度，讓內容有足夠空間顯示 */
-            min-height: 80px; 
+            /* 修正為更小的寬度，適用 5x5 */
+            width: 18vw;
+            /* 修正為更小的高度，以適應 5x5 的比例 */
+            height: 12vw;
             background-color: var(--card-front-color);
             border-radius: 10px;
             display: flex;
@@ -104,19 +105,6 @@
             transition: transform 0.6s, background-color 0.3s, box-shadow 0.3s;
             position: relative;
         }
-
-        /* 根據不同尺寸調整字體大小，避免文字過大或過小 */
-        @media (max-width: 400px) {
-            .card {
-                font-size: 0.9em;
-            }
-        }
-        @media (min-width: 600px) {
-            .card {
-                font-size: 1.5em;
-            }
-        }
-
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
