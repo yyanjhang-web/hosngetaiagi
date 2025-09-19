@@ -193,16 +193,15 @@
             right: 5px;
             width: 15px;
             height: 15px;
-            border: 2px solid #ccc;
-            background-color: #f0f0f0;
+            border: none; /* 移除外框 */
+            background-color: rgba(255, 255, 255, 0.7); /* 半透明白色 */
             border-radius: 50%;
             cursor: pointer;
-            transition: background-color 0.2s, border-color 0.2s;
+            transition: background-color 0.2s;
             z-index: 10;
         }
         .mark-btn.marked {
-            background-color: #ff5252;
-            border-color: #ff5252;
+            background-color: rgba(255, 82, 82, 0.7); /* 半透明紅色 */
         }
 
         .footer {
@@ -285,7 +284,6 @@
             container.innerHTML = '';
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
             
-            // 根據 size 調整 body 的 class
             document.body.classList.remove('size-3x3', 'size-4x4', 'size-5x5');
             document.body.classList.add(`size-${size}x${size}`);
 
@@ -331,7 +329,6 @@
             const body = document.body;
             body.className = '';
             body.classList.add(styleName);
-            // 應用樣式後重新渲染，確保樣式正確套用
             shuffleCards(currentSize);
         }
 
