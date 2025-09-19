@@ -79,19 +79,19 @@
         }
         .container {
             display: grid;
-            gap: 2.5vw; /* 使用 vw 讓間距隨著螢幕寬度變化 */
+            gap: 2.5vw;
             padding: 2.5vw;
             background-color: var(--container-bg-color);
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: background-color 0.5s;
-            width: 90%; /* 確保容器不會超出螢幕 */
-            max-width: 600px; /* 在大螢幕上限制最大寬度 */
+            width: 90%;
+            max-width: 600px;
             box-sizing: border-box;
         }
         .card {
             width: 100%;
-            padding-bottom: 70%; /* 維持長寬比 */
+            padding-bottom: 70%;
             height: 0;
             background-color: var(--card-front-color);
             border-radius: 10px;
@@ -131,12 +131,12 @@
         /* 媒體查詢：針對小螢幕（手機直向模式）進行優化 */
         @media (max-width: 600px) and (orientation: portrait) {
             .container {
-                gap: 10px; /* 縮小間距 */
-                padding: 10px; /* 縮小內邊距 */
+                gap: 10px;
+                padding: 10px;
             }
             .card .card-face {
-                font-size: 0.9em; /* 讓字體更小 */
-                line-height: 1.2; /* 增加行高以改善可讀性 */
+                font-size: 0.9em;
+                line-height: 1.2;
             }
         }
         
@@ -193,6 +193,7 @@
             height: 100%;
             backface-visibility: hidden;
             display: flex;
+            /* 新增這兩行，讓內容垂直與水平居中 */
             justify-content: center;
             align-items: center;
             border-radius: 10px;
