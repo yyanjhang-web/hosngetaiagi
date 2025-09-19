@@ -24,9 +24,9 @@
             --btn-color: #f59e0b;
             --btn-hover-color: #d97706;
             --card-front-color: #fbd38d;
-            --card-back-color: #d8b4fe;
+            --card-back-color: #d8b4fe; /* 粉紫色 */
             --card-front-text: #92400e;
-            --card-back-text: #6b21a8;
+            --card-back-text: #6b21a8; /* 深紫色 */
         }
 
         /* 風格3 (深邃科技 - 翻牌後亮黃色) */
@@ -36,9 +36,9 @@
             --btn-color: #4299e1;
             --btn-hover-color: #2b6cb0;
             --card-front-color: #4a5568;
-            --card-back-color: #fcd34d;
+            --card-back-color: #fcd34d; /* 亮黃色 */
             --card-front-text: #e2e8f0;
-            --card-back-text: #713f12;
+            --card-back-text: #713f12; /* 深棕色 */
         }
 
         body {
@@ -52,6 +52,8 @@
             color: #333;
             transition: background-color 0.5s;
             overflow-x: hidden;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .size-buttons {
             margin-bottom: 20px;
@@ -79,51 +81,40 @@
         }
         .container {
             display: grid;
-            gap: 10px; /* 儲存格間距調小 */
-            padding: 20px;
+            gap: 1vw; /* 使用 vw 單位讓間距更具彈性 */
+            padding: clamp(10px, 3vw, 20px); /* 調整 padding 的彈性範圍 */
             background-color: var(--container-bg-color);
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: background-color 0.5s;
-            max-width: 90vw; /* 確保容器寬度不會太大 */
+            max-width: 90vw; /* 限制容器最大寬度，避免在桌面版面過大 */
         }
         .card {
-            width: 18vw;
-            height: 12vw;
             background-color: var(--card-front-color);
             border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            text-align: center;
             cursor: pointer;
             perspective: 1000px;
-            font-size: clamp(0.9em, 2vw, 1.2em); /* 文字大小彈性調整 */
             font-weight: bold;
             color: var(--card-front-text);
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
             transition: transform 0.6s, background-color 0.3s, box-shadow 0.3s;
             position: relative;
+            text-align: center;
+            padding: 5px;
         }
-
-        /* 針對 5x5 模式調整字體大小 */
-        .size-5x5 .card {
-            font-size: clamp(0.7em, 1.5vw, 1em);
+        
+        /* 根據不同的版面大小調整卡片的字體大小 */
+        .container[style*="grid-template-columns: repeat(3, 1fr)"] .card {
+            font-size: clamp(1em, 5vw, 2em);
         }
-
-        /* 橫式模式下的優化 */
-        @media (orientation: landscape) {
-            .container {
-                gap: 5px; /* 橫式下間距更小 */
-            }
-            .card {
-                width: 16vw;
-                height: 10vw;
-            }
-            /* 橫式下 5x5 的特殊調整 */
-            .size-5x5 .card {
-                font-size: clamp(0.6em, 1vw, 0.9em);
-            }
+        .container[style*="grid-template-columns: repeat(4, 1fr)"] .card {
+            font-size: clamp(0.9em, 4vw, 1.8em);
+        }
+        .container[style*="grid-template-columns: repeat(5, 1fr)"] .card {
+            font-size: clamp(0.8em, 3.5vw, 1.5em);
         }
 
         .card:hover {
@@ -158,9 +149,6 @@
             text-align: center;
             transition: transform 0.6s;
             transform-style: preserve-3d;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
         .card.flipped .card-inner {
             transform: rotateY(180deg);
@@ -193,15 +181,16 @@
             right: 5px;
             width: 15px;
             height: 15px;
-            border: none; /* 移除外框 */
-            background-color: rgba(255, 255, 255, 0.7); /* 半透明白色 */
+            border: 2px solid #ccc;
+            background-color: #f0f0f0;
             border-radius: 50%;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, border-color 0.2s;
             z-index: 10;
         }
         .mark-btn.marked {
-            background-color: rgba(255, 82, 82, 0.7); /* 半透明紅色 */
+            background-color: #ff5252;
+            border-color: #ff5252;
         }
 
         .footer {
@@ -283,9 +272,6 @@
         function renderCards(cards, size) {
             container.innerHTML = '';
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-            
-            document.body.classList.remove('size-3x3', 'size-4x4', 'size-5x5');
-            document.body.classList.add(`size-${size}x${size}`);
 
             const cardCount = size * size;
             const selectedCards = shuffleArray([...originalCards]).slice(0, cardCount);
@@ -305,6 +291,7 @@
                 const cardInner = cardElement.querySelector('.card-inner');
                 cardElement.addEventListener('click', () => {
                     cardElement.classList.toggle('flipped');
+                    // 確保動畫在正確的元素上觸發
                     if (cardElement.classList.contains('flipped')) {
                         cardInner.classList.add('flipped');
                     } else {
@@ -329,7 +316,6 @@
             const body = document.body;
             body.className = '';
             body.classList.add(styleName);
-            shuffleCards(currentSize);
         }
 
         window.onload = () => {
