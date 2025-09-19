@@ -114,13 +114,14 @@
         }
         
         .footer {
-            margin-top: 30px;
+            margin-top: 5px; /* 調整這裡的間距 */
             text-align: center;
             font-size: 0.85em;
             color: #666;
         }
         .info-text {
             margin-top: 15px;
+            margin-bottom: 5px; /* 調整這裡的間距 */
             font-size: 0.9em;
             color: #555;
         }
@@ -139,8 +140,7 @@
     <p class="info-text">點擊上方按鈕可重新發牌或調整大小</p>
 
     <div class="footer">
-        <p>設計者：Iônn, Àn-tsiong</p>
-        <p>技術支援：フォックスコンの響き</p>
+        <p>設計者：Iônn, Àn-tsiong；技術支援：フォックスコンの響き</p>
     </div>
 
     <script>
@@ -214,11 +214,11 @@
         }
 
         function shuffleCards(size) {
-            // 這個函數會被3個按鈕呼叫，同時處理發牌和改變大小
             renderCards(originalCards, size);
         }
 
-        window.onload = () => shuffleCards(5);
+        // 預設為3x3表格
+        window.onload = () => shuffleCards(3);
     </script>
 
 </body>
