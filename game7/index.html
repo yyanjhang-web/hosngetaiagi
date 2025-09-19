@@ -24,9 +24,9 @@
             --btn-color: #f59e0b;
             --btn-hover-color: #d97706;
             --card-front-color: #fbd38d;
-            --card-back-color: #d8b4fe; /* 粉紫色 */
+            --card-back-color: #d8b4fe;
             --card-front-text: #92400e;
-            --card-back-text: #6b21a8; /* 深紫色 */
+            --card-back-text: #6b21a8;
         }
 
         /* 風格3 (深邃科技 - 翻牌後亮黃色) */
@@ -36,9 +36,9 @@
             --btn-color: #4299e1;
             --btn-hover-color: #2b6cb0;
             --card-front-color: #4a5568;
-            --card-back-color: #fcd34d; /* 亮黃色 */
+            --card-back-color: #fcd34d;
             --card-front-text: #e2e8f0;
-            --card-back-text: #713f12; /* 深棕色 */
+            --card-back-text: #713f12;
         }
 
         body {
@@ -79,32 +79,53 @@
         }
         .container {
             display: grid;
-            gap: 15px;
-            padding: 20px; /* 內距調整 */
+            gap: 10px; /* 儲存格間距調小 */
+            padding: 20px;
             background-color: var(--container-bg-color);
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: background-color 0.5s;
+            max-width: 90vw; /* 確保容器寬度不會太大 */
         }
         .card {
-            /* 修正為更小的寬度，適用 5x5 */
             width: 18vw;
-            /* 修正為更小的高度，以適應 5x5 的比例 */
             height: 12vw;
             background-color: var(--card-front-color);
             border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
+            text-align: center;
             cursor: pointer;
             perspective: 1000px;
-            font-size: 1.2em;
+            font-size: clamp(0.9em, 2vw, 1.2em); /* 文字大小彈性調整 */
             font-weight: bold;
             color: var(--card-front-text);
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
             transition: transform 0.6s, background-color 0.3s, box-shadow 0.3s;
             position: relative;
         }
+
+        /* 針對 5x5 模式調整字體大小 */
+        .size-5x5 .card {
+            font-size: clamp(0.7em, 1.5vw, 1em);
+        }
+
+        /* 橫式模式下的優化 */
+        @media (orientation: landscape) {
+            .container {
+                gap: 5px; /* 橫式下間距更小 */
+            }
+            .card {
+                width: 16vw;
+                height: 10vw;
+            }
+            /* 橫式下 5x5 的特殊調整 */
+            .size-5x5 .card {
+                font-size: clamp(0.6em, 1vw, 0.9em);
+            }
+        }
+
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
@@ -137,6 +158,9 @@
             text-align: center;
             transition: transform 0.6s;
             transform-style: preserve-3d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .card.flipped .card-inner {
             transform: rotateY(180deg);
@@ -260,6 +284,10 @@
         function renderCards(cards, size) {
             container.innerHTML = '';
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            
+            // 根據 size 調整 body 的 class
+            document.body.classList.remove('size-3x3', 'size-4x4', 'size-5x5');
+            document.body.classList.add(`size-${size}x${size}`);
 
             const cardCount = size * size;
             const selectedCards = shuffleArray([...originalCards]).slice(0, cardCount);
@@ -279,7 +307,6 @@
                 const cardInner = cardElement.querySelector('.card-inner');
                 cardElement.addEventListener('click', () => {
                     cardElement.classList.toggle('flipped');
-                    // 確保動畫在正確的元素上觸發
                     if (cardElement.classList.contains('flipped')) {
                         cardInner.classList.add('flipped');
                     } else {
@@ -304,6 +331,8 @@
             const body = document.body;
             body.className = '';
             body.classList.add(styleName);
+            // 應用樣式後重新渲染，確保樣式正確套用
+            shuffleCards(currentSize);
         }
 
         window.onload = () => {
