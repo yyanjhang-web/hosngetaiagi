@@ -81,13 +81,13 @@
         }
         .container {
             display: grid;
-            gap: 1vw; /* 使用 vw 單位讓間距更具彈性 */
-            padding: clamp(10px, 3vw, 20px); /* 調整 padding 的彈性範圍 */
+            gap: 10px; /* 固定間距 */
+            padding: 20px;
             background-color: var(--container-bg-color);
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: background-color 0.5s;
-            max-width: 90vw; /* 限制容器最大寬度，避免在桌面版面過大 */
+            max-width: 90vw; /* 確保容器寬度在任何螢幕上都不會超出 */
         }
         .card {
             background-color: var(--card-front-color);
@@ -104,6 +104,8 @@
             position: relative;
             text-align: center;
             padding: 5px;
+            /* 使用 min-height 確保文字有足夠空間 */
+            min-height: 60px;
         }
         
         /* 根據不同的版面大小調整卡片的字體大小 */
