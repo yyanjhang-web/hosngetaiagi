@@ -15,6 +15,7 @@
             --card-back-color: #81c784;
             --card-front-text: #005f99;
             --card-back-text: #004085;
+            --grid-size: 3; /* 新增變數 */
         }
 
         /* 風格2 (活潑暖陽 - 翻牌後粉紫色) */
@@ -52,6 +53,7 @@
             color: #333;
             transition: background-color 0.5s;
             box-sizing: border-box;
+            padding: 20px;
         }
         .size-buttons {
             margin-bottom: 20px;
@@ -79,6 +81,7 @@
         }
         .container {
             display: grid;
+            grid-template-columns: repeat(var(--grid-size), 1fr);
             gap: 2.5vw;
             padding: 2.5vw;
             background-color: var(--container-bg-color);
@@ -103,31 +106,23 @@
             transition: transform 0.6s, box-shadow 0.3s;
             position: relative;
             box-sizing: border-box;
+            min-width: 0;
+            min-height: 0;
         }
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
         }
 
-        /* 媒體查詢：針對小螢幕（手機直向模式）進行優化 */
-        @media (max-width: 600px) and (orientation: portrait) {
-            .container {
-                gap: 10px;
-                padding: 10px;
-            }
-            .card-face {
-                font-size: 0.9em;
-            }
-        }
-        
-        /* 針對平板或電腦橫向模式 */
+        /* 媒體查詢：針對平板或電腦橫向模式 */
         @media (min-width: 601px) {
             .container {
                 gap: 15px;
                 padding: 20px;
+                max-width: none;
+                width: auto;
             }
             .card {
-                width: 120px;
                 height: 80px;
                 padding-bottom: 0;
             }
@@ -323,6 +318,7 @@
                     markBtn.classList.toggle('marked');
                 });
             });
+            document.documentElement.style.setProperty('--grid-size', size);
         }
 
         function shuffleCards(size) {
