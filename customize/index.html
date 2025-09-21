@@ -16,7 +16,6 @@
             --card-front-text: #005f99;
             --card-back-text: #004085;
         }
-        /* (這裡省略了風格2、3的CSS，因為與原版相同) */
         .theme-style2 {
             --bg-color: #fffaf0;
             --container-bg-color: #ffeccf;
@@ -131,7 +130,6 @@
                 font-size: 1.2em;
             }
         }
-        /* (這裡省略了卡片動畫的CSS，與原版相同) */
         .theme-style2 .card-inner.flipped {
             animation: bounce 0.6s forwards;
         }
@@ -248,8 +246,8 @@
 
     <div class="dictionary-input">
         <h3>自訂詞庫</h3>
-        <p>請輸入您的詞彙，每行一個。格式為：<br><b>漢字,羅馬拼音</b></p>
-        <textarea id="custom-dictionary" placeholder="例如：&#10;鋩角,mê-kak&#10;拉圇仔燒,lâ-lûn-á-sio"></textarea>
+        <p>請輸入您的詞彙，每行一個。格式為：<br><b>卡牌正面,卡牌背面</b></p>
+        <textarea id="custom-dictionary" placeholder="例如：&#10;正面1, 背面1&#10;正面2, 背面2"></textarea>
         <button id="apply-btn">套用詞庫並開始遊戲</button>
     </div>
 
@@ -274,34 +272,8 @@
     </div>
 
     <script>
-        // 預設詞庫，如果使用者沒有自訂詞庫，則使用此清單
-        const defaultCards = [
-            { hanzi: '鋩角', roman: 'mê-kak' },
-            { hanzi: '拉圇仔燒', roman: 'lâ-lûn-á-sio' },
-            { hanzi: '抐', roman: 'lā' },
-            { hanzi: '粕', roman: 'phoh' },
-            { hanzi: '煠', roman: 'sa̍h' },
-            { hanzi: '柑仔蜜', roman: 'kam-á-bi̍t' },
-            { hanzi: '蔥仔珠', roman: 'tshang-á-tsu' },
-            { hanzi: '饞', roman: 'sâi' },
-            { hanzi: '芡', roman: 'khiàn' },
-            { hanzi: '炕', roman: 'khòng' },
-            { hanzi: '(火君)', roman: 'kûn' },
-            { hanzi: '牽粉', roman: 'khan-hún' },
-            { hanzi: '剾皮', roman: 'khau-phuê' },
-            { hanzi: '揀菜', roman: 'kíng-tshài' },
-            { hanzi: '滷', roman: 'lóo' },
-            { hanzi: '抹鹽', roman: 'buah-iâm' },
-            { hanzi: '無路來', roman: 'bô-lōo-lâi' },
-            { hanzi: '手路菜', roman: 'tshiú-lōo-tshài' },
-            { hanzi: '齊', roman: 'tsiâu' },
-            { hanzi: '款', roman: 'khuán' },
-            { hanzi: '罕得', roman: 'hán-tit' },
-            { hanzi: '好勢', roman: 'hó-sè' },
-            { hanzi: '食食', roman: 'tsia̍h-si̍t' },
-            { hanzi: '濫', roman: 'lām' },
-            { hanzi: '摻', roman: 'tsham' }
-        ];
+        // 預設詞庫現在是空的，讓使用者自行輸入
+        const defaultCards = [];
 
         const container = document.querySelector('.container');
         const customDictTextarea = document.getElementById('custom-dictionary');
@@ -328,14 +300,14 @@
                     activeCards = newCards; // 更新目前使用的詞庫
                     alert('自訂詞庫已套用！');
                 } else {
-                    alert('請輸入有效的詞彙。格式：漢字,羅馬拼音');
+                    alert('請輸入有效的詞彙。格式：卡牌正面,卡牌背面');
                     return;
                 }
             } else {
                 // 如果輸入框為空，清除 localStorage 並使用預設詞庫
                 localStorage.removeItem('customCards');
                 activeCards = defaultCards;
-                alert('已切換回預設詞庫。');
+                alert('已清空詞庫，請輸入新的詞彙。');
             }
             shuffleCards(currentSize);
         }
@@ -372,12 +344,20 @@
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 
             const cardCount = size * size;
-            const selectedCards = shuffleArray([...cards]).slice(0, cardCount);
-
-            if (selectedCards.length < cardCount) {
-                alert(`詞庫詞彙不足，目前有 ${cards.length} 組，請至少提供 ${cardCount} 組以進行遊戲。`);
-                return;
+            
+            // 檢查詞彙數量是否足夠
+            if (cards.length < cardCount) {
+                // 如果沒有詞彙，顯示提示訊息
+                if (cards.length === 0) {
+                    container.innerHTML = `<p style="text-align: center; color: #555;">請在上方輸入您自己的詞彙！</p>`;
+                    return;
+                } else {
+                    alert(`詞庫詞彙不足，目前有 ${cards.length} 組，請至少提供 ${cardCount} 組以進行遊戲。`);
+                    return;
+                }
             }
+
+            const selectedCards = shuffleArray([...cards]).slice(0, cardCount);
 
             selectedCards.forEach(cardData => {
                 const cardElement = document.createElement('div');
