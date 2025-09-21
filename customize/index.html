@@ -245,10 +245,9 @@
 <body class="theme-style1">
 
     <div class="dictionary-input">
-        <h3>自訂詞庫</h3>
-        <p>請輸入您的詞彙，每行一個。格式為：<br><b>卡牌正面,卡牌背面</b></p>
-        <textarea id="custom-dictionary" placeholder="例如：&#10;正面1, 背面1&#10;正面2, 背面2"></textarea>
-        <button id="apply-btn">套用詞庫並開始遊戲</button>
+        <p>請至少輸入9組詞語，每行一組。例如：<br><b>點擊後, 點擊前</b></p>
+        <textarea id="custom-dictionary" placeholder="例如：&#10;點擊後1, 點擊前1&#10;點擊後2, 點擊前2"></textarea>
+        <button id="apply-btn">套用並開始</button>
     </div>
 
     <div class="size-buttons">
@@ -300,7 +299,7 @@
                     activeCards = newCards; // 更新目前使用的詞庫
                     alert('自訂詞庫已套用！');
                 } else {
-                    alert('請輸入有效的詞彙。格式：卡牌正面,卡牌背面');
+                    alert('請輸入有效的詞彙。格式：點擊後,點擊前');
                     return;
                 }
             } else {
@@ -349,7 +348,7 @@
             if (cards.length < cardCount) {
                 // 如果沒有詞彙，顯示提示訊息
                 if (cards.length === 0) {
-                    container.innerHTML = `<p style="text-align: center; color: #555;">請在上方輸入您自己的詞彙！</p>`;
+                    container.innerHTML = `<p style="text-align: center; color: #555;">尚未輸入</p>`;
                     return;
                 } else {
                     alert(`詞庫詞彙不足，目前有 ${cards.length} 組，請至少提供 ${cardCount} 組以進行遊戲。`);
@@ -400,7 +399,7 @@
             body.classList.add(styleName);
         }
 
-        // 監聽「套用詞庫」按鈕點擊事件
+        // 監聽「套用並開始」按鈕點擊事件
         applyBtn.addEventListener('click', parseAndStoreDictionary);
 
         window.onload = () => {
