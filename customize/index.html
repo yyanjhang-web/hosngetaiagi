@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自訂詞彙翻牌遊戲</title>
+    <style>
+        :root {
+            /* 預設風格1的變數 (清新藍綠) */
+            --bg-color: #f0f9ff;
+            --container-bg-color: #e0f2f7;
+            --btn-color: #20b2aa;
+            --btn-hover-color: #008b8b;
+            --card-front-color: #b3e0ff;
+            --card-back-color: #81c784;
+            --card-front-text: #005f99;
+            --card-back-text: #004085;
+        }
+        /* (這裡省略了風格2、3的CSS，因為與原版相同) */
+        .theme-style2 {
+            --bg-color: #fffaf0;
+            --container-bg-color: #ffeccf;
+            --btn-color: #f59e0b;
+            --btn-hover-color: #d97706;
+            --card-front-color: #fbd38d;
+            --card-back-color: #d8b4fe;
+            --card-front-text: #92400e;
+            --card-back-text: #6b21a8;
+        }
+
+        .theme-style3 {
+            --bg-color: #1a202c;
+            --container-bg-color: #2d3748;
+            --btn-color: #4299e1;
+            --btn-hover-color: #2b6cb0;
+            --card-front-color: #4a5568;
+            --card-back-color: #fcd34d;
+            --card-front-text: #e2e8f0;
+            --card-back-text: #713f12;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: #333;
+            transition: background-color 0.5s;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+        .size-buttons, .style-buttons {
+            margin-bottom: 20px;
+        }
+        .style-btn, .size-btn, #apply-btn {
+            padding: 8px 16px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: var(--btn-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 0 5px;
+            transition: background-color 0.3s;
+        }
+        .style-btn {
+            font-size: 0.9em;
+            padding: 5px 10px;
+        }
+        .style-btn:hover, .size-btn:hover, #apply-btn:hover {
+            background-color: var(--btn-hover-color);
+        }
+        .container {
+            display: grid;
+            gap: 2.5vw;
+            padding: 2.5vw;
+            background-color: var(--container-bg-color);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.5s;
+            width: 90%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+        .card {
+            width: 100%;
+            padding-bottom: 70%;
+            height: 0;
+            background-color: var(--card-front-color);
+            border-radius: 10px;
+            cursor: pointer;
+            perspective: 1000px;
+            font-weight: bold;
+            color: var(--card-front-text);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.6s, box-shadow 0.3s;
+            position: relative;
+            box-sizing: border-box;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 媒體查詢：針對小螢幕（手機直向模式）進行優化 */
+        @media (max-width: 600px) and (orientation: portrait) {
+            .container {
+                gap: 10px;
+                padding: 10px;
+            }
+            .card-face {
+                font-size: 0.9em;
+            }
+        }
+
+        /* 針對平板或電腦橫向模式 */
+        @media (min-width: 601px) {
+            .container {
+                gap: 15px;
+                padding: 20px;
+            }
+            .card {
+                width: 120px;
+                height: 80px;
+                padding-bottom: 0;
+            }
+            .card-face {
+                font-size: 1.2em;
+            }
+        }
+        /* (這裡省略了卡片動畫的CSS，與原版相同) */
+        .theme-style2 .card-inner.flipped {
+            animation: bounce 0.6s forwards;
+        }
+        @keyframes bounce {
+            0% { transform: rotateY(0deg) scale(1); }
+            50% { transform: rotateY(90deg) scale(1.1); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+        .theme-style3 .card-inner.flipped {
+            animation: zoomFlip 0.6s forwards;
+        }
+        @keyframes zoomFlip {
+            0% { transform: rotateY(0deg) scale(1); }
+            50% { transform: rotateY(90deg) scale(0.9); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        .card-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            padding: 5px;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.2;
+            text-align: center;
+        }
+        .card-front {
+            background-color: var(--card-front-color);
+            color: var(--card-front-text);
+        }
+        .card-back {
+            background-color: var(--card-back-color);
+            transform: rotateY(180deg);
+            color: var(--card-back-text);
+        }
+
+        .mark-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 15px;
+            height: 15px;
+            border: none;
+            background-color: rgba(240, 240, 240, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            z-index: 10;
+        }
+        .mark-btn.marked {
+            background-color: rgba(255, 82, 82, 0.6);
+        }
+
+        .footer {
+            margin-top: 5px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #666;
+        }
+        .info-text {
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        /* 新增詞庫輸入區塊的樣式 */
+        .dictionary-input {
+            width: 90%;
+            max-width: 600px;
+            background-color: var(--container-bg-color);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .dictionary-input h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .dictionary-input textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .dictionary-input button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body class="theme-style1">
+
+    <div class="dictionary-input">
+        <h3>自訂詞庫</h3>
+        <p>請輸入您的詞彙，每行一個。格式為：<br><b>漢字,羅馬拼音</b></p>
+        <textarea id="custom-dictionary" placeholder="例如：&#10;鋩角,mê-kak&#10;拉圇仔燒,lâ-lûn-á-sio"></textarea>
+        <button id="apply-btn">套用詞庫並開始遊戲</button>
+    </div>
+
+    <div class="size-buttons">
+        <button class="size-btn" onclick="shuffleCards(3)">3×3</button>
+        <button class="size-btn" onclick="shuffleCards(4)">4×4</button>
+        <button class="size-btn" onclick="shuffleCards(5)">5×5</button>
+    </div>
+
+    <div class="container"></div>
+
+    <p class="info-text">點擊上方按鈕可重新發牌或調整大小</p>
+
+    <div class="style-buttons">
+        <button class="style-btn" onclick="applyStyle('theme-style1')">式1</button>
+        <button class="style-btn" onclick="applyStyle('theme-style2')">式2</button>
+        <button class="style-btn" onclick="applyStyle('theme-style3')">式3</button>
+    </div>
+
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong；技術支援：フォックスコンの響き</p>
+    </div>
+
+    <script>
+        // 預設詞庫，如果使用者沒有自訂詞庫，則使用此清單
+        const defaultCards = [
+            { hanzi: '鋩角', roman: 'mê-kak' },
+            { hanzi: '拉圇仔燒', roman: 'lâ-lûn-á-sio' },
+            { hanzi: '抐', roman: 'lā' },
+            { hanzi: '粕', roman: 'phoh' },
+            { hanzi: '煠', roman: 'sa̍h' },
+            { hanzi: '柑仔蜜', roman: 'kam-á-bi̍t' },
+            { hanzi: '蔥仔珠', roman: 'tshang-á-tsu' },
+            { hanzi: '饞', roman: 'sâi' },
+            { hanzi: '芡', roman: 'khiàn' },
+            { hanzi: '炕', roman: 'khòng' },
+            { hanzi: '(火君)', roman: 'kûn' },
+            { hanzi: '牽粉', roman: 'khan-hún' },
+            { hanzi: '剾皮', roman: 'khau-phuê' },
+            { hanzi: '揀菜', roman: 'kíng-tshài' },
+            { hanzi: '滷', roman: 'lóo' },
+            { hanzi: '抹鹽', roman: 'buah-iâm' },
+            { hanzi: '無路來', roman: 'bô-lōo-lâi' },
+            { hanzi: '手路菜', roman: 'tshiú-lōo-tshài' },
+            { hanzi: '齊', roman: 'tsiâu' },
+            { hanzi: '款', roman: 'khuán' },
+            { hanzi: '罕得', roman: 'hán-tit' },
+            { hanzi: '好勢', roman: 'hó-sè' },
+            { hanzi: '食食', roman: 'tsia̍h-si̍t' },
+            { hanzi: '濫', roman: 'lām' },
+            { hanzi: '摻', roman: 'tsham' }
+        ];
+
+        const container = document.querySelector('.container');
+        const customDictTextarea = document.getElementById('custom-dictionary');
+        const applyBtn = document.getElementById('apply-btn');
+        let currentSize = 3;
+        let activeCards = []; // 儲存目前使用的詞庫
+
+        // 函式：解析並儲存使用者輸入的詞庫
+        function parseAndStoreDictionary() {
+            const inputText = customDictTextarea.value.trim();
+            if (inputText) {
+                const lines = inputText.split('\n');
+                const newCards = lines.map(line => {
+                    const parts = line.split(',');
+                    if (parts.length === 2) {
+                        return { hanzi: parts[0].trim(), roman: parts[1].trim() };
+                    }
+                    return null;
+                }).filter(card => card !== null);
+                
+                if (newCards.length > 0) {
+                    // 將自訂詞庫儲存到 localStorage
+                    localStorage.setItem('customCards', JSON.stringify(newCards));
+                    activeCards = newCards; // 更新目前使用的詞庫
+                    alert('自訂詞庫已套用！');
+                } else {
+                    alert('請輸入有效的詞彙。格式：漢字,羅馬拼音');
+                    return;
+                }
+            } else {
+                // 如果輸入框為空，清除 localStorage 並使用預設詞庫
+                localStorage.removeItem('customCards');
+                activeCards = defaultCards;
+                alert('已切換回預設詞庫。');
+            }
+            shuffleCards(currentSize);
+        }
+
+        // 函式：載入詞庫
+        function loadDictionary() {
+            const storedCards = localStorage.getItem('customCards');
+            if (storedCards) {
+                try {
+                    activeCards = JSON.parse(storedCards);
+                    // 將載入的詞彙顯示在輸入框中
+                    customDictTextarea.value = activeCards.map(c => `${c.hanzi},${c.roman}`).join('\n');
+                } catch (e) {
+                    console.error("Failed to parse custom dictionary from localStorage.", e);
+                    activeCards = defaultCards;
+                }
+            } else {
+                activeCards = defaultCards;
+            }
+        }
+
+        // 函式：打亂陣列
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 函式：渲染卡片
+        function renderCards(cards, size) {
+            container.innerHTML = '';
+            container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+
+            const cardCount = size * size;
+            const selectedCards = shuffleArray([...cards]).slice(0, cardCount);
+
+            if (selectedCards.length < cardCount) {
+                alert(`詞庫詞彙不足，目前有 ${cards.length} 組，請至少提供 ${cardCount} 組以進行遊戲。`);
+                return;
+            }
+
+            selectedCards.forEach(cardData => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-face card-front">${cardData.roman}</div>
+                        <div class="card-face card-back">${cardData.hanzi}</div>
+                    </div>
+                    <div class="mark-btn"></div>
+                `;
+                container.appendChild(cardElement);
+
+                const cardInner = cardElement.querySelector('.card-inner');
+                cardElement.addEventListener('click', () => {
+                    cardElement.classList.toggle('flipped');
+                    if (cardElement.classList.contains('flipped')) {
+                        cardInner.classList.add('flipped');
+                    } else {
+                        cardInner.classList.remove('flipped');
+                    }
+                });
+
+                const markBtn = cardElement.querySelector('.mark-btn');
+                markBtn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    markBtn.classList.toggle('marked');
+                });
+            });
+        }
+
+        function shuffleCards(size) {
+            currentSize = size;
+            renderCards(activeCards, currentSize);
+        }
+
+        function applyStyle(styleName) {
+            const body = document.body;
+            body.className = '';
+            body.classList.add(styleName);
+        }
+
+        // 監聽「套用詞庫」按鈕點擊事件
+        applyBtn.addEventListener('click', parseAndStoreDictionary);
+
+        window.onload = () => {
+            loadDictionary(); // 頁面載入時先載入詞庫
+            shuffleCards(3);
+            applyStyle('theme-style1');
+        };
+    </script>
+    <a href="https://www.hitwebcounter.com/" target="_blank">
+<img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters"   border="0" /></a>        
+
+</body>
+</html>
