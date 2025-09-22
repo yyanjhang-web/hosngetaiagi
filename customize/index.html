@@ -274,9 +274,9 @@
 <body class="theme-style1">
 
     <div class="dictionary-input">
-        <p>至少輸入9組詞語，一組一行並以「,」分隔卡牌的正反面。</p>
-        <p class="subtle-text">最下方按鈕可分享帶詞庫網址，但大詞庫產生的過長網址，可能會失效，請隨時備份您的詞庫</p>
-        <textarea id="custom-dictionary" placeholder="例如：&#10;點擊後1, 點擊前1&#10;點擊後2, 點擊前2&#10;點擊後3, (空白則為無牌面)&#10(後顯示蘋果), (先顯示apple)"></textarea>
+        <p>請至少輸入9組詞語，一組一行。</p>
+        <p class="subtle-text">下方按鈕可分享帶詞庫網址，但大詞庫產生的過長網址，<br>可能導致網址失效，請隨時備份您的詞庫</p>
+        <textarea id="custom-dictionary" placeholder="例如：&#10;點擊後1, 點擊前1&#10;點擊後2, 點擊前2"></textarea>
         <button id="apply-btn">套用並開始</button>
     </div>
 
@@ -297,7 +297,7 @@
     </div>
 
     <div class="footer">
-        <p>設計者：Iônn, Àn-tsiong；</br>技術支援：フォックスコンの響き</p>
+        <p>設計者：Iônn, Àn-tsiong；技術支援：フォックスコンの響き</p>
     </div>
 
     <div class="counter-container">
@@ -314,9 +314,9 @@
         const container = document.querySelector('.container');
         const customDictTextarea = document.getElementById('custom-dictionary');
         const applyBtn = document.getElementById('apply-btn');
-        const shareBtn = document.getElementById('share-button'); // 新增分享按鈕
+        const shareBtn = document.getElementById('share-button');
         let currentSize = 3;
-        let activeCards = []; // 儲存目前使用的詞庫
+        let activeCards = [];
 
         // 函式：解析使用者輸入的詞庫
         function parseDictionaryText(inputText) {
@@ -357,12 +357,10 @@
             const newCards = parseDictionaryText(customDictTextarea.value);
 
             if (newCards.length > 0) {
-                // 將自訂詞庫儲存到 localStorage
                 localStorage.setItem('customCards', JSON.stringify(newCards));
-                activeCards = newCards; // 更新目前使用的詞庫
+                activeCards = newCards;
                 alert('自訂詞庫已套用！');
             } else {
-                // 如果輸入框為空，清除 localStorage 並使用預設詞庫
                 localStorage.removeItem('customCards');
                 activeCards = defaultCards;
                 alert('已清空詞庫，請輸入新的詞彙。');
@@ -372,34 +370,23 @@
 
         // 函式：載入詞庫
         function loadDictionary() {
-            // 優先從網址參數讀取詞庫
             const urlParams = new URLSearchParams(window.location.search);
             const encodedData = urlParams.get('data');
+            
+            // 只有當網址參數有詞庫時才載入
             if (encodedData) {
                 const decodedCards = decodeDictionary(encodedData);
                 if (decodedCards) {
                     activeCards = decodedCards;
-                    // 將載入的詞彙顯示在輸入框中
                     customDictTextarea.value = activeCards.map(c => `${c.hanzi},${c.roman}`).join('\n');
                     alert('已從網址載入詞庫！');
-                    return; // 成功載入後就結束
+                    return;
                 }
             }
             
-            // 如果網址沒有詞庫，再嘗試從 localStorage 載入
-            const storedCards = localStorage.getItem('customCards');
-            if (storedCards) {
-                try {
-                    activeCards = JSON.parse(storedCards);
-                    // 將載入的詞彙顯示在輸入框中
-                    customDictTextarea.value = activeCards.map(c => `${c.hanzi},${c.roman}`).join('\n');
-                } catch (e) {
-                    console.error("Failed to parse custom dictionary from localStorage.", e);
-                    activeCards = defaultCards;
-                }
-            } else {
-                activeCards = defaultCards;
-            }
+            // 如果網址沒有詞庫，讓詞庫保持為空，並清空輸入框
+            activeCards = defaultCards;
+            customDictTextarea.value = '';
         }
 
         // 函式：打亂陣列
@@ -418,9 +405,7 @@
 
             const cardCount = size * size;
             
-            // 檢查詞彙數量是否足夠
             if (cards.length < cardCount) {
-                // 如果沒有詞彙，顯示提示訊息
                 if (cards.length === 0) {
                     container.innerHTML = `<p style="text-align: center; color: #555;">尚未輸入詞庫</p>`;
                     return;
@@ -486,16 +471,13 @@
                 return;
             }
 
-            // 取得目前網址，並替換或加入 data 參數
             const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             const newUrl = `${baseUrl}?data=${encodedData}`;
 
-            // 檢查網址長度
             if (newUrl.length > 2048) {
                 alert(`網址長度過長 (${newUrl.length} 字元)，可能導致分享失敗。請減少詞庫數量。`);
             }
             
-            // 複製到剪貼簿
             navigator.clipboard.writeText(newUrl).then(() => {
                 alert('已複製帶詞庫網址！');
             }).catch(err => {
@@ -504,15 +486,11 @@
             });
         }
 
-
-        // 監聽「套用並開始」按鈕點擊事件
         applyBtn.addEventListener('click', parseAndStoreDictionary);
-        
-        // 監聽「分享帶詞庫網址」按鈕點擊事件
         shareBtn.addEventListener('click', copyShareUrl);
 
         window.onload = () => {
-            loadDictionary(); // 頁面載入時先載入詞庫
+            loadDictionary();
             shuffleCards(3);
             applyStyle('theme-style1');
         };
