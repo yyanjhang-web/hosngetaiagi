@@ -206,6 +206,9 @@
             text-align: center;
             font-size: 0.85em;
             color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .info-text {
             margin-top: 15px;
@@ -240,12 +243,32 @@
         .dictionary-input button {
             margin-top: 10px;
         }
+        /* 分享按鈕的樣式 */
+        .share-button {
+            background-color: #e0e0e0;
+            color: #555;
+            font-size: 0.85em;
+            padding: 4px 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .share-button:hover {
+            background-color: #c0c0c0;
+        }
+        .counter-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body class="theme-style1">
 
     <div class="dictionary-input">
-        <p>請至少輸入9組詞語，每行一組。例如：<br><b>點擊後, 點擊前</b></p>
+        <p>請至少輸入9組詞語，一組一行。<br>分享帶詞庫網址時，若網址太長可能會失敗<br>請隨時備份好您的詞庫</p>
         <textarea id="custom-dictionary" placeholder="例如：&#10;點擊後1, 點擊前1&#10;點擊後2, 點擊前2"></textarea>
         <button id="apply-btn">套用並開始</button>
     </div>
@@ -270,6 +293,13 @@
         <p>設計者：Iônn, Àn-tsiong；技術支援：フォックスコンの響き</p>
     </div>
 
+    <div class="counter-container">
+        <a href="https://www.hitwebcounter.com/" target="_blank">
+            <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters" border="0" />
+        </a>
+        <button id="share-button" class="share-button">分享帶詞庫網址</button>
+    </div>
+
     <script>
         // 預設詞庫現在是空的，讓使用者自行輸入
         const defaultCards = [];
@@ -277,31 +307,53 @@
         const container = document.querySelector('.container');
         const customDictTextarea = document.getElementById('custom-dictionary');
         const applyBtn = document.getElementById('apply-btn');
+        const shareBtn = document.getElementById('share-button'); // 新增分享按鈕
         let currentSize = 3;
         let activeCards = []; // 儲存目前使用的詞庫
 
+        // 函式：解析使用者輸入的詞庫
+        function parseDictionaryText(inputText) {
+            const lines = inputText.trim().split('\n');
+            return lines.map(line => {
+                const parts = line.split(',');
+                if (parts.length === 2) {
+                    return { hanzi: parts[0].trim(), roman: parts[1].trim() };
+                }
+                return null;
+            }).filter(card => card !== null);
+        }
+
+        // 函式：將詞庫資料編碼成 Base64 字串
+        function encodeDictionary(cards) {
+            try {
+                const jsonString = JSON.stringify(cards);
+                return btoa(unescape(encodeURIComponent(jsonString)));
+            } catch (e) {
+                console.error("編碼失敗:", e);
+                return null;
+            }
+        }
+
+        // 函式：將 Base64 字串解碼回詞庫資料
+        function decodeDictionary(encodedData) {
+            try {
+                const jsonString = decodeURIComponent(escape(atob(encodedData)));
+                return JSON.parse(jsonString);
+            } catch (e) {
+                console.error("解碼失敗:", e);
+                return null;
+            }
+        }
+
         // 函式：解析並儲存使用者輸入的詞庫
         function parseAndStoreDictionary() {
-            const inputText = customDictTextarea.value.trim();
-            if (inputText) {
-                const lines = inputText.split('\n');
-                const newCards = lines.map(line => {
-                    const parts = line.split(',');
-                    if (parts.length === 2) {
-                        return { hanzi: parts[0].trim(), roman: parts[1].trim() };
-                    }
-                    return null;
-                }).filter(card => card !== null);
-                
-                if (newCards.length > 0) {
-                    // 將自訂詞庫儲存到 localStorage
-                    localStorage.setItem('customCards', JSON.stringify(newCards));
-                    activeCards = newCards; // 更新目前使用的詞庫
-                    alert('自訂詞庫已套用！');
-                } else {
-                    alert('請輸入有效的詞彙。格式：點擊後,點擊前');
-                    return;
-                }
+            const newCards = parseDictionaryText(customDictTextarea.value);
+
+            if (newCards.length > 0) {
+                // 將自訂詞庫儲存到 localStorage
+                localStorage.setItem('customCards', JSON.stringify(newCards));
+                activeCards = newCards; // 更新目前使用的詞庫
+                alert('自訂詞庫已套用！');
             } else {
                 // 如果輸入框為空，清除 localStorage 並使用預設詞庫
                 localStorage.removeItem('customCards');
@@ -313,6 +365,21 @@
 
         // 函式：載入詞庫
         function loadDictionary() {
+            // 優先從網址參數讀取詞庫
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+            if (encodedData) {
+                const decodedCards = decodeDictionary(encodedData);
+                if (decodedCards) {
+                    activeCards = decodedCards;
+                    // 將載入的詞彙顯示在輸入框中
+                    customDictTextarea.value = activeCards.map(c => `${c.hanzi},${c.roman}`).join('\n');
+                    alert('已從網址載入詞庫！');
+                    return; // 成功載入後就結束
+                }
+            }
+            
+            // 如果網址沒有詞庫，再嘗試從 localStorage 載入
             const storedCards = localStorage.getItem('customCards');
             if (storedCards) {
                 try {
@@ -348,7 +415,7 @@
             if (cards.length < cardCount) {
                 // 如果沒有詞彙，顯示提示訊息
                 if (cards.length === 0) {
-                    container.innerHTML = `<p style="text-align: center; color: #555;">尚未輸入</p>`;
+                    container.innerHTML = `<p style="text-align: center; color: #555;">尚未輸入詞庫</p>`;
                     return;
                 } else {
                     alert(`詞庫詞彙不足，目前有 ${cards.length} 組，請至少提供 ${cardCount} 組以進行遊戲。`);
@@ -398,9 +465,44 @@
             body.className = '';
             body.classList.add(styleName);
         }
+        
+        // 函式：複製網址到剪貼簿
+        function copyShareUrl() {
+            if (activeCards.length === 0) {
+                alert('請先輸入詞庫後再分享！');
+                return;
+            }
+
+            const encodedData = encodeDictionary(activeCards);
+            if (!encodedData) {
+                alert('詞庫編碼失敗，請檢查輸入內容。');
+                return;
+            }
+
+            // 取得目前網址，並替換或加入 data 參數
+            const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            const newUrl = `${baseUrl}?data=${encodedData}`;
+
+            // 檢查網址長度
+            if (newUrl.length > 2048) {
+                alert(`網址長度過長 (${newUrl.length} 字元)，可能導致分享失敗。請減少詞庫數量。`);
+            }
+            
+            // 複製到剪貼簿
+            navigator.clipboard.writeText(newUrl).then(() => {
+                alert('已複製帶詞庫網址！');
+            }).catch(err => {
+                console.error('複製失敗: ', err);
+                alert('複製失敗，請手動複製以下網址：\n' + newUrl);
+            });
+        }
+
 
         // 監聽「套用並開始」按鈕點擊事件
         applyBtn.addEventListener('click', parseAndStoreDictionary);
+        
+        // 監聽「分享帶詞庫網址」按鈕點擊事件
+        shareBtn.addEventListener('click', copyShareUrl);
 
         window.onload = () => {
             loadDictionary(); // 頁面載入時先載入詞庫
@@ -408,8 +510,6 @@
             applyStyle('theme-style1');
         };
     </script>
-    <a href="https://www.hitwebcounter.com/" target="_blank">
-<img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters"   border="0" /></a>        
 
 </body>
 </html>
