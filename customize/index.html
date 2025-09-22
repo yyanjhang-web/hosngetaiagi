@@ -343,7 +343,9 @@
         function parseDictionaryText(inputText) {
             const lines = inputText.trim().split('\n');
             return lines.map(line => {
-                const parts = line.split(',');
+                // 將全形逗號替換為半形逗號
+                const normalizedLine = line.replace(/，/g, ',');
+                const parts = normalizedLine.split(',');
                 if (parts.length === 2) {
                     return { hanzi: parts[0].trim(), roman: parts[1].trim() };
                 }
