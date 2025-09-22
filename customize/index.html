@@ -269,6 +269,24 @@
             color: #666;
             margin-top: 5px;
         }
+
+        .action-buttons {
+            margin-top: 10px;
+        }
+        .action-button {
+            padding: 8px 16px;
+            font-size: 0.9em;
+            cursor: pointer;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 0 5px;
+            transition: background-color 0.3s;
+        }
+        .action-button:hover {
+            background-color: #d32f2f;
+        }
     </style>
 </head>
 <body class="theme-style1">
@@ -296,6 +314,10 @@
         <button class="style-btn" onclick="applyStyle('theme-style3')">式3</button>
     </div>
 
+    <div class="action-buttons">
+        <button id="reset-button" class="action-button">清空詞庫</button>
+    </div>
+
     <div class="footer">
         <p>設計者：Iônn, Àn-tsiong；技術支援：フォックスコンの響き</p>
     </div>
@@ -308,17 +330,16 @@
     </div>
 
     <script>
-        // 預設詞庫現在是空的，讓使用者自行輸入
         const defaultCards = [];
 
         const container = document.querySelector('.container');
         const customDictTextarea = document.getElementById('custom-dictionary');
         const applyBtn = document.getElementById('apply-btn');
         const shareBtn = document.getElementById('share-button');
+        const resetBtn = document.getElementById('reset-button');
         let currentSize = 3;
         let activeCards = [];
 
-        // 函式：解析使用者輸入的詞庫
         function parseDictionaryText(inputText) {
             const lines = inputText.trim().split('\n');
             return lines.map(line => {
@@ -330,7 +351,6 @@
             }).filter(card => card !== null);
         }
 
-        // 函式：將詞庫資料編碼成 Base64 字串
         function encodeDictionary(cards) {
             try {
                 const jsonString = JSON.stringify(cards);
@@ -341,7 +361,6 @@
             }
         }
 
-        // 函式：將 Base64 字串解碼回詞庫資料
         function decodeDictionary(encodedData) {
             try {
                 const jsonString = decodeURIComponent(escape(atob(encodedData)));
@@ -352,28 +371,23 @@
             }
         }
 
-        // 函式：解析並儲存使用者輸入的詞庫
         function parseAndStoreDictionary() {
             const newCards = parseDictionaryText(customDictTextarea.value);
 
             if (newCards.length > 0) {
-                localStorage.setItem('customCards', JSON.stringify(newCards));
                 activeCards = newCards;
                 alert('自訂詞庫已套用！');
             } else {
-                localStorage.removeItem('customCards');
                 activeCards = defaultCards;
                 alert('已清空詞庫，請輸入新的詞彙。');
             }
             shuffleCards(currentSize);
         }
 
-        // 函式：載入詞庫
         function loadDictionary() {
             const urlParams = new URLSearchParams(window.location.search);
             const encodedData = urlParams.get('data');
             
-            // 只有當網址參數有詞庫時才載入
             if (encodedData) {
                 const decodedCards = decodeDictionary(encodedData);
                 if (decodedCards) {
@@ -384,12 +398,10 @@
                 }
             }
             
-            // 如果網址沒有詞庫，讓詞庫保持為空，並清空輸入框
             activeCards = defaultCards;
             customDictTextarea.value = '';
         }
 
-        // 函式：打亂陣列
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -398,7 +410,6 @@
             return array;
         }
 
-        // 函式：渲染卡片
         function renderCards(cards, size) {
             container.innerHTML = '';
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
@@ -458,7 +469,6 @@
             body.classList.add(styleName);
         }
         
-        // 函式：複製網址到剪貼簿
         function copyShareUrl() {
             if (activeCards.length === 0) {
                 alert('請先輸入詞庫後再分享！');
@@ -486,8 +496,14 @@
             });
         }
 
+        function resetToInitialState() {
+            const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.location.href = baseUrl;
+        }
+
         applyBtn.addEventListener('click', parseAndStoreDictionary);
         shareBtn.addEventListener('click', copyShareUrl);
+        resetBtn.addEventListener('click', resetToInitialState);
 
         window.onload = () => {
             loadDictionary();
