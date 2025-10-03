@@ -121,7 +121,7 @@
             border-left: 5px solid transparent;
             cursor: pointer; /* 點擊群組可跳轉 */
             transition: all 0.3s;
-            white-space: pre-wrap;
+            white-space: pre-wrap; /* 確保換行符號生效 */
             font-size: 1.5em; /* 主要群組字體 */
         }
 
@@ -246,11 +246,11 @@
         // ====================================
         const lyricsData = [
             // (4) 新增倒數 4 秒
-            { time: 26.9, text: "★★★★", duration: 1.0 },
+            { time: 26.9, text: "★★★★", duration: 1.0 }, // 倒數 4
             // 歌曲開頭至第一段副歌前 (維持不變)
-            { time: 27.9, text: "★★★", duration: 1.0 },
-            { time: 28.9, text: "★★", duration: 1.0 },
-            { time: 29.9, text: "★", duration: 1.0 }, 
+            { time: 27.9, text: "★★★", duration: 1.0 }, // 倒數 3
+            { time: 28.9, text: "★★", duration: 1.0 }, // 倒數 2
+            { time: 29.9, text: "★", duration: 1.0 },  // 倒數 1
             { 
                 time: 30.9, 
                 text: "M̄ tsai-iánn ū tsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄t-kiô\nTsiah tsai ū tsiah tsē nî",
@@ -357,9 +357,9 @@
             const isInitialPlay = mainControlButton.textContent === '播放';
             const isReplay = mainControlButton.textContent === '重來' || audioPlayer.ended;
 
-            // 只有在「初次播放」或「重來」時，才將時間重置到 26.9 秒 (原本是 27.9，配合新增的倒數)
+            // 【重要修正】只有在「初次播放」或「重來」時，才將時間重置到 26.9 秒。
             if (isInitialPlay || isReplay) {
-                // 注意：這裡從 27.9 改為 26.9，以包含新的 ★★★★ 倒數
+                // 配合新的 4 秒倒數 (★★★★)
                 audioPlayer.currentTime = 26.9; 
             }
             
@@ -458,6 +458,7 @@
 
         function renderLyrics() {
             lyricsDiv.innerHTML = lyricsData.map((lyric, index) => {
+                // 確保文本中的換行符號(\n)能被正確渲染成多個 span
                 const textHTML = lyric.text.split('\n').map(line => `<span>${line.trim()}</span>`).join('');
                 return `
                     <div class="lyric-group" data-time="${lyric.time}" data-index="${index}">
