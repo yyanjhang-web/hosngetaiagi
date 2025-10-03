@@ -156,6 +156,14 @@
             border-top: 1px solid #ccc;
             margin-top: 20px;
         }
+        
+        /* 新增：底部按鈕群組排版 */
+        .button-group {
+            display: flex;
+            gap: 10px; /* 按鈕之間的間距 */
+            justify-content: center;
+            margin-bottom: 10px; 
+        }
 
         #credit {
             font-size: 0.8em; 
@@ -205,15 +213,25 @@
     </div>
 
     <div class="footer-container">
-        <p id="credit">動態歌詞製作：Iônn Àn-tsiong</p>
-
-        <a id="original-video-button" 
-           href="https://www.youtube.com/watch?v=t3n62I5FTUY" 
-           class="a1-button" 
-           target="_blank" 
-           rel="noopener noreferrer">
-            前往原始影片
-        </a>
+        <p id="credit">動態歌詞製作：Iônn Àn-tsiong；技術支援：フォックスコンの響き</p>
+        
+        <div class="button-group">
+            <a id="audio-source-video-button" 
+                href="https://www.youtube.com/watch?v=t3n62I5FTUY" 
+                class="a1-button" 
+                target="_blank" 
+                rel="noopener noreferrer">
+                音源影片
+            </a>
+            
+            <a id="performance-video-button" 
+                href="https://www.youtube.com/watch?v=ZtreF2bUHIA" 
+                class="a1-button" 
+                target="_blank" 
+                rel="noopener noreferrer">
+                演唱影片
+            </a>
+        </div>
     </div>
 
     <audio id="audio-player">
@@ -233,7 +251,7 @@
         let syncInterval;
 
         // ====================================
-        // 1. 歌詞資料結構 (已包含完整內容和修正後的大小寫)
+        // 1. 歌詞資料結構 (維持不變)
         // ====================================
         const lyricsData = [
             // 歌曲開頭至第一段副歌前 (維持不變)
@@ -294,21 +312,21 @@
                 text: "あなたの場所から私が\n見えたら きっといつか\n会えると信じ 生きてゆく",
                 duration: 166.0 - 142.0 
             }, 
-            // **** 以下是您要求的修正區域 (3:14 ~ 3:17) ****
+            // 修正區域
             { 
                 time: 166.0, 
                 text: "(間奏)",
-                duration: 194.0 - 166.0 // 修正：間奏在 194.0 秒結束 (3:14)
+                duration: 194.0 - 166.0
             }, 
-            { time: 194.0, text: "★★★", duration: 1.0 }, // 3:14 顯示 ★★★
-            { time: 195.0, text: "★★", duration: 1.0 },  // 3:15 顯示 ★★
-            { time: 196.0, text: "★", duration: 1.0 },   // 3:16 顯示 ★
+            { time: 194.0, text: "★★★", duration: 1.0 },
+            { time: 195.0, text: "★★", duration: 1.0 }, 
+            { time: 196.0, text: "★", duration: 1.0 }, 
             { 
-                time: 197.0, // 3:17 進入歌詞
+                time: 197.0, 
                 text: "晴れ渡る日も 雨の日も\n浮かぶあの笑顔",
                 duration: 211.0 - 197.0
             }, 
-            // **** 修正區域結束 ****
+            // 修正區域結束
             { 
                 time: 211.0, 
                 text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう",
@@ -329,7 +347,7 @@
         let currentGroupIndex = -1; 
 
         // ====================================
-        // 2. 初始化與事件監聽
+        // 2. 初始化與事件監聽 (維持不變)
         // ====================================
 
         const formatTime = (seconds) => {
