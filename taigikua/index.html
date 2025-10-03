@@ -255,96 +255,100 @@
         const errorMessageDiv = document.getElementById('error-message'); 
         let syncInterval;
 
-        // *** 這是您修改後的歌詞時間軸 ***
-        // 播放將從 29.9 秒開始，以下 time 都是指音訊中的時間點。
+        // *** 這是您修訂後的歌詞時間軸 ***
         const lyricsData = [
-            // (1) 新的倒數計時邏輯
+            // (1) 倒數計時邏輯 (維持不變)
             { time: 25.9, text: "★★★★", duration: 1.0 },
             { time: 26.9, text: "★★★", duration: 1.0 },
             { time: 27.9, text: "★★", duration: 1.0 },
             { time: 28.9, text: "★", duration: 1.0 }, 
-            // (2) 第一段歌詞的開始時間點改為 29.9 秒
+            
+            // (2) 第一段歌詞：開始時間 29.9s (維持不變)，但持續時間延長到下一段原始的開始時間 44.9s
             { 
                 time: 29.9, 
                 text: "M̄ tsai-iánn ū tsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄t-kiô\nTsiah tsai ū tsiah tsē nî",
-                duration: 42.9 - 29.9 // 42.9 秒是下一段開始時間
+                duration: 44.9 - 29.9 // 修訂：持續 15.0 秒，直到 44.9 秒才換行
             }, 
+            
+            // (3) 您提及的歌詞段落：時間點恢復到最初的 44.9s (取消上次的平移)
             { 
-                time: 42.9, 
+                time: 44.9, 
                 text: "Tshiū suan-tîn\nLōo huat-tsháu\nKhe iáu-ū tsuí\nKiô-tíng i ê hîng-iánn\nSuah tsit-tsūn lâi phû khí",
-                duration: 55.9 - 42.9 
+                duration: 57.9 - 44.9 // 持續 13.0 秒
             }, 
-            { time: 55.9, text: "★★", duration: 1.0 },
-            { time: 56.9, text: "★", duration: 1.5 }, 
+            
+            // 後續所有歌詞時間點，全部恢復到最初的同步時間點：
+            { time: 57.9, text: "★★", duration: 1.0 },
+            { time: 58.9, text: "★", duration: 1.5 }, 
             { 
-                time: 58.4, 
+                time: 60.4, 
                 text: "Guá hó-tshiūnn hit-tsiah\nSit-khì ài-tsîng ê pe̍h-līng-si",
-                duration: 66.9 - 58.4 
+                duration: 68.9 - 60.4 
             }, 
             { 
-                time: 66.9, 
+                time: 68.9, 
                 text: "Hiō-hué bô kóng-tshut hit kù uē\nIt-ti̍t tiàm bong-bū tiong\nPue kuè-lâi\nPue kuè-khì",
-                duration: 78.9 - 66.9
+                duration: 80.9 - 68.9
             }, 
             { 
-                time: 78.9, 
+                time: 80.9, 
                 text: "Tsia mā bô i\nHia mā bô i\nM̄-tsai i kám ū hām guá\nŪ kāng-khuán ê tsu-bī",
-                duration: 93.0 - 78.9 
+                duration: 95.0 - 80.9 
             }, 
             
             // 新增的後半段歌詞
-            { time: 93.0, text: "", duration: 2.0 }, 
-            { time: 95.0, text: "★★★", duration: 1.0 },
-            { time: 96.0, text: "★★", duration: 1.0 },
-            { time: 97.0, text: "★", duration: 1.0 }, 
+            { time: 95.0, text: "", duration: 2.0 }, 
+            { time: 97.0, text: "★★★", duration: 1.0 },
+            { time: 98.0, text: "★★", duration: 1.0 },
+            { time: 99.0, text: "★", duration: 1.0 }, 
             { 
-                time: 98.0, 
+                time: 100.0, 
                 text: "一番星に祈る\nそれが私のくせになり",
-                duration: 112.0 - 98.0 
+                duration: 114.0 - 100.0 
             }, 
             { 
-                time: 112.0, 
+                time: 114.0, 
                 text: "夕暮れに見上げる空\n心いっぱいあなた探す",
-                duration: 125.0 - 112.0 
+                duration: 127.0 - 114.0 
             }, 
-            { time: 125.0, text: "★", duration: 1.0 },
+            { time: 127.0, text: "★", duration: 1.0 },
             { 
-                time: 126.0, 
+                time: 128.0, 
                 text: "悲しみにも 喜びにも\nおもうあの笑顔",
-                duration: 140.0 - 126.0
+                duration: 142.0 - 128.0
             }, 
             { 
-                time: 140.0, 
+                time: 142.0, 
                 text: "あなたの場所から私が\n見えたら きっといつか\n会えると信じ 生きてゆく",
-                duration: 164.0 - 140.0 
+                duration: 166.0 - 142.0 
             }, 
             // 修正區域
             { 
-                time: 164.0, 
+                time: 166.0, 
                 text: "(間奏)",
-                duration: 192.0 - 164.0
+                duration: 194.0 - 166.0
             }, 
-            { time: 192.0, text: "★★★", duration: 1.0 },
-            { time: 193.0, text: "★★", duration: 1.0 }, 
-            { time: 194.0, text: "★", duration: 1.0 }, 
+            { time: 194.0, text: "★★★", duration: 1.0 },
+            { time: 195.0, text: "★★", duration: 1.0 }, 
+            { time: 196.0, text: "★", duration: 1.0 }, 
             { 
-                time: 195.0, 
+                time: 197.0, 
                 text: "晴れ渡る日も 雨の日も\n浮かぶあの笑顔",
-                duration: 209.0 - 195.0
+                duration: 211.0 - 197.0
             }, 
             // 修正區域結束
             { 
-                time: 209.0, 
+                time: 211.0, 
                 text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう",
-                duration: 230.0 - 209.0
+                duration: 232.0 - 211.0
             }, 
             { 
-                time: 230.0, 
+                time: 232.0, 
                 text: "会いたくて 会いたくて\n君への想い 涙そうそう",
-                duration: 246.0 - 230.0 
+                duration: 248.0 - 232.0 
             }, 
             { 
-                time: 246.0, 
+                time: 248.0, 
                 text: "(來賓請掌聲鼓勵)",
                 duration: 999.0 
             }
@@ -370,8 +374,7 @@
             const isInitialPlay = mainControlButton.textContent === '播放';
             const isReplay = mainControlButton.textContent === '重來' || audioPlayer.ended;
 
-            // *** 這是修改點 (3)：將播放/重來時間點改為 25.9 秒 ***
-            // 讓使用者從第一個倒數計時開始觀看
+            // 播放/重來時間點維持在 25.9 秒
             if (isInitialPlay || isReplay) {
                 audioPlayer.currentTime = 25.9;
             }
