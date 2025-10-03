@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動式動態歌詞播放器 - 分段顯示</title>
+    <title>互動式動態歌詞播放器 - 三版本</title>
     <style>
         /* ==================================== */
         /* 1. 頁面基本樣式 */
@@ -157,12 +157,12 @@
             margin-top: 20px;
         }
 
-        /* 新增：歌詞版本切換按鈕區塊樣式 */
+        /* 歌詞版本切換按鈕區塊樣式 */
         .lyric-version-selector {
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 10px; /* 放在 credit 上方，留出間距 */
+            margin-bottom: 10px; 
         }
 
         .version-button {
@@ -191,7 +191,7 @@
         /* 底部按鈕群組排版 (音源影片等 A1 按鈕) */
         .button-group {
             display: flex;
-            gap: 10px; /* 按鈕之間的間距 */
+            gap: 10px; 
             justify-content: center;
             margin-bottom: 10px; 
         }
@@ -248,6 +248,7 @@
         <div class="lyric-version-selector">
             <button id="btn-mixed" class="version-button active">台日版</button>
             <button id="btn-taiwanese" class="version-button">全台版</button>
+            <button id="btn-japanese" class="version-button">全日版</button>
         </div>
 
         <p id="credit">動態歌詞製作：Iônn Àn-tsiong；技術支援：フォックスコンの響き</p>
@@ -294,10 +295,16 @@
         // 按鈕元素
         const btnMixed = document.getElementById('btn-mixed');
         const btnTaiwanese = document.getElementById('btn-taiwanese');
+        const btnJapanese = document.getElementById('btn-japanese'); // 新增日文按鈕
 
         let syncInterval;
+        let currentGroupIndex = -1; 
 
-        // *** 1. 定義 台日混合版 歌詞資料 (作為預設) ***
+        // ====================================
+        // 1. 定義三種歌詞版本資料
+        // ====================================
+
+        // *** A. 台日混合版 歌詞資料 (上次版本) ***
         const lyricsDataMixed = [
             { time: 25.9, text: "★★★★", duration: 1.0 },
             { time: 26.9, text: "★★★", duration: 1.0 },
@@ -386,7 +393,7 @@
             }
         ];
 
-        // *** 2. 定義 全台語版 歌詞資料 (使用您提供的內容) ***
+        // *** B. 全台語版 歌詞資料 ***
         const lyricsDataTaiwanese = [
             { time: 25.9, text: "★★★★", duration: 1.0 },
             { time: 26.9, text: "★★★", duration: 1.0 },
@@ -475,24 +482,118 @@
             }
         ];
 
-        // *** 3. 這是所有動態函數將會讀取的資料變數 (預設為混合版) ***
+        // *** C. 全日版 歌詞資料 (使用您提供的內容) ***
+        const lyricsDataJapanese = [
+            { time: 25.9, text: "★★★★", duration: 1.0 },
+            { time: 26.9, text: "★★★", duration: 1.0 },
+            { time: 27.9, text: "★★", duration: 1.0 },
+            { time: 28.9, text: "★", duration: 1.0 }, 
+            { 
+                time: 29.9, 
+                text: "古いアルバムめくり\nありがとうってつぶやいた",
+                duration: 44.9 - 29.9 
+            }, 
+            { 
+                time: 44.9, 
+                text: "いつもいつも胸の中\n励ましてくれる人よ",
+                duration: 57.9 - 44.9 
+            }, 
+            { time: 57.9, text: "★★", duration: 1.0 },
+            { time: 58.9, text: "★", duration: 1.5 }, 
+            { 
+                time: 60.4, 
+                text: "晴れ渡る日も 雨の日も",
+                duration: 68.9 - 60.4 
+            }, 
+            { 
+                time: 68.9, 
+                text: "浮かぶあの笑顔\n想い出遠くあせても",
+                duration: 80.9 - 68.9
+            }, 
+            { 
+                time: 80.9, 
+                text: "おもかげ探して\nよみがえる日は\涙そうそう",
+                duration: 95.0 - 80.9 
+            }, 
+            
+            { time: 95.0, text: "", duration: 2.0 }, 
+            { time: 97.0, text: "★★★", duration: 1.0 },
+            { time: 98.0, text: "★★", duration: 1.0 },
+            { time: 99.0, text: "★", duration: 1.0 }, 
+            { 
+                time: 100.0, 
+                text: "一番星に祈る\nそれが私のくせになり",
+                duration: 114.0 - 100.0 
+            }, 
+            { 
+                time: 114.0, 
+                text: "夕暮れに見上げる空\n心いっぱいあなた探す",
+                duration: 127.0 - 114.0 
+            }, 
+            { time: 127.0, text: "★", duration: 1.0 },
+            { 
+                time: 128.0, 
+                text: "悲しみにも 喜びにも\nおもうあの笑顔",
+                duration: 142.0 - 128.0
+            }, 
+            { 
+                time: 142.0, 
+                text: "あなたの場所から私が\n見えたら きっといつか\n会えると信じ 生きてゆく",
+                duration: 166.0 - 142.0 
+            }, 
+            { 
+                time: 166.0, 
+                text: "(間奏)",
+                duration: 194.0 - 166.0
+            }, 
+            { time: 194.0, text: "★★★", duration: 1.0 },
+            { time: 195.0, text: "★★", duration: 1.0 }, 
+            { time: 196.0, text: "★", duration: 1.0 }, 
+            { 
+                time: 197.0, 
+                text: "晴れ渡る日も 雨の日も\n浮かぶあの笑顔",
+                duration: 211.0 - 197.0
+            }, 
+            { 
+                time: 211.0, 
+                text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう",
+                duration: 232.0 - 211.0
+            }, 
+            { 
+                time: 232.0, 
+                text: "会いたくて 会いたくて\n君への想い 涙そうそう",
+                duration: 248.0 - 232.0 
+            }, 
+            { 
+                time: 248.0, 
+                text: "(來賓請掌聲鼓勵)",
+                duration: 999.0 
+            }
+        ];
+
+        // *** 這是所有動態函數將會讀取的資料變數 (預設為混合版) ***
         let currentLyricsData = lyricsDataMixed;
-        let currentGroupIndex = -1; 
 
         // ====================================
-        // 4. 歌詞切換核心邏輯
+        // 2. 歌詞切換核心邏輯
         // ====================================
 
         function switchLyrics(version) {
+            // 處理按鈕的 active 樣式
+            btnMixed.classList.remove('active');
+            btnTaiwanese.classList.remove('active');
+            btnJapanese.classList.remove('active');
+
             // 根據版本切換資料
             if (version === 'mixed') {
                 currentLyricsData = lyricsDataMixed;
                 btnMixed.classList.add('active');
-                btnTaiwanese.classList.remove('active');
             } else if (version === 'taiwanese') {
                 currentLyricsData = lyricsDataTaiwanese;
                 btnTaiwanese.classList.add('active');
-                btnMixed.classList.remove('active');
+            } else if (version === 'japanese') {
+                currentLyricsData = lyricsDataJapanese;
+                btnJapanese.classList.add('active');
             }
 
             // 重新渲染畫面
@@ -515,10 +616,11 @@
         // 綁定按鈕事件
         btnMixed.addEventListener('click', () => switchLyrics('mixed'));
         btnTaiwanese.addEventListener('click', () => switchLyrics('taiwanese'));
+        btnJapanese.addEventListener('click', () => switchLyrics('japanese')); // 綁定日文按鈕
 
 
         // ====================================
-        // 5. 初始化與事件監聽 (功能維持不變)
+        // 3. 播放器與同步控制邏輯 (維持上次版本，只需要讀取 currentLyricsData)
         // ====================================
 
         const formatTime = (seconds) => {
@@ -625,11 +727,11 @@
 
 
         // ====================================
-        // 6. 歌詞渲染與同步邏輯 (使用 currentLyricsData)
+        // 4. 歌詞渲染與同步邏輯 
         // ====================================
 
         function renderLyrics() {
-            // *** 使用 currentLyricsData ***
+            // 使用 currentLyricsData 渲染
             lyricsDiv.innerHTML = currentLyricsData.map((lyric, index) => {
                 const textHTML = lyric.text.split('\n').map(line => `<span>${line.trim()}</span>`).join('');
                 return `
@@ -641,7 +743,6 @@
         }
 
         function highlightGroup(index) {
-            // *** 查詢範圍改為根據當前歌詞資料長度 ***
             const allGroups = lyricsDiv.querySelectorAll('.lyric-group');
             if (currentGroupIndex !== index) {
                 
@@ -680,7 +781,7 @@
                 }
 
                 let newIndex = -1;
-                // *** 迭代 currentLyricsData ***
+                // 迭代 currentLyricsData
                 for (let i = 0; i < currentLyricsData.length; i++) {
                     const lyric = currentLyricsData[i];
                     
