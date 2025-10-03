@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>歌曲教唱</title>
+    <title>互動式動態歌詞播放器 - 分段顯示</title>
     <style>
         /* ==================================== */
         /* 1. 頁面基本樣式 */
@@ -255,95 +255,96 @@
         const errorMessageDiv = document.getElementById('error-message'); 
         let syncInterval;
 
-        // ====================================
-        // 1. 歌詞資料結構 (維持不變)
-        // ====================================
+        // *** 這是您修改後的歌詞時間軸 ***
+        // 播放將從 29.9 秒開始，以下 time 都是指音訊中的時間點。
         const lyricsData = [
-            // 歌曲開頭至第一段副歌前 (維持不變)
-            { time: 27.9, text: "★★★", duration: 1.0 },
-            { time: 28.9, text: "★★", duration: 1.0 },
-            { time: 29.9, text: "★", duration: 2.0 }, 
+            // (1) 新的倒數計時邏輯
+            { time: 25.9, text: "★★★★", duration: 1.0 },
+            { time: 26.9, text: "★★★", duration: 1.0 },
+            { time: 27.9, text: "★★", duration: 1.0 },
+            { time: 28.9, text: "★", duration: 1.0 }, 
+            // (2) 第一段歌詞的開始時間點改為 29.9 秒
             { 
-                time: 31.9, 
-                text: "M̄ tsai-iánn ū tsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄g-kiô\nTsiah tsai ū tsiah tsē nî",
-                duration: 44.9 - 31.9 
+                time: 29.9, 
+                text: "M̄ tsai-iánn ū tsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄t-kiô\nTsiah tsai ū tsiah tsē nî",
+                duration: 42.9 - 29.9 // 42.9 秒是下一段開始時間
             }, 
             { 
-                time: 44.9, 
+                time: 42.9, 
                 text: "Tshiū suan-tîn\nLōo huat-tsháu\nKhe iáu-ū tsuí\nKiô-tíng i ê hîng-iánn\nSuah tsit-tsūn lâi phû khí",
-                duration: 57.9 - 44.9 
+                duration: 55.9 - 42.9 
             }, 
-            { time: 57.9, text: "★★", duration: 1.0 },
-            { time: 58.9, text: "★", duration: 1.5 }, 
+            { time: 55.9, text: "★★", duration: 1.0 },
+            { time: 56.9, text: "★", duration: 1.5 }, 
             { 
-                time: 60.4, 
+                time: 58.4, 
                 text: "Guá hó-tshiūnn hit-tsiah\nSit-khì ài-tsîng ê pe̍h-līng-si",
-                duration: 68.9 - 60.4 
+                duration: 66.9 - 58.4 
             }, 
             { 
-                time: 68.9, 
+                time: 66.9, 
                 text: "Hiō-hué bô kóng-tshut hit kù uē\nIt-ti̍t tiàm bong-bū tiong\nPue kuè-lâi\nPue kuè-khì",
-                duration: 80.9 - 68.9
+                duration: 78.9 - 66.9
             }, 
             { 
-                time: 80.9, 
+                time: 78.9, 
                 text: "Tsia mā bô i\nHia mā bô i\nM̄-tsai i kám ū hām guá\nŪ kāng-khuán ê tsu-bī",
-                duration: 95.0 - 80.9 
+                duration: 93.0 - 78.9 
             }, 
             
             // 新增的後半段歌詞
-            { time: 95.0, text: "", duration: 2.0 }, 
-            { time: 97.0, text: "★★★", duration: 1.0 },
-            { time: 98.0, text: "★★", duration: 1.0 },
-            { time: 99.0, text: "★", duration: 1.0 }, 
+            { time: 93.0, text: "", duration: 2.0 }, 
+            { time: 95.0, text: "★★★", duration: 1.0 },
+            { time: 96.0, text: "★★", duration: 1.0 },
+            { time: 97.0, text: "★", duration: 1.0 }, 
             { 
-                time: 100.0, 
+                time: 98.0, 
                 text: "一番星に祈る\nそれが私のくせになり",
-                duration: 114.0 - 100.0 
+                duration: 112.0 - 98.0 
             }, 
             { 
-                time: 114.0, 
+                time: 112.0, 
                 text: "夕暮れに見上げる空\n心いっぱいあなた探す",
-                duration: 127.0 - 114.0 
+                duration: 125.0 - 112.0 
             }, 
-            { time: 127.0, text: "★", duration: 1.0 },
+            { time: 125.0, text: "★", duration: 1.0 },
             { 
-                time: 128.0, 
+                time: 126.0, 
                 text: "悲しみにも 喜びにも\nおもうあの笑顔",
-                duration: 142.0 - 128.0
+                duration: 140.0 - 126.0
             }, 
             { 
-                time: 142.0, 
+                time: 140.0, 
                 text: "あなたの場所から私が\n見えたら きっといつか\n会えると信じ 生きてゆく",
-                duration: 166.0 - 142.0 
+                duration: 164.0 - 140.0 
             }, 
             // 修正區域
             { 
-                time: 166.0, 
+                time: 164.0, 
                 text: "(間奏)",
-                duration: 194.0 - 166.0
+                duration: 192.0 - 164.0
             }, 
-            { time: 194.0, text: "★★★", duration: 1.0 },
-            { time: 195.0, text: "★★", duration: 1.0 }, 
-            { time: 196.0, text: "★", duration: 1.0 }, 
+            { time: 192.0, text: "★★★", duration: 1.0 },
+            { time: 193.0, text: "★★", duration: 1.0 }, 
+            { time: 194.0, text: "★", duration: 1.0 }, 
             { 
-                time: 197.0, 
+                time: 195.0, 
                 text: "晴れ渡る日も 雨の日も\n浮かぶあの笑顔",
-                duration: 211.0 - 197.0
+                duration: 209.0 - 195.0
             }, 
             // 修正區域結束
             { 
-                time: 211.0, 
+                time: 209.0, 
                 text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう",
-                duration: 232.0 - 211.0
+                duration: 230.0 - 209.0
             }, 
             { 
-                time: 232.0, 
+                time: 230.0, 
                 text: "会いたくて 会いたくて\n君への想い 涙そうそう",
-                duration: 248.0 - 232.0 
+                duration: 246.0 - 230.0 
             }, 
             { 
-                time: 248.0, 
+                time: 246.0, 
                 text: "(來賓請掌聲鼓勵)",
                 duration: 999.0 
             }
@@ -352,7 +353,7 @@
         let currentGroupIndex = -1; 
 
         // ====================================
-        // 2. 初始化與事件監聽 (維持不變)
+        // 2. 初始化與事件監聽
         // ====================================
 
         const formatTime = (seconds) => {
@@ -362,16 +363,17 @@
             return `${min}:${sec < 10 ? '0' : ''}${sec}`;
         };
 
-        // 處理播放邏輯 (僅處理播放/重來，不處理繼續)
+        // 處理播放邏輯
         async function handlePlay() {
             errorMessageDiv.textContent = ''; 
             
             const isInitialPlay = mainControlButton.textContent === '播放';
             const isReplay = mainControlButton.textContent === '重來' || audioPlayer.ended;
 
-            // 只有在「初次播放」或「重來」時，才將時間重置到 27.9 秒。
+            // *** 這是修改點 (3)：將播放/重來時間點改為 25.9 秒 ***
+            // 讓使用者從第一個倒數計時開始觀看
             if (isInitialPlay || isReplay) {
-                audioPlayer.currentTime = 27.9;
+                audioPlayer.currentTime = 25.9;
             }
             
             try {
@@ -404,13 +406,11 @@
         // 主要控制按鈕 (播放/重來)
         mainControlButton.addEventListener('click', handlePlay);
 
-        // 次要控制按鈕 (暫停/繼續) 邏輯 (維持不變)
+        // 次要控制按鈕 (暫停/繼續) 邏輯 
         secondaryControlButton.addEventListener('click', () => {
             if (audioPlayer.paused) {
-                // 如果是暫停狀態 (顯示「繼續」)，直接呼叫 play()
                 audioPlayer.play(); 
             } else {
-                // 如果是播放狀態 (顯示「暫停」)，直接呼叫 pause()
                 audioPlayer.pause();
             }
         });
@@ -436,7 +436,7 @@
             stopLyricSync();
         });
 
-        // 點擊歌詞群組跳轉邏輯 (維持不變)
+        // 點擊歌詞群組跳轉邏輯
         lyricsDiv.addEventListener('click', (e) => {
             let targetGroup = e.target.closest('.lyric-group');
             
@@ -444,27 +444,25 @@
                 const targetTime = parseFloat(targetGroup.dataset.time);
                 audioPlayer.currentTime = targetTime;
                 
-                // 直接呼叫 play()，繞過 handlePlay() 的重置邏輯
                 audioPlayer.play(); 
             }
         });
 
-        // 點擊進度條跳轉 (維持不變)
+        // 點擊進度條跳轉 
         progressContainer.addEventListener('click', (e) => {
             const clickX = e.offsetX;
             const containerWidth = progressContainer.clientWidth;
             const percentage = clickX / containerWidth;
             audioPlayer.currentTime = audioPlayer.duration * percentage;
             
-            // 點擊進度條後，如果未播放，也應開始播放
             if (audioPlayer.paused) {
-                audioPlayer.play(); // 直接呼叫 play()，保持當前時間
+                audioPlayer.play(); 
             }
         });
 
 
         // ====================================
-        // 3. 歌詞渲染與同步邏輯 (維持不變)
+        // 3. 歌詞渲染與同步邏輯 
         // ====================================
 
         function renderLyrics() {
