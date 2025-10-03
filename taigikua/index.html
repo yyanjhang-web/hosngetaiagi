@@ -1,520 +1,532 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動式動態歌詞播放器 - 分段顯示</title>
-    <style>
-        /* ==================================== */
-        /* 1. 頁面基本樣式 */
-        /* ==================================== */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-            text-align: center;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動式動態歌詞播放器 - 分段顯示</title>
+    <style>
+        /* ==================================== */
+        /* 1. 頁面基本樣式 */
+        /* ==================================== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+        }
 
-        .content-container {
-            flex-grow: 1; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 90%;
-            max-width: 700px;
-        }
+        .content-container {
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 90%;
+            max-width: 700px;
+        }
 
-        /* 錯誤訊息 */
-        #error-message {
-            color: red;
-            margin-bottom: 10px;
-            font-weight: bold;
-            min-height: 20px;
-        }
+        /* 錯誤訊息 */
+        #error-message {
+            color: red;
+            margin-bottom: 10px;
+            font-weight: bold;
+            min-height: 20px;
+        }
 
-        /* ==================================== */
-        /* 2. 播放器與進度條樣式 */
-        /* ==================================== */
-        #audio-player {
-            display: none; 
-        }
+        /* ==================================== */
+        /* 2. 播放器與進度條樣式 */
+        /* ==================================== */
+        #audio-player {
+            display: none; 
+        }
 
-        .controls-group {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
+        .controls-group {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
 
-        .controls-group button {
-            padding: 10px 15px;
-            font-size: 1.1em;
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            transition: background-color 0.3s;
-            margin: 0 5px;
-            color: white;
-            min-width: 120px;
-        }
+        .controls-group button {
+            padding: 10px 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+            margin: 0 5px;
+            color: white;
+            min-width: 120px;
+        }
 
-        /* 進度條 */
-        #progress-container {
-            flex-grow: 1;
-            height: 8px;
-            background-color: #ccc;
-            border-radius: 4px;
-            margin: 0 15px;
-            cursor: pointer;
-            position: relative;
-        }
+        /* 進度條 */
+        #progress-container {
+            flex-grow: 1;
+            height: 8px;
+            background-color: #ccc;
+            border-radius: 4px;
+            margin: 0 15px;
+            cursor: pointer;
+            position: relative;
+        }
 
-        #progress-bar {
-            height: 100%;
-            width: 0%;
-            background-color: #4CAF50;
-            border-radius: 4px;
-        }
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            border-radius: 4px;
+        }
 
-        /* 播放時間顯示 */
-        #time-display {
-            font-size: 0.9em;
-            color: #666;
-            min-width: 80px;
-            text-align: right;
-        }
-        
-        /* 按鈕顏色 */
-        #main-control-button { background-color: #4CAF50; }
-        #main-control-button:hover:not(:disabled) { background-color: #45a049; }
-        #secondary-control-button { background-color: #f44336; }
-        #secondary-control-button:hover:not(:disabled) { background-color: #da190b; }
-        #secondary-control-button:not(.visible) { opacity: 0; pointer-events: none; }
-
-
-        /* ==================================== */
-        /* 3. 動態歌詞樣式 (分段模式) */
-        /* ==================================== */
-        #custom-lyrics {
-            height: 40vh; /* 限制高度方便滾動 */
-            overflow-y: auto;
-            margin: 20px 0;
-            padding: 10px;
-            width: 100%;
-            text-align: left;
-            line-height: 1.5;
-            padding-right: 15px; /* 避免滾動條擋住文字 */
-        }
-        
-        /* 歌詞段落群組 */
-        .lyric-group {
-            padding: 10px;
-            margin: 10px 0;
-            border-left: 5px solid transparent;
-            cursor: pointer; /* 點擊群組可跳轉 */
-            transition: all 0.3s;
-            white-space: pre-wrap;
-            font-size: 1.5em; /* 主要群組字體 */
-        }
-
-        /* 群組中的每一行 */
-        .lyric-group span {
-            display: block;
-            color: #888; /* 預設為灰色 */
-            transition: color 0.3s;
-            font-weight: normal;
-            line-height: 1.6;
-        }
-
-        /* 時間到的時候以黑色呈現 */
-        .lyric-group.highlight span {
-            color: #000;
-            font-weight: bold;
-        }
-        
-        .lyric-group.highlight {
-            border-left: 5px solid #4CAF50; /* 高亮左側邊框 */
-            background-color: #eee;
-        }
+        /* 播放時間顯示 */
+        #time-display {
+            font-size: 0.9em;
+            color: #666;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        /* 按鈕顏色 */
+        #main-control-button { background-color: #4CAF50; }
+        #main-control-button:hover:not(:disabled) { background-color: #45a049; }
+        #secondary-control-button { background-color: #f44336; }
+        #secondary-control-button:hover:not(:disabled) { background-color: #da190b; }
+        #secondary-control-button:not(.visible) { opacity: 0; pointer-events: none; }
 
 
-        /* ==================================== */
-        /* 4. 頁面底部元素樣式 */
-        /* ==================================== */
-        .footer-container {
-            width: 100%;
-            max-width: 700px;
-            padding-top: 20px;
-            border-top: 1px solid #ccc;
-            margin-top: 20px;
-        }
+        /* ==================================== */
+        /* 3. 動態歌詞樣式 (分段模式) */
+        /* ==================================== */
+        #custom-lyrics {
+            height: 40vh; /* 限制高度方便滾動 */
+            overflow-y: auto;
+            margin: 20px 0;
+            padding: 10px;
+            width: 100%;
+            text-align: left;
+            line-height: 1.5;
+            padding-right: 15px; /* 避免滾動條擋住文字 */
+        }
+        
+        /* 歌詞段落群組 */
+        .lyric-group {
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 5px solid transparent;
+            cursor: pointer; /* 點擊群組可跳轉 */
+            transition: all 0.3s;
+            white-space: pre-wrap;
+            font-size: 1.5em; /* 主要群組字體 */
+        }
 
-        #credit {
-            font-size: 0.8em; 
-            color: #666;
-            margin-bottom: 15px;
-        }
+        /* 群組中的每一行 */
+        .lyric-group span {
+            display: block;
+            color: #888; /* 預設為灰色 */
+            transition: color 0.3s;
+            font-weight: normal;
+            line-height: 1.6;
+        }
 
-        /* A1 按鈕樣式 (維持不變) */
-        .a1-button {
-            /* 顏色: 灰白色調 (背景色 #e0e0e0) */
-            background-color: #e0e0e0;
-            color: #333;
-            border: none;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
-            /* 字體大小 0.85em */
-            font-size: 0.85em; 
-            padding: 8px 15px;
-            transition: background-color 0.3s;
-        }
+        /* 時間到的時候以黑色呈現 */
+        .lyric-group.highlight span {
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .lyric-group.highlight {
+            border-left: 5px solid #4CAF50; /* 高亮左側邊框 */
+            background-color: #eee;
+        }
 
-        /* 滑鼠懸停時為 #c0c0c0 */
-        .a1-button:hover {
-            background-color: #c0c0c0;
-        }
-    </style>
+
+        /* ==================================== */
+        /* 4. 頁面底部元素樣式 */
+        /* ==================================== */
+        .footer-container {
+            width: 100%;
+            max-width: 700px;
+            padding-top: 20px;
+            border-top: 1px solid #ccc;
+            margin-top: 20px;
+        }
+
+        #credit {
+            font-size: 0.8em; 
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        /* A1 按鈕樣式 (維持不變) */
+        .a1-button {
+            /* 顏色: 灰白色調 (背景色 #e0e0e0) */
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            /* 字體大小 0.85em */
+            font-size: 0.85em; 
+            padding: 8px 15px;
+            transition: background-color 0.3s;
+        }
+
+        /* 滑鼠懸停時為 #c0c0c0 */
+        .a1-button:hover {
+            background-color: #c0c0c0;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="content-container">
-        <div id="error-message"></div>
+    <div class="content-container">
+        <div id="error-message"></div>
 
-        <div class="controls-group">
-            <button id="main-control-button">播放</button>
-            <button id="secondary-control-button">暫停</button>
-            
-            <div id="progress-container">
-                <div id="progress-bar"></div>
-            </div>
-            
-            <span id="time-display">0:00 / 0:00</span>
-        </div>
-        
-        <div id="custom-lyrics"></div>
-    </div>
+        <div class="controls-group">
+            <button id="main-control-button">播放</button>
+            <button id="secondary-control-button">暫停</button>
+            
+            <div id="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+            
+            <span id="time-display">0:00 / 0:00</span>
+        </div>
+        
+        <div id="custom-lyrics"></div>
+    </div>
 
-    <div class="footer-container">
-        <p id="credit">動態歌詞製作：Iônn Àn-tsiong</p>
+    <div class="footer-container">
+                <p id="credit">動態歌詞製作：Iônn Àn-tsiong；技術支援：フォックスコンの響き</p>
 
-        <a id="original-video-button" 
-           href="https://www.youtube.com/watch?v=t3n62I5FTUY" 
-           class="a1-button" 
-           target="_blank" 
-           rel="noopener noreferrer">
-            前往原始影片
-        </a>
-    </div>
+                <a id="original-video-button" 
+           href="https://www.youtube.com/watch?v=t3n62I5FTUY" 
+           class="a1-button" 
+           target="_blank" 
+           rel="noopener noreferrer">
+            音源影片
+        </a>
+        
+                <a id="singing-video-button"
+           href="https://www.youtube.com/watch?v=ZtreF2bUHIA"
+           class="a1-button"
+           target="_blank"
+           rel="noopener noreferrer"
+           style="margin-left: 10px;">
+            演唱影片
+        </a>
+    </div>
 
-    <audio id="audio-player">
-        <source src="ngphinguan.mp3" type="audio/mpeg">
-        您的瀏覽器不支援 MP3 播放。
-    </audio>
+    <audio id="audio-player">
+        <source src="ngphinguan.mp3" type="audio/mpeg">
+        您的瀏覽器不支援 MP3 播放。
+    </audio>
 
-    <script>
-        const audioPlayer = document.getElementById('audio-player');
-        const mainControlButton = document.getElementById('main-control-button');
-        const secondaryControlButton = document.getElementById('secondary-control-button');
-        const lyricsDiv = document.getElementById('custom-lyrics');
-        const progressBar = document.getElementById('progress-bar');
-        const progressContainer = document.getElementById('progress-container');
-        const timeDisplay = document.getElementById('time-display');
-        const errorMessageDiv = document.getElementById('error-message'); 
-        let syncInterval;
+    <script>
+        const audioPlayer = document.getElementById('audio-player');
+        const mainControlButton = document.getElementById('main-control-button');
+        const secondaryControlButton = document.getElementById('secondary-control-button');
+        const lyricsDiv = document.getElementById('custom-lyrics');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const timeDisplay = document.getElementById('time-display');
+        const errorMessageDiv = document.getElementById('error-message'); 
+        let syncInterval;
 
-        // ====================================
-        // 1. 歌詞資料結構 (已包含完整內容和修正後的大小寫)
-        // ====================================
-        const lyricsData = [
-            // 歌曲開頭至第一段副歌前 (維持不變)
-            { time: 27.9, text: "★★★", duration: 1.0 },
-            { time: 28.9, text: "★★", duration: 1.0 },
-            { time: 29.9, text: "★", duration: 1.0 }, 
-            { 
-                time: 30.9, 
-                text: "M̄ tsai-iánn ū tsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄g-kiô\nTsiah tsai ū tsiah tsē nî",
-                duration: 44.9 - 31.9 
-            }, 
-            { 
-                time: 44.9, 
-                text: "Tshiū suan-tîn\nLōo huat-tsháu\nKhe iáu-ū tsuí\nKiô-tíng i ê hîng-iánn\nSuah tsit-tsūn lâi phû khí",
-                duration: 57.9 - 44.9 
-            }, 
-            { time: 57.9, text: "★★", duration: 1.0 },
-            { time: 58.9, text: "★", duration: 1.5 }, 
-            { 
-                time: 60.4, 
-                text: "Guá hó-tshiūnn hit-tsiah\nSit-khì ài-tsîng ê pe̍h-līng-si",
-                duration: 68.9 - 60.4 
-            }, 
-            { 
-                time: 68.9, 
-                text: "Hiō-hué bô kóng-tshut hit kù uē\nIt-ti̍t tiàm bong-bū tiong\nPue kuè-lâi\nPue kuè-khì",
-                duration: 80.9 - 68.9
-            }, 
-            { 
-                time: 80.9, 
-                text: "Tsia mā bô i\nHia mā bô i\nM̄-tsai i kám ū hām guá\nŪ kāng-khuán ê tsu-bī",
-                duration: 95.0 - 80.9 
-            }, 
-            
-            // 新增的後半段歌詞
-            { time: 95.0, text: "", duration: 2.0 }, 
-            { time: 97.0, text: "★★★", duration: 1.0 },
-            { time: 98.0, text: "★★", duration: 1.0 },
-            { time: 99.0, text: "★", duration: 1.0 }, 
-            { 
-                time: 100.0, 
-                text: "一番星に祈る\nそれが私のくせになり",
-                duration: 114.0 - 100.0 
-            }, 
-            { 
-                time: 114.0, 
-                text: "夕暮れに見上げる空\n心いっぱいあなた探す",
-                duration: 127.0 - 114.0 
-            }, 
-            { time: 127.0, text: "★", duration: 1.0 },
-            { 
-                time: 128.0, 
-                text: "悲しみにも 喜びにも\nおもうあの笑顔",
-                duration: 142.0 - 128.0
-            }, 
-            { 
-                time: 142.0, 
-                text: "あなたの場所から私が\n見えたら きっといつか\n会えると信じ 生きてゆく",
-                duration: 166.0 - 142.0 
-            }, 
-            // **** 以下是您要求的修正區域 (3:14 ~ 3:17) ****
-            { 
-                time: 166.0, 
-                text: "(間奏)",
-                duration: 194.0 - 166.0 // 修正：間奏在 194.0 秒結束 (3:14)
-            }, 
-            { time: 194.0, text: "★★★", duration: 1.0 }, // 3:14 顯示 ★★★
-            { time: 195.0, text: "★★", duration: 1.0 },  // 3:15 顯示 ★★
-            { time: 196.0, text: "★", duration: 1.0 },   // 3:16 顯示 ★
-            { 
-                time: 197.0, // 3:17 進入歌詞
-                text: "晴れ渡る日も 雨の日も\n浮かぶあの笑顔",
-                duration: 211.0 - 197.0
-            }, 
-            // **** 修正區域結束 ****
-            { 
-                time: 211.0, 
-                text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう",
-                duration: 232.0 - 211.0
-            }, 
-            { 
-                time: 232.0, 
-                text: "会いたくて 会いたくて\n君への想い 涙そうそう",
-                duration: 248.0 - 232.0 
-            }, 
-            { 
-                time: 248.0, 
-                text: "(來賓請掌聲鼓勵)",
-                duration: 999.0 
-            }
-        ];
+        // ====================================
+        // 1. 歌詞資料結構 (已包含完整內容和修正後的大小寫)
+        // ====================================
+        const lyricsData = [
+            // (4) 新增倒數 4 秒
+            { time: 26.9, text: "★★★★", duration: 1.0 },
+            // 歌曲開頭至第一段副歌前 (維持不變)
+            { time: 27.9, text: "★★★", duration: 1.0 },
+            { time: 28.9, text: "★★", duration: 1.0 },
+            { time: 29.9, text: "★", duration: 1.0 }, 
+            { 
+                time: 30.9, 
+                text: "M̄ tsai-iánn ū tsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄t-kiô\nTsiah tsai ū tsiah tsē nî",
+                duration: 44.9 - 31.9 
+            }, 
+            { 
+                time: 44.9, 
+                text: "Tshiū suan-tîn\nLōo huat-tsháu\nKhe iáu-ū tsuí\nKiô-tíng i ê hîng-iánn\nSuah tsit-tsūn lâi phû khí",
+                duration: 57.9 - 44.9 
+            }, 
+            { time: 57.9, text: "★★", duration: 1.0 },
+            { time: 58.9, text: "★", duration: 1.5 }, 
+            { 
+                time: 60.4, 
+                text: "Guá hó-tshiūnn hit-tsiah\nSit-khì ài-tsîng ê pe̍h-līng-si",
+                duration: 68.9 - 60.4 
+            }, 
+            { 
+                time: 68.9, 
+                text: "Hiō-hué bô kóng-tshut hit kù uē\nIt-ti̍t tiàm bong-bū tiong\nPue kuè-lâi\nPue kuè-khì",
+                duration: 80.9 - 68.9
+            }, 
+            { 
+                time: 80.9, 
+                text: "Tsia mā bô i\nHia mā bô i\nM̄-tsai i kám ū hām guá\nŪ kāng-khuán ê tsu-bī",
+                duration: 95.0 - 80.9 
+            }, 
+            
+            // 新增的後半段歌詞
+            { time: 95.0, text: "", duration: 2.0 }, 
+            { time: 97.0, text: "★★★", duration: 1.0 },
+            { time: 98.0, text: "★★", duration: 1.0 },
+            { time: 99.0, text: "★", duration: 1.0 }, 
+            { 
+                time: 100.0, 
+                text: "一番星に祈る\nそれが私のくせになり",
+                duration: 114.0 - 100.0 
+            }, 
+            { 
+                time: 114.0, 
+                text: "夕暮れに見上げる空\n心いっぱいあなた探す",
+                duration: 127.0 - 114.0 
+            }, 
+            { time: 127.0, text: "★", duration: 1.0 },
+            { 
+                time: 128.0, 
+                text: "悲しみにも 喜びにも\nおもうあの笑顔",
+                duration: 142.0 - 128.0
+            }, 
+            { 
+                time: 142.0, 
+                text: "あなたの場所から私が\n見えたら きっといつか\n会えると信じ 生きてゆく",
+                duration: 166.0 - 142.0 
+            }, 
+            // **** 以下是您要求的修正區域 (3:14 ~ 3:17) ****
+            { 
+                time: 166.0, 
+                text: "(間奏)",
+                duration: 194.0 - 166.0 // 修正：間奏在 194.0 秒結束 (3:14)
+            }, 
+            { time: 194.0, text: "★★★", duration: 1.0 }, // 3:14 顯示 ★★★
+            { time: 195.0, text: "★★", duration: 1.0 },  // 3:15 顯示 ★★
+            { time: 196.0, text: "★", duration: 1.0 },   // 3:16 顯示 ★
+            { 
+                time: 197.0, // 3:17 進入歌詞
+                text: "晴れ渡る日も 雨の日も\n浮かぶあの笑顔",
+                duration: 211.0 - 197.0
+            }, 
+            // **** 修正區域結束 ****
+            { 
+                time: 211.0, 
+                text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう",
+                duration: 232.0 - 211.0
+            }, 
+            { 
+                time: 232.0, 
+                text: "会いたくて 会いたくて\n君への想い 涙そうそう",
+                duration: 248.0 - 232.0 
+            }, 
+            { 
+                time: 248.0, 
+                text: "(來賓請掌聲鼓勵)",
+                duration: 999.0 
+            }
+        ];
 
-        let currentGroupIndex = -1; 
+        let currentGroupIndex = -1; 
 
-        // ====================================
-        // 2. 初始化與事件監聽
-        // ====================================
+        // ====================================
+        // 2. 初始化與事件監聽
+        // ====================================
 
-        const formatTime = (seconds) => {
-            if (isNaN(seconds)) return '0:00';
-            const min = Math.floor(seconds / 60);
-            const sec = Math.floor(seconds % 60);
-            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-        };
+        const formatTime = (seconds) => {
+            if (isNaN(seconds)) return '0:00';
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        };
 
-        // 處理播放邏輯 (僅處理播放/重來，不處理繼續)
-        async function handlePlay() {
-            errorMessageDiv.textContent = ''; 
-            
-            const isInitialPlay = mainControlButton.textContent === '播放';
-            const isReplay = mainControlButton.textContent === '重來' || audioPlayer.ended;
+        // 處理播放邏輯 (僅處理播放/重來，不處理繼續)
+        async function handlePlay() {
+            errorMessageDiv.textContent = ''; 
+            
+            const isInitialPlay = mainControlButton.textContent === '播放';
+            const isReplay = mainControlButton.textContent === '重來' || audioPlayer.ended;
 
-            // 只有在「初次播放」或「重來」時，才將時間重置到 27.9 秒。
-            if (isInitialPlay || isReplay) {
-                audioPlayer.currentTime = 27.9;
-            }
-            
-            try {
-                await audioPlayer.play();
-                mainControlButton.textContent = '重來'; 
-            } catch (error) {
-                console.error("Audio play failed:", error);
-                
-                if (error.name === "NotAllowedError" || error.name === "AbortError") {
-                     errorMessageDiv.textContent = '播放失敗：瀏覽器限制了音訊自動播放。請再次點擊「播放」按鈕。';
-                } else {
-                    errorMessageDiv.textContent = '播放失敗：音訊可能尚未載入或檔案有誤。請確認 ngphinguan.mp3 檔案在正確的位置。';
-                }
-                
-                mainControlButton.textContent = isReplay ? '重來' : '播放';
-            }
-        }
+            // 只有在「初次播放」或「重來」時，才將時間重置到 26.9 秒 (原本是 27.9，配合新增的倒數)
+            if (isInitialPlay || isReplay) {
+                // 注意：這裡從 27.9 改為 26.9，以包含新的 ★★★★ 倒數
+                audioPlayer.currentTime = 26.9; 
+            }
+            
+            try {
+                await audioPlayer.play();
+                mainControlButton.textContent = '重來'; 
+            } catch (error) {
+                console.error("Audio play failed:", error);
+                
+                if (error.name === "NotAllowedError" || error.name === "AbortError") {
+                     errorMessageDiv.textContent = '播放失敗：瀏覽器限制了音訊自動播放。請再次點擊「播放」按鈕。';
+                } else {
+                    errorMessageDiv.textContent = '播放失敗：音訊可能尚未載入或檔案有誤。請確認 ngphinguan.mp3 檔案在正確的位置。';
+                }
+                
+                mainControlButton.textContent = isReplay ? '重來' : '播放';
+            }
+        }
 
-        audioPlayer.addEventListener('loadedmetadata', () => {
-            timeDisplay.textContent = `0:00 / ${formatTime(audioPlayer.duration)}`;
-            renderLyrics();
-            errorMessageDiv.textContent = '';
-        });
-        
-        audioPlayer.addEventListener('error', (e) => {
-            errorMessageDiv.textContent = `音訊載入錯誤。請確認 ngphinguan.mp3 檔案在正確的位置。`;
-            console.error('Audio Error:', e.target.error);
-        });
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            timeDisplay.textContent = `0:00 / ${formatTime(audioPlayer.duration)}`;
+            renderLyrics();
+            errorMessageDiv.textContent = '';
+        });
+        
+        audioPlayer.addEventListener('error', (e) => {
+            errorMessageDiv.textContent = `音訊載入錯誤。請確認 ngphinguan.mp3 檔案在正確的位置。`;
+            console.error('Audio Error:', e.target.error);
+        });
 
-        // 主要控制按鈕 (播放/重來)
-        mainControlButton.addEventListener('click', handlePlay);
+        // 主要控制按鈕 (播放/重來)
+        mainControlButton.addEventListener('click', handlePlay);
 
-        // 次要控制按鈕 (暫停/繼續) 邏輯 (維持不變)
-        secondaryControlButton.addEventListener('click', () => {
-            if (audioPlayer.paused) {
-                // 如果是暫停狀態 (顯示「繼續」)，直接呼叫 play()
-                audioPlayer.play(); 
-            } else {
-                // 如果是播放狀態 (顯示「暫停」)，直接呼叫 pause()
-                audioPlayer.pause();
-            }
-        });
+        // 次要控制按鈕 (暫停/繼續) 邏輯 (維持不變)
+        secondaryControlButton.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                // 如果是暫停狀態 (顯示「繼續」)，直接呼叫 play()
+                audioPlayer.play(); 
+            } else {
+                // 如果是播放狀態 (顯示「暫停」)，直接呼叫 pause()
+                audioPlayer.pause();
+            }
+        });
 
-        audioPlayer.addEventListener('play', () => {
-            secondaryControlButton.textContent = '暫停';
-            secondaryControlButton.classList.add('visible');
-            mainControlButton.textContent = '重來';
-            startLyricSync();
-            errorMessageDiv.textContent = '';
-        });
+        audioPlayer.addEventListener('play', () => {
+            secondaryControlButton.textContent = '暫停';
+            secondaryControlButton.classList.add('visible');
+            mainControlButton.textContent = '重來';
+            startLyricSync();
+            errorMessageDiv.textContent = '';
+        });
 
-        audioPlayer.addEventListener('pause', () => {
-            secondaryControlButton.textContent = '繼續';
-            stopLyricSync();
-        });
+        audioPlayer.addEventListener('pause', () => {
+            secondaryControlButton.textContent = '繼續';
+            stopLyricSync();
+        });
 
-        audioPlayer.addEventListener('ended', () => {
-            mainControlButton.textContent = '播放';
-            secondaryControlButton.classList.remove('visible');
-            timeDisplay.textContent = `${formatTime(audioPlayer.duration)} / ${formatTime(audioPlayer.duration)}`;
-            highlightGroup(-1); 
-            stopLyricSync();
-        });
+        audioPlayer.addEventListener('ended', () => {
+            mainControlButton.textContent = '播放';
+            secondaryControlButton.classList.remove('visible');
+            timeDisplay.textContent = `${formatTime(audioPlayer.duration)} / ${formatTime(audioPlayer.duration)}`;
+            highlightGroup(-1); 
+            stopLyricSync();
+        });
 
-        // 點擊歌詞群組跳轉邏輯 (維持不變)
-        lyricsDiv.addEventListener('click', (e) => {
-            let targetGroup = e.target.closest('.lyric-group');
-            
-            if (targetGroup) {
-                const targetTime = parseFloat(targetGroup.dataset.time);
-                audioPlayer.currentTime = targetTime;
-                
-                // 直接呼叫 play()，繞過 handlePlay() 的重置邏輯
-                audioPlayer.play(); 
-            }
-        });
+        // 點擊歌詞群組跳轉邏輯 (維持不變)
+        lyricsDiv.addEventListener('click', (e) => {
+            let targetGroup = e.target.closest('.lyric-group');
+            
+            if (targetGroup) {
+                const targetTime = parseFloat(targetGroup.dataset.time);
+                audioPlayer.currentTime = targetTime;
+                
+                // 直接呼叫 play()，繞過 handlePlay() 的重置邏輯
+                audioPlayer.play(); 
+            }
+        });
 
-        // 點擊進度條跳轉 (維持不變)
-        progressContainer.addEventListener('click', (e) => {
-            const clickX = e.offsetX;
-            const containerWidth = progressContainer.clientWidth;
-            const percentage = clickX / containerWidth;
-            audioPlayer.currentTime = audioPlayer.duration * percentage;
-            
-            // 點擊進度條後，如果未播放，也應開始播放
-            if (audioPlayer.paused) {
-                audioPlayer.play(); // 直接呼叫 play()，保持當前時間
-            }
-        });
+        // 點擊進度條跳轉 (維持不變)
+        progressContainer.addEventListener('click', (e) => {
+            const clickX = e.offsetX;
+            const containerWidth = progressContainer.clientWidth;
+            const percentage = clickX / containerWidth;
+            audioPlayer.currentTime = audioPlayer.duration * percentage;
+            
+            // 點擊進度條後，如果未播放，也應開始播放
+            if (audioPlayer.paused) {
+                audioPlayer.play(); // 直接呼叫 play()，保持當前時間
+            }
+        });
 
 
-        // ====================================
-        // 3. 歌詞渲染與同步邏輯 (維持不變)
-        // ====================================
+        // ====================================
+        // 3. 歌詞渲染與同步邏輯 (維持不變)
+        // ====================================
 
-        function renderLyrics() {
-            lyricsDiv.innerHTML = lyricsData.map((lyric, index) => {
-                const textHTML = lyric.text.split('\n').map(line => `<span>${line.trim()}</span>`).join('');
-                return `
-                    <div class="lyric-group" data-time="${lyric.time}" data-index="${index}">
-                        ${textHTML}
-                    </div>
-                `;
-            }).join('');
-        }
+        function renderLyrics() {
+            lyricsDiv.innerHTML = lyricsData.map((lyric, index) => {
+                const textHTML = lyric.text.split('\n').map(line => `<span>${line.trim()}</span>`).join('');
+                return `
+                    <div class="lyric-group" data-time="${lyric.time}" data-index="${index}">
+                        ${textHTML}
+                    </div>
+                `;
+            }).join('');
+        }
 
-        function highlightGroup(index) {
-            const allGroups = lyricsDiv.querySelectorAll('.lyric-group');
-            if (currentGroupIndex !== index) {
-                
-                if (currentGroupIndex >= 0 && currentGroupIndex < allGroups.length) {
-                    allGroups[currentGroupIndex].classList.remove('highlight');
-                }
+        function highlightGroup(index) {
+            const allGroups = lyricsDiv.querySelectorAll('.lyric-group');
+            if (currentGroupIndex !== index) {
+                
+                if (currentGroupIndex >= 0 && currentGroupIndex < allGroups.length) {
+                    allGroups[currentGroupIndex].classList.remove('highlight');
+                }
 
-                if (index >= 0 && index < allGroups.length) {
-                    allGroups[index].classList.add('highlight');
-                    
-                    const group = allGroups[index];
-                    
-                    // 保持最穩定的居中滾動
-                    group.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center' 
-                    });
-                }
-                currentGroupIndex = index;
-            } else if (index === -1 && currentGroupIndex !== -1) {
-                allGroups.forEach(group => group.classList.remove('highlight'));
-                currentGroupIndex = -1;
-            }
-        }
+                if (index >= 0 && index < allGroups.length) {
+                    allGroups[index].classList.add('highlight');
+                    
+                    const group = allGroups[index];
+                    
+                    // 保持最穩定的居中滾動
+                    group.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center' 
+                    });
+                }
+                currentGroupIndex = index;
+            } else if (index === -1 && currentGroupIndex !== -1) {
+                allGroups.forEach(group => group.classList.remove('highlight'));
+                currentGroupIndex = -1;
+            }
+        }
 
-        function startLyricSync() {
-            if (syncInterval) return;
+        function startLyricSync() {
+            if (syncInterval) return;
 
-            syncInterval = setInterval(() => {
-                const currentTime = audioPlayer.currentTime;
-                const duration = audioPlayer.duration;
+            syncInterval = setInterval(() => {
+                const currentTime = audioPlayer.currentTime;
+                const duration = audioPlayer.duration;
 
-                if (duration > 0) {
-                    const progressPercent = (currentTime / duration) * 100;
-                    progressBar.style.width = `${progressPercent}%`;
-                    timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
-                }
+                if (duration > 0) {
+                    const progressPercent = (currentTime / duration) * 100;
+                    progressBar.style.width = `${progressPercent}%`;
+                    timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+                }
 
-                let newIndex = -1;
-                for (let i = 0; i < lyricsData.length; i++) {
-                    const lyric = lyricsData[i];
-                    
-                    if (currentTime >= lyric.time && currentTime < lyric.time + lyric.duration) {
-                        newIndex = i;
-                        break;
-                    }
-                }
-                
-                highlightGroup(newIndex);
+                let newIndex = -1;
+                for (let i = 0; i < lyricsData.length; i++) {
+                    const lyric = lyricsData[i];
+                    
+                    if (currentTime >= lyric.time && currentTime < lyric.time + lyric.duration) {
+                        newIndex = i;
+                        break;
+                    }
+                }
+                
+                highlightGroup(newIndex);
 
-            }, 200); 
-        }
+            }, 200); 
+        }
 
-        function stopLyricSync() {
-            clearInterval(syncInterval);
-            syncInterval = null;
-        }
+        function stopLyricSync() {
+            clearInterval(syncInterval);
+            syncInterval = null;
+        }
 
-    </script>
+    </script>
 <a href="https://www.hitwebcounter.com/" target="_blank">
 <img src="https://www.hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters" border="0" /></a>
 
