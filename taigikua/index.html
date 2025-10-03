@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>白翎鷥_互動歌詞</title>
+    <title>互動式動態歌詞播放器 - 分段顯示</title>
     <style>
         /* ==================================== */
         /* 1. 頁面基本樣式 */
@@ -156,8 +156,39 @@
             border-top: 1px solid #ccc;
             margin-top: 20px;
         }
+
+        /* 新增：歌詞版本切換按鈕區塊樣式 */
+        .lyric-version-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px; /* 放在 credit 上方，留出間距 */
+        }
+
+        .version-button {
+            padding: 8px 15px;
+            font-size: 0.9em;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .version-button:hover {
+            background-color: #e9e9e9;
+        }
         
-        /* 底部按鈕群組排版 */
+        /* 標記當前選中的版本 */
+        .version-button.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+
+        
+        /* 底部按鈕群組排版 (音源影片等 A1 按鈕) */
         .button-group {
             display: flex;
             gap: 10px; /* 按鈕之間的間距 */
@@ -171,7 +202,7 @@
             margin-bottom: 15px;
         }
         
-        /* A1 按鈕樣式 */
+        /* A1 按鈕樣式 (維持不變) */
         .a1-button {
             /* 顏色: 灰白色調 (背景色 #e0e0e0) */
             background-color: #e0e0e0;
@@ -213,6 +244,12 @@
     </div>
 
     <div class="footer-container">
+
+        <div class="lyric-version-selector">
+            <button id="btn-mixed" class="version-button active">台日版</button>
+            <button id="btn-taiwanese" class="version-button">全台版</button>
+        </div>
+
         <p id="credit">動態歌詞製作：Iônn Àn-tsiong；技術支援：フォックスコンの響き</p>
         
         <div class="button-group">
@@ -253,31 +290,29 @@
         const progressContainer = document.getElementById('progress-container');
         const timeDisplay = document.getElementById('time-display');
         const errorMessageDiv = document.getElementById('error-message'); 
+
+        // 按鈕元素
+        const btnMixed = document.getElementById('btn-mixed');
+        const btnTaiwanese = document.getElementById('btn-taiwanese');
+
         let syncInterval;
 
-        // *** 這是您修訂後的歌詞時間軸 ***
-        const lyricsData = [
-            // (1) 倒數計時邏輯 (維持不變)
+        // *** 1. 定義 台日混合版 歌詞資料 (作為預設) ***
+        const lyricsDataMixed = [
             { time: 25.9, text: "★★★★", duration: 1.0 },
             { time: 26.9, text: "★★★", duration: 1.0 },
             { time: 27.9, text: "★★", duration: 1.0 },
             { time: 28.9, text: "★", duration: 1.0 }, 
-            
-            // (2) 第一段歌詞：開始時間 29.9s (維持不變)，但持續時間延長到下一段原始的開始時間 44.9s
             { 
                 time: 29.9, 
-                text: "M̄ tsai-iánn ū tsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄g-kiô\nTsiah tsai ū tsiah tsē nî",
-                duration: 44.9 - 29.9 // 修訂：持續 15.0 秒，直到 44.9 秒才換行
+                text: "M̄ tsai-iánn ū tsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄t-kiô\nTsiah tsai ū tsiah tsē nî",
+                duration: 44.9 - 29.9 
             }, 
-            
-            // (3) 您提及的歌詞段落：時間點恢復到最初的 44.9s (取消上次的平移)
             { 
                 time: 44.9, 
                 text: "Tshiū suan-tîn\nLōo huat-tsháu\nKhe iáu-ū tsuí\nKiô-tíng i ê hîng-iánn\nSuah tsit-tsūn lâi phû khí",
-                duration: 57.9 - 44.9 // 持續 13.0 秒
+                duration: 57.9 - 44.9 
             }, 
-            
-            // 後續所有歌詞時間點，全部恢復到最初的同步時間點：
             { time: 57.9, text: "★★", duration: 1.0 },
             { time: 58.9, text: "★", duration: 1.5 }, 
             { 
@@ -296,33 +331,31 @@
                 duration: 95.0 - 80.9 
             }, 
             
-            // 新增的後半段歌詞
             { time: 95.0, text: "", duration: 2.0 }, 
             { time: 97.0, text: "★★★", duration: 1.0 },
             { time: 98.0, text: "★★", duration: 1.0 },
             { time: 99.0, text: "★", duration: 1.0 }, 
             { 
                 time: 100.0, 
-                text: "一番星に祈る\nそれが私のくせになり",
+                text: "一番星に祈る\nそれが私のくせになり", // 日文歌詞
                 duration: 114.0 - 100.0 
             }, 
             { 
                 time: 114.0, 
-                text: "夕暮れに見上げる空\n心いっぱいあなた探す",
+                text: "夕暮れに見上げる空\n心いっぱいあなた探す", // 日文歌詞
                 duration: 127.0 - 114.0 
             }, 
             { time: 127.0, text: "★", duration: 1.0 },
             { 
                 time: 128.0, 
-                text: "悲しみにも 喜びにも\nおもうあの笑顔",
+                text: "悲しみにも 喜びにも\nおもうあの笑顔", // 日文歌詞
                 duration: 142.0 - 128.0
             }, 
             { 
                 time: 142.0, 
-                text: "あなたの場所から私が\n見えたら きっといつか\n会えると信じ 生きてゆく",
+                text: "あなたの場所から私が\n見えたら きっといつか\n会えると信じ 生きてゆく", // 日文歌詞
                 duration: 166.0 - 142.0 
             }, 
-            // 修正區域
             { 
                 time: 166.0, 
                 text: "(間奏)",
@@ -333,18 +366,17 @@
             { time: 196.0, text: "★", duration: 1.0 }, 
             { 
                 time: 197.0, 
-                text: "晴れ渡る日も 雨の日も\n浮かぶあの笑顔",
+                text: "晴れ渡る日も 雨の日も\n浮かぶあの笑顔", // 日文歌詞
                 duration: 211.0 - 197.0
             }, 
-            // 修正區域結束
             { 
                 time: 211.0, 
-                text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう",
+                text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう", // 日文歌詞
                 duration: 232.0 - 211.0
             }, 
             { 
                 time: 232.0, 
-                text: "会いたくて 会いたくて\n君への想い 涙そうそう",
+                text: "会いたくて 会いたくて\n君への想い 涙そうそう", // 日文歌詞
                 duration: 248.0 - 232.0 
             }, 
             { 
@@ -354,10 +386,139 @@
             }
         ];
 
+        // *** 2. 定義 全台語版 歌詞資料 (使用您提供的內容) ***
+        const lyricsDataTaiwanese = [
+            { time: 25.9, text: "★★★★", duration: 1.0 },
+            { time: 26.9, text: "★★★", duration: 1.0 },
+            { time: 27.9, text: "★★", duration: 1.0 },
+            { time: 28.9, text: "★", duration: 1.0 }, 
+            { 
+                time: 29.9, 
+                text: "M̄ tsai-iánn ū\ntsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄t-kiô\nTsiah tsai ū tsiah tsē nî",
+                duration: 44.9 - 29.9
+            }, 
+            { 
+                time: 44.9, 
+                text: "Tshiū suan-tîn\nLōo huat-tsháu\nKhe iáu-ū tsuí\nKiô-tíng i ê hîng-iánn\nSuah tsit-tsūn lâi phû khí",
+                duration: 57.9 - 44.9
+            }, 
+            { time: 57.9, text: "★★", duration: 1.0 },
+            { time: 58.9, text: "★", duration: 1.5 }, 
+            { 
+                time: 60.4, 
+                text: "Guá hó-tshiūnn hit-tsiah\nSit-khì ài-tsîng ê pe̍h-līng-si",
+                duration: 68.9 - 60.4 
+            }, 
+            { 
+                time: 68.9, 
+                text: "Hiō-hué bô kóng-tshut hit kù uē\nIt-ti̍t tiàm bong-bū tiong\nPue kuè-lâi\nPue kuè-khì",
+                duration: 80.9 - 68.9
+            }, 
+            { 
+                time: 80.9, 
+                text: "Tsia mā bô i\nHia mā bô i\nM̄-tsai i kám ū hām guá\nŪ kāng-khuán ê tsu-bī",
+                duration: 95.0 - 80.9 
+            }, 
+            
+            { time: 95.0, text: "", duration: 2.0 }, 
+            { time: 97.0, text: "★★★", duration: 1.0 },
+            { time: 98.0, text: "★★", duration: 1.0 },
+            { time: 99.0, text: "★", duration: 1.0 }, 
+            { 
+                time: 100.0, 
+                text: " Ká-sú lâi kòo-sū \n Uì-thâu tîng kiânn khí \n Guá bô lī-khui kòo-hiong \n Lí iáu tī guá sin-pinn ",
+                duration: 114.0 - 100.0 
+            }, 
+            { 
+                time: 114.0, 
+                text: " Tshiū ê tshinn, lōo ê hue \n Kiô-kha ê tsuí \n Kiô-tíng ê guá \n Beh lâi tuì lí kóng-tshut guá ài lí ",
+                duration: 127.0 - 114.0 
+            }, 
+            { time: 127.0, text: "★", duration: 1.0 },
+            { 
+                time: 128.0, 
+                text: " Guá hó-tshiūnn hit-tsiah \n Sit-khì ài-tsîng ê pe̍h-līng-si \n Hiō-hué bô kóng-tshut hit kù uē ",
+                duration: 142.0 - 128.0
+            }, 
+            { 
+                time: 142.0, 
+                text: " It-ti̍t tiàm bong-bū tiong \n Pue kuè-lâi, pue kuè-khì \n Pàng-buē-kì i, pàng i buē-khì \n M̄-tsai i kám ū hām guá \n Ū kāng-khuán ê tsu-luī ",
+                duration: 166.0 - 142.0 
+            }, 
+            { 
+                time: 166.0, 
+                text: "(間奏)",
+                duration: 194.0 - 166.0
+            }, 
+            { time: 194.0, text: "★★★", duration: 1.0 },
+            { time: 195.0, text: "★★", duration: 1.0 }, 
+            { time: 196.0, text: "★", duration: 1.0 }, 
+            { 
+                time: 197.0, 
+                text: " Guá m̄-guān piàn-tsuè \n Sit-khì ài-tsîng ê pe̍h-līng-si \n Guá beh lâi kóng-tshut hit kù uē ",
+                duration: 211.0 - 197.0
+            }, 
+            { 
+                time: 211.0, 
+                text: " Hit kù uē thun tī-leh sim-kuann-thâu tsiah tsē nî \n Tsi̍t-kù guá ài lí, nn̄g-kù guá ài lí \n Guá beh tuì lí kóng-tshut \n Tshian-tshian-bān-bān guá ài lí ",
+                duration: 232.0 - 211.0
+            }, 
+            { 
+                time: 232.0, 
+                text: " Tsi̍t-kù guá ài lí, nn̄g-kù guá ài lí \n Guá beh tuì lí kóng-tshut \n Tshian-tshian-bān-bān guá ài lí ",
+                duration: 248.0 - 232.0 
+            }, 
+            { 
+                time: 248.0, 
+                text: "(來賓請掌聲鼓勵)",
+                duration: 999.0 
+            }
+        ];
+
+        // *** 3. 這是所有動態函數將會讀取的資料變數 (預設為混合版) ***
+        let currentLyricsData = lyricsDataMixed;
         let currentGroupIndex = -1; 
 
         // ====================================
-        // 2. 初始化與事件監聽
+        // 4. 歌詞切換核心邏輯
+        // ====================================
+
+        function switchLyrics(version) {
+            // 根據版本切換資料
+            if (version === 'mixed') {
+                currentLyricsData = lyricsDataMixed;
+                btnMixed.classList.add('active');
+                btnTaiwanese.classList.remove('active');
+            } else if (version === 'taiwanese') {
+                currentLyricsData = lyricsDataTaiwanese;
+                btnTaiwanese.classList.add('active');
+                btnMixed.classList.remove('active');
+            }
+
+            // 重新渲染畫面
+            renderLyrics();
+
+            // 保持同步性：如果音樂正在播放，強制更新一次高亮
+            if (!audioPlayer.paused) {
+                // 停止並重新開始同步，確保使用新的歌詞資料
+                stopLyricSync();
+                startLyricSync();
+            } else {
+                 // 如果音樂是暫停狀態，清空高亮
+                 highlightGroup(-1);
+            }
+            
+            // 滾動到頂部
+            lyricsDiv.scrollTop = 0;
+        }
+
+        // 綁定按鈕事件
+        btnMixed.addEventListener('click', () => switchLyrics('mixed'));
+        btnTaiwanese.addEventListener('click', () => switchLyrics('taiwanese'));
+
+
+        // ====================================
+        // 5. 初始化與事件監聽 (功能維持不變)
         // ====================================
 
         const formatTime = (seconds) => {
@@ -397,7 +558,8 @@
 
         audioPlayer.addEventListener('loadedmetadata', () => {
             timeDisplay.textContent = `0:00 / ${formatTime(audioPlayer.duration)}`;
-            renderLyrics();
+            // 初始載入時，渲染預設的混合版歌詞
+            renderLyrics(); 
             errorMessageDiv.textContent = '';
         });
         
@@ -408,8 +570,6 @@
 
         // 主要控制按鈕 (播放/重來)
         mainControlButton.addEventListener('click', handlePlay);
-
-        // 次要控制按鈕 (暫停/繼續) 邏輯 
         secondaryControlButton.addEventListener('click', () => {
             if (audioPlayer.paused) {
                 audioPlayer.play(); 
@@ -465,11 +625,12 @@
 
 
         // ====================================
-        // 3. 歌詞渲染與同步邏輯 
+        // 6. 歌詞渲染與同步邏輯 (使用 currentLyricsData)
         // ====================================
 
         function renderLyrics() {
-            lyricsDiv.innerHTML = lyricsData.map((lyric, index) => {
+            // *** 使用 currentLyricsData ***
+            lyricsDiv.innerHTML = currentLyricsData.map((lyric, index) => {
                 const textHTML = lyric.text.split('\n').map(line => `<span>${line.trim()}</span>`).join('');
                 return `
                     <div class="lyric-group" data-time="${lyric.time}" data-index="${index}">
@@ -480,6 +641,7 @@
         }
 
         function highlightGroup(index) {
+            // *** 查詢範圍改為根據當前歌詞資料長度 ***
             const allGroups = lyricsDiv.querySelectorAll('.lyric-group');
             if (currentGroupIndex !== index) {
                 
@@ -492,7 +654,6 @@
                     
                     const group = allGroups[index];
                     
-                    // 保持最穩定的居中滾動
                     group.scrollIntoView({
                         behavior: 'smooth',
                         block: 'center' 
@@ -519,8 +680,9 @@
                 }
 
                 let newIndex = -1;
-                for (let i = 0; i < lyricsData.length; i++) {
-                    const lyric = lyricsData[i];
+                // *** 迭代 currentLyricsData ***
+                for (let i = 0; i < currentLyricsData.length; i++) {
+                    const lyric = currentLyricsData[i];
                     
                     if (currentTime >= lyric.time && currentTime < lyric.time + lyric.duration) {
                         newIndex = i;
