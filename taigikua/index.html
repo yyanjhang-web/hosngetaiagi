@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>白翎鷥</title>
+    <title>互動式動態歌詞播放器 - 三版本</title>
     <style>
         /* ==================================== */
         /* 1. 頁面基本樣式 */
         /* ==================================== */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* === 修正：調整字型以區分 I 和 l，並確保變音符號顯示 === */
+            /* Noto Sans Táiwánese (或其他 Noto 系列) 對變音符號支援良好，且 I/l 區分明顯 */
+            /* Segoe UI 和 Arial 也是廣泛使用的安全備選字型 */
+            font-family: 'Noto Sans CJK TC', 'Noto Sans TC', 'Noto Sans Táiwánese', 'Arial', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -122,7 +126,8 @@
             cursor: pointer; /* 點擊群組可跳轉 */
             transition: all 0.3s;
             white-space: pre-wrap;
-            font-size: 1.5em; /* 主要群組字體 */
+            /* 字體大小維持 1.5em，如果覺得可以更大或更小，可以自行調整 */
+            font-size: 1.5em; 
         }
 
         /* 群組中的每一行 */
@@ -295,7 +300,7 @@
         // 按鈕元素
         const btnMixed = document.getElementById('btn-mixed');
         const btnTaiwanese = document.getElementById('btn-taiwanese');
-        const btnJapanese = document.getElementById('btn-japanese'); // 新增日文按鈕
+        const btnJapanese = document.getElementById('btn-japanese'); 
 
         let syncInterval;
         let currentGroupIndex = -1; 
@@ -312,7 +317,7 @@
             { time: 28.9, text: "★", duration: 1.0 }, 
             { 
                 time: 29.9, 
-                text: "M̄ tsai-iánn ū\nTsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄g-kiô\nTsiah tsai ū tsiah tsē nî",
+                text: "M̄ tsai-iánn ū tsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄t-kiô\nTsiah tsai ū tsiah tsē nî",
                 duration: 44.9 - 29.9 
             }, 
             { 
@@ -329,7 +334,7 @@
             }, 
             { 
                 time: 68.9, 
-                text: "Hiō-hué bô kóng-tshut\nHit kù uē\nIt-ti̍t tiàm bong-bū tiong\nPue kuè-lâi\nPue kuè-khì",
+                text: "Hiō-hué bô kóng-tshut hit kù uē\nIt-ti̍t tiàm bong-bū tiong\nPue kuè-lâi\nPue kuè-khì",
                 duration: 80.9 - 68.9
             }, 
             { 
@@ -378,12 +383,12 @@
             }, 
             { 
                 time: 211.0, 
-                text: "想い出遠くあせても\nさみしくて\n恋しくて\n君への想い\n涙そうそう", // 日文歌詞
+                text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう", // 日文歌詞
                 duration: 232.0 - 211.0
             }, 
             { 
                 time: 232.0, 
-                text: "会いたくて\n会いたくて\n君への想い\n涙そうそう", // 日文歌詞
+                text: "会いたくて 会いたくて\n君への想い 涙そうそう", // 日文歌詞
                 duration: 248.0 - 232.0 
             }, 
             { 
@@ -393,7 +398,7 @@
             }
         ];
 
-        // *** B. 全台語版 歌詞資料 ***
+        // *** B. 全台語版 歌詞資料 (上次版本) ***
         const lyricsDataTaiwanese = [
             { time: 25.9, text: "★★★★", duration: 1.0 },
             { time: 26.9, text: "★★★", duration: 1.0 },
@@ -401,7 +406,7 @@
             { time: 28.9, text: "★", duration: 1.0 }, 
             { 
                 time: 29.9, 
-                text: "M̄ tsai-iánn ū\nTsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄g-kiô\nTsiah tsai ū tsiah tsē nî",
+                text: "M̄ tsai-iánn ū\ntsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄t-kiô\nTsiah tsai ū tsiah tsē nî",
                 duration: 44.9 - 29.9
             }, 
             { 
@@ -418,7 +423,7 @@
             }, 
             { 
                 time: 68.9, 
-                text: "Hiō-hué bô kóng-tshut\nHit kù uē\nIt-ti̍t tiàm bong-bū tiong\nPue kuè-lâi\nPue kuè-khì",
+                text: "Hiō-hué bô kóng-tshut hit kù uē\nIt-ti̍t tiàm bong-bū tiong\nPue kuè-lâi\nPue kuè-khì",
                 duration: 80.9 - 68.9
             }, 
             { 
@@ -482,7 +487,7 @@
             }
         ];
 
-        // *** C. 全日版 歌詞資料 (使用您提供的內容) ***
+        // *** C. 全日版 歌詞資料 (上次版本) ***
         const lyricsDataJapanese = [
             { time: 25.9, text: "★★★★", duration: 1.0 },
             { time: 26.9, text: "★★★", duration: 1.0 },
@@ -512,7 +517,7 @@
             }, 
             { 
                 time: 80.9, 
-                text: "おもかげ探して\nよみがえる日は\n涙そうそう",
+                text: "おもかげ探して\nよみがえる日は\涙そうそう",
                 duration: 95.0 - 80.9 
             }, 
             
@@ -533,12 +538,12 @@
             { time: 127.0, text: "★", duration: 1.0 },
             { 
                 time: 128.0, 
-                text: "悲しみにも\n喜びにも\nおもうあの笑顔",
+                text: "悲しみにも 喜びにも\nおもうあの笑顔",
                 duration: 142.0 - 128.0
             }, 
             { 
                 time: 142.0, 
-                text: "あなたの場所から私が\n見えたら\nきっといつか\n会えると信じ\n生きてゆく",
+                text: "あなたの場所から私が\n見えたら きっといつか\n会えると信じ 生きてゆく",
                 duration: 166.0 - 142.0 
             }, 
             { 
@@ -551,17 +556,17 @@
             { time: 196.0, text: "★", duration: 1.0 }, 
             { 
                 time: 197.0, 
-                text: "晴れ渡る日も\n雨の日も\n浮かぶあの笑顔",
+                text: "晴れ渡る日も 雨の日も\n浮かぶあの笑顔",
                 duration: 211.0 - 197.0
             }, 
             { 
                 time: 211.0, 
-                text: "想い出遠くあせても\nさみしくて\n恋しくて\n君への想い\n涙そうそう",
+                text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう",
                 duration: 232.0 - 211.0
             }, 
             { 
                 time: 232.0, 
-                text: "会いたくて\n会いたくて\n君への想い\n涙そうそう",
+                text: "会いたくて 会いたくて\n君への想い 涙そうそう",
                 duration: 248.0 - 232.0 
             }, 
             { 
@@ -616,7 +621,7 @@
         // 綁定按鈕事件
         btnMixed.addEventListener('click', () => switchLyrics('mixed'));
         btnTaiwanese.addEventListener('click', () => switchLyrics('taiwanese'));
-        btnJapanese.addEventListener('click', () => switchLyrics('japanese')); // 綁定日文按鈕
+        btnJapanese.addEventListener('click', () => switchLyrics('japanese')); 
 
 
         // ====================================
