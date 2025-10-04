@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>B3L1阿母的頭毛_對對碰</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: '微軟正黑體', 'Arial', sans-serif;
+      background-color: #f0f0f0;
+      padding: 2vmin;
+      box-sizing: border-box;
+    }
+    #scoreBoard {
+      font-size: 2vmin;
+      margin-bottom: 2vmin;
+    }
+    .card-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5vmin;
+      justify-content: center;
+      width: 100%;
+      max-width: 90vmin;
+    }
+    .card-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 40vmin;
+    }
+    .dobble-card {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 1.5vmin;
+      width: 100%;
+      padding: 2vmin;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      aspect-ratio: 1 / 1;
+      transition: background-color 0.3s, opacity 0.3s;
+    }
+    #card1 { background-color: #e6f7ff; }
+    #card2 { background-color: #e6ffe6; }
+    #card1.darken-left, #card2.darken-left { background-color: #1E517C; opacity: 0.3; }
+    #card1.darken-right, #card2.darken-right { background-color: #84B685; opacity: 0.3; }
+    .dobble-element {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #fff;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 5vmin;
+      padding: 1vmin;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+      text-align: center;
+      word-wrap: break-word;
+      word-break: normal;
+      hyphens: auto;
+    }
+    .dobble-element.hanji { font-size: 5vmin; }
+    .dobble-element.loma { font-size: 3vmin; }
+    .highlight-blue {
+      background-color: #add8e6;
+      transform: scale(1.05);
+      border: 2px solid #5a94a6;
+    }
+    .highlight-green {
+      background-color: #90ee90;
+      transform: scale(1.05);
+      border: 2px solid #4a8a4a;
+    }
+    button {
+      margin: 1vmin;
+      padding: 1vmin 2vmin;
+      font-size: 2vmin;
+      border: none;
+      border-radius: 5px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+    .rule-text, .designer-info {
+      font-size: 2vmin;
+      margin-top: 1vmin;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div id="scoreBoard">
+    <div>左邊學生：<span id="leftScore">0</span> 分｜第 <span id="leftRound">1</span> 回合</div>
+    <div>右邊學生：<span id="rightScore">0</span> 分｜第 <span id="rightRound">1</span> 回合</div>
+  </div>
+
+  <div class="card-container">
+    <div class="card-wrapper">
+      <button id="leftHintBtn">左邊提示</button>
+      <div class="dobble-card" id="card1"></div>
+    </div>
+    <div class="card-wrapper">
+      <button id="rightHintBtn">右邊提示</button>
+      <div class="dobble-card" id="card2"></div>
+    </div>
+  </div>
+
+  <button id="changeCardsBtn">換一張</button>
+  <div class="rule-text">規則：找出兩張卡中台語漢字詞與羅馬字相符的配對</div>
+  <div class="designer-info">設計者Iônn, Àn-tsiong；技術支援：フォックスコンの響き</div>
+
+<script>
+    const vocabulary = {
+      "姑娘": "koo-niû", "烏金": "oo-kim", "仝款": "kāng-khuán", "一度": "it-tōo",
+      "浪子": "lōng-tsú", "寒天": "kuânn-thinn", "光彩": "kong-tshái", "一層": "tsi̍t tsân",
+      "滑溜": "ku̍t-liu", "時陣": "sî-tsūn", "細漢": "sè-hàn", "頭毛": "thâu-mn̂g",
+      "是按怎": "sī-án-tsuánn", "面憂憂": "bīn iu-iu", "會記得": "ē-kì-tit", "彼當陣": "hit-tang-tsūn",
+      "煞": "suah", "四配": "sù-phuè", "若無": "nā-bô", "掠準": "lia̍h-tsún",
+      "親像": "tshin-tshiūnn", "鏡": "kiànn", "溪仔水": "khe-á-tsuí", "日頭": "ji̍t-thâu",
+      "了後": "liáu-āu"
+    };
+
+    const card1Element = document.getElementById('card1');
+    const card2Element = document.getElementById('card2');
+    const changeCardsBtn = document.getElementById('changeCardsBtn');
+    const leftHintBtn = document.getElementById('leftHintBtn');
+    const rightHintBtn = document.getElementById('rightHintBtn');
+
+    let leftScore = 0, rightScore = 0;
+    let leftRound = 1, rightRound = 1;
+    const maxRounds = 5;
+    let leftHintUsed = false, rightHintUsed = false;
+    let gameLocked = false;
+    let correctPair = {};
+
+    function updateScoreBoard() {
+      document.getElementById('leftScore').textContent = leftScore;
+      document.getElementById('rightScore').textContent = rightScore;
+      document.getElementById('leftRound').textContent = leftRound;
+      document.getElementById('rightRound').textContent = rightRound;
+    }
+
+    function checkGameEnd() {
+      if (leftRound > maxRounds && rightRound > maxRounds) {
+        let result = '';
+        if (leftScore > rightScore) result = '左邊學生勝利！';
+        else if (rightScore > leftScore) result = '右邊學生勝利！';
+        else result = '平手！';
+        alert(`遊戲結束！${result}`);
+      }
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function clearFeedback() {
+      card1Element.classList.remove('darken-left', 'darken-right');
+      card2Element.classList.remove('darken-left', 'darken-right');
+      document.querySelectorAll('.dobble-element').forEach(el => {
+        el.classList.remove('highlight-blue', 'highlight-green');
+      });
+    }
+
+    function handleElementClick(e) {
+      if (gameLocked) return;
+      clearFeedback();
+
+      const clickedElement = e.target.closest('.dobble-element');
+      if (!clickedElement) return;
+
+      const clickedCardId = clickedElement.parentNode.id;
+      const clickedText = clickedElement.textContent.trim();
+      const isCorrect = (clickedText === correctPair.hanji || clickedText === correctPair.loma);
+
+      if (isCorrect) {
+        gameLocked = true;
+        const highlightClass = (clickedCardId === 'card1') ? 'highlight-blue' : 'highlight-green';
+
+        document.querySelectorAll('.dobble-element').forEach(el => {
+          const elText = el.textContent.trim();
+          if (elText === correctPair.hanji || elText === correctPair.loma) {
+            el.classList.add(highlightClass);
+          }
+        });
+
+        if (clickedCardId === 'card1') {
+          leftScore++; leftRound++;
+        } else {
+          rightScore++; rightRound++;
+        }
+      } else {
+        gameLocked = true;
+        const darkenClass = (clickedCardId === 'card1') ? 'darken-left' : 'darken-right';
+        card1Element.classList.add(darkenClass);
+        card2Element.classList.add(darkenClass);
+
+        if (clickedCardId === 'card1') {
+          leftRound++;
+        } else {
+          rightRound++;
+        }
+      }
+
+      updateScoreBoard();
+      checkGameEnd();
+    }
+
+    function updateCard(cardElement, content) {
+      cardElement.innerHTML = '';
+      content.forEach(text => {
+        const element = document.createElement('div');
+        element.className = 'dobble-element';
+        element.classList.add(vocabulary[text] ? 'hanji' : 'loma');
+        element.textContent = text;
+        element.addEventListener('click', handleElementClick);
+        cardElement.appendChild(element);
+      });
+    }
+
+    function showRandomCards() {
+      gameLocked = false;
+      clearFeedback();
+
+      let hasValidCards = false;
+      let cardA_Hanji, cardA_Loma, cardB_Hanji, cardB_Loma;
+      const vocabularyEntries = Object.entries(vocabulary);
+
+      while (!hasValidCards) {
+        const shuffledVocab = shuffleArray([...vocabularyEntries]);
+        const correctPairEntry = shuffledVocab[0];
+        correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
+
+        const remainingPairs = shuffledVocab.slice(1);
+        const remainingHanji = remainingPairs.map(p => p[0]);
+        const remainingLoma = remainingPairs.map(p => p[1]);
+
+        const shuffledHanji = shuffleArray([...remainingHanji]);
+        const shuffledLoma = shuffleArray([...remainingLoma]);
+
+        let interferenceHanji = [], interferenceLoma = [];
+
+        while (interferenceHanji.length < 3) {
+          const item = shuffledHanji.pop();
+          if (item !== correctPair.hanji) interferenceHanji.push(item);
+        }
+        while (interferenceLoma.length < 3) {
+          const item = shuffledLoma.pop();
+          if (item !== correctPair.loma) interferenceLoma.push(item);
+        }
+
+        for (let i = 0; i < interferenceHanji.length; i++) {
+          const hanji = interferenceHanji[i];
+          const expectedLoma = vocabulary[hanji];
+          if (interferenceLoma.includes(expectedLoma)) {
+            const index = interferenceLoma.indexOf(expectedLoma);
+            const newLoma = shuffledLoma.find(l => !interferenceLoma.includes(l) && l !== correctPair.loma);
+            if (newLoma) interferenceLoma[index] = newLoma;
+          }
+        }
+
+        cardA_Hanji = [correctPair.hanji, interferenceHanji[0]];
+        cardA_Loma = [interferenceLoma[0], interferenceLoma[1]];
+        cardB_Hanji = [interferenceHanji[1], interferenceHanji[2]];
+        cardB_Loma = [correctPair.loma, interferenceLoma[2]];
+
+        const isCardA_Invalid = cardA_Hanji.some(h => cardA_Loma.includes(vocabulary[h]));
+        const isCardB_Invalid = cardB_Hanji.some(h => cardB_Loma.includes(vocabulary[h]));
+
+        if (!isCardA_Invalid && !isCardB_Invalid) hasValidCards = true;
+      }
+
+      const swapCards = Math.random() < 0.5;
+      const card1Content = swapCards ? shuffleArray([...cardB_Hanji, ...cardB_Loma]) : shuffleArray([...cardA_Hanji, ...cardA_Loma]);
+      const card2Content = swapCards ? shuffleArray([...cardA_Hanji, ...cardA_Loma]) : shuffleArray([...cardB_Hanji, ...cardB_Loma]);
+
+      updateCard(card1Element, card1Content);
+      updateCard(card2Element, card2Content);
+    }
+
+    function removeOneDistractor(cardElement, side) {
+      const elements = Array.from(cardElement.querySelectorAll('.dobble-element'));
+      const distractors = elements.filter(el => {
+        const text = el.textContent.trim();
+        return text !== correctPair.hanji && text !== correctPair.loma;
+      });
+
+      if (distractors.length > 0) {
+        const toRemove = distractors[Math.floor(Math.random() * distractors.length)];
+        toRemove.remove();
+      }
+    }
+
+    leftHintBtn.addEventListener('click', () => {
+      if (leftHintUsed || gameLocked) return;
+      removeOneDistractor(card1Element, 'left');
+      leftHintUsed = true;
+      leftHintBtn.disabled = true;
+[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/MiraRose/ColorfulFriends/tree/48cc3829ec8fb4257ad2f95f5df50be6737c7272/javascript.js?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "1")[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/Lulamoon96/Unit04-CodeQuiz/tree/7b8295bac04f9bb3539c3d5206147fa48bf58d73/assets%2Fscript.js?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "2")[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/lineupninja/clearchat/tree/a40a41b8161aaafb72040349afce3d9138e396e7/brochure%2Fapp%2Fcomponents%2Fpage%2Findex%2Fservices.ts?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "3")[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/derycklong/PluralSight-Angular-Tutorial/tree/f841c806af1dc94e9316799fbcee7b3cc1a0c086/node_modules%2Fsocks%2Fbuild%2Fcommon%2Futil.js?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "4")
+
+</script>
+</body>
+</html>
