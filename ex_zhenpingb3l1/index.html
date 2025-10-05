@@ -409,6 +409,9 @@
 
         /**
          * 凍結遊戲並顯示狀態
+         * @param {string} message - 顯示的訊息
+         * @param {boolean} isFinal - 是否為最終結束狀態 (獲勝或挑戰失敗)
+         * @param {boolean} isWin - 是否為獲勝狀態
          */
         function freezeGame(message, isFinal = false, isWin = false) {
             gameLocked = true;
@@ -428,7 +431,7 @@
             hintButtons.forEach(btn => btn.style.display = 'none');
             
             if (isFinal) {
-                // 最終局視覺回饋強化
+                // 【修正點】：不論是獲勝還是挑戰失敗，只要是最終結束狀態，都將按鈕設定為「換人競賽」
                 gameStatusDisplay.classList.add('final-message');
                 if (isWin) {
                     document.body.classList.add('win-blink');
@@ -438,9 +441,11 @@
                 
                 changeCardsBtn.textContent = '換人競賽';
                 changeCardsBtn.onclick = () => {
+                    // 重新開始競賽模式
                     setMode(true); 
                 };
             } else if (isCompetitiveMode) {
+                // 一般回合結束 (答對/答錯/時間到)
                 changeCardsBtn.textContent = getNextRoundText(currentRound + 1);
                 changeCardsBtn.onclick = nextRound;
             }
@@ -451,16 +456,18 @@
 
             // 規則 (0): 【獲勝檢查】只要有人達到 3 分，立即獲勝。
             if (leftScore >= scoreToWin) {
+                // 強制 isFinal = true, isWin = true
                 freezeGame("🎊 左方學生獲勝！恭喜！ 🎊", true, true); 
                 return true;
             } else if (rightScore >= scoreToWin) {
+                // 強制 isFinal = true, isWin = true
                 freezeGame("🎊 右方學生獲勝！恭喜！ 🎊", true, true); 
                 return true;
             }
 
             // 規則 (3): 【回合數結束檢查】只有在已經超過最大回合數時，才宣布挑戰失敗。
-            // currentRound 在 nextRound 函式中才會遞增到 7 (即 > maxRounds)
             if (currentRound > maxRounds) {
+                // 強制 isFinal = true, isWin = false (修正：確保這裡呼叫 freezeGame 時 isFinal 為 true)
                 freezeGame("挑戰失敗！6回合結束無人累積3分。", true, false); 
                 return true;
             }
@@ -478,7 +485,7 @@
             gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
             gameStatusDisplay.classList.remove('final-message'); 
 
-            // 確保按鈕在計時器開始時顯示 (解決了下一回合按鈕消失的問題)
+            // 確保按鈕在計時器開始時顯示
             hintButtons.forEach(btn => btn.style.display = 'block'); 
             
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
@@ -508,24 +515,27 @@
                         updateScoreDisplays();
                         freezeGame("時間到！雙方無人作答，各扣 1 分！"); 
                     }
+                    // 時間到後仍需檢查是否已結束
                     checkGameEnd();
                 }
             }, 1000);
         }
 
         function nextRound() {
-            // 在下一回合開始前，先檢查是否因提前結束的規則而終止
+            // 規則 (1): 第 4 戰結束後，雙方皆為 0 分 (即進入第 5 戰前檢查)
             if (currentRound === 4 && leftScore === 0 && rightScore === 0) {
                  freezeGame("提前結束！4回合結束，雙方皆 0 分。", true, false); 
                  return;
             }
+            // 規則 (2): 第 5 戰結束後，最高分只有 1 分 (即進入第 6 戰前檢查)
             if (currentRound === 5 && Math.max(leftScore, rightScore) <= 1) {
                  freezeGame("提前結束！5回合結束，無人能獲勝。", true, false); 
                  return;
             }
             
-            // 檢查當前回合是否為最後一戰，如果是，則呼叫 checkGameEnd
+            // 檢查當前回合是否為最後一戰
             if (currentRound >= maxRounds) {
+                // 這是為了處理點擊「最終戰」按鈕，進入第 7 回合時的最終判斷
                 checkGameEnd();
                 return;
             }
@@ -699,6 +709,7 @@
                         freezeGame("✅ 右方得分！");
                     }
                     updateScoreDisplays();
+                    // 在得分後檢查遊戲是否結束 (可能達到 3 分)
                     checkGameEnd();
                 } else {
                     gameLocked = true;
@@ -720,6 +731,7 @@
                         freezeGame("❌ 右方答錯，扣 1 分！");
                     }
                     updateScoreDisplays();
+                    // 在答錯後檢查遊戲是否結束 (可能觸發提早結束的規則或 6 回合結束)
                     checkGameEnd();
                 } else {
                     gameLocked = true; 
