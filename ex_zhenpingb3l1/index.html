@@ -351,9 +351,9 @@
         let currentRound = 1;
         const maxRounds = 6;
         const scoreToWin = 3;
-        // 調整 (4): 每回合時長增加為 13 秒
+        // 每回合時長為 13 秒
         const maxTime = 13; 
-        const hintTimeBonus = 4; // 調整 (2): 求救時間獎勵
+        const hintTimeBonus = 4; // 求救時間獎勵
         let roundTimer;
         let timeLeft = maxTime;
         let leftHintUsed = false;
@@ -545,7 +545,7 @@
             const hintUsed = side === 'left' ? leftHintUsed : rightHintUsed;
             if (hintUsed) return;
 
-            // 調整 (2): 立即增加 4 秒時長
+            // 增加 4 秒時長
             timeLeft = Math.min(maxTime, timeLeft + hintTimeBonus); 
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
             document.body.classList.remove('time-low-blink'); // 取消閃爍
@@ -556,7 +556,7 @@
                 rightHintUsed = true;
             }
             hintBtn.disabled = true;
-            hintBtn.textContent = '求救 (已用)'; // 調整 (3): 字面改為求救
+            hintBtn.textContent = '求救 (已用)'; // 字面改為求救
 
             const elements = Array.from(cardElement.querySelectorAll('.dobble-element'));
             
@@ -584,7 +584,7 @@
             
             // 提示按鈕在計時器運行時才顯示，這裡只是控制其所屬容器的顯示
             hintButtons.forEach(btn => {
-                // 調整 (3): 字面改為求救
+                // 字面改為求救
                 btn.textContent = (btn.disabled || (btn.id === 'hintLeftBtn' && leftHintUsed) || (btn.id === 'hintRightBtn' && rightHintUsed)) 
                                   ? '求救 (已用)' 
                                   : '求救 (剩1次)';
@@ -623,6 +623,11 @@
             hintLeftBtn.disabled = false;
             hintRightBtn.disabled = false;
             
+            // **【修復點】**：確保在首次開始競賽時，按鈕狀態正確重置
+            hintButtons.forEach(btn => {
+                btn.textContent = '求救 (剩1次)'; 
+            });
+
             if (startNewGame) {
                 updateScoreDisplays();
                 showRandomCards();
