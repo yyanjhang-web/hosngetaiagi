@@ -51,12 +51,10 @@
             max-width: 90vmin;
             margin-bottom: 1vmin; 
             box-sizing: border-box;
-            /* 讓子元素使用絕對定位 */
             position: relative; 
             min-height: 5vmin; 
         }
 
-        /* 新增容器，用於絕對定位分數 */
         .score-positioner {
             position: absolute;
             top: 0;
@@ -65,8 +63,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            z-index: 10; /* 確保分數在狀態文字之上 */
-            /* 讓分數與卡片邊緣對齊 */
+            z-index: 10; 
             padding: 0 5vmin; 
             box-sizing: border-box;
         }
@@ -93,15 +90,14 @@
             color: #dc3545;
             flex-grow: 1;
             text-align: center;
-            /* 讓狀態文字顯示在固定分數的下方 */
             margin-top: 5vmin; 
         }
         
         /* 最終狀態文字的樣式強化 */
         .game-status.final-message {
-            font-size: 5vmin; /* 放大字體 */
-            font-weight: 900; /* 超粗體 */
-            animation: pulse 1s infinite; /* 脈衝效果 */
+            font-size: 5vmin; 
+            font-weight: 900; 
+            animation: pulse 1s infinite; 
         }
         @keyframes pulse {
             0% { transform: scale(1); opacity: 1; }
@@ -192,10 +188,32 @@
         .dobble-element.highlight-blue { background-color: #add8e6; transform: scale(1.05); border: 2px solid #5a94a6; }
         .dobble-element.highlight-green { background-color: #90ee90; transform: scale(1.05); border: 2px solid #4a8a4a; }
         
+        /* --- 按鈕與計數器區塊調整 --- */
+        .button-row {
+            display: flex;
+            align-items: center; /* 垂直居中對齊 */
+            justify-content: center; /* 水平居中 */
+            gap: 15px; /* 按鈕間距 */
+            margin-top: 1vmin;
+        }
+        
         .action-buttons {
             display: flex;
             gap: 15px;
-            margin-top: 1vmin; 
+            /* 讓換一張按鈕置中 */
+            margin: 1vmin auto; 
+        }
+
+        .bottom-info-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 1vmin;
+        }
+
+        .counter-container {
+            margin-left: 15px; /* 讓計數器與按鈕有間隔 */
         }
         
         button {
@@ -239,8 +257,16 @@
     </div>
 
     <div class="action-buttons">
-        <button id="modeToggleBtn">進入競賽模式</button>
         <button id="changeCardsBtn">換一張</button>
+    </div>
+
+    <div class="bottom-info-row">
+        <button id="modeToggleBtn">進入競賽模式</button>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters" border="0" />
+            </a>
+        </div>
     </div>
 
     <div class="rule-text">規則：找出兩張卡中台語漢字詞與羅馬字相符的配對</div>
@@ -379,6 +405,19 @@
         function checkGameEnd() {
             if (!isCompetitiveMode) return false;
 
+            // 規則 (1): 第 4 戰結束後，雙方皆為 0 分
+            if (currentRound > 4 && leftScore === 0 && rightScore === 0) {
+                freezeGame("提前結束！4回合結束，雙方皆 0 分。", true, false); 
+                return true;
+            }
+
+            // 規則 (2): 第 5 戰結束後，最高分只有 1 分
+            if (currentRound > 5 && Math.max(leftScore, rightScore) <= 1) {
+                 freezeGame("提前結束！5回合結束，無人能獲勝。", true, false); 
+                 return true;
+            }
+
+            // 正常結束或獲勝檢查
             if (leftScore >= scoreToWin || rightScore >= scoreToWin || currentRound >= maxRounds) {
                 if (leftScore >= scoreToWin) {
                     freezeGame("🎊 左方學生獲勝！恭喜！ 🎊", true, true); 
@@ -435,6 +474,11 @@
         }
 
         function nextRound() {
+            // 在進入下一回合前檢查是否因規則提早結束
+            if (checkGameEnd()) {
+                return;
+            }
+            
             if (currentRound < maxRounds) {
                 currentRound++;
             }
@@ -489,6 +533,7 @@
                                   ? '提示 (已用)' 
                                   : '提示 (剩1次)';
             });
+            // 模式切換按鈕文字會自動改變
             modeToggleBtn.textContent = isCompetitiveMode ? '回到普通模式' : '進入競賽模式';
         }
 
@@ -707,6 +752,7 @@
         
         modeToggleBtn.addEventListener('click', () => setMode(!isCompetitiveMode));
         
+        // 換一張按鈕在普通模式下切換卡片
         changeCardsBtn.addEventListener('click', () => {
             if (!isCompetitiveMode) {
                 showRandomCards();
@@ -721,7 +767,5 @@
             setMode(false); 
         };
     </script>
-    <a href="https://www.hitwebcounter.com/" target="_blank">
-<img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters"   border="0" /></a>        
 </body>
 </html>
