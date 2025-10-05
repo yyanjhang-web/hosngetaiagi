@@ -15,82 +15,102 @@
             background-color: #f0f0f0;
             font-family: '微軟正黑體', 'Arial', sans-serif;
             text-align: center;
-            /* 橫向平板優化：減少上下 padding */
             padding: 1vmin 2vmin; 
             box-sizing: border-box;
             overflow: hidden;
             transition: background-color 0.1s;
         }
-        /* 競賽模式下倒數3秒的閃爍效果 */
         body.time-low-blink {
             animation: blinker 0.3s linear infinite alternate;
         }
         @keyframes blinker {
             from { background-color: #f0f0f0; }
-            to { background-color: #ffdddd; } /* 淺紅色警告 */
+            to { background-color: #ffdddd; } 
         }
         
-        /* --- 競賽模式相關樣式：優化垂直空間 --- */
+        /* --- 競賽模式資訊區塊：精簡化 --- */
         #competitive-info {
-            display: none; /* 預設隱藏 */
+            display: none; 
             width: 100%;
             max-width: 90vmin;
-            margin-bottom: 1vmin; /* 減少間距 */
-            text-align: center;
+            margin-bottom: 1vmin; 
+            box-sizing: border-box;
+            padding: 0 5vmin; /* 增加左右 padding，讓分數區塊對齊卡片邊緣 */
         }
         .score-board {
             display: flex;
-            justify-content: space-around;
             align-items: center;
+            justify-content: space-between; /* 確保左右推開 */
             font-weight: bold;
             font-size: 3vmin;
         }
+
+        /* 移除大面積底色，只包住文字和分數 */
         #scoreLeft, #scoreRight {
-            padding: 1vmin 2vmin;
+            padding: 0.5vmin 1.5vmin; /* 縮小 padding */
             border-radius: 5px;
             color: white;
-            /* 確保分數區域有穩定的寬度，防止被中間狀態擠壓 */
-            min-width: 20vmin; 
-            flex-shrink: 0; /* 防止被擠壓 */
+            white-space: nowrap; /* 防止分數文字換行 */
         }
         #scoreLeft { 
             background-color: #007BFF; 
-            text-align: left; /* 左方分數保持靠左對齊 */
+            text-align: left; 
         }
         #scoreRight { 
             background-color: #28a745; 
-            /* *** 修正點：右方分數靠右對齊 *** */
             text-align: right; 
+            margin-left: auto; /* *** 確保右側分數靠右邊緣對齊 (第一點修正) *** */
         }
+
         .game-status {
             font-size: 3.5vmin;
             font-weight: bold;
             color: #dc3545;
             flex-grow: 1; /* 讓狀態文字填滿中間空間 */
-            min-width: 25vmin;
+            min-width: 10vmin; /* 縮小最小寬度 */
+            margin: 0 2vmin; /* 增加分數和狀態的間隔 */
         }
 
-        .hint-button {
-            padding: 1vmin 2vmin;
+        /* --- 提示按鈕優化 (第三點修正) --- */
+        .hint-btn {
+            padding: 0.5vmin 1.5vmin; 
             font-size: 2vmin;
             cursor: pointer;
-            border: none;
+            border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 5px;
-            background-color: #ffc107;
+            font-weight: bold;
             color: #333;
-            transition: background-color 0.3s;
-            margin-top: 1vmin;
-            width: 80%;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            margin-bottom: 1vmin; /* 位於卡片上方 */
+            width: auto; /* *** 縮短按鈕長度 *** */
             display: none; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 增加按鈕感 */
         }
-        .hint-button:hover:not(:disabled) { background-color: #e0a800; }
-        .hint-button:disabled { background-color: #ccc; cursor: not-allowed; color: #666; }
-        /* --- 卡片與佈局樣式 --- */
+        /* 左方提示按鈕 */
+        #hintLeftBtn {
+            background-color: #e6f7ff; /* 卡片1的淺藍色 */
+            color: #1E517C;
+        }
+        /* 右方提示按鈕 */
+        #hintRightBtn {
+            background-color: #e6ffe6; /* 卡片2的淺綠色 */
+            color: #4a8a4a;
+        }
+
+        .hint-btn:hover:not(:disabled) { background-color: #d1e9f7; }
+        .hint-btn:disabled { 
+            background-color: #ccc; 
+            cursor: not-allowed; 
+            color: #666; 
+            box-shadow: none; /* 禁用時移除陰影 */
+        }
+        
+        /* --- 卡片與佈局樣式 (保持原樣) --- */
         .card-container {
             display: flex;
-            flex-direction: row; /* 強制橫向佈局 */
+            flex-direction: row; 
             justify-content: center;
-            align-items: flex-start; /* 讓卡片靠上 */
+            align-items: flex-start; 
             gap: 5vmin;
             margin-bottom: 2vmin;
             width: 100%;
@@ -100,7 +120,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 45%; /* 確保橫向空間利用 */
+            width: 45%; 
             max-width: 40vmin;
         }
         .dobble-card {
@@ -116,12 +136,8 @@
         }
         #card1 { background-color: #e6f7ff; }
         #card2 { background-color: #e6ffe6; }
-        /* 答錯回饋 */
-        #card1.darken-left, #card2.darken-left { background-color: #1E517C; opacity: 0.3; }
-        #card1.darken-right, #card2.darken-right { background-color: #84B685; opacity: 0.3; }
-        
+
         .dobble-element {
-            /* 保持不變，維持你的原版樣式 */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -144,11 +160,10 @@
         .dobble-element.highlight-blue { background-color: #add8e6; transform: scale(1.05); border: 2px solid #5a94a6; }
         .dobble-element.highlight-green { background-color: #90ee90; transform: scale(1.05); border: 2px solid #4a8a4a; }
         
-        /* 整合按鈕，並將模式切換放左邊 */
         .action-buttons {
             display: flex;
             gap: 15px;
-            margin-top: 1vmin; /* 減少與卡片的間距 */
+            margin-top: 1vmin; 
         }
         
         button {
@@ -161,18 +176,12 @@
             color: white;
             transition: background-color 0.3s;
         }
-        #modeToggleBtn {
-            background-color: #6c757d; /* 灰色 */
-        }
-        #modeToggleBtn:hover:not(:disabled) {
-            background-color: #5a6268;
-        }
+        #modeToggleBtn { background-color: #6c757d; }
+        #modeToggleBtn:hover:not(:disabled) { background-color: #5a6268; }
         button:hover:not(:disabled) { background-color: #0056b3; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
         
-        .rule-text, .designer-info {
-             margin-top: 0.5vmin; /* 減少底部間距 */
-        }
+        .rule-text, .designer-info { margin-top: 0.5vmin; }
     </style>
 </head>
 <body>
@@ -183,15 +192,15 @@
             <div id="gameStatus" class="game-status">第 1 戰</div>
             <div id="scoreRight">右方分數: 0</div>
         </div>
-        </div>
+    </div>
     
     <div class="card-container">
         <div class="card-wrapper">
-            <button id="hintLeftBtn" class="hint-button">左方提示 (剩1次)</button>
+            <button id="hintLeftBtn" class="hint-btn">提示 (剩1次)</button>
             <div class="dobble-card" id="card1"></div>
         </div>
         <div class="card-wrapper">
-            <button id="hintRightBtn" class="hint-button">右方提示 (剩1次)</button>
+            <button id="hintRightBtn" class="hint-btn">提示 (剩1次)</button>
             <div class="dobble-card" id="card2"></div>
         </div>
     </div>
@@ -214,7 +223,7 @@
              "鏡": "kiànn", "溪仔水": "khe-á-tsuí", "日頭": "ji̍t-thâu", "了後": "liáu-āu"
         };
 
-        // --- DOM 元素定義 ---
+        // --- DOM 元素定義 (提示按鈕名稱已更新為 hint-btn) ---
         const card1Element = document.getElementById('card1');
         const card2Element = document.getElementById('card2');
         const changeCardsBtn = document.getElementById('changeCardsBtn');
@@ -224,7 +233,7 @@
         const competitiveInfo = document.getElementById('competitive-info');
         const scoreLeftDisplay = document.getElementById('scoreLeft');
         const scoreRightDisplay = document.getElementById('scoreRight');
-        const gameStatusDisplay = document.getElementById('gameStatus'); // 狀態/回合數顯示
+        const gameStatusDisplay = document.getElementById('gameStatus'); 
         const hintLeftBtn = document.getElementById('hintLeftBtn');
         const hintRightBtn = document.getElementById('hintRightBtn');
         const hintButtons = [hintLeftBtn, hintRightBtn];
@@ -258,10 +267,6 @@
             return array;
         }
 
-        /**
-         * 清除所有視覺回饋、重設鎖定狀態並停止閃爍。
-         * 在每次生成新卡片、模式切換或處理點擊前呼叫。
-         */
         function clearFeedback() {
             document.body.classList.remove('time-low-blink');
             card1Element.classList.remove('darken-left', 'darken-right');
@@ -276,12 +281,11 @@
                 }
             });
             gameLocked = false; 
-            // 啟用卡片點擊
             card1Element.style.pointerEvents = 'auto';
             card2Element.style.pointerEvents = 'auto';
             
             if (!isCompetitiveMode) {
-                 gameStatusDisplay.textContent = '規則：找出兩張卡中台語漢字詞與羅馬字相符的配對'; // 普通模式下的提示
+                 gameStatusDisplay.textContent = '規則：找出兩張卡中台語漢字詞與羅馬字相符的配對'; 
             }
         }
 
@@ -302,22 +306,18 @@
             gameLocked = true;
             clearInterval(roundTimer);
             
-            // 停止閃爍
             document.body.classList.remove('time-low-blink'); 
             
             gameStatusDisplay.textContent = message;
             
-            // 禁用所有卡片點擊
             card1Element.style.pointerEvents = 'none';
             card2Element.style.pointerEvents = 'none';
 
-            // 確保按鈕被啟用，並設置正確的下一個動作
             changeCardsBtn.disabled = false;
             
             if (isFinal) {
                 changeCardsBtn.textContent = '換人競賽';
                 changeCardsBtn.onclick = () => {
-                    // 點擊換人競賽，重設整個競賽模式
                     setMode(true); 
                 };
             } else if (isCompetitiveMode) {
@@ -342,9 +342,6 @@
             return false;
         }
 
-        /**
-         * 啟動倒數計時器並更新 changeCardsBtn 上的文字。
-         */
         function startTimer() {
             if (!isCompetitiveMode) return;
             
@@ -354,9 +351,8 @@
             
             gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
 
-            // 倒數顯示在換卡按鈕上
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
-            changeCardsBtn.disabled = true; // 倒數期間禁用
+            changeCardsBtn.disabled = true; 
 
             card1Element.style.pointerEvents = 'auto';
             card2Element.style.pointerEvents = 'auto';
@@ -398,13 +394,17 @@
             }
         }
 
+        /**
+         * 提示按鈕邏輯
+         */
         function useHint(side) {
             if (gameLocked || !isCompetitiveMode) return;
 
             const cardElement = side === 'left' ? card1Element : card2Element;
             const hintBtn = side === 'left' ? hintLeftBtn : hintRightBtn;
             
-            if ((side === 'left' && leftHintUsed) || (side === 'right' && rightHintUsed)) return;
+            const hintUsed = side === 'left' ? leftHintUsed : rightHintUsed;
+            if (hintUsed) return;
 
             if (side === 'left') {
                 leftHintUsed = true;
@@ -412,7 +412,7 @@
                 rightHintUsed = true;
             }
             hintBtn.disabled = true;
-            hintBtn.textContent = side === 'left' ? '左方提示 (已用)' : '右方提示 (已用)';
+            hintBtn.textContent = '提示 (已用)'; // 簡化提示文字
 
             const elements = Array.from(cardElement.querySelectorAll('.dobble-element'));
             
@@ -437,6 +437,10 @@
             competitiveInfo.style.display = isCompetitiveMode ? 'flex' : 'none'; 
             hintButtons.forEach(btn => {
                 btn.style.display = isCompetitiveMode ? 'block' : 'none';
+                // 提示按鈕文字始終保持簡化
+                btn.textContent = (btn.disabled || (btn.id === 'hintLeftBtn' && leftHintUsed) || (btn.id === 'hintRightBtn' && rightHintUsed)) 
+                                  ? '提示 (已用)' 
+                                  : '提示 (剩1次)';
             });
             modeToggleBtn.textContent = isCompetitiveMode ? '回到普通模式' : '進入競賽模式';
         }
@@ -444,7 +448,6 @@
         function setMode(isCompetitive) {
             isCompetitiveMode = isCompetitive;
             clearFeedback();
-            updateModeDisplay();
             
             if (isCompetitive) {
                 resetCompetitiveMode(true); 
@@ -454,9 +457,10 @@
                 changeCardsBtn.onclick = showRandomCards; 
                 clearInterval(roundTimer);
                 gameLocked = false;
-                gameStatusDisplay.textContent = ''; // 清除競賽狀態文字
+                gameStatusDisplay.textContent = ''; 
                 showRandomCards();
             }
+            updateModeDisplay(); // 最後呼叫確保提示按鈕狀態正確
         }
 
         function resetCompetitiveMode(startNewGame = false) {
@@ -468,8 +472,6 @@
             
             hintLeftBtn.disabled = false;
             hintRightBtn.disabled = false;
-            hintLeftBtn.textContent = '左方提示 (剩1次)';
-            hintRightBtn.textContent = '右方提示 (剩1次)';
             
             if (startNewGame) {
                 updateScoreDisplays();
@@ -479,7 +481,7 @@
         }
 
 
-        // --- 點擊處理（已修改以支援競賽模式）---
+        // --- 點擊處理（維持原版邏輯）---
 
         function handleElementClick(e) {
             const clickedElement = e.target.closest('.dobble-element');
@@ -487,11 +489,9 @@
             
             if (gameLocked) return;
 
-            // 確保在處理作答前，停止計時和閃爍
             clearInterval(roundTimer); 
             document.body.classList.remove('time-low-blink');
             
-            // 清除上次的回饋
             card1Element.classList.remove('darken-left', 'darken-right');
             card2Element.classList.remove('darken-left', 'darken-right');
             document.querySelectorAll('.dobble-element').forEach(el => {
@@ -656,29 +656,23 @@
 
         // --- 初始化和事件綁定 ---
         
-        // 綁定模式切換按鈕
         modeToggleBtn.addEventListener('click', () => setMode(!isCompetitiveMode));
         
-        // 綁定普通模式下的換卡按鈕（競賽模式下會被覆寫）
         changeCardsBtn.addEventListener('click', () => {
             if (!isCompetitiveMode) {
                 showRandomCards();
             }
-            // 競賽模式的 onclick 在 freezeGame/nextRound 中動態設定
         });
 
-        // 綁定提示鍵
         hintLeftBtn.addEventListener('click', () => useHint('left'));
         hintRightBtn.addEventListener('click', () => useHint('right'));
 
 
-        // 頁面載入時執行
         window.onload = () => {
-            setMode(false); // 預設進入普通模式並生成卡片
+            setMode(false); 
         };
     </script>
     <a href="https://www.hitwebcounter.com/" target="_blank">
 <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters"   border="0" /></a>        
 </body>
 </html>
-
