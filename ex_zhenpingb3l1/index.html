@@ -449,29 +449,22 @@
         function checkGameEnd() {
             if (!isCompetitiveMode) return false;
 
-            // 規則 (1): 第 4 戰結束後，雙方皆為 0 分
-            if (currentRound > 4 && leftScore === 0 && rightScore === 0) {
-                freezeGame("提前結束！4回合結束，雙方皆 0 分。", true, false); 
+            // 規則 (0): 【獲勝檢查】只要有人達到 3 分，立即獲勝。
+            if (leftScore >= scoreToWin) {
+                freezeGame("🎊 左方學生獲勝！恭喜！ 🎊", true, true); 
+                return true;
+            } else if (rightScore >= scoreToWin) {
+                freezeGame("🎊 右方學生獲勝！恭喜！ 🎊", true, true); 
                 return true;
             }
 
-            // 規則 (2): 第 5 戰結束後，最高分只有 1 分
-            if (currentRound > 5 && Math.max(leftScore, rightScore) <= 1) {
-                 freezeGame("提前結束！5回合結束，無人能獲勝。", true, false); 
-                 return true;
-            }
-
-            // 正常結束或獲勝檢查
-            if (leftScore >= scoreToWin || rightScore >= scoreToWin || currentRound >= maxRounds) {
-                if (leftScore >= scoreToWin) {
-                    freezeGame("🎊 左方學生獲勝！恭喜！ 🎊", true, true); 
-                } else if (rightScore >= scoreToWin) {
-                    freezeGame("🎊 右方學生獲勝！恭喜！ 🎊", true, true); 
-                } else {
-                    freezeGame("挑戰失敗！6回合結束無人累積3分。", true, false); 
-                }
+            // 規則 (3): 【回合數結束檢查】只有在已經超過最大回合數時，才宣布挑戰失敗。
+            // currentRound 在 nextRound 函式中才會遞增到 7 (即 > maxRounds)
+            if (currentRound > maxRounds) {
+                freezeGame("挑戰失敗！6回合結束無人累積3分。", true, false); 
                 return true;
             }
+            
             return false;
         }
 
@@ -521,14 +514,24 @@
         }
 
         function nextRound() {
-            // 在進入下一回合前檢查是否因規則提早結束
-            if (checkGameEnd()) {
-                return;
+            // 在下一回合開始前，先檢查是否因提前結束的規則而終止
+            if (currentRound === 4 && leftScore === 0 && rightScore === 0) {
+                 freezeGame("提前結束！4回合結束，雙方皆 0 分。", true, false); 
+                 return;
+            }
+            if (currentRound === 5 && Math.max(leftScore, rightScore) <= 1) {
+                 freezeGame("提前結束！5回合結束，無人能獲勝。", true, false); 
+                 return;
             }
             
-            if (currentRound < maxRounds) {
-                currentRound++;
+            // 檢查當前回合是否為最後一戰，如果是，則呼叫 checkGameEnd
+            if (currentRound >= maxRounds) {
+                checkGameEnd();
+                return;
             }
+
+            currentRound++;
+            
             showRandomCards();
             if (isCompetitiveMode && !checkGameEnd()) {
                 startTimer();
@@ -767,7 +770,7 @@
                     }
                 }
 
-                // **【關鍵修正點】**：修正卡片生成邏輯中的迴圈條件錯誤
+                // 修正卡片生成邏輯中的迴圈條件錯誤
                 for (let i = 0; i < interferenceHanji.length; i++) {
                     const hanji = interferenceHanji[i];
                     const expectedLoma = vocabulary[hanji];
@@ -784,9 +787,7 @@
                 cardA_Loma = [interferenceLoma[0], interferenceLoma[1]];
                 
                 cardB_Hanji = [interferenceHanji[1], interferenceHanji[2]];
-                cardB_Boma = [correctPair.loma, interferenceLoma[2]];
-                
-                // 修正：這裡應該使用 cardB_Loma 而非 cardB_Boma
+                // 修正：確保變數名稱正確，使用 cardB_Loma
                 cardB_Loma = [correctPair.loma, interferenceLoma[2]];
 
 
