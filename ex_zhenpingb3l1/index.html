@@ -105,7 +105,7 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* --- 提示按鈕與卡片 --- */
+        /* --- 求救按鈕與卡片 --- */
         .hint-btn {
             /* 調整：提示按鈕變小 */
             padding: 1vmin 1.5vmin; 
@@ -198,7 +198,7 @@
             width: 100%;
             max-width: 90vmin;
         }
-        /* 競賽模式下專用的操作按鈕列 (包含提示和下一戰) */
+        /* 競賽模式下專用的操作按鈕列 (包含求救和下一戰) */
         .competitive-buttons-row {
             display: flex;
             justify-content: center;
@@ -206,7 +206,7 @@
             width: 100%;
             max-width: 90vmin;
             margin-top: 1vmin;
-            gap: 5vmin;
+            gap: 5vmin; /* 增大間距，讓三個按鈕能對應卡片位置 */
         }
 
         /* --- 模式切換與計數器列 (網頁最底部) --- */
@@ -285,9 +285,9 @@
     </div>
 
     <div class="competitive-buttons-row" id="competitiveButtonsRow" style="display: none;">
-        <button id="hintLeftBtn" class="hint-btn">提示 (剩1次)</button>
+        <button id="hintLeftBtn" class="hint-btn">求救 (剩1次)</button>
         <button id="changeCardsBtn" style="flex-grow: 0;">換一張</button>
-        <button id="hintRightBtn" class="hint-btn">提示 (剩1次)</button>
+        <button id="hintRightBtn" class="hint-btn">求救 (剩1次)</button>
     </div>
 
     <div class="action-buttons" id="normalButtonsRow">
@@ -351,8 +351,11 @@
         let currentRound = 1;
         const maxRounds = 6;
         const scoreToWin = 3;
+        // 調整 (4): 每回合時長增加為 13 秒
+        const maxTime = 13; 
+        const hintTimeBonus = 4; // 調整 (2): 求救時間獎勵
         let roundTimer;
-        let timeLeft = 10;
+        let timeLeft = maxTime;
         let leftHintUsed = false;
         let rightHintUsed = false;
 
@@ -406,9 +409,6 @@
 
         /**
          * 凍結遊戲並顯示狀態
-         * @param {string} message 顯示的訊息
-         * @param {boolean} isFinal 是否為挑戰結束/獲勝
-         * @param {boolean} isWin 是否為獲勝 (用於視覺回饋)
          */
         function freezeGame(message, isFinal = false, isWin = false) {
             gameLocked = true;
@@ -478,14 +478,14 @@
         function startTimer() {
             if (!isCompetitiveMode) return;
             
-            timeLeft = 10;
+            timeLeft = maxTime; // 使用新的最大時長
             clearInterval(roundTimer);
             document.body.classList.remove('time-low-blink');
             
             gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
             gameStatusDisplay.classList.remove('final-message'); 
 
-            // 顯示提示按鈕
+            // 調整 (1): 確保提示按鈕在計時器開始時顯示
             hintButtons.forEach(btn => btn.style.display = 'block');
             
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
@@ -545,13 +545,18 @@
             const hintUsed = side === 'left' ? leftHintUsed : rightHintUsed;
             if (hintUsed) return;
 
+            // 調整 (2): 立即增加 4 秒時長
+            timeLeft = Math.min(maxTime, timeLeft + hintTimeBonus); 
+            changeCardsBtn.textContent = `倒數: ${timeLeft}`;
+            document.body.classList.remove('time-low-blink'); // 取消閃爍
+            
             if (side === 'left') {
                 leftHintUsed = true;
             } else {
                 rightHintUsed = true;
             }
             hintBtn.disabled = true;
-            hintBtn.textContent = '提示 (已用)';
+            hintBtn.textContent = '求救 (已用)'; // 調整 (3): 字面改為求救
 
             const elements = Array.from(cardElement.querySelectorAll('.dobble-element'));
             
@@ -579,9 +584,10 @@
             
             // 提示按鈕在計時器運行時才顯示，這裡只是控制其所屬容器的顯示
             hintButtons.forEach(btn => {
+                // 調整 (3): 字面改為求救
                 btn.textContent = (btn.disabled || (btn.id === 'hintLeftBtn' && leftHintUsed) || (btn.id === 'hintRightBtn' && rightHintUsed)) 
-                                  ? '提示 (已用)' 
-                                  : '提示 (剩1次)';
+                                  ? '求救 (已用)' 
+                                  : '求救 (剩1次)';
                 // 模式切換時，提示按鈕預設為隱藏 (只有開始計時才顯示)
                 btn.style.display = 'none'; 
             });
@@ -707,7 +713,6 @@
             
             if (isCompetitiveMode) {
                 changeCardsBtn.disabled = true;
-                hintButtons.forEach(btn => btn.style.display = 'none');
             } else {
                 changeCardsBtnNormal.disabled = false;
             }
