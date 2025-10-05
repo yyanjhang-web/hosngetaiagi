@@ -485,8 +485,7 @@
             gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
             gameStatusDisplay.classList.remove('final-message'); 
 
-            // **【修復點】**：確保求救按鈕在計時器開始時顯示
-            hintButtons.forEach(btn => btn.style.display = 'block');
+            // **【修復點 #2 移除】**：這裡不再負責顯示按鈕，改由 updateModeDisplay/freezeGame 處理
             
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
             changeCardsBtn.disabled = true; 
@@ -582,16 +581,24 @@
             competitiveButtonsRow.style.display = isCompetitiveMode ? 'flex' : 'none';
             normalButtonsRow.style.display = isCompetitiveMode ? 'none' : 'flex';
             
-            // 提示按鈕在計時器運行時才顯示，這裡只是控制其所屬容器的顯示
+            // **【最終修復點 #1】**：確保在切換為競賽模式時，按鈕顯示出來
             hintButtons.forEach(btn => {
-                // 字面改為求救
+                // 預設狀態下的文字設定
                 btn.textContent = (btn.disabled || (btn.id === 'hintLeftBtn' && leftHintUsed) || (btn.id === 'hintRightBtn' && rightHintUsed)) 
                                   ? '求救 (已用)' 
                                   : '求救 (剩1次)';
-                // 模式切換時，提示按鈕預設為隱藏 (只有開始計時才顯示)
-                btn.style.display = 'none'; 
+                // 進入競賽模式時，強制顯示按鈕
+                if (isCompetitiveMode) {
+                    btn.style.display = 'block'; 
+                } else {
+                    // 離開競賽模式時，隱藏按鈕
+                    btn.style.display = 'none'; 
+                }
             });
 
+            // 確保中間的按鈕 (倒數計時器) 也顯示
+            changeCardsBtn.style.display = isCompetitiveMode ? 'block' : 'none'; 
+            
             modeToggleBtn.textContent = isCompetitiveMode ? '回到普通模式' : '進入競賽模式';
         }
 
@@ -623,7 +630,7 @@
             hintLeftBtn.disabled = false;
             hintRightBtn.disabled = false;
             
-            // **【修復點】**：確保在首次開始競賽時，按鈕狀態正確重置
+            // 確保按鈕文字狀態正確
             hintButtons.forEach(btn => {
                 btn.textContent = '求救 (剩1次)'; 
             });
