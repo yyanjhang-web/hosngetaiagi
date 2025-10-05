@@ -485,7 +485,7 @@
             gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
             gameStatusDisplay.classList.remove('final-message'); 
 
-            // **【最終修復點】**：確保按鈕在計時器開始時顯示 (解決了下一回合按鈕消失的問題)
+            // 確保按鈕在計時器開始時顯示 (解決了下一回合按鈕消失的問題)
             hintButtons.forEach(btn => btn.style.display = 'block'); 
             
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
@@ -725,7 +725,7 @@
             }
         }
 
-        // --- 卡片生成邏輯（維持原版）---
+        // --- 卡片生成邏輯 ---
 
         function showRandomCards() {
             clearFeedback(); 
@@ -767,7 +767,8 @@
                     }
                 }
 
-                for (let i = 0; i in interferenceHanji.length; i++) {
+                // **【關鍵修正點】**：修正卡片生成邏輯中的迴圈條件錯誤
+                for (let i = 0; i < interferenceHanji.length; i++) {
                     const hanji = interferenceHanji[i];
                     const expectedLoma = vocabulary[hanji];
                     if (interferenceLoma.includes(expectedLoma)) {
@@ -783,7 +784,11 @@
                 cardA_Loma = [interferenceLoma[0], interferenceLoma[1]];
                 
                 cardB_Hanji = [interferenceHanji[1], interferenceHanji[2]];
+                cardB_Boma = [correctPair.loma, interferenceLoma[2]];
+                
+                // 修正：這裡應該使用 cardB_Loma 而非 cardB_Boma
                 cardB_Loma = [correctPair.loma, interferenceLoma[2]];
+
 
                 const isCardA_Invalid = cardA_Hanji.some(hanji => cardA_Loma.includes(vocabulary[hanji]));
                 const isCardB_Invalid = cardB_Hanji.some(hanji => cardB_Loma.includes(vocabulary[hanji]));
