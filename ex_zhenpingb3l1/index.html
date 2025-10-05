@@ -257,11 +257,18 @@
         button:hover:not(:disabled) { background-color: #0056b3; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
         
-        .rule-text, .designer-info { 
+        .rule-text { 
             margin-top: 0.5vmin; 
             font-size: 2vmin;
         }
-        .designer-info { margin-bottom: 0.5vmin; }
+        
+        /* 【新增】：設計者資訊使用小字體 */
+        .designer-info { 
+            margin-top: 0.5vmin; 
+            margin-bottom: 0.5vmin; 
+            font-size: 1.5vmin; 
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -294,8 +301,8 @@
         <button id="changeCardsBtnNormal" style="flex-grow: 0;">換一張</button>
     </div>
 
-    <div class="rule-text">規則：找出兩張卡中台語漢字詞與羅馬字相符的配對</div>
-    <div class="designer-info">設計者Iônn, Àn-tsiong；技術支援：AI Assistant</div>
+    <div class="rule-text">規則：找出兩個表格中的唯一正確的配對</div>
+    <div class="designer-info">設計者：Iônn, Àn-tsiong；技術支援：AI, フォックスコンの響き</div>
 
     <div class="bottom-footer-row">
         <button id="modeToggleBtn">進入競賽模式</button>
@@ -336,6 +343,7 @@
         const hintButtons = [hintLeftBtn, hintRightBtn];
         const competitiveButtonsRow = document.getElementById('competitiveButtonsRow');
         const normalButtonsRow = document.getElementById('normalButtonsRow');
+        const ruleTextDisplay = document.querySelector('.rule-text'); // 獲取規則文字的 DOM
 
         const vocabularyEntries = Object.entries(vocabulary);
         const lomaToHanji = Object.fromEntries(vocabularyEntries.map(([hanji, loma]) => [loma, hanji]));
@@ -358,6 +366,10 @@
         let timeLeft = maxTime;
         let leftHintUsed = false;
         let rightHintUsed = false;
+        
+        // 【修正點】：更新規則文字
+        const competitiveRuleText = "規則：找出正確的配對得1分，6回合內先累積3分者獲勝，答錯扣分。每回合13秒。雙方各能求救1次。求救可以刪除1個干擾項，並延長4秒。";
+        const normalRuleText = "規則：找出兩個表格中的唯一正確的配對";
 
         // --- 核心工具函式 ---
 
@@ -390,7 +402,7 @@
             card2Element.style.pointerEvents = 'auto';
             
             if (!isCompetitiveMode) {
-                 gameStatusDisplay.textContent = '規則：找出兩張卡中台語漢字詞與羅馬字相符的配對'; 
+                 gameStatusDisplay.textContent = ''; // 普通模式頂部不顯示狀態文字
             }
         }
 
@@ -431,7 +443,7 @@
             hintButtons.forEach(btn => btn.style.display = 'none');
             
             if (isFinal) {
-                // 【修正點】：不論是獲勝還是挑戰失敗，只要是最終結束狀態，都將按鈕設定為「換人競賽」
+                // 不論是獲勝還是挑戰失敗，只要是最終結束狀態，都將按鈕設定為「換人競賽」
                 gameStatusDisplay.classList.add('final-message');
                 if (isWin) {
                     document.body.classList.add('win-blink');
@@ -466,7 +478,6 @@
             }
 
             // 規則 (3): 【回合數結束檢查】只有在已經超過最大回合數時，才宣布挑戰失敗。
-            // currentRound 在 nextRound 函式中才會遞增到 7 (即 > maxRounds)
             if (currentRound > maxRounds) {
                 // 強制 isFinal = true, isWin = false
                 freezeGame("挑戰失敗！6回合結束無人累積3分。", true, false); 
@@ -514,6 +525,7 @@
                         leftScore = Math.max(0, leftScore - 1);
                         rightScore = Math.max(0, rightScore - 1);
                         updateScoreDisplays();
+                        // 修正：時間到雙方各扣 1 分
                         freezeGame("時間到！雙方無人作答，各扣 1 分！"); 
                     }
                     // 時間到後仍需檢查是否已結束
@@ -534,7 +546,7 @@
                  return;
             }
             
-            // 檢查當前回合是否為最後一戰
+            // 檢查當前回合是否為最後一戰 (即從第 6 戰點擊下一戰)
             if (currentRound >= maxRounds) {
                 // 這是為了處理點擊「最終戰」按鈕，進入第 7 回合時的最終判斷
                 currentRound++; // 先將回合數加到 7
@@ -624,6 +636,9 @@
             changeCardsBtn.style.display = isCompetitiveMode ? 'block' : 'none'; 
             
             modeToggleBtn.textContent = isCompetitiveMode ? '回到普通模式' : '進入競賽模式';
+            
+            // 【修正】：更新規則文字顯示
+            ruleTextDisplay.textContent = isCompetitiveMode ? competitiveRuleText : normalRuleText;
         }
 
         function setMode(isCompetitive) {
@@ -733,12 +748,13 @@
                 card2Element.classList.add(darkenClass);
                 
                 if (isCompetitiveMode) {
+                    // 答錯扣分，最多扣到 0 分
                     if (playerSide === 'left') {
                         leftScore = Math.max(0, leftScore - 1);
-                        freezeGame("❌ 左方答錯，扣 1 分！");
+                        freezeGame("❌ 左方答錯，扣分！");
                     } else {
                         rightScore = Math.max(0, rightScore - 1);
-                        freezeGame("❌ 右方答錯，扣 1 分！");
+                        freezeGame("❌ 右方答錯，扣分！");
                     }
                     updateScoreDisplays();
                     // 在答錯後檢查遊戲是否結束 (可能觸發提早結束的規則或 6 回合結束)
@@ -792,7 +808,7 @@
                     }
                 }
 
-                // 修正卡片生成邏輯中的迴圈條件錯誤
+                // 確保干擾項中沒有正確配對
                 for (let i = 0; i < interferenceHanji.length; i++) {
                     const hanji = interferenceHanji[i];
                     const expectedLoma = vocabulary[hanji];
@@ -809,7 +825,6 @@
                 cardA_Loma = [interferenceLoma[0], interferenceLoma[1]];
                 
                 cardB_Hanji = [interferenceHanji[1], interferenceHanji[2]];
-                // 修正：確保變數名稱正確，使用 cardB_Loma
                 cardB_Loma = [correctPair.loma, interferenceLoma[2]];
 
 
@@ -845,7 +860,8 @@
             content.forEach(text => {
                 const element = document.createElement('div');
                 element.className = 'dobble-element';
-                element.classList.add(vocabulary[text] ? 'hanji' : 'loma');
+                // 判斷是否為羅馬字 (即 vocabulary 中沒有這個鍵的)
+                element.classList.add(vocabulary[text] ? 'hanji' : 'loma'); 
                 element.textContent = text;
                 element.addEventListener('click', handleElementClick); 
                 cardElement.appendChild(element);
@@ -866,9 +882,6 @@
 
         hintLeftBtn.addEventListener('click', () => useHint('left'));
         hintRightBtn.addEventListener('click', () => useHint('right'));
-
-        // 由於 changeCardsBtn 在兩種模式下功能和顯示邏輯不同，其點擊事件由 setMode/freezeGame/startTimer 動態賦予。
-
 
         window.onload = () => {
             setMode(false); 
