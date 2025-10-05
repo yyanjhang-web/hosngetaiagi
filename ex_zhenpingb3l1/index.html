@@ -20,12 +20,28 @@
             overflow: hidden;
             transition: background-color 0.1s;
         }
+        /* 倒數3秒閃爍效果 */
         body.time-low-blink {
             animation: blinker 0.3s linear infinite alternate;
         }
         @keyframes blinker {
             from { background-color: #f0f0f0; }
             to { background-color: #ffdddd; } 
+        }
+        
+        /* 獲勝時的背景閃爍效果 (淺金色) */
+        body.win-blink {
+            animation: winBlinker 0.5s linear 6 alternate; /* 閃爍 6 次 */
+            background-color: #fffae6 !important; /* 確保最終停在淺金色 */
+        }
+        @keyframes winBlinker {
+            from { background-color: #f0f0f0; }
+            to { background-color: #ffe0b2; } /* 淺橘色/金色 */
+        }
+
+        /* 挑戰失敗/結束時的背景警示色 */
+        body.fail-end {
+            background-color: #ffdddd !important; /* 淺紅色警示 */
         }
         
         /* --- 競賽模式資訊區塊：固定分數定位 --- */
@@ -37,16 +53,7 @@
             box-sizing: border-box;
             /* 讓子元素使用絕對定位 */
             position: relative; 
-            min-height: 5vmin; /* 確保有足夠的高度容納狀態文字 */
-        }
-
-        .score-board {
-            /* score-board 現在只負責中間的狀態文字 */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 3vmin;
+            min-height: 5vmin; 
         }
 
         /* 新增容器，用於絕對定位分數 */
@@ -69,7 +76,6 @@
             border-radius: 5px;
             color: white;
             white-space: nowrap; 
-            /* 讓分數框獨立存在，不再參與flex-grow */
             flex-shrink: 0; 
         }
         #scoreLeft { 
@@ -86,10 +92,21 @@
             font-weight: bold;
             color: #dc3545;
             flex-grow: 1;
-            /* 狀態文字居中顯示，且不會影響左右分數定位 */
             text-align: center;
-            /* 增加上間距，避免與分數重疊 */
+            /* 讓狀態文字顯示在固定分數的下方 */
             margin-top: 5vmin; 
+        }
+        
+        /* 最終狀態文字的樣式強化 */
+        .game-status.final-message {
+            font-size: 5vmin; /* 放大字體 */
+            font-weight: 900; /* 超粗體 */
+            animation: pulse 1s infinite; /* 脈衝效果 */
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         /* --- 提示按鈕與卡片 --- */
@@ -149,7 +166,7 @@
         }
         #card1 { background-color: #e6f7ff; }
         #card2 { background-color: #e6ffe6; }
-        /* *** 修正點 (2): 恢復作答錯誤的回饋樣式 *** */
+        /* 作答錯誤的回饋樣式 */
         #card1.darken-left, #card2.darken-left { background-color: #1E517C; opacity: 0.3; }
         #card1.darken-right, #card2.darken-right { background-color: #84B685; opacity: 0.3; }
         
@@ -284,7 +301,10 @@
         }
 
         function clearFeedback() {
-            document.body.classList.remove('time-low-blink');
+            // 清除所有背景效果
+            document.body.classList.remove('time-low-blink', 'win-blink', 'fail-end'); 
+            // 清除最終狀態文字效果
+            gameStatusDisplay.classList.remove('final-message'); 
             card1Element.classList.remove('darken-left', 'darken-right');
             card2Element.classList.remove('darken-left', 'darken-right');
             document.querySelectorAll('.dobble-element').forEach(el => {
@@ -318,7 +338,13 @@
             return `第 ${round} 戰`;
         }
 
-        function freezeGame(message, isFinal = false) {
+        /**
+         * 凍結遊戲並顯示狀態
+         * @param {string} message 顯示的訊息
+         * @param {boolean} isFinal 是否為挑戰結束/獲勝
+         * @param {boolean} isWin 是否為獲勝 (用於視覺回饋)
+         */
+        function freezeGame(message, isFinal = false, isWin = false) {
             gameLocked = true;
             clearInterval(roundTimer);
             
@@ -332,6 +358,14 @@
             changeCardsBtn.disabled = false;
             
             if (isFinal) {
+                // 最終局視覺回饋強化
+                gameStatusDisplay.classList.add('final-message');
+                if (isWin) {
+                    document.body.classList.add('win-blink');
+                } else {
+                    document.body.classList.add('fail-end');
+                }
+                
                 changeCardsBtn.textContent = '換人競賽';
                 changeCardsBtn.onclick = () => {
                     setMode(true); 
@@ -347,11 +381,11 @@
 
             if (leftScore >= scoreToWin || rightScore >= scoreToWin || currentRound >= maxRounds) {
                 if (leftScore >= scoreToWin) {
-                    freezeGame("🎊 左方學生獲勝！恭喜！ 🎊", true);
+                    freezeGame("🎊 左方學生獲勝！恭喜！ 🎊", true, true); 
                 } else if (rightScore >= scoreToWin) {
-                    freezeGame("🎊 右方學生獲勝！恭喜！ 🎊", true);
+                    freezeGame("🎊 右方學生獲勝！恭喜！ 🎊", true, true); 
                 } else {
-                    freezeGame("挑戰失敗！6回合結束無人累積3分。", true);
+                    freezeGame("挑戰失敗！6回合結束無人累積3分。", true, false); 
                 }
                 return true;
             }
@@ -366,6 +400,7 @@
             document.body.classList.remove('time-low-blink');
             
             gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
+            gameStatusDisplay.classList.remove('final-message'); 
 
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
             changeCardsBtn.disabled = true; 
@@ -392,7 +427,7 @@
                         leftScore = Math.max(0, leftScore - 1);
                         rightScore = Math.max(0, rightScore - 1);
                         updateScoreDisplays();
-                        freezeGame("時間到！雙方無人作答，各扣 1 分！");
+                        freezeGame("時間到！雙方無人作答，各扣 1 分！"); 
                     }
                     checkGameEnd();
                 }
@@ -493,7 +528,7 @@
         }
 
 
-        // --- 點擊處理（修正錯誤回饋邏輯）---
+        // --- 點擊處理 ---
 
         function handleElementClick(e) {
             const clickedElement = e.target.closest('.dobble-element');
@@ -504,7 +539,7 @@
             clearInterval(roundTimer); 
             document.body.classList.remove('time-low-blink');
             
-            // 在處理點擊前清除上一次的 feedback，防止多重 highlight
+            // 清除回饋
             card1Element.classList.remove('darken-left', 'darken-right');
             card2Element.classList.remove('darken-left', 'darken-right');
             document.querySelectorAll('.dobble-element').forEach(el => {
@@ -546,7 +581,7 @@
                 }
             } else {
                 gameLocked = true;
-                // *** 修正點 (2): 恢復作答錯誤時卡片變暗的回饋 ***
+                // 作答錯誤回饋
                 const darkenClass = (clickedCardId === 'card1') ? 'darken-left' : 'darken-right';
                 card1Element.classList.add(darkenClass);
                 card2Element.classList.add(darkenClass);
