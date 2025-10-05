@@ -466,8 +466,9 @@
             }
 
             // 規則 (3): 【回合數結束檢查】只有在已經超過最大回合數時，才宣布挑戰失敗。
+            // currentRound 在 nextRound 函式中才會遞增到 7 (即 > maxRounds)
             if (currentRound > maxRounds) {
-                // 強制 isFinal = true, isWin = false (修正：確保這裡呼叫 freezeGame 時 isFinal 為 true)
+                // 強制 isFinal = true, isWin = false
                 freezeGame("挑戰失敗！6回合結束無人累積3分。", true, false); 
                 return true;
             }
@@ -536,6 +537,7 @@
             // 檢查當前回合是否為最後一戰
             if (currentRound >= maxRounds) {
                 // 這是為了處理點擊「最終戰」按鈕，進入第 7 回合時的最終判斷
+                currentRound++; // 先將回合數加到 7
                 checkGameEnd();
                 return;
             }
@@ -703,14 +705,22 @@
                 if (isCompetitiveMode) {
                     if (playerSide === 'left') {
                         leftScore++;
-                        freezeGame("✅ 左方得分！");
                     } else {
                         rightScore++;
-                        freezeGame("✅ 右方得分！");
                     }
                     updateScoreDisplays();
-                    // 在得分後檢查遊戲是否結束 (可能達到 3 分)
-                    checkGameEnd();
+                    
+                    // 【修正點】：在得分後立即檢查是否是最終戰且平手
+                    if (currentRound === maxRounds && leftScore < scoreToWin && rightScore < scoreToWin) {
+                        freezeGame("挑戰失敗！6回合結束無人累積3分。", true, false); 
+                    } else if (!checkGameEnd()) { 
+                        // 只有在還沒有結束的情況下，才顯示「得分」並等待下一戰
+                        if (playerSide === 'left') {
+                            freezeGame("✅ 左方得分！");
+                        } else {
+                            freezeGame("✅ 右方得分！");
+                        }
+                    }
                 } else {
                     gameLocked = true;
                     changeCardsBtnNormal.disabled = false; 
