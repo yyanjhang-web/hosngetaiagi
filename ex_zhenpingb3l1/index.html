@@ -485,7 +485,8 @@
             gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
             gameStatusDisplay.classList.remove('final-message'); 
 
-            // **【修復點 #2 移除】**：這裡不再負責顯示按鈕，改由 updateModeDisplay/freezeGame 處理
+            // **【最終修復點】**：確保按鈕在計時器開始時顯示 (解決了下一回合按鈕消失的問題)
+            hintButtons.forEach(btn => btn.style.display = 'block'); 
             
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
             changeCardsBtn.disabled = true; 
@@ -581,12 +582,20 @@
             competitiveButtonsRow.style.display = isCompetitiveMode ? 'flex' : 'none';
             normalButtonsRow.style.display = isCompetitiveMode ? 'none' : 'flex';
             
-            // **【最終修復點 #1】**：確保在切換為競賽模式時，按鈕顯示出來
+            // 確保在切換為競賽模式時，按鈕顯示出來，並設定正確的文字狀態
             hintButtons.forEach(btn => {
                 // 預設狀態下的文字設定
-                btn.textContent = (btn.disabled || (btn.id === 'hintLeftBtn' && leftHintUsed) || (btn.id === 'hintRightBtn' && rightHintUsed)) 
-                                  ? '求救 (已用)' 
-                                  : '求救 (剩1次)';
+                const isLeft = btn.id === 'hintLeftBtn';
+                const isUsed = isLeft ? leftHintUsed : rightHintUsed;
+                
+                if (isUsed) {
+                     btn.textContent = '求救 (已用)';
+                     btn.disabled = true;
+                } else {
+                     btn.textContent = '求救 (剩1次)';
+                     btn.disabled = false;
+                }
+
                 // 進入競賽模式時，強制顯示按鈕
                 if (isCompetitiveMode) {
                     btn.style.display = 'block'; 
@@ -627,13 +636,11 @@
             leftHintUsed = false;
             rightHintUsed = false;
             
+            // 確保按鈕狀態正確重置
             hintLeftBtn.disabled = false;
             hintRightBtn.disabled = false;
-            
-            // 確保按鈕文字狀態正確
-            hintButtons.forEach(btn => {
-                btn.textContent = '求救 (剩1次)'; 
-            });
+            hintLeftBtn.textContent = '求救 (剩1次)'; 
+            hintRightBtn.textContent = '求救 (剩1次)'; 
 
             if (startNewGame) {
                 updateScoreDisplays();
@@ -760,7 +767,7 @@
                     }
                 }
 
-                for (let i = 0; i < interferenceHanji.length; i++) {
+                for (let i = 0; i in interferenceHanji.length; i++) {
                     const hanji = interferenceHanji[i];
                     const expectedLoma = vocabulary[hanji];
                     if (interferenceLoma.includes(expectedLoma)) {
