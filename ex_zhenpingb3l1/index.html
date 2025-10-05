@@ -28,29 +28,49 @@
             to { background-color: #ffdddd; } 
         }
         
-        /* --- 競賽模式資訊區塊：精簡化 --- */
+        /* --- 競賽模式資訊區塊：固定分數定位 --- */
         #competitive-info {
             display: none; 
             width: 100%;
             max-width: 90vmin;
             margin-bottom: 1vmin; 
             box-sizing: border-box;
-            padding: 0 5vmin; /* 增加左右 padding，讓分數區塊對齊卡片邊緣 */
+            /* 讓子元素使用絕對定位 */
+            position: relative; 
+            min-height: 5vmin; /* 確保有足夠的高度容納狀態文字 */
         }
+
         .score-board {
+            /* score-board 現在只負責中間的狀態文字 */
             display: flex;
             align-items: center;
-            justify-content: space-between; /* 確保左右推開 */
+            justify-content: center;
             font-weight: bold;
             font-size: 3vmin;
         }
 
-        /* 移除大面積底色，只包住文字和分數 */
+        /* 新增容器，用於絕對定位分數 */
+        .score-positioner {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            max-width: 90vmin;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 10; /* 確保分數在狀態文字之上 */
+            /* 讓分數與卡片邊緣對齊 */
+            padding: 0 5vmin; 
+            box-sizing: border-box;
+        }
+        
         #scoreLeft, #scoreRight {
-            padding: 0.5vmin 1.5vmin; /* 縮小 padding */
+            padding: 0.5vmin 1.5vmin; 
             border-radius: 5px;
             color: white;
-            white-space: nowrap; /* 防止分數文字換行 */
+            white-space: nowrap; 
+            /* 讓分數框獨立存在，不再參與flex-grow */
+            flex-shrink: 0; 
         }
         #scoreLeft { 
             background-color: #007BFF; 
@@ -59,19 +79,20 @@
         #scoreRight { 
             background-color: #28a745; 
             text-align: right; 
-            margin-left: auto; /* *** 確保右側分數靠右邊緣對齊 (第一點修正) *** */
         }
 
         .game-status {
             font-size: 3.5vmin;
             font-weight: bold;
             color: #dc3545;
-            flex-grow: 1; /* 讓狀態文字填滿中間空間 */
-            min-width: 10vmin; /* 縮小最小寬度 */
-            margin: 0 2vmin; /* 增加分數和狀態的間隔 */
+            flex-grow: 1;
+            /* 狀態文字居中顯示，且不會影響左右分數定位 */
+            text-align: center;
+            /* 增加上間距，避免與分數重疊 */
+            margin-top: 5vmin; 
         }
 
-        /* --- 提示按鈕優化 (第三點修正) --- */
+        /* --- 提示按鈕與卡片 --- */
         .hint-btn {
             padding: 0.5vmin 1.5vmin; 
             font-size: 2vmin;
@@ -81,31 +102,23 @@
             font-weight: bold;
             color: #333;
             transition: background-color 0.3s, box-shadow 0.3s;
-            margin-bottom: 1vmin; /* 位於卡片上方 */
-            width: auto; /* *** 縮短按鈕長度 *** */
+            margin-bottom: 1vmin; 
+            width: auto; 
             display: none; 
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 增加按鈕感 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
         }
-        /* 左方提示按鈕 */
-        #hintLeftBtn {
-            background-color: #e6f7ff; /* 卡片1的淺藍色 */
-            color: #1E517C;
-        }
-        /* 右方提示按鈕 */
-        #hintRightBtn {
-            background-color: #e6ffe6; /* 卡片2的淺綠色 */
-            color: #4a8a4a;
-        }
+        #hintLeftBtn { background-color: #e6f7ff; color: #1E517C; }
+        #hintRightBtn { background-color: #e6ffe6; color: #4a8a4a; }
 
         .hint-btn:hover:not(:disabled) { background-color: #d1e9f7; }
         .hint-btn:disabled { 
             background-color: #ccc; 
             cursor: not-allowed; 
             color: #666; 
-            box-shadow: none; /* 禁用時移除陰影 */
+            box-shadow: none; 
         }
         
-        /* --- 卡片與佈局樣式 (保持原樣) --- */
+        /* --- 卡片與佈局樣式 --- */
         .card-container {
             display: flex;
             flex-direction: row; 
@@ -136,7 +149,10 @@
         }
         #card1 { background-color: #e6f7ff; }
         #card2 { background-color: #e6ffe6; }
-
+        /* *** 修正點 (2): 恢復作答錯誤的回饋樣式 *** */
+        #card1.darken-left, #card2.darken-left { background-color: #1E517C; opacity: 0.3; }
+        #card1.darken-right, #card2.darken-right { background-color: #84B685; opacity: 0.3; }
+        
         .dobble-element {
             display: flex;
             flex-direction: column;
@@ -156,7 +172,6 @@
             hyphens: auto;
         }
         .dobble-element.loma { font-size: 3vmin; }
-        /* 答對回饋 */
         .dobble-element.highlight-blue { background-color: #add8e6; transform: scale(1.05); border: 2px solid #5a94a6; }
         .dobble-element.highlight-green { background-color: #90ee90; transform: scale(1.05); border: 2px solid #4a8a4a; }
         
@@ -187,9 +202,10 @@
 <body>
     
     <div id="competitive-info">
-        <div class="score-board">
+        <div id="gameStatus" class="game-status">第 1 戰</div>
+
+        <div class="score-positioner">
             <div id="scoreLeft">左方分數: 0</div>
-            <div id="gameStatus" class="game-status">第 1 戰</div>
             <div id="scoreRight">右方分數: 0</div>
         </div>
     </div>
@@ -223,7 +239,7 @@
              "鏡": "kiànn", "溪仔水": "khe-á-tsuí", "日頭": "ji̍t-thâu", "了後": "liáu-āu"
         };
 
-        // --- DOM 元素定義 (提示按鈕名稱已更新為 hint-btn) ---
+        // --- DOM 元素定義 ---
         const card1Element = document.getElementById('card1');
         const card2Element = document.getElementById('card2');
         const changeCardsBtn = document.getElementById('changeCardsBtn');
@@ -394,9 +410,6 @@
             }
         }
 
-        /**
-         * 提示按鈕邏輯
-         */
         function useHint(side) {
             if (gameLocked || !isCompetitiveMode) return;
 
@@ -412,7 +425,7 @@
                 rightHintUsed = true;
             }
             hintBtn.disabled = true;
-            hintBtn.textContent = '提示 (已用)'; // 簡化提示文字
+            hintBtn.textContent = '提示 (已用)';
 
             const elements = Array.from(cardElement.querySelectorAll('.dobble-element'));
             
@@ -437,7 +450,6 @@
             competitiveInfo.style.display = isCompetitiveMode ? 'flex' : 'none'; 
             hintButtons.forEach(btn => {
                 btn.style.display = isCompetitiveMode ? 'block' : 'none';
-                // 提示按鈕文字始終保持簡化
                 btn.textContent = (btn.disabled || (btn.id === 'hintLeftBtn' && leftHintUsed) || (btn.id === 'hintRightBtn' && rightHintUsed)) 
                                   ? '提示 (已用)' 
                                   : '提示 (剩1次)';
@@ -460,7 +472,7 @@
                 gameStatusDisplay.textContent = ''; 
                 showRandomCards();
             }
-            updateModeDisplay(); // 最後呼叫確保提示按鈕狀態正確
+            updateModeDisplay(); 
         }
 
         function resetCompetitiveMode(startNewGame = false) {
@@ -481,7 +493,7 @@
         }
 
 
-        // --- 點擊處理（維持原版邏輯）---
+        // --- 點擊處理（修正錯誤回饋邏輯）---
 
         function handleElementClick(e) {
             const clickedElement = e.target.closest('.dobble-element');
@@ -492,6 +504,7 @@
             clearInterval(roundTimer); 
             document.body.classList.remove('time-low-blink');
             
+            // 在處理點擊前清除上一次的 feedback，防止多重 highlight
             card1Element.classList.remove('darken-left', 'darken-right');
             card2Element.classList.remove('darken-left', 'darken-right');
             document.querySelectorAll('.dobble-element').forEach(el => {
@@ -533,6 +546,7 @@
                 }
             } else {
                 gameLocked = true;
+                // *** 修正點 (2): 恢復作答錯誤時卡片變暗的回饋 ***
                 const darkenClass = (clickedCardId === 'card1') ? 'darken-left' : 'darken-right';
                 card1Element.classList.add(darkenClass);
                 card2Element.classList.add(darkenClass);
