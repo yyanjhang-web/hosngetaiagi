@@ -180,7 +180,7 @@
         <button id="modeToggleBtn" class="mode-toggle">進入競賽模式</button>
     </div>
 
-    <div class="competitive-only">
+    <div class="competitive-only" id="competitiveContainer">
         <div class="score-board">
             <div id="scoreLeft">左方分數: 0</div>
             <div id="roundDisplay">第 1 戰</div>
@@ -224,6 +224,7 @@
         const changeCardsBtn = document.getElementById('changeCardsBtn');
         const modeToggleBtn = document.getElementById('modeToggleBtn');
         const competitiveElements = document.querySelectorAll('.competitive-only');
+        const competitiveContainer = document.getElementById('competitiveContainer'); // 新增
 
         // 競賽模式專屬元素
         const scoreLeftDisplay = document.getElementById('scoreLeft');
@@ -280,9 +281,9 @@
                 return;
             }
             if (currentRound < maxRounds) {
-                changeCardsBtn.textContent = `下一戰 (第 ${currentRound + 1} 戰)`;
+                changeCardsBtn.textContent = `第 ${currentRound + 1} 戰`;
             } else if (currentRound === maxRounds) {
-                 changeCardsBtn.textContent = '進行最終戰';
+                 changeCardsBtn.textContent = '最終戰';
             }
         }
 
@@ -309,6 +310,7 @@
             if (isFinal) {
                 changeCardsBtn.textContent = '換人競賽';
                 changeCardsBtn.onclick = resetCompetitiveMode;
+                changeCardsBtn.disabled = false;
                 hintLeftBtn.disabled = true;
                 hintRightBtn.disabled = true;
             } else if (isCompetitiveMode) {
@@ -340,12 +342,19 @@
         }
 
         function startTimer() {
+            if (!isCompetitiveMode) return;
+            
             timeLeft = 10;
             timerDisplay.textContent = `倒數: ${timeLeft}`;
             clearInterval(roundTimer);
             document.body.classList.remove('time-low-blink');
             
             roundTimer = setInterval(() => {
+                if (gameLocked) {
+                    clearInterval(roundTimer);
+                    return;
+                }
+                
                 timeLeft--;
                 timerDisplay.textContent = `倒數: ${timeLeft}`;
                 
@@ -358,27 +367,23 @@
                     
                     // 時間結束懲罰
                     if (!gameLocked) {
-                        gameLocked = true;
                         leftScore = Math.max(0, leftScore - 1);
                         rightScore = Math.max(0, rightScore - 1);
                         updateScoreDisplays();
                         freezeGame("時間到！雙方無人作答，各扣 1 分！");
                     }
                     // 檢查遊戲是否結束
-                    if (!checkGameEnd()) {
-                        changeCardsBtn.disabled = false;
-                        setRoundButtonText();
-                    }
+                    checkGameEnd();
                 }
             }, 1000);
         }
 
         function nextRound() {
-            if (isCompetitiveMode && currentRound <= maxRounds) {
+            if (currentRound < maxRounds) {
                 currentRound++;
             }
             showRandomCards();
-            if (isCompetitiveMode && currentRound <= maxRounds) {
+            if (isCompetitiveMode && !checkGameEnd()) {
                 startTimer();
                 updateScoreDisplays();
                 changeCardsBtn.disabled = true;
@@ -415,13 +420,12 @@
             if (incorrectElements.length > 0) {
                 // 隨機選一個干擾項
                 const randomIndex = Math.floor(Math.random() * incorrectElements.length);
-                const elementToRemove = incorrectElements[randomIndex];
+                const elementToDisable = incorrectElements[randomIndex];
                 
-                // 移除干擾項
-                elementToRemove.style.opacity = '0.1'; // 視覺上移除
-                elementToRemove.style.cursor = 'default';
-                elementToRemove.removeEventListener('click', handleElementClick);
-                elementToRemove.onclick = null; // 確保點擊無效
+                // 視覺上和邏輯上禁用
+                elementToDisable.style.opacity = '0.3';
+                elementToDisable.style.cursor = 'default';
+                elementToDisable.onclick = (e) => { e.stopPropagation(); }; // 阻止點擊
             }
         }
 
@@ -430,16 +434,19 @@
 
         // --- 模式切換邏輯 ---
 
+        function updateModeDisplay() {
+            // 切換競賽模式相關元素的顯示狀態
+            competitiveContainer.style.display = isCompetitiveMode ? 'flex' : 'none';
+            hintLeftBtn.style.display = isCompetitiveMode ? 'block' : 'none';
+            hintRightBtn.style.display = isCompetitiveMode ? 'block' : 'none';
+        }
+
         function setMode(isCompetitive) {
             isCompetitiveMode = isCompetitive;
             clearFeedback();
             
-            // 顯示/隱藏競賽模式相關元素
-            competitiveElements.forEach(el => {
-                el.style.display = isCompetitive ? 'flex' : 'none';
-            });
+            updateModeDisplay();
             
-            // 調整按鈕
             if (isCompetitive) {
                 modeToggleBtn.textContent = '回到普通模式';
                 modeToggleBtn.onclick = () => setMode(false);
@@ -450,6 +457,7 @@
                 modeToggleBtn.onclick = () => setMode(true);
                 changeCardsBtn.onclick = showRandomCards; // 普通模式保持原邏輯
                 changeCardsBtn.textContent = '換一張';
+                changeCardsBtn.disabled = false; // 普通模式下可以隨時換卡
                 clearInterval(roundTimer);
                 gameLocked = false;
             }
@@ -474,21 +482,25 @@
             
             if (shouldSetMode) {
                 setMode(true); // 進入競賽模式，並生成第一回合卡片
+            } else {
+                // 僅用於 setMode(true) 內部呼叫
+                startTimer();
+                changeCardsBtn.disabled = true; // 剛開始遊戲不能按下一戰
             }
-            startTimer();
-            changeCardsBtn.disabled = true; // 剛開始遊戲不能按下一戰
         }
 
         // --- 點擊處理（修改以支持競賽模式計分）---
 
         function handleElementClick(e) {
-            if (gameLocked) return;
+            // 必須是未鎖定狀態且點擊的元素是卡片上的
+            if (gameLocked || !e.target.classList.contains('dobble-element')) return;
+            
+            // 阻止提示後元素再次響應
+            if (e.target.style.opacity === '0.3') return; 
 
             clearFeedback();
-
-            const clickedElement = e.target.closest('.dobble-element');
-            if (!clickedElement) return;
-
+            
+            const clickedElement = e.target;
             const clickedCardId = clickedElement.parentNode.id;
             const clickedText = clickedElement.textContent.trim();
 
@@ -520,6 +532,9 @@
                     if (!checkGameEnd()) {
                         freezeGame(gameStatusDisplay.textContent); // 凍結畫面並準備下一回合
                     }
+                } else {
+                    // 普通模式下，答對後將換卡按鈕啟用
+                    changeCardsBtn.disabled = false;
                 }
             } else {
                 gameLocked = true;
@@ -540,16 +555,26 @@
                     if (!checkGameEnd()) {
                         freezeGame(gameStatusDisplay.textContent);
                     }
+                } else {
+                    // 普通模式下，答錯後將換卡按鈕啟用
+                    changeCardsBtn.disabled = false;
                 }
             }
         }
+        
+        // 確保點擊事件是綁定在卡片容器上，用事件委派處理
+        card1Element.addEventListener('click', handleElementClick);
+        card2Element.addEventListener('click', handleElementClick);
 
         // --- 卡片生成邏輯（保持不變）---
 
         function showRandomCards() {
             gameLocked = false;
             clearFeedback();
-            changeCardsBtn.disabled = true; // 答題前不能換卡
+            
+            if (isCompetitiveMode) {
+                changeCardsBtn.disabled = true; // 競賽模式下，答題前不能換卡
+            }
 
             let hasValidCards = false;
             let cardA_Hanji, cardA_Loma, cardB_Hanji, cardB_Loma;
@@ -600,7 +625,7 @@
                     }
                 }
 
-                if (hasValidCards === false) continue; // 跳到 while 循環開始
+                if (hasValidCards === false) continue;
 
                 // 4. 將詞彙分配到兩張卡片，確保每張卡有2個漢字，2個羅馬字
                 cardA_Hanji = [correctPair.hanji, interferenceHanji[0]];
@@ -632,9 +657,9 @@
             }
 
             // 6. 渲染卡片
-            updateCard(card1Element, card1Content);
-            updateCard(card2Element, card2Content);
-
+            updateCard(card1Element, card1Content, 'card1');
+            updateCard(card2Element, card2Content, 'card2');
+            
             if (isCompetitiveMode) {
                 setRoundButtonText();
             } else {
@@ -649,14 +674,13 @@
                 element.className = 'dobble-element';
                 element.classList.add(vocabulary[text] ? 'hanji' : 'loma');
                 element.textContent = text;
-                element.addEventListener('click', handleElementClick);
                 
-                // 檢查是否是提示移除的項目
-                const isHintRemoved = element.style.opacity === '0.1';
-                if (isHintRemoved) {
-                    element.style.opacity = '1'; // 重設樣式
-                    element.style.cursor = 'pointer'; // 重設鼠標
-                }
+                // 檢查該詞彙是否被提示禁用，並保持狀態
+                const isHintDisabled = (cardElement.id === 'card1' && leftHintUsed) || 
+                                       (cardElement.id === 'card2' && rightHintUsed);
+                
+                // 由於每次都重新生成，提示狀態不需要在這裡處理，因為它會在 `showRandomCards` 後被重置。
+                // 提示邏輯只在當前回合有效，下一回合會重新生成元素。
 
                 cardElement.appendChild(element);
             });
@@ -665,6 +689,7 @@
         // --- 初始化 ---
         window.onload = () => {
             setMode(false); // 預設進入普通模式
+            modeToggleBtn.onclick = () => setMode(!isCompetitiveMode);
         };
     </script>
     <a href="https://www.hitwebcounter.com/" target="_blank">
