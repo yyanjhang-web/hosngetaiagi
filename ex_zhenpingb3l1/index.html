@@ -49,10 +49,19 @@
             padding: 1vmin 2vmin;
             border-radius: 5px;
             color: white;
-            min-width: 15vmin;
+            /* 確保分數區域有穩定的寬度，防止被中間狀態擠壓 */
+            min-width: 20vmin; 
+            flex-shrink: 0; /* 防止被擠壓 */
         }
-        #scoreLeft { background-color: #007BFF; }
-        #scoreRight { background-color: #28a745; }
+        #scoreLeft { 
+            background-color: #007BFF; 
+            text-align: left; /* 左方分數保持靠左對齊 */
+        }
+        #scoreRight { 
+            background-color: #28a745; 
+            /* *** 修正點：右方分數靠右對齊 *** */
+            text-align: right; 
+        }
         .game-status {
             font-size: 3.5vmin;
             font-weight: bold;
@@ -293,7 +302,7 @@
             gameLocked = true;
             clearInterval(roundTimer);
             
-            // (3) 停止閃爍
+            // 停止閃爍
             document.body.classList.remove('time-low-blink'); 
             
             gameStatusDisplay.textContent = message;
@@ -302,7 +311,7 @@
             card1Element.style.pointerEvents = 'none';
             card2Element.style.pointerEvents = 'none';
 
-            // (1) & (2) 確保按鈕被啟用，並設置正確的下一個動作
+            // 確保按鈕被啟用，並設置正確的下一個動作
             changeCardsBtn.disabled = false;
             
             if (isFinal) {
@@ -345,7 +354,7 @@
             
             gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
 
-            // (4-5) 倒數顯示在換卡按鈕上
+            // 倒數顯示在換卡按鈕上
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
             changeCardsBtn.disabled = true; // 倒數期間禁用
 
@@ -425,7 +434,7 @@
         // --- 模式切換邏輯 ---
 
         function updateModeDisplay() {
-            competitiveInfo.style.display = isCompetitiveMode ? 'flex' : 'none'; // 保持 flex 讓 score-board 保持一行
+            competitiveInfo.style.display = isCompetitiveMode ? 'flex' : 'none'; 
             hintButtons.forEach(btn => {
                 btn.style.display = isCompetitiveMode ? 'block' : 'none';
             });
@@ -672,3 +681,4 @@
 <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters"   border="0" /></a>        
 </body>
 </html>
+
