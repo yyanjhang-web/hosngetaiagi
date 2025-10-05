@@ -478,14 +478,14 @@
         function startTimer() {
             if (!isCompetitiveMode) return;
             
-            timeLeft = maxTime; // 使用新的最大時長
+            timeLeft = maxTime; // 使用最大時長
             clearInterval(roundTimer);
             document.body.classList.remove('time-low-blink');
             
             gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
             gameStatusDisplay.classList.remove('final-message'); 
 
-            // 調整 (1): 確保提示按鈕在計時器開始時顯示
+            // **【修復點】**：確保求救按鈕在計時器開始時顯示
             hintButtons.forEach(btn => btn.style.display = 'block');
             
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
