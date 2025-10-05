@@ -107,7 +107,8 @@
 
         /* --- 提示按鈕與卡片 --- */
         .hint-btn {
-            padding: 0.5vmin 1.5vmin; 
+            /* 調整：提示按鈕變小 */
+            padding: 1vmin 1.5vmin; 
             font-size: 2vmin;
             cursor: pointer;
             border: 1px solid rgba(0, 0, 0, 0.1);
@@ -115,8 +116,7 @@
             font-weight: bold;
             color: #333;
             transition: background-color 0.3s, box-shadow 0.3s;
-            margin-bottom: 1vmin; 
-            width: auto; 
+            /* 提示按鈕在普通模式下不顯示 */
             display: none; 
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
         }
@@ -188,36 +188,48 @@
         .dobble-element.highlight-blue { background-color: #add8e6; transform: scale(1.05); border: 2px solid #5a94a6; }
         .dobble-element.highlight-green { background-color: #90ee90; transform: scale(1.05); border: 2px solid #4a8a4a; }
         
-        /* --- 按鈕與計數器區塊調整 --- */
-        .button-row {
-            display: flex;
-            align-items: center; /* 垂直居中對齊 */
-            justify-content: center; /* 水平居中 */
-            gap: 15px; /* 按鈕間距 */
-            margin-top: 1vmin;
-        }
-        
+        /* --- 操作按鈕列 --- */
         .action-buttons {
             display: flex;
+            justify-content: center;
+            align-items: center;
             gap: 15px;
-            /* 讓換一張按鈕置中 */
-            margin: 1vmin auto; 
+            margin-top: 1vmin; 
+            width: 100%;
+            max-width: 90vmin;
+        }
+        /* 競賽模式下專用的操作按鈕列 (包含提示和下一戰) */
+        .competitive-buttons-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 90vmin;
+            margin-top: 1vmin;
+            gap: 5vmin;
         }
 
-        .bottom-info-row {
+        /* --- 模式切換與計數器列 (網頁最底部) --- */
+        .bottom-footer-row {
             display: flex;
             align-items: center;
             justify-content: center;
             width: 100%;
-            margin-top: 1vmin;
+            /* 移到最底部 */
+            margin-top: 1vmin; 
         }
 
         .counter-container {
-            margin-left: 15px; /* 讓計數器與按鈕有間隔 */
+            margin-left: 15px; 
+            /* 確保計數器圖片不會被按鈕高度影響 */
+            display: flex;
+            align-items: center;
         }
         
+        /* 統一按鈕樣式 */
         button {
-            padding: 1.5vmin 3vmin;
+            /* 調整：縮小按鈕高度 */
+            padding: 1vmin 3vmin; 
             font-size: 2vmin;
             cursor: pointer;
             border: none;
@@ -225,13 +237,31 @@
             background-color: #007BFF;
             color: white;
             transition: background-color 0.3s;
+            flex-shrink: 0;
         }
-        #modeToggleBtn { background-color: #6c757d; }
+
+        /* 模式切換按鈕字體可以更小，高度更矮 */
+        #modeToggleBtn { 
+            background-color: #6c757d; 
+            font-size: 1.8vmin;
+            padding: 0.8vmin 2.5vmin;
+        }
         #modeToggleBtn:hover:not(:disabled) { background-color: #5a6268; }
+        
+        /* 換一張 / 下一戰 按鈕恢復正常大小 */
+        #changeCardsBtn {
+            padding: 1.5vmin 3vmin;
+            font-size: 2vmin;
+        }
+
         button:hover:not(:disabled) { background-color: #0056b3; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
         
-        .rule-text, .designer-info { margin-top: 0.5vmin; }
+        .rule-text, .designer-info { 
+            margin-top: 0.5vmin; 
+            font-size: 2vmin;
+        }
+        .designer-info { margin-bottom: 0.5vmin; }
     </style>
 </head>
 <body>
@@ -247,20 +277,27 @@
     
     <div class="card-container">
         <div class="card-wrapper">
-            <button id="hintLeftBtn" class="hint-btn">提示 (剩1次)</button>
             <div class="dobble-card" id="card1"></div>
         </div>
         <div class="card-wrapper">
-            <button id="hintRightBtn" class="hint-btn">提示 (剩1次)</button>
             <div class="dobble-card" id="card2"></div>
         </div>
     </div>
 
-    <div class="action-buttons">
-        <button id="changeCardsBtn">換一張</button>
+    <div class="competitive-buttons-row" id="competitiveButtonsRow" style="display: none;">
+        <button id="hintLeftBtn" class="hint-btn">提示 (剩1次)</button>
+        <button id="changeCardsBtn" style="flex-grow: 0;">換一張</button>
+        <button id="hintRightBtn" class="hint-btn">提示 (剩1次)</button>
     </div>
 
-    <div class="bottom-info-row">
+    <div class="action-buttons" id="normalButtonsRow">
+        <button id="changeCardsBtnNormal" style="flex-grow: 0;">換一張</button>
+    </div>
+
+    <div class="rule-text">規則：找出兩張卡中台語漢字詞與羅馬字相符的配對</div>
+    <div class="designer-info">設計者Iônn, Àn-tsiong；技術支援：AI Assistant</div>
+
+    <div class="bottom-footer-row">
         <button id="modeToggleBtn">進入競賽模式</button>
         <div class="counter-container">
             <a href="https://www.hitwebcounter.com/" target="_blank">
@@ -269,8 +306,6 @@
         </div>
     </div>
 
-    <div class="rule-text">規則：找出兩張卡中台語漢字詞與羅馬字相符的配對</div>
-    <div class="designer-info">設計者Iônn, Àn-tsiong；技術支援：AI Assistant</div>
 
     <script>
         const vocabulary = {
@@ -285,7 +320,10 @@
         // --- DOM 元素定義 ---
         const card1Element = document.getElementById('card1');
         const card2Element = document.getElementById('card2');
+        
+        // 將 changeCardsBtn 重新定義為競賽模式中間的按鈕
         const changeCardsBtn = document.getElementById('changeCardsBtn');
+        const changeCardsBtnNormal = document.getElementById('changeCardsBtnNormal'); // 普通模式的換一張按鈕
         
         // 競賽模式新增的 DOM
         const modeToggleBtn = document.getElementById('modeToggleBtn');
@@ -296,6 +334,8 @@
         const hintLeftBtn = document.getElementById('hintLeftBtn');
         const hintRightBtn = document.getElementById('hintRightBtn');
         const hintButtons = [hintLeftBtn, hintRightBtn];
+        const competitiveButtonsRow = document.getElementById('competitiveButtonsRow');
+        const normalButtonsRow = document.getElementById('normalButtonsRow');
 
         const vocabularyEntries = Object.entries(vocabulary);
         const lomaToHanji = Object.fromEntries(vocabularyEntries.map(([hanji, loma]) => [loma, hanji]));
@@ -381,7 +421,11 @@
             card1Element.style.pointerEvents = 'none';
             card2Element.style.pointerEvents = 'none';
 
+            // 競賽模式中，凍結時中央按鈕顯示下一戰/換人競賽
             changeCardsBtn.disabled = false;
+            
+            // 提示按鈕在遊戲凍結時隱藏 (只在計時中顯示)
+            hintButtons.forEach(btn => btn.style.display = 'none');
             
             if (isFinal) {
                 // 最終局視覺回饋強化
@@ -441,6 +485,9 @@
             gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
             gameStatusDisplay.classList.remove('final-message'); 
 
+            // 顯示提示按鈕
+            hintButtons.forEach(btn => btn.style.display = 'block');
+            
             changeCardsBtn.textContent = `倒數: ${timeLeft}`;
             changeCardsBtn.disabled = true; 
 
@@ -527,13 +574,18 @@
 
         function updateModeDisplay() {
             competitiveInfo.style.display = isCompetitiveMode ? 'flex' : 'none'; 
+            competitiveButtonsRow.style.display = isCompetitiveMode ? 'flex' : 'none';
+            normalButtonsRow.style.display = isCompetitiveMode ? 'none' : 'flex';
+            
+            // 提示按鈕在計時器運行時才顯示，這裡只是控制其所屬容器的顯示
             hintButtons.forEach(btn => {
-                btn.style.display = isCompetitiveMode ? 'block' : 'none';
                 btn.textContent = (btn.disabled || (btn.id === 'hintLeftBtn' && leftHintUsed) || (btn.id === 'hintRightBtn' && rightHintUsed)) 
                                   ? '提示 (已用)' 
                                   : '提示 (剩1次)';
+                // 模式切換時，提示按鈕預設為隱藏 (只有開始計時才顯示)
+                btn.style.display = 'none'; 
             });
-            // 模式切換按鈕文字會自動改變
+
             modeToggleBtn.textContent = isCompetitiveMode ? '回到普通模式' : '進入競賽模式';
         }
 
@@ -544,9 +596,9 @@
             if (isCompetitive) {
                 resetCompetitiveMode(true); 
             } else {
-                changeCardsBtn.textContent = '換一張';
-                changeCardsBtn.disabled = false;
-                changeCardsBtn.onclick = showRandomCards; 
+                changeCardsBtnNormal.textContent = '換一張';
+                changeCardsBtnNormal.disabled = false;
+                changeCardsBtnNormal.onclick = showRandomCards; 
                 clearInterval(roundTimer);
                 gameLocked = false;
                 gameStatusDisplay.textContent = ''; 
@@ -622,7 +674,7 @@
                     checkGameEnd();
                 } else {
                     gameLocked = true;
-                    changeCardsBtn.disabled = false; 
+                    changeCardsBtnNormal.disabled = false; 
                 }
             } else {
                 gameLocked = true;
@@ -643,7 +695,7 @@
                     checkGameEnd();
                 } else {
                     gameLocked = true; 
-                    changeCardsBtn.disabled = false;
+                    changeCardsBtnNormal.disabled = false;
                 }
             }
         }
@@ -655,8 +707,9 @@
             
             if (isCompetitiveMode) {
                 changeCardsBtn.disabled = true;
+                hintButtons.forEach(btn => btn.style.display = 'none');
             } else {
-                changeCardsBtn.disabled = false;
+                changeCardsBtnNormal.disabled = false;
             }
 
             let hasValidCards = false;
@@ -752,8 +805,8 @@
         
         modeToggleBtn.addEventListener('click', () => setMode(!isCompetitiveMode));
         
-        // 換一張按鈕在普通模式下切換卡片
-        changeCardsBtn.addEventListener('click', () => {
+        // 普通模式的換一張按鈕
+        changeCardsBtnNormal.addEventListener('click', () => {
             if (!isCompetitiveMode) {
                 showRandomCards();
             }
@@ -761,6 +814,8 @@
 
         hintLeftBtn.addEventListener('click', () => useHint('left'));
         hintRightBtn.addEventListener('click', () => useHint('right'));
+
+        // 由於 changeCardsBtn 在兩種模式下功能和顯示邏輯不同，其點擊事件由 setMode/freezeGame/startTimer 動態賦予。
 
 
         window.onload = () => {
