@@ -246,7 +246,13 @@
         const hintButtons = [hintLeftBtn, hintRightBtn];
 
         const vocabularyEntries = Object.entries(vocabulary);
+        // 羅馬字找漢字的字典
         const lomaToHanji = Object.fromEntries(vocabularyEntries.map(([hanji, loma]) => [loma, hanji]));
+        // 漢字陣列
+        const allHanji = vocabularyEntries.map(p => p[0]);
+        // 羅馬字陣列
+        const allLoma = vocabularyEntries.map(p => p[1]);
+
 
         // --- 遊戲狀態變數 ---
         let gameLocked = false;
@@ -296,18 +302,15 @@
         }
 
         // --- 競賽模式專屬邏輯（略）---
-
         function updateScoreDisplays() {
             scoreLeftDisplay.textContent = `左方分數: ${leftScore}`;
             scoreRightDisplay.textContent = `右方分數: ${rightScore}`;
         }
-
         function getNextRoundText(round) {
             if (round > maxRounds) return '換人競賽';
             if (round === maxRounds) return '最終戰';
             return `第 ${round} 戰`;
         }
-
         function freezeGame(message, isFinal = false) {
             gameLocked = true;
             clearInterval(roundTimer);
@@ -325,7 +328,6 @@
                 changeCardsBtn.onclick = nextRound;
             }
         }
-
         function checkGameEnd() {
             if (!isCompetitiveMode) return false;
             if (leftScore >= scoreToWin || rightScore >= scoreToWin || currentRound >= maxRounds) {
@@ -340,7 +342,6 @@
             }
             return false;
         }
-
         function startTimer() {
             if (!isCompetitiveMode) return;
             timeLeft = 10;
@@ -371,7 +372,6 @@
                 }
             }, 1000);
         }
-
         function nextRound() {
             if (currentRound < maxRounds) { currentRound++; }
             showRandomCards();
@@ -380,7 +380,6 @@
                 updateScoreDisplays();
             }
         }
-
         function useHint(side) {
             if (gameLocked || !isCompetitiveMode) return;
             const cardElement = side === 'left' ? card1Element : card2Element;
@@ -405,7 +404,6 @@
                 elementToDisable.dataset.hintRemoved = 'true';
             }
         }
-        
         function updateModeDisplay() {
             competitiveInfo.style.display = isCompetitiveMode ? 'flex' : 'none'; 
             hintButtons.forEach(btn => {
@@ -416,7 +414,6 @@
             });
             modeToggleBtn.textContent = isCompetitiveMode ? '回到普通模式' : '進入競賽模式';
         }
-
         function setMode(isCompetitive) {
             isCompetitiveMode = isCompetitive;
             clearFeedback();
@@ -433,7 +430,6 @@
             }
             updateModeDisplay(); 
         }
-
         function resetCompetitiveMode(startNewGame = false) {
             leftScore = 0; rightScore = 0; currentRound = 1; leftHintUsed = false; rightHintUsed = false;
             hintLeftBtn.disabled = false; hintRightBtn.disabled = false;
@@ -444,9 +440,7 @@
             }
         }
 
-
         // --- 點擊處理 (略) ---
-
         function handleElementClick(e) {
             const clickedElement = e.target.closest('.dobble-element');
             if (!clickedElement || clickedElement.dataset.hintRemoved === 'true') return;
@@ -522,8 +516,6 @@
         
         /**
          * 檢查給定的一組元素中是否有任何漢字與羅馬字匹配。
-         * @param {string[]} content - 包含漢字和羅馬字的陣列。
-         * @returns {boolean} - 如果有匹配，返回 true。
          */
         function hasInternalMatch(content) {
             const hanjiItems = content.filter(item => vocabulary[item]);
@@ -547,115 +539,87 @@
                 changeCardsBtn.disabled = false;
             }
 
-            let hasValidCards = false;
             let card1Content, card2Content;
+            let hasValidCards = false;
 
             while (!hasValidCards) {
+                // 1. 選擇一個正確配對作為答案
                 const shuffledVocab = shuffleArray([...vocabularyEntries]);
                 const correctPairEntry = shuffledVocab[0];
                 correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
                 
-                const remainingPairs = shuffledVocab.slice(1);
-                const remainingHanji = remainingPairs.map(p => p[0]);
-                const remainingLoma = remainingPairs.map(p => p[1]);
+                // 2. 獲取所有其他潛在的干擾項
+                const remainingHanji = shuffleArray(allHanji.filter(h => h !== correctPair.hanji));
+                const remainingLoma = shuffleArray(allLoma.filter(l => l !== correctPair.loma));
                 
-                const shuffledHanji = shuffleArray([...remainingHanji]);
-                const shuffledLoma = shuffleArray([...remainingLoma]);
-                
-                // 每個卡片需要 3 個干擾項 (Hanji/Loma各至少1個，總數3個)
-                const cardA_Hanji_Interference = [];
-                const cardA_Loma_Interference = [];
-                const cardB_Hanji_Interference = [];
-                const cardB_Loma_Interference = [];
-
-                // 準備干擾項池，確保沒有內部匹配
-                let availableHanji = [...remainingHanji];
-                let availableLoma = [...remainingLoma];
-                
-                // 確保干擾項本身不互相匹配
-                function selectSafeInterference(poolHanji, poolLoma, count) {
-                    let selectedHanji = [];
-                    let selectedLoma = [];
-                    let localHanji = [...poolHanji];
-                    let localLoma = [...poolLoma];
-
-                    // 嘗試選取 count 個 Hanji 和 count 個 Loma
-                    // 為了簡化，我們只選取需要的數量，並在最後檢查
-                    selectedHanji = localHanji.slice(0, count);
-                    selectedLoma = localLoma.slice(0, count);
-                    
-                    return { hanji: selectedHanji, loma: selectedLoma };
-                }
-
-                // 選取卡片A的干擾項 (需要3個)
-                let tempA = selectSafeInterference(availableHanji.slice(0, 3), availableLoma.slice(0, 3), 3);
-                
-                // 卡片A內容：1個正確漢字 + 3個干擾項
-                let cardA_TempContent = [correctPair.hanji, ...tempA.hanji, ...tempA.loma];
-                // 移除已使用的干擾項
-                availableHanji = availableHanji.slice(3);
-                availableLoma = availableLoma.slice(3);
-
-                // 選取卡片B的干擾項 (需要3個)
-                let tempB = selectSafeInterference(availableHanji.slice(0, 3), availableLoma.slice(0, 3), 3);
-                
-                // 卡片B內容：1個正確羅馬字 + 3個干擾項
-                let cardB_TempContent = [correctPair.loma, ...tempB.hanji, ...tempB.loma];
-
-
-                // 確保卡片內容長度剛好為 4 (2個漢字, 2個羅馬字)
-                // 策略：從 cardA_TempContent (1H + 3I) 中選取 4 個元素
-                //       從 cardB_TempContent (1L + 3I) 中選取 4 個元素
+                // 3. 組裝兩張卡片的元素集
                 // 必須滿足：
-                // 1. 卡片A包含 correctPair.hanji
-                // 2. 卡片B包含 correctPair.loma
-                // 3. 卡片A和卡片B的元素數必須是 4
-                // 4. 卡片A和卡片B內部不能有其他配對
-                // 5. 卡片A和卡片B之間不能有 correctPair 以外的其他配對
-
-                // 建立 Card A 最終內容 (1個正確漢字 + 1個干擾漢字 + 2個干擾羅馬字)
-                const finalA_Hanji = [correctPair.hanji, tempA.hanji[0]];
-                const finalA_Loma = [tempA.loma[0], tempA.loma[1]];
+                // 卡片1: [正確漢字] + 3個干擾項
+                // 卡片2: [正確羅馬字] + 3個干擾項
                 
-                // 建立 Card B 最終內容 (1個正確羅馬字 + 1個干擾漢字 + 2個干擾羅馬字)
-                const finalB_Loma = [correctPair.loma, tempB.loma[0]];
-                const finalB_Hanji = [tempB.hanji[0], tempB.hanji[1]]; // 注意：這裡我們使用2個干擾漢字，以確保元素數量平衡
-
-                card1Content = [...finalA_Hanji, ...finalA_Loma];
-                card2Content = [...finalB_Hanji, ...finalB_Loma];
+                // 隨機從剩餘的干擾項中選取 3 個漢字和 3 個羅馬字
+                // 確保兩組干擾項之間沒有匹配，且不與正確答案匹配
                 
-                // 再次隨機決定哪張卡片顯示哪組內容
-                const swapCards = Math.random() < 0.5;
-                if (swapCards) {
-                    [card1Content, card2Content] = [card2Content, card1Content];
+                let interferenceHanji = [];
+                let interferenceLoma = [];
+
+                // 嘗試從池中選取 6 個不互相匹配的漢字和 6 個不互相匹配的羅馬字
+                let tempHanji = remainingHanji.slice(0, 6);
+                let tempLoma = remainingLoma.slice(0, 6);
+                
+                // 確保這 6H 和 6L 之間沒有任何匹配
+                let safeHanji = [];
+                let safeLoma = [];
+                
+                tempHanji.forEach(h => {
+                    if (!tempLoma.includes(vocabulary[h])) {
+                        safeHanji.push(h);
+                    }
+                });
+                tempLoma.forEach(l => {
+                    if (!tempHanji.includes(lomaToHanji[l])) {
+                        safeLoma.push(l);
+                    }
+                });
+                
+                // 確保我們有足夠的干擾項 (至少 4 個 H 和 4 個 L)
+                if (safeHanji.length < 4 || safeLoma.length < 4) {
+                    // 如果安全池不足，則重新開始循環
+                    continue; 
                 }
-                
-                // *** 核心檢查邏輯：確保只有一個答案 ***
-                
-                // 1. 檢查卡片 A 內部是否有匹配
-                if (hasInternalMatch(card1Content)) { continue; }
-                
-                // 2. 檢查卡片 B 內部是否有匹配
-                if (hasInternalMatch(card2Content)) { continue; }
 
-                // 3. 檢查卡片 A 和卡片 B 之間是否有正確答案以外的**額外**匹配
+                // 分配干擾項：
+                // 卡片1: 1H, 2L
+                // 卡片2: 2H, 1L
+                const c1H = [correctPair.hanji, safeHanji[0]];
+                const c1L = [safeLoma[0], safeLoma[1]];
+                
+                const c2H = [safeHanji[1], safeHanji[2]];
+                const c2L = [correctPair.loma, safeLoma[2]];
+
+                // 確保 Card 1 的 4 個元素內部沒有匹配
+                if (hasInternalMatch([...c1H, ...c1L])) { continue; }
+                
+                // 確保 Card 2 的 4 個元素內部沒有匹配
+                if (hasInternalMatch([...c2H, ...c2L])) { continue; }
+                
+                card1Content = [...c1H, ...c1L];
+                card2Content = [...c2H, ...c2L];
+                
+                // 4. 檢查兩張卡片之間是否有正確答案以外的**額外**匹配
                 let matchCount = 0;
-                const card1Hanji = card1Content.filter(item => vocabulary[item]);
-                const card1Loma = card1Content.filter(item => lomaToHanji[item]);
-                const card2Hanji = card2Content.filter(item => vocabulary[item]);
-                const card2Loma = card2Content.filter(item => lomaToHanji[item]);
-
-                // 檢查 H1 <-> L2
-                for (const hanji of card1Hanji) {
+                
+                // 檢查 H1 <-> L2 (正確答案在這裡)
+                for (const hanji of c1H) {
                     const expectedLoma = vocabulary[hanji];
-                    if (card2Loma.includes(expectedLoma)) {
+                    if (c2L.includes(expectedLoma)) {
                         matchCount++;
                     }
                 }
                 // 檢查 H2 <-> L1
-                for (const hanji of card2Hanji) {
+                for (const hanji of c2H) {
                     const expectedLoma = vocabulary[hanji];
-                    if (card1Loma.includes(expectedLoma)) {
+                    if (c1L.includes(expectedLoma)) {
                         matchCount++;
                     }
                 }
@@ -667,8 +631,14 @@
             }
 
             // 打亂元素位置並更新卡片
-            updateCard(card1Element, shuffleArray(card1Content));
-            updateCard(card2Element, shuffleArray(card2Content));
+            const swapCards = Math.random() < 0.5;
+            if (swapCards) {
+                updateCard(card1Element, shuffleArray(card2Content));
+                updateCard(card2Element, shuffleArray(card1Content));
+            } else {
+                updateCard(card1Element, shuffleArray(card1Content));
+                updateCard(card2Element, shuffleArray(card2Content));
+            }
             
             if (isCompetitiveMode) {
                 gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
@@ -680,7 +650,6 @@
             content.forEach(text => {
                 const element = document.createElement('div');
                 element.className = 'dobble-element';
-                // 這裡判斷字型大小，如果是羅馬字就用小一點
                 if (vocabulary[text]) {
                     element.classList.add('hanji');
                 } else {
