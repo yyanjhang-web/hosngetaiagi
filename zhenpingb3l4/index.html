@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B3L4_好奇號上火星_對對碰</title>
+    <title>B3L4好奇號上火星_競賽版</title>
     <style>
         body {
             display: flex;
@@ -15,32 +15,138 @@
             background-color: #f0f0f0;
             font-family: '微軟正黑體', 'Arial', sans-serif;
             text-align: center;
-            padding: 2vmin;
+            padding: 1vmin 2vmin; 
             box-sizing: border-box;
             overflow: hidden;
+            transition: background-color 0.1s;
         }
+        /* 倒數3秒閃爍效果 */
+        body.time-low-blink {
+            animation: blinker 0.3s linear infinite alternate;
+        }
+        @keyframes blinker {
+            from { background-color: #f0f0f0; }
+            to { background-color: #ffdddd; } 
+        }
+        
+        /* 獲勝時的背景閃爍效果 (淺金色) */
+        body.win-blink {
+            animation: winBlinker 0.5s linear 6 alternate; /* 閃爍 6 次 */
+            background-color: #fffae6 !important; /* 確保最終停在淺金色 */
+        }
+        @keyframes winBlinker {
+            from { background-color: #f0f0f0; }
+            to { background-color: #ffe0b2; } /* 淺橘色/金色 */
+        }
+
+        /* 挑戰失敗/結束時的背景警示色 */
+        body.fail-end {
+            background-color: #ffdddd !important; /* 淺紅色警示 */
+        }
+        
+        /* --- 競賽模式資訊區塊：固定分數定位 --- */
+        #competitive-info {
+            display: none; 
+            width: 100%;
+            max-width: 90vmin;
+            margin-bottom: 1vmin; 
+            box-sizing: border-box;
+            position: relative; 
+            min-height: 5vmin; 
+        }
+
+        .score-positioner {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            max-width: 90vmin;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 10; 
+            padding: 0 5vmin; 
+            box-sizing: border-box;
+        }
+        
+        #scoreLeft, #scoreRight {
+            padding: 0.5vmin 1.5vmin; 
+            border-radius: 5px;
+            color: white;
+            white-space: nowrap; 
+            flex-shrink: 0; 
+        }
+        #scoreLeft { 
+            background-color: #007BFF; 
+            text-align: left; 
+        }
+        #scoreRight { 
+            background-color: #28a745; 
+            text-align: right; 
+        }
+
+        .game-status {
+            font-size: 3.5vmin;
+            font-weight: bold;
+            color: #dc3545;
+            flex-grow: 1;
+            text-align: center;
+            margin-top: 5vmin; 
+        }
+        
+        /* 最終狀態文字的樣式強化 */
+        .game-status.final-message {
+            font-size: 5vmin; 
+            font-weight: 900; 
+            animation: pulse 1s infinite; 
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- 求救按鈕與卡片 --- */
+        .hint-btn {
+            /* 調整：提示按鈕變小 */
+            padding: 1vmin 1.5vmin; 
+            font-size: 2vmin;
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            font-weight: bold;
+            color: #333;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            /* 提示按鈕在普通模式下不顯示 */
+            display: none; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+        }
+        #hintLeftBtn { background-color: #e6f7ff; color: #1E517C; }
+        #hintRightBtn { background-color: #e6ffe6; color: #4a8a4a; }
+
+        .hint-btn:hover:not(:disabled) { background-color: #d1e9f7; }
+        .hint-btn:disabled { 
+            background-color: #ccc; 
+            cursor: not-allowed; 
+            color: #666; 
+            box-shadow: none; 
+        }
+        
+        /* --- 卡片與佈局樣式 --- */
         .card-container {
             display: flex;
-            flex-direction: column;
+            flex-direction: row; 
             justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
+            align-items: flex-start; 
             gap: 5vmin;
             margin-bottom: 2vmin;
             width: 100%;
             max-width: 90vmin;
         }
-        @media (min-width: 768px) {
-            .card-container {
-                flex-direction: row;
-                gap: 5vmin;
-            }
-        }
         .card-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
+            width: 45%; 
             max-width: 40vmin;
         }
         .dobble-card {
@@ -53,24 +159,13 @@
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             aspect-ratio: 1 / 1;
-            transition: background-color 0.3s, opacity 0.3s;
         }
-        #card1 {
-            background-color: #e6f7ff;
-        }
-        #card2 {
-            background-color: #e6ffe6;
-        }
-        /* 答錯回饋 - 左邊（深藍色） */
-        #card1.darken-left, #card2.darken-left {
-            background-color: #1E517C;
-            opacity: 0.3;
-        }
-        /* 答錯回饋 - 右邊（淺橄欖綠） */
-        #card1.darken-right, #card2.darken-right {
-            background-color: #84B685;
-            opacity: 0.3;
-        }
+        #card1 { background-color: #e6f7ff; }
+        #card2 { background-color: #e6ffe6; }
+        /* 作答錯誤的回饋樣式 */
+        #card1.darken-left, #card2.darken-left { background-color: #1E517C; opacity: 0.3; }
+        #card1.darken-right, #card2.darken-right { background-color: #84B685; opacity: 0.3; }
+        
         .dobble-element {
             display: flex;
             flex-direction: column;
@@ -84,32 +179,57 @@
             box-sizing: border-box;
             user-select: none;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.2s, font-size 0.2s;
             text-align: center;
             word-wrap: break-word;
             word-break: normal;
             hyphens: auto;
         }
-        .dobble-element.hanji {
-            font-size: 5vmin;
+        .dobble-element.loma { font-size: 3vmin; }
+        .dobble-element.highlight-blue { background-color: #add8e6; transform: scale(1.05); border: 2px solid #5a94a6; }
+        .dobble-element.highlight-green { background-color: #90ee90; transform: scale(1.05); border: 2px solid #4a8a4a; }
+        
+        /* --- 操作按鈕列 --- */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 1vmin; 
+            width: 100%;
+            max-width: 90vmin;
         }
-        .dobble-element.loma {
-            font-size: 3vmin;
+        /* 競賽模式下專用的操作按鈕列 (包含求救和下一戰) */
+        .competitive-buttons-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 90vmin;
+            margin-top: 1vmin;
+            gap: 5vmin; /* 增大間距，讓三個按鈕能對應卡片位置 */
         }
-        /* 答對回饋 - 淺藍色 */
-        .dobble-element.highlight-blue {
-            background-color: #add8e6;
-            transform: scale(1.05);
-            border: 2px solid #5a94a6;
+
+        /* --- 模式切換與計數器列 (網頁最底部) --- */
+        .bottom-footer-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            /* 移到最底部 */
+            margin-top: 1vmin; 
         }
-        /* 答對回饋 - 淺綠色 */
-        .dobble-element.highlight-green {
-            background-color: #90ee90;
-            transform: scale(1.05);
-            border: 2px solid #4a8a4a;
+
+        .counter-container {
+            margin-left: 15px; 
+            /* 確保計數器圖片不會被按鈕高度影響 */
+            display: flex;
+            align-items: center;
         }
+        
+        /* 統一按鈕樣式 */
         button {
-            padding: 1.5vmin 3vmin;
+            /* 調整：縮小按鈕高度 */
+            padding: 1vmin 3vmin; 
             font-size: 2vmin;
             cursor: pointer;
             border: none;
@@ -117,24 +237,51 @@
             background-color: #007BFF;
             color: white;
             transition: background-color 0.3s;
+            flex-shrink: 0;
         }
-        button:hover {
-            background-color: #0056b3;
+
+        /* 模式切換按鈕字體可以更小，高度更矮 */
+        #modeToggleBtn { 
+            background-color: #6c757d; 
+            font-size: 1.8vmin;
+            padding: 0.8vmin 2.5vmin;
         }
-        .rule-text {
+        #modeToggleBtn:hover:not(:disabled) { background-color: #5a6268; }
+        
+        /* 換一張 / 下一戰 按鈕恢復正常大小 */
+        #changeCardsBtn {
+            padding: 1.5vmin 3vmin;
             font-size: 2vmin;
-            color: #333;
-            margin-top: 1.5vmin;
-            margin-bottom: 0.5vmin;
         }
-        .designer-info {
-            font-size: 1.5vmin;
-            color: #555;
-            margin-top: 1vmin;
+
+        button:hover:not(:disabled) { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        .rule-text { 
+            margin-top: 0.5vmin; 
+            font-size: 2vmin;
+        }
+        
+        /* 【新增】：設計者資訊使用小字體 */
+        .designer-info { 
+            margin-top: 0.5vmin; 
+            margin-bottom: 0.5vmin; 
+            font-size: 1.5vmin; 
+            color: #6c757d;
         }
     </style>
 </head>
 <body>
+    
+    <div id="competitive-info">
+        <div id="gameStatus" class="game-status">第 1 戰</div>
+
+        <div class="score-positioner">
+            <div id="scoreLeft">左方分數: 0</div>
+            <div id="scoreRight">右方分數: 0</div>
+        </div>
+    </div>
+    
     <div class="card-container">
         <div class="card-wrapper">
             <div class="dobble-card" id="card1"></div>
@@ -144,11 +291,31 @@
         </div>
     </div>
 
-    <button id="changeCardsBtn">換一張</button>
-    <div class="rule-text">規則：找出兩張卡中台語漢字詞與羅馬字相符的配對</div>
-    <div class="designer-info">設計者Iônn, Àn-tsiong；技術支援：フォックスコンの響き</div>
+    <div class="competitive-buttons-row" id="competitiveButtonsRow" style="display: none;">
+        <button id="hintLeftBtn" class="hint-btn">求救 (剩1次)</button>
+        <button id="changeCardsBtn" style="flex-grow: 0;">換一張</button>
+        <button id="hintRightBtn" class="hint-btn">求救 (剩1次)</button>
+    </div>
 
-    <script>
+    <div class="action-buttons" id="normalButtonsRow">
+        <button id="changeCardsBtnNormal" style="flex-grow: 0;">換一張</button>
+    </div>
+
+    <div class="rule-text">規則：找出兩個表格中的唯一正確的配對</div>
+    <div class="designer-info">設計者：Iônn, Àn-tsiong；技術支援：AI, フォックスコンの響き</div>
+   
+
+    <div class="bottom-footer-row">
+        <button id="modeToggleBtn">進入競賽模式</button>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters" border="0" />
+            </a>
+        </div>
+    </div>
+
+
+  <script>
         const vocabulary = {
             "華裔": "huâ-è",
             "開眼界": "khai-gán-kài",
@@ -177,15 +344,60 @@
             "無的確": "bô-tik-khak"
         };
 
+
+        // --- DOM 元素定義 ---
         const card1Element = document.getElementById('card1');
         const card2Element = document.getElementById('card2');
+        
+        // 將 changeCardsBtn 重新定義為競賽模式中間的按鈕
         const changeCardsBtn = document.getElementById('changeCardsBtn');
-        const vocabularyEntries = Object.entries(vocabulary);
+        const changeCardsBtnNormal = document.getElementById('changeCardsBtnNormal'); // 普通模式的換一張按鈕
+        
+        // 競賽模式新增的 DOM
+        const modeToggleBtn = document.getElementById('modeToggleBtn');
+        const competitiveInfo = document.getElementById('competitive-info');
+        const scoreLeftDisplay = document.getElementById('scoreLeft');
+        const scoreRightDisplay = document.getElementById('scoreRight');
+        const gameStatusDisplay = document.getElementById('gameStatus'); 
+        const hintLeftBtn = document.getElementById('hintLeftBtn');
+        const hintRightBtn = document.getElementById('hintRightBtn');
+        const hintButtons = [hintLeftBtn, hintRightBtn];
+        const competitiveButtonsRow = document.getElementById('competitiveButtonsRow');
+        const normalButtonsRow = document.getElementById('normalButtonsRow');
+        const ruleTextDisplay = document.querySelector('.rule-text'); // 獲取規則文字的 DOM
 
+        const vocabularyEntries = Object.entries(vocabulary);
+        // 新增羅馬字到漢字的反向查找，用於檢查配對
+        const lomaToHanji = Object.fromEntries(vocabularyEntries.map(([hanji, loma]) => [loma, hanji]));
+        const allHanji = vocabularyEntries.map(p => p[0]);
+        const allLoma = vocabularyEntries.map(p => p[1]);
+
+
+        // --- 遊戲狀態變數 ---
         let gameLocked = false;
         let correctPair = {};
 
-        // 輔助函式：隨機打亂陣列
+        // --- 競賽模式狀態變數 ---
+        let isCompetitiveMode = false;
+        let leftScore = 0;
+        let rightScore = 0;
+        let currentRound = 1;
+        const maxRounds = 6;
+        const scoreToWin = 3;
+        // 每回合時長為 13 秒
+        const maxTime = 13; 
+        const hintTimeBonus = 4; // 求救時間獎勵
+        let roundTimer;
+        let timeLeft = maxTime;
+        let leftHintUsed = false;
+        let rightHintUsed = false;
+        
+        // 【修正點】：更新規則文字
+        const competitiveRuleText = "規則：找出正確的配對得1分，6回合內先累積3分者獲勝，答錯扣分。每回合13秒。雙方各能求救1次。求救可以刪除1個干擾項，並延長4秒。";
+        const normalRuleText = "規則：找出兩個表格中的唯一正確的配對";
+
+        // --- 核心工具函式 ---
+
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -194,145 +406,518 @@
             return array;
         }
 
-        // 輔助函式：根據詞彙內容判斷類型（漢字或羅馬字）
-        function getWordType(word) {
-            if (vocabulary[word] !== undefined) {
-                return 'hanji';
-            }
-            for (const key in vocabulary) {
-                if (vocabulary[key] === word) {
-                    return 'loma';
+        function clearFeedback() {
+            // 清除所有背景效果
+            document.body.classList.remove('time-low-blink', 'win-blink', 'fail-end'); 
+            // 清除最終狀態文字效果
+            gameStatusDisplay.classList.remove('final-message'); 
+            card1Element.classList.remove('darken-left', 'darken-right');
+            card2Element.classList.remove('darken-left', 'darken-right');
+            document.querySelectorAll('.dobble-element').forEach(el => {
+                el.classList.remove('highlight-blue', 'highlight-green');
+                // 重設提示鍵效果
+                if (el.dataset.hintRemoved === 'true') {
+                    el.style.opacity = '1';
+                    el.style.cursor = 'pointer';
+                    el.removeAttribute('data-hint-removed');
                 }
+            });
+            gameLocked = false; 
+            card1Element.style.pointerEvents = 'auto';
+            card2Element.style.pointerEvents = 'auto';
+            
+            if (!isCompetitiveMode) {
+                 gameStatusDisplay.textContent = ''; // 普通模式頂部不顯示狀態文字
             }
-            return null; // 不在字典中
         }
 
-        // 輔助函式：清除回饋樣式
-        function clearFeedback() {
+        // --- 競賽模式專屬邏輯 (保留您原有的完美邏輯) ---
+
+        function updateScoreDisplays() {
+            scoreLeftDisplay.textContent = `左方分數: ${leftScore}`;
+            scoreRightDisplay.textContent = `右方分數: ${rightScore}`;
+        }
+
+        function getNextRoundText(round) {
+            if (round > maxRounds) return '換人競賽';
+            if (round === maxRounds) return '最終戰';
+            return `第 ${round} 戰`;
+        }
+
+        /**
+         * 凍結遊戲並顯示狀態
+         */
+        function freezeGame(message, isFinal = false, isWin = false) {
+            gameLocked = true;
+            clearInterval(roundTimer);
+            
+            document.body.classList.remove('time-low-blink'); 
+            
+            gameStatusDisplay.textContent = message;
+            
+            card1Element.style.pointerEvents = 'none';
+            card2Element.style.pointerEvents = 'none';
+
+            changeCardsBtn.disabled = false;
+            
+            hintButtons.forEach(btn => btn.style.display = 'none');
+            
+            if (isFinal) {
+                gameStatusDisplay.classList.add('final-message');
+                if (isWin) {
+                    document.body.classList.add('win-blink');
+                } else {
+                    document.body.classList.add('fail-end');
+                }
+                
+                changeCardsBtn.textContent = '換人競賽';
+                changeCardsBtn.onclick = () => {
+                    setMode(true); 
+                };
+            } else if (isCompetitiveMode) {
+                changeCardsBtn.textContent = getNextRoundText(currentRound + 1);
+                changeCardsBtn.onclick = nextRound;
+            }
+        }
+
+        function checkGameEnd() {
+            if (!isCompetitiveMode) return false;
+
+            // 規則 (0): 獲勝檢查
+            if (leftScore >= scoreToWin) {
+                freezeGame("🎊 左方學生獲勝！恭喜！ 🎊", true, true); 
+                return true;
+            } else if (rightScore >= scoreToWin) {
+                freezeGame("🎊 右方學生獲勝！恭喜！ 🎊", true, true); 
+                return true;
+            }
+
+            // 規則 (3): 回合數結束檢查
+            if (currentRound > maxRounds) {
+                freezeGame("挑戰失敗！6回合結束無人累積3分。", true, false); 
+                return true;
+            }
+            
+            return false;
+        }
+
+        function startTimer() {
+            if (!isCompetitiveMode) return;
+            
+            timeLeft = maxTime; 
+            clearInterval(roundTimer);
+            document.body.classList.remove('time-low-blink');
+            
+            gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
+            gameStatusDisplay.classList.remove('final-message'); 
+
+            hintButtons.forEach(btn => btn.style.display = 'block'); 
+            
+            changeCardsBtn.textContent = `倒數: ${timeLeft}`;
+            changeCardsBtn.disabled = true; 
+
+            card1Element.style.pointerEvents = 'auto';
+            card2Element.style.pointerEvents = 'auto';
+            
+            roundTimer = setInterval(() => {
+                if (gameLocked) {
+                    clearInterval(roundTimer);
+                    return;
+                }
+                
+                timeLeft--;
+                changeCardsBtn.textContent = `倒數: ${timeLeft}`;
+                
+                if (timeLeft <= 3 && timeLeft > 0) {
+                    document.body.classList.add('time-low-blink');
+                } else if (timeLeft <= 0) {
+                    document.body.classList.remove('time-low-blink');
+                    clearInterval(roundTimer);
+                    
+                    if (!gameLocked) {
+                        leftScore = Math.max(0, leftScore - 1);
+                        rightScore = Math.max(0, rightScore - 1);
+                        updateScoreDisplays();
+                        freezeGame("時間到！雙方無人作答，各扣 1 分！"); 
+                    }
+                    checkGameEnd();
+                }
+            }, 1000);
+        }
+
+        function nextRound() {
+            // 規則 (1): 第 4 戰結束後，雙方皆為 0 分
+            if (currentRound === 4 && leftScore === 0 && rightScore === 0) {
+                 freezeGame("提前結束！4回合結束，雙方皆 0 分。", true, false); 
+                 return;
+            }
+            // 規則 (2): 第 5 戰結束後，最高分只有 1 分
+            if (currentRound === 5 && Math.max(leftScore, rightScore) <= 1) {
+                 freezeGame("提前結束！5回合結束，無人能獲勝。", true, false); 
+                 return;
+            }
+            
+            if (currentRound >= maxRounds) {
+                currentRound++; 
+                checkGameEnd();
+                return;
+            }
+
+            currentRound++;
+            
+            showRandomCards();
+            if (isCompetitiveMode && !checkGameEnd()) {
+                startTimer();
+                updateScoreDisplays();
+            }
+        }
+
+        function useHint(side) {
+            if (gameLocked || !isCompetitiveMode) return;
+
+            const cardElement = side === 'left' ? card1Element : card2Element;
+            const hintBtn = side === 'left' ? hintLeftBtn : hintRightBtn;
+            
+            const hintUsed = side === 'left' ? leftHintUsed : rightHintUsed;
+            if (hintUsed) return;
+
+            // 增加 4 秒時長
+            timeLeft = Math.min(maxTime + hintTimeBonus, timeLeft + hintTimeBonus); // 修正：最多增加到 maxTime + hintTimeBonus
+            changeCardsBtn.textContent = `倒數: ${timeLeft}`;
+            document.body.classList.remove('time-low-blink');
+            
+            if (side === 'left') {
+                leftHintUsed = true;
+            } else {
+                rightHintUsed = true;
+            }
+            hintBtn.disabled = true;
+            hintBtn.textContent = '求救 (已用)';
+
+            const elements = Array.from(cardElement.querySelectorAll('.dobble-element'));
+            
+            const incorrectElements = elements.filter(el => {
+                const text = el.textContent.trim();
+                // 排除正確配對和已被移除的干擾項
+                return (text !== correctPair.hanji && text !== correctPair.loma) && el.style.opacity !== '0.3';
+            });
+            
+            if (incorrectElements.length > 0) {
+                const randomIndex = Math.floor(Math.random() * incorrectElements.length);
+                const elementToDisable = incorrectElements[randomIndex];
+                
+                elementToDisable.style.opacity = '0.3';
+                elementToDisable.style.cursor = 'default';
+                elementToDisable.dataset.hintRemoved = 'true';
+            }
+        }
+        
+        // --- 模式切換邏輯 ---
+
+        function updateModeDisplay() {
+            competitiveInfo.style.display = isCompetitiveMode ? 'flex' : 'none'; 
+            competitiveButtonsRow.style.display = isCompetitiveMode ? 'flex' : 'none';
+            normalButtonsRow.style.display = isCompetitiveMode ? 'none' : 'flex';
+            
+            hintButtons.forEach(btn => {
+                const isLeft = btn.id === 'hintLeftBtn';
+                const isUsed = isLeft ? leftHintUsed : rightHintUsed;
+                
+                if (isUsed) {
+                     btn.textContent = '求救 (已用)';
+                     btn.disabled = true;
+                } else {
+                     btn.textContent = '求救 (剩1次)';
+                     btn.disabled = false;
+                }
+
+                if (isCompetitiveMode) {
+                    btn.style.display = 'block'; 
+                } else {
+                    btn.style.display = 'none'; 
+                }
+            });
+
+            changeCardsBtn.style.display = isCompetitiveMode ? 'block' : 'none'; 
+            
+            modeToggleBtn.textContent = isCompetitiveMode ? '回到普通模式' : '進入競賽模式';
+            
+            ruleTextDisplay.textContent = isCompetitiveMode ? competitiveRuleText : normalRuleText;
+        }
+
+        function setMode(isCompetitive) {
+            isCompetitiveMode = isCompetitive;
+            clearFeedback();
+            
+            if (isCompetitive) {
+                resetCompetitiveMode(true); 
+            } else {
+                changeCardsBtnNormal.textContent = '換一張';
+                changeCardsBtnNormal.disabled = false;
+                changeCardsBtnNormal.onclick = showRandomCards; 
+                clearInterval(roundTimer);
+                gameLocked = false;
+                gameStatusDisplay.textContent = ''; 
+                showRandomCards();
+            }
+            updateModeDisplay(); 
+        }
+
+        function resetCompetitiveMode(startNewGame = false) {
+            leftScore = 0;
+            rightScore = 0;
+            currentRound = 1;
+            leftHintUsed = false;
+            rightHintUsed = false;
+            
+            hintLeftBtn.disabled = false;
+            hintRightBtn.disabled = false;
+            hintLeftBtn.textContent = '求救 (剩1次)'; 
+            hintRightBtn.textContent = '求救 (剩1次)'; 
+
+            if (startNewGame) {
+                updateScoreDisplays();
+                showRandomCards();
+                startTimer();
+            }
+        }
+
+
+        // --- 點擊處理 (保留您原有的完美邏輯) ---
+
+        function handleElementClick(e) {
+            const clickedElement = e.target.closest('.dobble-element');
+            if (!clickedElement || clickedElement.dataset.hintRemoved === 'true') return;
+            
+            if (gameLocked) return;
+
+            clearInterval(roundTimer); 
+            document.body.classList.remove('time-low-blink');
+            
             card1Element.classList.remove('darken-left', 'darken-right');
             card2Element.classList.remove('darken-left', 'darken-right');
             document.querySelectorAll('.dobble-element').forEach(el => {
                 el.classList.remove('highlight-blue', 'highlight-green');
             });
-        }
 
-        // 點擊事件處理
-        function handleElementClick(e) {
-            if (gameLocked) return;
-
-            clearFeedback();
-
-            const clickedElement = e.target.closest('.dobble-element');
-            if (!clickedElement) return;
 
             const clickedCardId = clickedElement.parentNode.id;
-            // 處理羅馬字的零寬度空格，確保正確比對
-            const clickedText = clickedElement.textContent.trim().replace(/\u200B/g, '');
+            const clickedText = clickedElement.textContent.trim();
 
             const isCorrect = (clickedText === correctPair.hanji || clickedText === correctPair.loma);
+            const playerSide = (clickedCardId === 'card1') ? 'left' : 'right';
 
             if (isCorrect) {
                 gameLocked = true;
                 const highlightClass = (clickedCardId === 'card1') ? 'highlight-blue' : 'highlight-green';
-                const allElements = document.querySelectorAll('.dobble-element');
 
+                const allElements = document.querySelectorAll('.dobble-element');
                 allElements.forEach(el => {
-                    const elText = el.textContent.trim().replace(/\u200B/g, '');
+                    const elText = el.textContent.trim();
                     if (elText === correctPair.hanji || elText === correctPair.loma) {
                         el.classList.add(highlightClass);
                     }
                 });
+
+                if (isCompetitiveMode) {
+                    if (playerSide === 'left') {
+                        leftScore++;
+                    } else {
+                        rightScore++;
+                    }
+                    updateScoreDisplays();
+                    
+                    if (currentRound === maxRounds && leftScore < scoreToWin && rightScore < scoreToWin) {
+                        freezeGame("挑戰失敗！6回合結束無人累積3分。", true, false); 
+                    } else if (!checkGameEnd()) { 
+                        if (playerSide === 'left') {
+                            freezeGame("✅ 左方得分！");
+                        } else {
+                            freezeGame("✅ 右方得分！");
+                        }
+                    }
+                } else {
+                    gameLocked = true;
+                    changeCardsBtnNormal.disabled = false; 
+                }
             } else {
                 gameLocked = true;
                 const darkenClass = (clickedCardId === 'card1') ? 'darken-left' : 'darken-right';
                 card1Element.classList.add(darkenClass);
                 card2Element.classList.add(darkenClass);
+                
+                if (isCompetitiveMode) {
+                    if (playerSide === 'left') {
+                        leftScore = Math.max(0, leftScore - 1);
+                        freezeGame("❌ 左方答錯，扣分！");
+                    } else {
+                        rightScore = Math.max(0, rightScore - 1);
+                        freezeGame("❌ 右方答錯，扣分！");
+                    }
+                    updateScoreDisplays();
+                    checkGameEnd();
+                } else {
+                    gameLocked = true; 
+                    changeCardsBtnNormal.disabled = false;
+                }
             }
         }
+
+        // --- 卡片生成邏輯 (已修復，保證單一答案) ---
         
-        // 生成新卡片
+        /**
+         * 檢查單張卡片內部是否有任何漢字與羅馬字匹配。
+         */
+        function hasInternalMatch(content) {
+            const hanjiItems = content.filter(item => vocabulary[item]);
+            const lomaItems = content.filter(item => lomaToHanji[item]);
+
+            for (const hanji of hanjiItems) {
+                const expectedLoma = vocabulary[hanji];
+                if (lomaItems.includes(expectedLoma)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
         function showRandomCards() {
-            gameLocked = false;
-            clearFeedback();
-
-            // 隨機選取一組唯一的正確配對
-            const allPairs = shuffleArray([...vocabularyEntries]);
-            const correctPairEntry = allPairs.pop();
-            correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
-
-            // 將剩餘的詞彙分成漢字和羅馬字池
-            const hanjiPool = allPairs.map(p => p[0]);
-            const lomaPool = allPairs.map(p => p[1]);
+            clearFeedback(); 
+            
+            if (isCompetitiveMode) {
+                changeCardsBtn.disabled = true;
+            } else {
+                changeCardsBtnNormal.disabled = false;
+            }
 
             let card1Content, card2Content;
+            let hasValidCards = false;
 
-            // 確保生成符合規則的卡片內容
-            while (true) {
-                // 隨機選取干擾詞彙
-                const selectedHanji = shuffleArray([...hanjiPool]).slice(0, 3);
-                const selectedLoma = shuffleArray([...lomaPool]).slice(0, 3);
+            while (!hasValidCards) {
+                // 1. 選擇一個正確配對作為答案
+                const shuffledVocab = shuffleArray([...vocabularyEntries]);
+                const correctPairEntry = shuffledVocab[0];
+                correctPair = { hanji: correctPairEntry[0], loma: correctPairEntry[1] };
                 
-                // 檢查選取的干擾詞之間是否有配對
-                const hasInternalPairInPool = selectedHanji.some(h => selectedLoma.includes(vocabulary[h]));
-                if (hasInternalPairInPool) {
-                    continue; // 有內部配對，重新選取
+                // 2. 獲取所有其他潛在的干擾項
+                const remainingHanji = shuffleArray(allHanji.filter(h => h !== correctPair.hanji));
+                const remainingLoma = shuffleArray(allLoma.filter(l => l !== correctPair.loma));
+                
+                // 3. 選擇干擾項，並確保它們不會互相匹配
+                
+                // 嘗試選擇 3H 和 3L 作為兩張卡片的干擾項池 (共 6 個干擾項)
+                let interferenceHanjiPool = remainingHanji.slice(0, 3);
+                let interferenceLomaPool = remainingLoma.slice(0, 3);
+                
+                // 檢查干擾項池內是否有任何一組匹配 (H pool <-> L pool)
+                let isPoolSafe = true;
+                for (const h of interferenceHanjiPool) {
+                    if (interferenceLomaPool.includes(vocabulary[h])) {
+                        isPoolSafe = false;
+                        break;
+                    }
+                }
+                if (!isPoolSafe) {
+                    continue; 
+                }
+
+                // 4. 組裝卡片內容，確保元素數量為 4
+                // 卡片A (包含正確漢字)
+                // 1個正確漢字 + 1個干擾漢字 (H1) + 2個干擾羅馬字 (L1, L2)
+                const cA_Hanji = [correctPair.hanji, interferenceHanjiPool[0]];
+                const cA_Loma = [interferenceLomaPool[0], interferenceLomaPool[1]];
+                
+                // 卡片B (包含正確羅馬字)
+                // 2個干擾漢字 (H2, H3) + 1個正確羅馬字 + 1個干擾羅馬字 (L3)
+                const cB_Hanji = [interferenceHanjiPool[1], interferenceHanjiPool[2]];
+                const cB_Loma = [correctPair.loma, interferenceLomaPool[2]];
+                
+                card1Content = [...cA_Hanji, ...cA_Loma];
+                card2Content = [...cB_Hanji, ...cB_Loma];
+                
+                // 5. 檢查所有條件
+                
+                // 檢查卡片 1 內部是否有匹配
+                if (hasInternalMatch(card1Content)) { continue; }
+                
+                // 檢查卡片 2 內部是否有匹配
+                if (hasInternalMatch(card2Content)) { continue; }
+                
+                // 檢查兩張卡片之間是否有正確答案以外的**額外**匹配
+                let matchCount = 0;
+                
+                const c1Hanji = card1Content.filter(item => vocabulary[item]);
+                const c1Loma = card1Content.filter(item => lomaToHanji[item]);
+                const c2Hanji = card2Content.filter(item => vocabulary[item]);
+                const c2Loma = card2Content.filter(item => lomaToHanji[item]);
+
+                // 檢查所有 H1-L2 和 H2-L1 的組合
+                for (const hanji of c1Hanji) {
+                    const expectedLoma = vocabulary[hanji];
+                    if (c2Loma.includes(expectedLoma)) {
+                        matchCount++;
+                    }
+                }
+                for (const hanji of c2Hanji) {
+                    const expectedLoma = vocabulary[hanji];
+                    if (c1Loma.includes(expectedLoma)) {
+                        matchCount++;
+                    }
                 }
                 
-                // 隨機決定正確配對在左卡還是右卡
-                const correctHanjiOnCard1 = Math.random() < 0.5;
-
-                // 構建卡片內容，確保每張卡片有 2 漢字 2 羅馬字
-                if (correctHanjiOnCard1) {
-                    // 左卡: 正確漢字 + 1 漢字干擾 + 2 羅馬字干擾
-                    card1Content = [correctPair.hanji, selectedHanji[0], selectedLoma[0], selectedLoma[1]];
-                    // 右卡: 正確羅馬字 + 2 漢字干擾 + 1 羅馬字干擾
-                    card2Content = [correctPair.loma, selectedHanji[1], selectedHanji[2], selectedLoma[2]];
-                } else {
-                    // 左卡: 正確羅馬字 + 2 漢字干擾 + 1 羅馬字干擾
-                    card1Content = [correctPair.loma, selectedHanji[0], selectedHanji[1], selectedLoma[0]];
-                    // 右卡: 正確漢字 + 1 漢字干擾 + 2 羅馬字干擾
-                    card2Content = [correctPair.hanji, selectedHanji[2], selectedLoma[1], selectedLoma[2]];
-                }
-                
-                // 再次檢查是否有內部配對，以防萬一
-                const checkInternalPair = (content) => {
-                    const hanjiInCard = content.filter(w => getWordType(w) === 'hanji');
-                    const lomaInCard = content.filter(w => getWordType(w) === 'loma');
-                    return hanjiInCard.some(h => lomaInCard.includes(vocabulary[h]));
-                };
-
-                if (!checkInternalPair(card1Content) && !checkInternalPair(card2Content)) {
-                    break; // 符合所有規則，跳出迴圈
+                // 確保匹配計數剛好為 1 (這就是保證單一答案的關鍵)
+                if (matchCount === 1) {
+                    hasValidCards = true;
                 }
             }
 
-            // 打亂每張卡片的內容順序
-            updateCard(card1Element, shuffleArray(card1Content));
-            updateCard(card2Element, shuffleArray(card2Content));
+            // 6. 打亂元素位置並更新卡片
+            const swapCards = Math.random() < 0.5;
+            if (swapCards) {
+                updateCard(card1Element, shuffleArray(card2Content));
+                updateCard(card2Element, shuffleArray(card1Content));
+            } else {
+                updateCard(card1Element, shuffleArray(card1Content));
+                updateCard(card2Element, shuffleArray(card2Content));
+            }
+            
+            if (isCompetitiveMode) {
+                gameStatusDisplay.textContent = `第 ${currentRound} 戰`;
+            }
         }
 
-        // 更新卡片內容
         function updateCard(cardElement, content) {
             cardElement.innerHTML = '';
             content.forEach(text => {
                 const element = document.createElement('div');
                 element.className = 'dobble-element';
-                const wordType = getWordType(text);
-                element.classList.add(wordType === 'loma' ? 'loma' : 'hanji');
-                
-                // 處理羅馬字換行，使用 Unicode Zero-width space
-                const processedText = wordType === 'loma' ? text.replace(/-/g, '-\u200B') : text;
-                element.textContent = processedText;
-                
-                element.addEventListener('click', handleElementClick);
+                // 判斷是否為羅馬字 (即 vocabulary 中沒有這個鍵的)
+                element.classList.add(vocabulary[text] ? 'hanji' : 'loma'); 
+                element.textContent = text;
+                element.addEventListener('click', handleElementClick); 
                 cardElement.appendChild(element);
             });
         }
 
-        window.onload = showRandomCards;
-        changeCardsBtn.addEventListener('click', showRandomCards);
+
+        // --- 初始化和事件綁定 ---
+        
+        modeToggleBtn.addEventListener('click', () => setMode(!isCompetitiveMode));
+        
+        // 普通模式的換一張按鈕
+        changeCardsBtnNormal.addEventListener('click', () => {
+            if (!isCompetitiveMode) {
+                showRandomCards();
+            }
+        });
+
+        hintLeftBtn.addEventListener('click', () => useHint('left'));
+        hintRightBtn.addEventListener('click', () => useHint('right'));
+
+        window.onload = () => {
+            setMode(false); 
+        };
     </script>
-    <a href="https://www.hitwebcounter.com/" target="_blank">
-<img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters"   border="0" /></a>        
 </body>
 </html>
