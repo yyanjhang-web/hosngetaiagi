@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽籤與計時</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>抽籤與計時</h1>
+        
+        <button id="reset-button" class="btn-action btn-secondary">回到預設</button>
+
+        <div class="top-controls-wrapper">
+            
+            <div> 
+                <section class="controls control-group-bg">
+                    <h2>籤筒</h2>
+                    <div class="control-group-input"> 
+                        <input type="number" id="total-count-input" class="count-input" value="23" min="1" max="999">
+                        <div class="adjust-buttons-vertical control-adjust-vertical">
+                            <button id="increase-total-count" class="btn-adjust-v">▲</button>
+                            <button id="decrease-total-count" class="btn-adjust-v">▼</button>
+                        </div>
+                    </div>
+                    <p>目前籤號: <span id="current-participants">1, 2, ..., 23</span></p>
+                    
+                    <h2 style="margin-top: 20px;">移除籤號</h2>
+                    <div class="control-group">
+                        <input type="text" id="removed-numbers-input" placeholder="例如: 12, 22 或 5 18">
+                        <button id="clear-removed-numbers" class="btn-action btn-secondary">清空</button>
+                    </div>
+                    <p id="removed-numbers-p" style="color: #dc3545; font-weight: bold; margin-top: 5px; display: none;">已移除號碼: <span id="removed-numbers-display">無</span></p>
+                </section>
+            </div>
+
+
+            <div> 
+                <section class="controls control-group-bg">
+                    <h2>抽籤</h2>
+                    <p class="small-tip">確認「籤筒」設置無誤後再開始</p> 
+                    <div class="draw-controls">
+                        <div class="control-group-input">
+                            <span>抽取人數:</span>
+                            <input type="number" id="draw-count-input" class="count-input" value="1" min="1" max="999">
+                            <div class="adjust-buttons-vertical control-adjust-vertical">
+                                <button id="increase-draw-count" class="btn-adjust-v">▲</button>
+                                <button id="decrease-draw-count" class="btn-adjust-v">▼</button>
+                            </div>
+                        </div>
+                        
+                        <div class="toggle-switch-group">
+                            <label for="allow-repeat" style="white-space: nowrap;">抽完是否放回:</label>
+                            <label class="switch">
+                                <input type="checkbox" id="allow-repeat">
+                                <span class="slider round"></span>
+                            </label>
+                            <span id="repeat-status" class="status-label" style="white-space: nowrap;">關 (不放回)</span>
+                        </div>
+
+                        <button id="draw-button" class="btn-action" style="white-space: nowrap;">開始抽籤</button>
+                    </div>
+                    <div id="draw-results" class="results-box draw-results-large">尚未抽取</div>
+                </section>
+            </div>
+            
+        </div> 
+
+        <div class="bottom-controls-wrapper">
+            
+            <div>
+                <section class="controls control-group-bg">
+                    <h2>分組</h2>
+                    <p class="small-tip">確認「籤筒」設置無誤後再開始</p> 
+                    <div class="control-group-input">
+                        <span>分成組數:</span>
+                        <input type="number" id="group-count-input" class="count-input" value="4" min="1" max="999">
+                        <div class="adjust-buttons-vertical control-adjust-vertical">
+                            <button id="increase-group-count" class="btn-adjust-v">▲</button>
+                            <button id="decrease-group-count" class="btn-adjust-v">▼</button>
+                        </div>
+                    </div>
+                    <button id="group-button" class="btn-action">開始分組</button>
+                    <h3>分組結果:</h3>
+                    <div id="group-results" class="results-box">尚未分組</div>
+                </section>
+            </div>
+
+            <div>
+                <section class="controls" style="position: relative;"> <h2>倒數計時器</h2>
+                    
+                    <div id="time-up-message" class="time-up-message"></div>
+
+                    <div class="timer-adjust-group">
+                        
+                        <div class="time-unit-wrapper">
+                            <div class="adjust-buttons-vertical timer-adjust-vertical">
+                                <button class="btn-adjust-time" data-time-unit="hour" data-action="increase">▲</button>
+                                <button class="btn-adjust-time" data-time-unit="hour" data-action="decrease">▼</button>
+                            </div>
+                            <input type="number" id="hour-input" class="time-part-input" value="00" min="0" max="99">
+                        </div>
+                        <span class="time-separator">:</span>
+
+                        <div class="time-unit-wrapper">
+                            <div class="adjust-buttons-vertical timer-adjust-vertical">
+                                <button class="btn-adjust-time" data-time-unit="minute" data-action="increase">▲</button>
+                                <button class="btn-adjust-time" data-time-unit="minute" data-action="decrease">▼</button>
+                            </div>
+                            <input type="number" id="minute-input" class="time-part-input" value="04" min="0" max="59">
+                        </div>
+                        <span class="time-separator">:</span>
+
+                        <div class="time-unit-wrapper">
+                            <div class="adjust-buttons-vertical timer-adjust-vertical">
+                                <button class="btn-adjust-time" data-time-unit="second" data-action="increase">▲</button>
+                                <button class="btn-adjust-time" data-time-unit="second" data-action="decrease">▼</button>
+                            </div>
+                            <input type="number" id="second-input" class="time-part-input" value="00" min="0" max="59">
+                        </div>
+                    </div>
+
+                    <div class="timer-controls" id="timer-controls">
+                        <button id="start-pause-timer" class="btn-action">開始</button>
+                        <button id="reset-timer" class="btn-action btn-secondary">重設 (00:04:00)</button>
+                    </div>
+                </section>
+            </div>
+            
+        </div>
+
+    </div>
+    
+    <div class="footer-info">
+        <p class="designer-info">設計者：Iônn, Àn-tsiong；技術支援：AI, フォックスコンの響き</p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters" border="0" />
+            </a>
+        </div>
+    </div>
+    <audio id="alarm-sound" src="alarm.mp3" preload="auto" loop></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
