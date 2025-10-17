@@ -1,0 +1,420 @@
+/* --- 顏色定義 (不變) --- */
+:root {
+    --color-primary: #00bcd4; 
+    --color-secondary: #607d8b; 
+    --color-action: #4caf50; 
+    --color-group-bg: #e0f2f1; 
+    --color-timer-border: #00bcd4; 
+    --color-timer-bg: #e0f7fa; 
+    --color-timer-text: #00838f; 
+    --color-removed: #dc3545; 
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    min-height: 100vh; 
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    width: 100%;
+}
+
+h1 {
+    color: var(--color-primary); 
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h2 {
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-top: 20px;
+    color: #555;
+}
+
+/* 回到預設按鈕樣式 */
+#reset-button {
+    display: block;
+    margin: 0 auto 20px auto;
+    width: 150px; 
+    font-size: 1em !important; 
+    padding: 8px 15px !important; 
+}
+
+/* --- 四象限佈局 (不變) --- */
+.top-controls-wrapper {
+    display: flex;
+    gap: 20px; 
+    margin-bottom: 20px; 
+    align-items: stretch; 
+}
+.top-controls-wrapper > div {
+    flex: 1; 
+    min-width: 350px; 
+}
+
+.bottom-controls-wrapper {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    align-items: stretch; 
+}
+.bottom-controls-wrapper > div {
+    flex: 1;
+    min-width: 350px;
+}
+.control-group-bg {
+    background-color: var(--color-group-bg); 
+    border-color: #c0dede; 
+}
+.controls {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    height: 100%; 
+    box-sizing: border-box;
+}
+
+
+/* --- 提示文字樣式 (不變) --- */
+.small-tip {
+    font-size: 0.85em;
+    color: var(--color-secondary);
+    margin-top: -10px; 
+    margin-bottom: 10px;
+}
+
+
+/* --- 籤筒/抽取/分組的數字輸入框樣式 (不變) --- */
+
+.control-group-input {
+    display: flex;
+    align-items: center;
+    gap: 15px; 
+    margin-top: 10px;
+}
+
+.count-input {
+    font-size: 1.2em;
+    font-weight: bold;
+    min-width: 30px;
+    width: 40px; 
+    height: 40px; 
+    text-align: center;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 0; 
+    -moz-appearance: textfield; 
+}
+
+.count-input::-webkit-outer-spin-button,
+.count-input::-webkit-inner-spin-button,
+.time-part-input::-webkit-outer-spin-button,
+.time-part-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.adjust-buttons-vertical {
+    display: flex;
+    flex-direction: column; 
+    gap: 0; 
+}
+
+.control-adjust-vertical {
+    margin-left: 10px; 
+    margin-right: 0; 
+}
+
+.btn-adjust-v {
+    background-color: var(--color-primary); 
+    color: white;
+    border: none;
+    padding: 0 8px; 
+    height: 18px; 
+    line-height: 1; 
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0;
+}
+.btn-adjust-v:hover {
+    background-color: #0097a7; 
+}
+.btn-adjust-v:nth-child(1) { 
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+}
+.btn-adjust-v:nth-child(2) { 
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+/* 主要/次要按鈕樣式 */
+.btn-action {
+    background-color: var(--color-action); 
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    margin-top: 5px; 
+    white-space: nowrap; 
+}
+.btn-secondary {
+    background-color: var(--color-secondary); 
+}
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 15px; 
+    margin-top: 10px;
+    flex-wrap: wrap; 
+}
+
+/* --- 抽籤結果區塊 (不變) --- */
+.results-box {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px; 
+    min-height: 50px; 
+    overflow-y: auto; 
+    font-size: 1em;
+}
+
+.draw-results-large {
+    min-height: 120px; 
+    display: flex;
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center;
+    text-align: center;
+    padding: 15px;
+    background-color: #fff8e1; 
+    border: 2px solid var(--color-primary);
+    font-weight: bold;
+}
+
+.draw-results-large .drawn-history {
+    font-size: 0.7em;
+    color: var(--color-secondary);
+    margin-bottom: 5px;
+}
+.draw-results-large .drawn-numbers {
+    font-size: 2em; 
+    color: var(--color-removed);
+    line-height: 1.1;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    max-height: 80px; 
+    overflow-y: auto;
+}
+.draw-results-large.size-xl .drawn-numbers {
+    font-size: 3em; 
+}
+.draw-results-large.size-lg .drawn-numbers {
+    font-size: 2.5em; 
+}
+.draw-results-large.size-md .drawn-numbers {
+    font-size: 2em; 
+}
+.draw-results-large.size-sm .drawn-numbers {
+    font-size: 1.5em; 
+}
+
+/* --- 計時器樣式 --- */
+
+/* 修正 (1)：確保訊息不被數字遮擋 */
+.time-up-message {
+    text-align: center;
+    font-size: 2.5em;
+    font-weight: bold;
+    color: var(--color-removed); 
+    
+    /* 調整重點 */
+    position: absolute; /* 絕對定位 */
+    top: 70px; /* 相對於 h2 往下一些，避開時鐘區域 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    z-index: 10; /* 確保在數字上方 */
+    /* 調整結束 */
+
+    height: 0; 
+    overflow: hidden; 
+    transition: height 0.3s ease-out;
+}
+.time-up-message.active {
+    height: 40px; 
+    margin-bottom: 10px;
+}
+
+.timer-adjust-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+    padding: 15px 10px;
+    border: 3px solid var(--color-timer-border); 
+    border-radius: 8px;
+    background-color: var(--color-timer-bg); 
+    position: relative; /* 確保時鐘本身不被訊息擠壓 */
+}
+
+.time-unit-wrapper {
+    display: flex; 
+    align-items: center;
+    flex-direction: row-reverse; 
+}
+
+.time-part-input {
+    font-size: 3em;
+    font-weight: bold;
+    color: var(--color-timer-text); 
+    line-height: 1.2;
+    padding: 0 2px; 
+    min-width: 60px; 
+    width: 60px; 
+    text-align: center;
+    background: none; 
+    border: none; 
+    outline: none; 
+    cursor: text;
+    -moz-appearance: textfield; 
+}
+
+.timer-adjust-vertical {
+    margin-left: 0; 
+    margin-right: -20px; 
+}
+
+.btn-adjust-time {
+    background-color: var(--color-primary); 
+    color: white;
+    border: none;
+    padding: 0;
+    width: 30px; 
+    height: 20px; 
+    line-height: 1; 
+    cursor: pointer;
+    font-size: 16px; 
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    margin: 1px 0; 
+}
+.btn-adjust-time:hover {
+    background-color: #0097a7; 
+}
+
+.time-separator {
+    font-size: 3em;
+    font-weight: bold;
+    color: var(--color-timer-text); 
+    line-height: 1.2;
+    padding: 0 20px; 
+}
+
+/* 修正：讓計時器控制按鈕靠右對齊 (3.0版本已完成) */
+.timer-controls {
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 10px; 
+    padding-top: 5px; 
+}
+
+.timer-controls .btn-action {
+    padding: 8px 15px;
+    font-size: 1em;
+    margin-top: 0;
+}
+
+
+/* --- 頁尾和計數器樣式 (不變) --- */
+.footer-info {
+    margin-top: 30px;
+    padding: 10px;
+    text-align: center;
+    font-size: 0.8em;
+    color: #666;
+    max-width: 900px; 
+    width: 100%;
+}
+.designer-info {
+    margin-bottom: 5px;
+}
+.counter-container {
+    margin-top: 5px;
+}
+
+
+/* --- 響應式調整 --- */
+@media (max-width: 900px) {
+    .top-controls-wrapper, .bottom-controls-wrapper {
+        flex-direction: column;
+        gap: 0;
+        align-items: stretch; 
+    }
+    .top-controls-wrapper > div, .bottom-controls-wrapper > div {
+        min-width: unset;
+    }
+    .top-controls-wrapper .controls, .bottom-controls-wrapper .controls {
+         margin-bottom: 20px;
+    }
+    .draw-controls {
+        flex-wrap: wrap; 
+        justify-content: center;
+    }
+    /* 在小螢幕時居中 */
+    .timer-controls {
+        justify-content: center; 
+    }
+    /* 小螢幕時重設訊息定位 */
+    .time-up-message {
+        top: 10px; 
+    }
+}
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
+    }
+    .control-group, .draw-controls {
+        flex-direction: column;
+        align-items: center; 
+    }
+    /* 在極小螢幕下，讓計時器按鈕撐滿寬度 */
+    .timer-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .timer-controls .btn-action {
+        width: 100%;
+    }
+    .control-group-input {
+        flex-direction: column;
+    }
+    .control-group-input .adjust-buttons-vertical {
+        margin-left: 0;
+    }
+}
