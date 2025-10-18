@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 籤筒狀態
     let participants = []; // 當前可用籤號
     let removed = [];      // 已移除籤號
-    let drawnHistory = []; // 修正 (3): 用於記錄不放回模式下已抽出的號碼
+    let drawnHistory = []; // 用於記錄不放回模式下已抽出的號碼
 
     // --- 計時器輔助函數 (不變) ---
     const playAlarm = () => {
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isTimerRunning = false;
             timeRemaining = 0;
             updateTimeInputs(timeRemaining);
-            showTimeUpMessage(); // 修正 (1): 確保顯示在正確位置
+            showTimeUpMessage(); 
             playAlarm();
             startPauseTimerButton.textContent = '開始'; 
             startPauseTimerButton.disabled = true;
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 從總人數中排除已移除的號碼
         participants = allNumbers.filter(num => !removed.includes(num));
         
-        // --- 籤筒顯示邏輯 (不變) ---
+        // --- 籤筒顯示邏輯 (修正 2) ---
         let displayContent = '無';
 
         if (participants.length > 0) {
@@ -222,11 +222,14 @@ document.addEventListener('DOMContentLoaded', () => {
             ranges.push(start === end ? start.toString() : `${start}-${end}`);
             
             if (ranges.length > 5) {
-                 displayContent = `${participants[0]}, ..., ${participants[participants.length - 1]} (共 ${participants.length} 號)`;
+                 // 修正 2: 號 -> 支籤
+                 displayContent = `${participants[0]}, ..., ${participants[participants.length - 1]} (共 ${participants.length} 支籤)`;
             } else if (ranges.length > 0) {
-                displayContent = ranges.join(', ') + ` (共 ${participants.length} 號)`;
+                 // 修正 2: 號 -> 支籤
+                displayContent = ranges.join(', ') + ` (共 ${participants.length} 支籤)`;
             } else {
-                displayContent = participants.join(', ') + ` (共 ${participants.length} 號)`;
+                 // 修正 2: 號 -> 支籤
+                displayContent = participants.join(', ') + ` (共 ${participants.length} 支籤)`;
             }
         }
         currentParticipants.textContent = displayContent;
@@ -249,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 確保移除的號碼不重複且有效
         removed = Array.from(new Set(newRemoved)).sort((a, b) => a - b);
         
-        // (1) 關鍵：每次移除號碼改變時，都確保籤筒狀態被更新
+        // 關鍵：每次移除號碼改變時，都確保籤筒狀態被更新
         generateParticipants(); 
     };
 
@@ -293,24 +296,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // 抽籤邏輯 (修正 (2) & (3))
+    // 抽籤邏輯 (修正 1)
     const handleDraw = () => {
         const count = parseInt(drawCountInput.value) || 1;
         const allowRepeat = allowRepeatCheckbox.checked;
         
-        // 修正 (2) 關鍵：如果是放回模式，需要重新生成籤筒 (因為籤筒在不放回模式下被修改了)
-        // 判斷是否為「放回模式」，或當前籤筒已空
-        if (allowRepeat) {
-            // 如果是放回模式，我們總是以完整的 (未被移除的) participants 列表作為基礎。
-            // 這裡需要重新計算一次完整的 participants 列表，因為 generateParticipants() 會被其他操作（如 reset）觸發。
-            // 由於 generateParticipants 已經在總數/移除號碼變更時被調用，所以 participants 已經是有效的初始狀態。
-        } else if (participants.length === 0) {
+        // 判斷當前籤筒是否已空
+        if (participants.length === 0) {
              drawResults.innerHTML = '<span class="drawn-numbers">籤筒號碼不足，無法抽取。</span>';
              return;
         }
         
         let result = [];
-        // 修正 (2) 關鍵：使用一個臨時的籤筒來執行抽取，避免在「放回」模式下修改全域的 participants 列表
+        // 使用一個臨時的籤筒來執行抽取
         let tempParticipants = [...participants]; 
         const maxDraw = allowRepeat ? count : Math.min(count, tempParticipants.length);
 
@@ -324,22 +322,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const drawnNumber = tempParticipants[randomIndex];
             result.push(drawnNumber);
             
+            // 修正 1: 無論是否放回，單次抽取都需從臨時籤筒移除，確保當前批次無重複
+            tempParticipants.splice(randomIndex, 1); 
+            
             if (!allowRepeat) {
-                // 不放回模式
-                tempParticipants.splice(randomIndex, 1); // 從臨時籤筒移除
-                drawnHistory.push(drawnNumber); // 加入歷史紀錄
+                // 不放回模式：加入永久歷史紀錄
+                drawnHistory.push(drawnNumber); 
             }
         }
         
         adjustFontSize(result.length); 
 
-        // 修正 (3) 顯示已抽過號碼
+        // 顯示已抽過號碼
         const historyText = drawnHistory.length > 0 
             ? `已抽過號碼：${drawnHistory.join(', ')}` 
             : '無';
         
         if (!allowRepeat) {
-            // 修正 (2) 關鍵：將實際抽完後的剩餘籤筒賦值回全域變數 participants
+            // 將實際抽完後的剩餘籤筒賦值回全域變數 participants
             participants = tempParticipants;
             
             drawResults.innerHTML = `
@@ -348,15 +348,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="drawn-history">(籤筒剩餘人數: ${participants.length})</p>
             `;
             // 重新更新籤筒顯示（僅更新剩餘人數文字）
-            // 這裡不再調用 generateParticipants，避免重置 drawnHistory
-            currentParticipants.textContent = currentParticipants.textContent.replace(/\(共 \d+ 號\)/, `(共 ${participants.length} 號)`);
+            // 修正 2: 確保更新後的文字也是「支籤」
+            currentParticipants.textContent = currentParticipants.textContent.replace(/\(共 \d+ 支籤\)/, `(共 ${participants.length} 支籤)`);
             
         } else {
              drawResults.innerHTML = `
-                <p class="drawn-history">模式：放回 (不累積歷史)</p>
+                <p class="drawn-history">模式：放回 (單次抽籤不重複)</p>
                 <p class="drawn-numbers">${result.join(', ')}</p>
-                <p class="drawn-history">(籤筒總人數: ${participants.length})</p>
+                <p class="drawn-history">(籤筒總人數: ${participants.length} 支籤)</p>
             `;
+            // 這裡不需要更新 currentParticipants，因為籤筒人數沒有變動
         }
     };
     

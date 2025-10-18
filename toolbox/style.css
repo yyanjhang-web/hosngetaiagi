@@ -241,31 +241,47 @@ h2 {
     font-size: 1.5em; 
 }
 
-/* --- 計時器樣式 --- */
+/* --- 計時器樣式 (「時間到！」訊息優化開始) --- */
 
-/* 修正 (1)：確保訊息不被數字遮擋 */
+/* 修正 1: 調整 top 值，確保訊息完全顯示在時鐘上方 */
+/* 創意優化 1: 放大字體、添加陰影、增加動畫 */
 .time-up-message {
     text-align: center;
-    font-size: 2.5em;
+    font-size: 3em; /* 放大字體 */
     font-weight: bold;
     color: var(--color-removed); 
     
-    /* 調整重點 */
-    position: absolute; /* 絕對定位 */
-    top: 70px; /* 相對於 h2 往下一些，避開時鐘區域 */
+    position: absolute; 
+    top: 30px; /* 調整 top 值，向上移動 */
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
-    z-index: 10; /* 確保在數字上方 */
-    /* 調整結束 */
-
+    z-index: 10; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* 添加文字陰影 */
+    
     height: 0; 
     overflow: hidden; 
-    transition: height 0.3s ease-out;
+    transition: all 0.3s ease-out; /* 平滑過渡所有屬性 */
+    opacity: 0; /* 初始透明度為 0 */
 }
+
 .time-up-message.active {
-    height: 40px; 
+    height: 50px; /* 調整高度以適應新字體大小 */
     margin-bottom: 10px;
+    opacity: 1; /* 顯示時透明度為 1 */
+    animation: flashMessage 1.5s infinite alternate; /* 添加閃爍動畫 */
+}
+
+/* 定義閃爍動畫 */
+@keyframes flashMessage {
+    from {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+    }
+    to {
+        opacity: 0.7;
+        transform: translateX(-50%) scale(1.05); /* 輕微放大 */
+    }
 }
 
 .timer-adjust-group {
@@ -277,13 +293,14 @@ h2 {
     border: 3px solid var(--color-timer-border); 
     border-radius: 8px;
     background-color: var(--color-timer-bg); 
-    position: relative; /* 確保時鐘本身不被訊息擠壓 */
+    position: relative; 
 }
 
 .time-unit-wrapper {
     display: flex; 
     align-items: center;
-    flex-direction: row-reverse; 
+    flex-direction: row; 
+    padding: 0 5px;
 }
 
 .time-part-input {
@@ -292,8 +309,8 @@ h2 {
     color: var(--color-timer-text); 
     line-height: 1.2;
     padding: 0 2px; 
-    min-width: 60px; 
-    width: 60px; 
+    min-width: 65px; 
+    width: 65px;     
     text-align: center;
     background: none; 
     border: none; 
@@ -303,8 +320,11 @@ h2 {
 }
 
 .timer-adjust-vertical {
-    margin-left: 0; 
-    margin-right: -20px; 
+    display: flex;
+    flex-direction: column; 
+    gap: 0; 
+    margin-left: 5px; 
+    margin-right: 0; 
 }
 
 .btn-adjust-time {
@@ -312,8 +332,8 @@ h2 {
     color: white;
     border: none;
     padding: 0;
-    width: 30px; 
-    height: 20px; 
+    width: 40px;  
+    height: 25px; 
     line-height: 1; 
     cursor: pointer;
     font-size: 16px; 
@@ -333,10 +353,9 @@ h2 {
     font-weight: bold;
     color: var(--color-timer-text); 
     line-height: 1.2;
-    padding: 0 20px; 
+    padding: 0 5px; 
 }
 
-/* 修正：讓計時器控制按鈕靠右對齊 (3.0版本已完成) */
 .timer-controls {
     display: flex; 
     justify-content: flex-end; 
@@ -349,6 +368,7 @@ h2 {
     font-size: 1em;
     margin-top: 0;
 }
+/* --- 計時器樣式 (「時間到！」訊息優化結束) --- */
 
 
 /* --- 頁尾和計數器樣式 (不變) --- */
@@ -369,7 +389,7 @@ h2 {
 }
 
 
-/* --- 響應式調整 --- */
+/* --- 響應式調整 (不變) --- */
 @media (max-width: 900px) {
     .top-controls-wrapper, .bottom-controls-wrapper {
         flex-direction: column;
@@ -380,7 +400,7 @@ h2 {
         min-width: unset;
     }
     .top-controls-wrapper .controls, .bottom-controls-wrapper .controls {
-         margin-bottom: 20px;
+          margin-bottom: 20px;
     }
     .draw-controls {
         flex-wrap: wrap; 
@@ -392,7 +412,8 @@ h2 {
     }
     /* 小螢幕時重設訊息定位 */
     .time-up-message {
-        top: 10px; 
+        top: 10px; /* 小螢幕下微調，避免蓋住標題 */
+        font-size: 2.5em; /* 小螢幕下字體略小 */
     }
 }
 @media (max-width: 600px) {
