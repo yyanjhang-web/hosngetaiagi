@@ -107,7 +107,6 @@
 
         /* --- 求救按鈕與卡片 --- */
         .hint-btn {
-            /* 調整：提示按鈕變小 */
             padding: 1vmin 1.5vmin; 
             font-size: 2vmin;
             cursor: pointer;
@@ -116,7 +115,6 @@
             font-weight: bold;
             color: #333;
             transition: background-color 0.3s, box-shadow 0.3s;
-            /* 提示按鈕在普通模式下不顯示 */
             display: none; 
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
         }
@@ -174,8 +172,13 @@
             background-color: #fff;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 5vmin;
-            padding: 1vmin;
+            
+            /* --- 修改重點開始：統一字體大小 --- */
+            font-size: 3.2vmin; /* 統一設定為適中的 3.2vmin */
+            line-height: 1.3;   /* 增加行高，讓換行的字不會擠在一起 */
+            padding: 0.5vmin;   /* 稍微調整內距 */
+            /* --- 修改重點結束 --- */
+
             box-sizing: border-box;
             user-select: none;
             cursor: pointer;
@@ -184,7 +187,9 @@
             word-break: normal;
             hyphens: auto;
         }
-        .dobble-element.loma { font-size: 3vmin; }
+
+        /* 移除了原本 .dobble-element.loma 的縮小設定，讓所有文字大小一致 */
+        
         .dobble-element.highlight-blue { background-color: #add8e6; transform: scale(1.05); border: 2px solid #5a94a6; }
         .dobble-element.highlight-green { background-color: #90ee90; transform: scale(1.05); border: 2px solid #4a8a4a; }
         
