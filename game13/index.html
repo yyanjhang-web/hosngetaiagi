@@ -1,548 +1,422 @@
-<!DOCTYPE TML html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>互動式動態歌詞播放器 - 分段顯示</title>
+    <title>B3L4_好奇號上火星</title>
     <style>
-        /* ==================================== */
-        /* 1. 頁面基本樣式 */
-        /* ==================================== */
+        :root {
+            /* 預設風格1的變數 (清新藍綠) */
+            --bg-color: #f0f9ff;
+            --container-bg-color: #e0f2f7;
+            --btn-color: #20b2aa;
+            --btn-hover-color: #008b8b;
+            --card-front-color: #b3e0ff;
+            --card-back-color: #81c784;
+            --card-front-text: #005f99;
+            --card-back-text: #004085;
+        }
+
+        /* 風格2 (活潑暖陽 - 翻牌後粉紫色) */
+        .theme-style2 {
+            --bg-color: #fffaf0;
+            --container-bg-color: #ffeccf;
+            --btn-color: #f59e0b;
+            --btn-hover-color: #d97706;
+            --card-front-color: #fbd38d;
+            --card-back-color: #d8b4fe;
+            --card-front-text: #92400e;
+            --card-back-text: #6b21a8;
+        }
+
+        /* 風格3 (深邃科技 - 翻牌後亮黃色) */
+        .theme-style3 {
+            --bg-color: #1a202c;
+            --container-bg-color: #2d3748;
+            --btn-color: #4299e1;
+            --btn-hover-color: #2b6cb0;
+            --card-front-color: #4a5568;
+            --card-back-color: #fcd34d;
+            --card-front-text: #e2e8f0;
+            --card-back-text: #713f12;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
-            justify-content: space-between;
             min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
+            background-color: var(--bg-color);
             color: #333;
+            transition: background-color 0.5s;
+            box-sizing: border-box;
+        }
+        .size-buttons {
+            margin-bottom: 20px;
+        }
+        .style-buttons {
+            margin-top: 10px;
+        }
+        .style-btn, .size-btn {
+            padding: 8px 16px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: var(--btn-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 0 5px;
+            transition: background-color 0.3s;
+        }
+        .style-btn {
+            font-size: 0.9em;
+            padding: 5px 10px;
+        }
+        .style-btn:hover, .size-btn:hover {
+            background-color: var(--btn-hover-color);
+        }
+        .container {
+            display: grid;
+            gap: 2.5vw;
+            padding: 2.5vw;
+            background-color: var(--container-bg-color);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.5s;
+            width: 90%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+        .card {
+            width: 100%;
+            padding-bottom: 70%;
+            height: 0;
+            background-color: var(--card-front-color);
+            border-radius: 10px;
+            cursor: pointer;
+            perspective: 1000px;
+            font-weight: bold;
+            color: var(--card-front-text);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.6s, box-shadow 0.3s;
+            position: relative;
+            box-sizing: border-box;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 媒體查詢：針對小螢幕（手機直向模式）進行優化 */
+        @media (max-width: 600px) and (orientation: portrait) {
+            .container {
+                gap: 10px;
+                padding: 10px;
+            }
+            .card-face {
+                font-size: 0.9em;
+            }
+        }
+        
+        /* 針對平板或電腦橫向模式 */
+        @media (min-width: 601px) {
+            .container {
+                gap: 15px;
+                padding: 20px;
+            }
+            .card {
+                width: 120px;
+                height: 80px;
+                padding-bottom: 0;
+            }
+            .card-face {
+                font-size: 1.2em;
+            }
+        }
+        
+        /* 風格2的卡片動畫 */
+        .theme-style2 .card-inner.flipped {
+            animation: bounce 0.6s forwards;
+        }
+        @keyframes bounce {
+            0% { transform: rotateY(0deg) scale(1); }
+            50% { transform: rotateY(90deg) scale(1.1); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        /* 風格3的卡片動畫 */
+        .theme-style3 .card-inner.flipped {
+            animation: zoomFlip 0.6s forwards;
+        }
+        @keyframes zoomFlip {
+            0% { transform: rotateY(0deg) scale(1); }
+            50% { transform: rotateY(90deg) scale(0.9); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        .card-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            padding: 5px;
+            box-sizing: border-box;
+            
+            /* 讓文字自動換行 */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.2;
             text-align: center;
         }
-
-        .content-container {
-            flex-grow: 1; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 90%;
-            max-width: 700px;
+        .card-front {
+            background-color: var(--card-front-color);
+            color: var(--card-front-text);
         }
-
-        /* 錯誤訊息 */
-        #error-message {
-            color: red;
-            margin-bottom: 10px;
-            font-weight: bold;
-            min-height: 20px;
+        .card-back {
+            background-color: var(--card-back-color);
+            transform: rotateY(180deg);
+            color: var(--card-back-text);
         }
-
-        /* ==================================== */
-        /* 2. 播放器與進度條樣式 */
-        /* ==================================== */
-        #audio-player {
-            display: none; 
-        }
-
-        .controls-group {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-
-        .controls-group button {
-            padding: 10px 15px;
-            font-size: 1.1em;
-            cursor: pointer;
+        
+        .mark-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 15px;
+            height: 15px;
             border: none;
-            border-radius: 8px;
-            transition: background-color 0.3s;
-            margin: 0 5px;
-            color: white;
-            min-width: 120px;
-        }
-
-        /* 進度條 */
-        #progress-container {
-            flex-grow: 1;
-            height: 8px;
-            background-color: #ccc;
-            border-radius: 4px;
-            margin: 0 15px;
+            background-color: rgba(240, 240, 240, 0.5);
+            border-radius: 50%;
             cursor: pointer;
-            position: relative;
+            transition: background-color 0.2s;
+            z-index: 10;
         }
-
-        #progress-bar {
-            height: 100%;
-            width: 0%;
-            background-color: #4CAF50;
-            border-radius: 4px;
+        .mark-btn.marked {
+            background-color: rgba(255, 82, 82, 0.6);
         }
-
-        /* 播放時間顯示 */
-        #time-display {
+        
+        .footer {
+            margin-top: 5px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #666;
+        }
+        .info-text {
+            margin-top: 15px;
+            margin-bottom: 5px;
             font-size: 0.9em;
-            color: #666;
-            min-width: 80px;
-            text-align: right;
-        }
-        
-        /* 按鈕顏色 */
-        #main-control-button { background-color: #4CAF50; }
-        #main-control-button:hover:not(:disabled) { background-color: #45a049; }
-        #secondary-control-button { background-color: #f44336; }
-        #secondary-control-button:hover:not(:disabled) { background-color: #da190b; }
-        #secondary-control-button:not(.visible) { opacity: 0; pointer-events: none; }
-
-
-        /* ==================================== */
-        /* 3. 動態歌詞樣式 (分段模式) */
-        /* ==================================== */
-        #custom-lyrics {
-            height: 40vh; /* 限制高度方便滾動 */
-            overflow-y: auto;
-            margin: 20px 0;
-            padding: 10px;
-            width: 100%;
-            text-align: left;
-            line-height: 1.5;
-            padding-right: 15px; /* 避免滾動條擋住文字 */
-        }
-        
-        /* 歌詞段落群組 */
-        .lyric-group {
-            padding: 10px;
-            margin: 10px 0;
-            border-left: 5px solid transparent;
-            cursor: pointer; /* 點擊群組可跳轉 */
-            transition: all 0.3s;
-            white-space: pre-wrap;
-            font-size: 1.5em; /* 主要群組字體 */
-        }
-
-        /* 群組中的每一行 */
-        .lyric-group span {
-            display: block;
-            color: #888; /* 預設為灰色 */
-            transition: color 0.3s;
-            font-weight: normal;
-            line-height: 1.6;
-        }
-
-        /* 時間到的時候以黑色呈現 */
-        .lyric-group.highlight span {
-            color: #000;
-            font-weight: bold;
-        }
-        
-        .lyric-group.highlight {
-            border-left: 5px solid #4CAF50; /* 高亮左側邊框 */
-            background-color: #eee;
-        }
-
-
-        /* ==================================== */
-        /* 4. 頁面底部元素樣式 */
-        /* ==================================== */
-        .footer-container {
-            width: 100%;
-            max-width: 700px;
-            padding-top: 20px;
-            border-top: 1px solid #ccc;
-            margin-top: 20px;
-        }
-        
-        /* 新增：底部按鈕群組排版 */
-        .button-group {
-            display: flex;
-            gap: 10px; /* 按鈕之間的間距 */
-            justify-content: center;
-            margin-bottom: 10px; 
-        }
-
-        #credit {
-            font-size: 0.8em; 
-            color: #666;
-            margin-bottom: 15px;
-        }
-        
-        /* 計數器樣式 */
-        #counter-container {
-            margin-top: 20px;
-            padding-bottom: 10px;
-        }
-
-        /* A1 按鈕樣式 (維持不變) */
-        .a1-button {
-            /* 顏色: 灰白色調 (背景色 #e0e0e0) */
-            background-color: #e0e0e0;
-            color: #333;
-            border: none;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
-            /* 字體大小 0.85em */
-            font-size: 0.85em; 
-            padding: 8px 15px;
-            transition: background-color 0.3s;
-        }
-
-        /* 滑鼠懸停時為 #c0c0c0 */
-        .a1-button:hover {
-            background-color: #c0c0c0;
+            color: #555;
         }
     </style>
 </head>
-<body>
+<body class="theme-style1">
 
-    <div class="content-container">
-        <div id="error-message"></div>
-
-        <div class="controls-group">
-            <button id="main-control-button">播放</button>
-            <button id="secondary-control-button">暫停</button>
-            
-            <div id="progress-container">
-                <div id="progress-bar"></div>
-            </div>
-            
-            <span id="time-display">0:00 / 0:00</span>
-        </div>
-        
-        <div id="custom-lyrics"></div>
+    <div class="size-buttons">
+        <button class="size-btn" onclick="shuffleCards(3)">3×3</button>
+        <button class="size-btn" onclick="shuffleCards(4)">4×4</button>
+        <button class="size-btn" onclick="shuffleCards(5)">5×5</button>
     </div>
 
-    <div class="footer-container">
-        <p id="credit">動態歌詞製作：Iônn Àn-tsiong；技術支援：フォックスコンの響き</p>
-        
-        <div class="button-group">
-            <a id="audio-source-video-button" 
-                href="https://www.youtube.com/watch?v=t3n62I5FTUY" 
-                class="a1-button" 
-                target="_blank" 
-                rel="noopener noreferrer">
-                音源影片
-            </a>
-            
-            <a id="performance-video-button" 
-                href="https://www.youtube.com/watch?v=ZtreF2bUHIA" 
-                class="a1-button" 
-                target="_blank" 
-                rel="noopener noreferrer">
-                演唱影片
-            </a>
-        </div>
+    <div class="container"></div>
+
+    <p class="info-text">點擊上方按鈕可重新發牌或調整大小</p>
+
+    <div class="style-buttons">
+        <button class="style-btn" onclick="applyStyle('theme-style1')">式1</button>
+        <button class="style-btn" onclick="applyStyle('theme-style2')">式2</button>
+        <button class="style-btn" onclick="applyStyle('theme-style3')">式3</button>
     </div>
 
-    <div id="counter-container">
-        <a href="https://www.hitwebcounter.com/" target="_blank">
-        <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters" border="0" /></a>
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong；技術支援：フォックスコンの響き</p>
     </div>
-
-    <audio id="audio-player">
-        <source src="ngphinguan.mp3" type="audio/mpeg">
-        您的瀏覽器不支援 MP3 播放。
-    </audio>
 
     <script>
-        const audioPlayer = document.getElementById('audio-player');
-        const mainControlButton = document.getElementById('main-control-button');
-        const secondaryControlButton = document.getElementById('secondary-control-button');
-        const lyricsDiv = document.getElementById('custom-lyrics');
-        const progressBar = document.getElementById('progress-bar');
-        const progressContainer = document.getElementById('progress-container');
-        const timeDisplay = document.getElementById('time-display');
-        const errorMessageDiv = document.getElementById('error-message'); 
-        let syncInterval;
-
-        // ====================================
-        // 1. 歌詞資料結構 (維持不變)
-        // ====================================
-        const lyricsData = [
-            // 歌曲開頭至第一段副歌前 (維持不變)
-            { time: 27.9, text: "★★★", duration: 1.0 },
-            { time: 28.9, text: "★★", duration: 1.0 },
-            { time: 29.9, text: "★", duration: 2.0 }, 
-            { 
-                time: 31.9, 
-                text: "M̄ tsai-iánn ū tsiah kú bô siūnn-tio̍h i\nKiânn kàu tsit tiâu tn̄t-kiô\nTsiah tsai ū tsiah tsē nî",
-                duration: 44.9 - 31.9 
-            }, 
-            { 
-                time: 44.9, 
-                text: "Tshiū suan-tîn\nLōo huat-tsháu\nKhe iáu-ū tsuí\nKiô-tíng i ê hîng-iánn\nSuah tsit-tsūn lâi phû khí",
-                duration: 57.9 - 44.9 
-            }, 
-            { time: 57.9, text: "★★", duration: 1.0 },
-            { time: 58.9, text: "★", duration: 1.5 }, 
-            { 
-                time: 60.4, 
-                text: "Guá hó-tshiūnn hit-tsiah\nSit-khì ài-tsîng ê pe̍h-līng-si",
-                duration: 68.9 - 60.4 
-            }, 
-            { 
-                time: 68.9, 
-                text: "Hiō-hué bô kóng-tshut hit kù uē\nIt-ti̍t tiàm bong-bū tiong\nPue kuè-lâi\nPue kuè-khì",
-                duration: 80.9 - 68.9
-            }, 
-            { 
-                time: 80.9, 
-                text: "Tsia mā bô i\nHia mā bô i\nM̄-tsai i kám ū hām guá\nŪ kāng-khuán ê tsu-bī",
-                duration: 95.0 - 80.9 
-            }, 
-            
-            // 新增的後半段歌詞
-            { time: 95.0, text: "", duration: 2.0 }, 
-            { time: 97.0, text: "★★★", duration: 1.0 },
-            { time: 98.0, text: "★★", duration: 1.0 },
-            { time: 99.0, text: "★", duration: 1.0 }, 
-            { 
-                time: 100.0, 
-                text: "一番星に祈る\nそれが私のくせになり",
-                duration: 114.0 - 100.0 
-            }, 
-            { 
-                time: 114.0, 
-                text: "夕暮れに見上げる空\n心いっぱいあなた探す",
-                duration: 127.0 - 114.0 
-            }, 
-            { time: 127.0, text: "★", duration: 1.0 },
-            { 
-                time: 128.0, 
-                text: "悲しみにも 喜びにも\nおもうあの笑顔",
-                duration: 142.0 - 128.0
-            }, 
-            { 
-                time: 142.0, 
-                text: "あなたの場所から私が\n見えたら きっといつか\n会えると信じ 生きてゆく",
-                duration: 166.0 - 142.0 
-            }, 
-            // 修正區域
-            { 
-                time: 166.0, 
-                text: "(間奏)",
-                duration: 194.0 - 166.0
-            }, 
-            { time: 194.0, text: "★★★", duration: 1.0 },
-            { time: 195.0, text: "★★", duration: 1.0 }, 
-            { time: 196.0, text: "★", duration: 1.0 }, 
-            { 
-                time: 197.0, 
-                text: "晴れ渡る日も 雨の日も\n浮かぶあの笑顔",
-                duration: 211.0 - 197.0
-            }, 
-            // 修正區域結束
-            { 
-                time: 211.0, 
-                text: "想い出遠くあせても\nさみしくて 恋しくて\n君への想い 涙そうそう",
-                duration: 232.0 - 211.0
-            }, 
-            { 
-                time: 232.0, 
-                text: "会いたくて 会いたくて\n君への想い 涙そうそう",
-                duration: 248.0 - 232.0 
-            }, 
-            { 
-                time: 248.0, 
-                text: "(來賓請掌聲鼓勵)",
-                duration: 999.0 
-            }
+        const originalCards = [
+  {
+    "hanzi": "倚",
+    "roman": "úá"
+  },
+  {
+    "hanzi": "四序",
+    "roman": "sù-sī"
+  },
+  {
+    "hanzi": "猛掠",
+    "roman": "mé-lia̍h"
+  },
+  {
+    "hanzi": "接接",
+    "roman": "tsih-tsiap"
+  },
+  {
+    "hanzi": "苦毒",
+    "roman": "khóo-to̍k"
+  },
+  {
+    "hanzi": "搝",
+    "roman": "khiú"
+  },
+  {
+    "hanzi": "走揣",
+    "roman": "tsáu-tshuē"
+  },
+  {
+    "hanzi": "(扌回)",
+    "roman": "huê"
+  },
+  {
+    "hanzi": "頕頭",
+    "roman": "tìm-thâu"
+  },
+  {
+    "hanzi": "電甲金鑠鑠",
+    "roman": "tiān kah kim-siak-siak"
+  },
+  {
+    "hanzi": "好勢",
+    "roman": "hó-sè"
+  },
+  {
+    "hanzi": "綴袂著",
+    "roman": "tuè-bē-tio̍h"
+  },
+  {
+    "hanzi": "捷",
+    "roman": "tsia̍p"
+  },
+  {
+    "hanzi": "熟似",
+    "roman": "si̍k-sāi"
+  },
+  {
+    "hanzi": "線頂",
+    "roman": "suànn-tíng"
+  },
+  {
+    "hanzi": "親身",
+    "roman": "tshin-sin"
+  },
+  {
+    "hanzi": "無偌久",
+    "roman": "bô-guā-kú"
+  },
+  {
+    "hanzi": "無彩",
+    "roman": "bô-tshái"
+  },
+  {
+    "hanzi": "那...那",
+    "roman": "ná...ná"
+  },
+  {
+    "hanzi": "鬥相報",
+    "roman": "tàu sio pò"
+  },
+  {
+    "hanzi": "開破",
+    "roman": "khui-phuà"
+  },
+  {
+    "hanzi": "時行",
+    "roman": "sî-kiânn"
+  },
+  {
+    "hanzi": "三不五時",
+    "roman": "sam-put-gōo-sî"
+  },
+  {
+    "hanzi": "厝邊兜",
+    "roman": "tshù-pinn-tau"
+  },
+  {
+    "hanzi": "彼寡",
+    "roman": "hit kuá"
+  }
         ];
 
-        let currentGroupIndex = -1; 
+        const container = document.querySelector('.container');
+        let currentSize = 3;
 
-        // ====================================
-        // 2. 初始化與事件監聽 (維持不變)
-        // ====================================
-
-        const formatTime = (seconds) => {
-            if (isNaN(seconds)) return '0:00';
-            const min = Math.floor(seconds / 60);
-            const sec = Math.floor(seconds % 60);
-            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-        };
-
-        // 處理播放邏輯 (僅處理播放/重來，不處理繼續)
-        async function handlePlay() {
-            errorMessageDiv.textContent = ''; 
-            
-            const isInitialPlay = mainControlButton.textContent === '播放';
-            const isReplay = mainControlButton.textContent === '重來' || audioPlayer.ended;
-
-            // 只有在「初次播放」或「重來」時，才將時間重置到 27.9 秒。
-            if (isInitialPlay || isReplay) {
-                audioPlayer.currentTime = 27.9;
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
-            
-            try {
-                await audioPlayer.play();
-                mainControlButton.textContent = '重來'; 
-            } catch (error) {
-                console.error("Audio play failed:", error);
-                
-                if (error.name === "NotAllowedError" || error.name === "AbortError") {
-                     errorMessageDiv.textContent = '播放失敗：瀏覽器限制了音訊自動播放。請再次點擊「播放」按鈕。';
-                } else {
-                    errorMessageDiv.textContent = '播放失敗：音訊可能尚未載入或檔案有誤。請確認 ngphinguan.mp3 檔案在正確的位置。';
-                }
-                
-                mainControlButton.textContent = isReplay ? '重來' : '播放';
-            }
+            return array;
         }
 
-        audioPlayer.addEventListener('loadedmetadata', () => {
-            timeDisplay.textContent = `0:00 / ${formatTime(audioPlayer.duration)}`;
-            renderLyrics();
-            errorMessageDiv.textContent = '';
-        });
-        
-        audioPlayer.addEventListener('error', (e) => {
-            errorMessageDiv.textContent = `音訊載入錯誤。請確認 ngphinguan.mp3 檔案在正確的位置。`;
-            console.error('Audio Error:', e.target.error);
-        });
-
-        // 主要控制按鈕 (播放/重來)
-        mainControlButton.addEventListener('click', handlePlay);
-
-        // 次要控制按鈕 (暫停/繼續) 邏輯 (維持不變)
-        secondaryControlButton.addEventListener('click', () => {
-            if (audioPlayer.paused) {
-                // 如果是暫停狀態 (顯示「繼續」)，直接呼叫 play()
-                audioPlayer.play(); 
-            } else {
-                // 如果是播放狀態 (顯示「暫停」)，直接呼叫 pause()
-                audioPlayer.pause();
-            }
-        });
-
-        audioPlayer.addEventListener('play', () => {
-            secondaryControlButton.textContent = '暫停';
-            secondaryControlButton.classList.add('visible');
-            mainControlButton.textContent = '重來';
-            startLyricSync();
-            errorMessageDiv.textContent = '';
-        });
-
-        audioPlayer.addEventListener('pause', () => {
-            secondaryControlButton.textContent = '繼續';
-            stopLyricSync();
-        });
-
-        audioPlayer.addEventListener('ended', () => {
-            mainControlButton.textContent = '播放';
-            secondaryControlButton.classList.remove('visible');
-            timeDisplay.textContent = `${formatTime(audioPlayer.duration)} / ${formatTime(audioPlayer.duration)}`;
-            highlightGroup(-1); 
-            stopLyricSync();
-        });
-
-        // 點擊歌詞群組跳轉邏輯 (維持不變)
-        lyricsDiv.addEventListener('click', (e) => {
-            let targetGroup = e.target.closest('.lyric-group');
+        function renderCards(cards, size) {
+            container.innerHTML = '';
+            container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
             
-            if (targetGroup) {
-                const targetTime = parseFloat(targetGroup.dataset.time);
-                audioPlayer.currentTime = targetTime;
-                
-                // 直接呼叫 play()，繞過 handlePlay() 的重置邏輯
-                audioPlayer.play(); 
-            }
-        });
+            const cardCount = size * size;
+            const selectedCards = shuffleArray([...originalCards]).slice(0, cardCount);
 
-        // 點擊進度條跳轉 (維持不變)
-        progressContainer.addEventListener('click', (e) => {
-            const clickX = e.offsetX;
-            const containerWidth = progressContainer.clientWidth;
-            const percentage = clickX / containerWidth;
-            audioPlayer.currentTime = audioPlayer.duration * percentage;
-            
-            // 點擊進度條後，如果未播放，也應開始播放
-            if (audioPlayer.paused) {
-                audioPlayer.play(); // 直接呼叫 play()，保持當前時間
-            }
-        });
-
-
-        // ====================================
-        // 3. 歌詞渲染與同步邏輯 (維持不變)
-        // ====================================
-
-        function renderLyrics() {
-            lyricsDiv.innerHTML = lyricsData.map((lyric, index) => {
-                const textHTML = lyric.text.split('\n').map(line => `<span>${line.trim()}</span>`).join('');
-                return `
-                    <div class="lyric-group" data-time="${lyric.time}" data-index="${index}">
-                        ${textHTML}
+            selectedCards.forEach(cardData => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-face card-front">${cardData.roman}</div>
+                        <div class="card-face card-back">${cardData.hanzi}</div>
                     </div>
+                    <div class="mark-btn"></div>
                 `;
-            }).join('');
-        }
+                container.appendChild(cardElement);
 
-        function highlightGroup(index) {
-            const allGroups = lyricsDiv.querySelectorAll('.lyric-group');
-            if (currentGroupIndex !== index) {
-                
-                if (currentGroupIndex >= 0 && currentGroupIndex < allGroups.length) {
-                    allGroups[currentGroupIndex].classList.remove('highlight');
-                }
-
-                if (index >= 0 && index < allGroups.length) {
-                    allGroups[index].classList.add('highlight');
-                    
-                    const group = allGroups[index];
-                    
-                    // 保持最穩定的居中滾動
-                    group.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center' 
-                    });
-                }
-                currentGroupIndex = index;
-            } else if (index === -1 && currentGroupIndex !== -1) {
-                allGroups.forEach(group => group.classList.remove('highlight'));
-                currentGroupIndex = -1;
-            }
-        }
-
-        function startLyricSync() {
-            if (syncInterval) return;
-
-            syncInterval = setInterval(() => {
-                const currentTime = audioPlayer.currentTime;
-                const duration = audioPlayer.duration;
-
-                if (duration > 0) {
-                    const progressPercent = (currentTime / duration) * 100;
-                    progressBar.style.width = `${progressPercent}%`;
-                    timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
-                }
-
-                let newIndex = -1;
-                for (let i = 0; i < lyricsData.length; i++) {
-                    const lyric = lyricsData[i];
-                    
-                    if (currentTime >= lyric.time && currentTime < lyric.time + lyric.duration) {
-                        newIndex = i;
-                        break;
+                const cardInner = cardElement.querySelector('.card-inner');
+                cardElement.addEventListener('click', () => {
+                    cardElement.classList.toggle('flipped');
+                    if (cardElement.classList.contains('flipped')) {
+                        cardInner.classList.add('flipped');
+                    } else {
+                        cardInner.classList.remove('flipped');
                     }
-                }
-                
-                highlightGroup(newIndex);
+                });
 
-            }, 200); 
+                const markBtn = cardElement.querySelector('.mark-btn');
+                markBtn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    markBtn.classList.toggle('marked');
+                });
+            });
         }
 
-        function stopLyricSync() {
-            clearInterval(syncInterval);
-            syncInterval = null;
+        function shuffleCards(size) {
+            currentSize = size;
+            renderCards(originalCards, currentSize);
         }
 
+        function applyStyle(styleName) {
+            const body = document.body;
+            body.className = '';
+            body.classList.add(styleName);
+        }
+
+        window.onload = () => {
+            shuffleCards(3);
+            applyStyle('theme-style1');
+        };
     </script>
+<a href="https://www.hitwebcounter.com/" target="_blank">
+<img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters"   border="0" /></a>        
 </body>
 </html>
