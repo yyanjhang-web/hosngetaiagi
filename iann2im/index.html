@@ -7,31 +7,33 @@
     <style>
     /* CSS 樣式：簡約流線風格 */
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 更改字體，提升現代感 */
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
         margin: 0;
-        background-color: #f8f8f8; /* 柔和淺米灰色背景 */
+        background-color: #f8f8f8; 
         text-align: center;
     }
 
     .video-container {
-        padding: 25px; /* 增加內邊距 */
+        padding: 25px;
         background-color: #ffffff;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* 讓陰影更明顯，但依然柔和 */
-        border-radius: 16px; /* 增加大圓角，讓卡片更具設計感 */
-        max-width: 720px; /* 稍微增加最大寬度 */
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-radius: 16px;
+        max-width: 720px;
         width: 90%;
-        border: 1px solid #eeeeee; /* 新增極淺的邊框，讓邊界清晰 */
+        border: 1px solid #eeeeee;
+        /* 💡 修訂點一：將容器下方的邊距設為 0，讓它與頁腳更靠近 */
+        margin-bottom: 0; 
     }
 
     h1 {
-        color: #3d3d3d; /* 更深的柔和灰，突出標題 */
+        color: #3d3d3d;
         margin-bottom: 5px;
-        font-size: 2em; /* 稍微加大標題字體 */
+        font-size: 2em;
         font-weight: 600;
     }
     
@@ -40,31 +42,29 @@
         width: 60%;
         height: 1px;
         background-color: #e5e5e5;
-        margin: 15px auto 25px auto; /* 上下邊距和居中 */
+        margin: 15px auto 25px auto;
     }
 
     /* 資訊連結/按鈕區塊 */
     .info-link {
-        /* 您的按鈕A1格式，但作為一個區塊元素 */
         background-color: #e0e0e0; 
         color: #4a4a4a;
         border: none;
-        padding: 12px 20px; /* 增加垂直高度 */
+        padding: 12px 20px;
         text-align: center;
         display: inline-block;
-        font-size: 0.9em; /* 稍微加大字體 */
+        font-size: 0.9em;
         margin-bottom: 25px;
-        border-radius: 8px; /* 中等圓角 */
-        transition: background-color 0.3s, transform 0.1s; /* 加入 transform 準備 hover 效果 */
+        border-radius: 8px;
+        transition: background-color 0.3s, transform 0.1s;
         cursor: default;
-        width: auto; /* 寬度根據內容自動調整 */
+        width: auto;
         max-width: 90%;
     }
     
-    /* 💡 修訂：滑鼠懸停效果，增加互動感 */
     .info-link:hover {
         background-color: #c0c0c0;
-        transform: translateY(-1px); /* 輕微上移，模擬點擊感 */
+        transform: translateY(-1px);
     }
 
     /* 影片嵌入區塊 */
@@ -82,14 +82,15 @@
         left: 0;
         width: 100%;
         height: 100%;
-        border: 1px solid #e0e0e0; /* 新增邊框作為影片框 */
-        border-radius: 8px; /* 讓影片框有圓角 */
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
     }
 
     /* 頁腳樣式 */
     footer {
-        margin-top: 40px; /* 增加頁腳與主內容的距離 */
-        padding: 10px;
+        /* 💡 修訂點二：大幅減少頁腳上方的邊距，使其緊貼容器 */
+        margin-top: 15px; 
+        padding: 5px 10px; /* 稍微減少垂直內邊距 */
         text-align: center;
         color: #888;
         max-width: 720px;
@@ -97,8 +98,11 @@
     }
 
     .disclaimer {
+        /* 頁腳文字的行距保持不變，但將段落上下的邊距也移除或減少 */
+        margin-top: 5px; 
+        margin-bottom: 5px;
         font-size: 0.75em; 
-        line-height: 1.8; /* 增加行距，讓免責聲明更易閱讀 */
+        line-height: 1.8;
     }
 </style>    
 </head>
