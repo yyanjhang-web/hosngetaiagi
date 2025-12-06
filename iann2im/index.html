@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP4 影片播放器</title>
+    <style>
+        /* CSS 樣式：讓影片在頁面中央並美觀一點 */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        .video-container {
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #playButton {
+            /* 使用您喜歡的按鈕A1格式 */
+            background-color: #e0e0e0; /* 灰白色調 */
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.85em; /* 字體大小 */
+            margin-top: 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            color: #333;
+        }
+
+        #playButton:hover {
+            background-color: #c0c0c0; /* 滑鼠懸停時 */
+        }
+
+        /* 隱藏影片元素直到點擊按鈕 */
+        #myVideo {
+            display: none;
+            width: 100%; /* 讓影片填滿容器 */
+            max-width: 640px; /* 最大寬度 */
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-container">
+        <h1>點擊按鈕播放 MP4 影片</h1>
+        
+        <button id="playButton">
+            開始播放
+        </button>
+
+        <video id="myVideo" controls>
+            <source src="your_video.mp4" type="video/mp4">
+            您的瀏覽器不支援 HTML5 影片標籤。
+        </video>
+    </div>
+
+    <script>
+        document.getElementById('playButton').addEventListener('click', function() {
+            const video = document.getElementById('myVideo');
+            const button = document.getElementById('playButton');
+            
+            // 1. 顯示影片元素
+            video.style.display = 'block';
+            
+            // 2. 嘗試播放影片
+            // 注意：現代瀏覽器為了防止惡意廣告，會阻止沒有使用者互動的「自動播放」。
+            // 這裡的播放是在使用者點擊按鈕（使用者互動）後觸發的，因此會成功。
+            video.play()
+                .then(() => {
+                    // 播放成功後，隱藏按鈕
+                    button.style.display = 'none';
+                    console.log("影片已開始播放");
+                })
+                .catch(error => {
+                    // 播放失敗 (例如瀏覽器仍有額外限制)
+                    console.error("影片播放失敗:", error);
+                    alert("無法自動播放影片。請手動點擊影片上的播放按鈕。");
+                });
+        });
+    </script>
+
+</body>
+</html>
