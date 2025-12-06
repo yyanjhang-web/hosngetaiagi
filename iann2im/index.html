@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>伍佰_白鴒鷥kap字幕</title>
     <style>
-        /* CSS 樣式：襯線字體與顏色層次版本 (已整合釘子定位) */
+        /* CSS 樣式：襯線字體與顏色層次版本 (已整合卡片內釘子定位) */
         body {
-            /* 💡 釘子定位的關鍵：相對定位 */
-            position: relative; 
-            /* 💡 字體修訂：中文使用襯線（宋體/明體），英文/數字使用簡約無襯線 */
+            /* 移除 position: relative;，讓 body 恢復預設定位 */
             font-family: 'Times New Roman', "serif", 'Microsoft YaHei', 'Arial', sans-serif;
             display: flex;
             flex-direction: column;
@@ -21,27 +19,9 @@
             text-align: center;
         }
 
-        /* 新增：佈告欄釘子樣式 */
-        .pin {
-            position: absolute; /* 絕對定位 */
-            font-size: 2em; /* 釘子大小 */
-            z-index: 1000; /* 確保釘子在所有內容之上 */
-            opacity: 0.8; /* 稍微透明，更自然 */
-        }
-
-        .top-left {
-            top: 15px; /* 距離頂部邊緣 */
-            left: 15px; /* 距離左側邊緣 */
-            transform: rotate(-20deg); /* 輕微旋轉 */
-        }
-
-        .top-right {
-            top: 15px; /* 距離頂部邊緣 */
-            right: 15px; /* 距離右側邊緣 */
-            transform: rotate(20deg); /* 輕微旋轉 */
-        }
-
         .video-container {
+            /* 💡 釘子定位的關鍵：相對定位，讓釘子相對於此容器定位 */
+            position: relative; 
             padding: 25px;
             background-color: #ffffff;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
@@ -50,8 +30,29 @@
             width: 90%;
             border: 1px solid #eeeeee;
             margin-bottom: 0; 
-            /* 💡 修訂：為釘子預留空間，讓卡片稍微下移 */
-            margin-top: 40px; 
+            /* 移除 margin-top: 40px;，讓卡片不需要為全頁釘子預留空間 */
+        }
+
+        /* 釘子樣式 */
+        .pin {
+            position: absolute; /* 絕對定位 */
+            font-size: 2em;
+            z-index: 10; /* 確保釘子疊在卡片內容上方 */
+            opacity: 0.8;
+            /* 💡 修訂：讓釘子部分落在邊框外，更有「釘住」的真實感 */
+            transform: translate(-50%, -50%); 
+        }
+
+        .top-left {
+            top: 0px; 
+            left: 0px; 
+            transform: translate(-50%, -50%) rotate(-20deg);
+        }
+
+        .top-right {
+            top: 0px; 
+            right: 0px; 
+            transform: translate(50%, -50%) rotate(20deg);
         }
 
         /* (1) H1 標題：最深沉的顏色，強調主題 */
@@ -144,11 +145,11 @@
     </style>
 </head>
 <body>
-
-    <div class="pin top-left">📌</div>
-    <div class="pin top-right">📌</div>
-
+    
     <div class="video-container">
+        <div class="pin top-left">📌</div>
+        <div class="pin top-right">📌</div>
+
         <h1>
             <ruby>伍佰<rp>(</rp><rt>Gō͘-pah</rt><rp>)</rp></ruby>
             _
@@ -179,6 +180,6 @@
             本影片是上課ê宿題，無惡意使用的意圖
         </p>
     </footer>
-    
+
 </body>
 </html>
