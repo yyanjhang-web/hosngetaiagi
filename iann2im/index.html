@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>伍佰_白鴒鷥kap字幕</title>
     <style>
-    /* CSS 樣式：簡約流線風格 */
+    /* CSS 樣式：簡約流線風格 (H1, H2, H3 版本) */
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         display: flex;
@@ -22,47 +22,55 @@
         padding: 25px;
         background-color: #ffffff;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        border-radius: 16px;
+        border-radius: 16px; 
         max-width: 720px;
         width: 90%;
         border: 1px solid #eeeeee;
-        /* 💡 修訂點一：將容器下方的邊距設為 0，讓它與頁腳更靠近 */
         margin-bottom: 0; 
     }
 
+    /* (1) H1 標題：最大、最醒目 */
     h1 {
-        color: #3d3d3d;
+        color: #3d3d3d; 
         margin-bottom: 5px;
-        font-size: 2em;
+        font-size: 2em; 
         font-weight: 600;
     }
-    
+
     /* 新增：分隔線樣式 */
     .separator {
         width: 60%;
         height: 1px;
         background-color: #e5e5e5;
-        margin: 15px auto 25px auto;
+        margin: 15px auto 20px auto; 
+    }
+    
+    /* (2) H2 標題：第二層級，課程或專案名稱 */
+    h2 {
+        color: #555; /* 比 H1 稍淺 */
+        font-size: 1.25em; 
+        font-weight: 500;
+        margin-top: 0;
+        margin-bottom: 5px;
     }
 
-    /* 資訊連結/按鈕區塊 */
-    .info-link {
+    /* (3) H3 標題：第三層級，學員資訊。使用您原本A1按鈕的灰白色調風格 */
+    h3 {
+        /* 使用原本 info-link 的設計，但作為標題元素 */
         background-color: #e0e0e0; 
         color: #4a4a4a;
-        border: none;
-        padding: 12px 20px;
-        text-align: center;
-        display: inline-block;
-        font-size: 0.9em;
+        border: 1px solid #d0d0d0; 
+        padding: 8px 20px;
+        display: inline-block; /* 讓背景色只包住文字 */
+        font-size: 0.9em; 
+        font-weight: 500;
+        margin-top: 5px;
         margin-bottom: 25px;
         border-radius: 8px;
         transition: background-color 0.3s, transform 0.1s;
-        cursor: default;
-        width: auto;
-        max-width: 90%;
     }
     
-    .info-link:hover {
+    h3:hover {
         background-color: #c0c0c0;
         transform: translateY(-1px);
     }
@@ -88,9 +96,8 @@
 
     /* 頁腳樣式 */
     footer {
-        /* 💡 修訂點二：大幅減少頁腳上方的邊距，使其緊貼容器 */
         margin-top: 15px; 
-        padding: 5px 10px; /* 稍微減少垂直內邊距 */
+        padding: 5px 10px; 
         text-align: center;
         color: #888;
         max-width: 720px;
@@ -98,23 +105,26 @@
     }
 
     .disclaimer {
-        /* 頁腳文字的行距保持不變，但將段落上下的邊距也移除或減少 */
         margin-top: 5px; 
         margin-bottom: 5px;
         font-size: 0.75em; 
         line-height: 1.8;
     }
-</style>    
+</style>
+
+    
 </head>
 <body>
 
-    <div class="video-container">
+<div class="video-container">
         <h1>伍佰_白鴒鷥kap字幕</h1>
         
-        <div class="info-link">
-            楊晏彰 Iônn Àn-chiong                2024K4032
-        </div>
+        <div class="separator"></div>
 
+        <h2>成大詹文聲班</h2>
+        
+        <h3>楊晏彰 Iônn Àn-chiong 2024K4032</h3>
+        
         <div class="iframe-wrapper">
             <iframe 
                 src="https://drive.google.com/file/d/1Mr9MJJlAUHZUur3HSWFmCtU5V6Hao3sH/preview" 
@@ -124,6 +134,7 @@
             ></iframe>
         </div>
     </div>
+    
 
     <footer>
         <p class="disclaimer">
