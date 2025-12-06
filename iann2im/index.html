@@ -5,130 +5,157 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>伍佰_白鴒鷥kap字幕</title>
     <style>
-    /* CSS 樣式：襯線字體與顏色層次版本 */
-    body {
-        /* 💡 字體修訂：中文使用襯線（宋體/明體），英文/數字使用簡約無襯線 */
-        font-family: 'Times New Roman', "serif", 'Microsoft YaHei', 'Arial', sans-serif;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        margin: 0;
-        background-color: #f8f8f8; 
-        text-align: center;
-    }
+        /* CSS 樣式：襯線字體與顏色層次版本 (已整合釘子定位) */
+        body {
+            /* 💡 釘子定位的關鍵：相對定位 */
+            position: relative; 
+            /* 💡 字體修訂：中文使用襯線（宋體/明體），英文/數字使用簡約無襯線 */
+            font-family: 'Times New Roman', "serif", 'Microsoft YaHei', 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f8f8f8; 
+            text-align: center;
+        }
 
-    .video-container {
-        padding: 25px;
-        background-color: #ffffff;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        border-radius: 16px; 
-        max-width: 720px;
-        width: 90%;
-        border: 1px solid #eeeeee;
-        margin-bottom: 0; 
-    }
+        /* 新增：佈告欄釘子樣式 */
+        .pin {
+            position: absolute; /* 絕對定位 */
+            font-size: 2em; /* 釘子大小 */
+            z-index: 1000; /* 確保釘子在所有內容之上 */
+            opacity: 0.8; /* 稍微透明，更自然 */
+        }
 
-    /* (1) H1 標題：最深沉的顏色，強調主題 */
-    h1 {
-        /* 💡 顏色修訂：使用近乎黑色的深灰藍，更具份量感 */
-        color: #2c3e50; 
-        margin-bottom: 2px; 
-        font-size: 2em; 
-        font-weight: 700; /* 加粗 */
-    }
+        .top-left {
+            top: 15px; /* 距離頂部邊緣 */
+            left: 15px; /* 距離左側邊緣 */
+            transform: rotate(-20deg); /* 輕微旋轉 */
+        }
 
-    /* 新增：分隔線樣式 */
-    .separator {
-        width: 60%;
-        height: 1px;
-        background-color: #e5e5e5;
-        margin: 10px auto 10px auto; 
-    }
-    
-    /* (2) H2 標題：第二層級，課程或專案名稱 */
-    h2 {
-        /* 💡 顏色修訂：使用柔和的灰色，與 H1 區隔 */
-        color: #7f8c8d; 
-        font-size: 1.25em; 
-        font-weight: 500;
-        margin-top: 0;
-        margin-bottom: 2px; 
-    }
+        .top-right {
+            top: 15px; /* 距離頂部邊緣 */
+            right: 15px; /* 距離右側邊緣 */
+            transform: rotate(20deg); /* 輕微旋轉 */
+        }
 
-    /* (3) H3 標題：第三層級，學員資訊。維持您A1的灰白風格，但調整文字顏色。 */
-    h3 {
-        background-color: #e0e0e0; 
-        /* 💡 顏色修訂：文字顏色使用深灰色 */
-        color: #4a4a4a;
-        border: 1px solid #d0d0d0; 
-        padding: 8px 20px;
-        display: inline-block;
-        font-size: 0.9em; 
-        font-weight: 500;
-        margin-top: 2px; 
-        margin-bottom: 15px; 
-        border-radius: 8px;
-        transition: background-color 0.3s, transform 0.1s;
-    }
-    
-    h3:hover {
-        background-color: #c0c0c0;
-        transform: translateY(-1px);
-    }
+        .video-container {
+            padding: 25px;
+            background-color: #ffffff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 16px; 
+            max-width: 720px;
+            width: 90%;
+            border: 1px solid #eeeeee;
+            margin-bottom: 0; 
+            /* 💡 修訂：為釘子預留空間，讓卡片稍微下移 */
+            margin-top: 40px; 
+        }
 
-    /* 影片嵌入區塊 */
-    .iframe-wrapper {
-        position: relative;
-        padding-bottom: 56.25%; 
-        height: 0;
-        overflow: hidden;
-        margin-top: 15px;
-    }
+        /* (1) H1 標題：最深沉的顏色，強調主題 */
+        h1 {
+            color: #2c3e50; 
+            margin-bottom: 2px; 
+            font-size: 2em; 
+            font-weight: 700;
+        }
 
-    .iframe-wrapper iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-    }
+        /* Ruby 小字樣式調整 */
+        rt {
+            font-size: 0.5em; 
+            color: #90a4ae; 
+            font-weight: 400; 
+        }
 
-    /* 頁腳樣式 */
-    footer {
-        margin-top: 15px; 
-        padding: 5px 10px; 
-        /* 💡 顏色修訂：使用與 H2 類似的柔和灰色 */
-        color: #95a5a6; 
-        text-align: center;
-        max-width: 720px;
-        width: 90%;
-    }
+        /* 新增：分隔線樣式 */
+        .separator {
+            width: 60%;
+            height: 1px;
+            background-color: #e5e5e5;
+            margin: 10px auto 10px auto; 
+        }
+        
+        /* (2) H2 標題：第二層級，課程或專案名稱 */
+        h2 {
+            color: #7f8c8d; 
+            font-size: 1.25em; 
+            font-weight: 500;
+            margin-top: 0;
+            margin-bottom: 2px; 
+        }
 
-    .disclaimer {
-        margin-top: 5px; 
-        margin-bottom: 5px;
-        font-size: 0.75em; 
-        line-height: 1.8;
-    }
-</style>
+        /* (3) H3 標題：第三層級，學員資訊。維持您A1的灰白風格，但調整文字顏色。 */
+        h3 {
+            background-color: #e0e0e0; 
+            color: #4a4a4a;
+            border: 1px solid #d0d0d0; 
+            padding: 8px 20px;
+            display: inline-block;
+            font-size: 0.9em; 
+            font-weight: 500;
+            margin-top: 2px; 
+            margin-bottom: 15px; 
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        
+        h3:hover {
+            background-color: #c0c0c0;
+            transform: translateY(-1px);
+        }
 
+        /* 影片嵌入區塊 */
+        .iframe-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; 
+            height: 0;
+            overflow: hidden;
+            margin-top: 15px;
+        }
 
+        .iframe-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
 
+        /* 頁腳樣式 */
+        footer {
+            margin-top: 15px; 
+            padding: 5px 10px; 
+            color: #95a5a6; 
+            text-align: center;
+            max-width: 720px;
+            width: 90%;
+        }
+
+        .disclaimer {
+            margin-top: 5px; 
+            margin-bottom: 5px;
+            font-size: 0.75em; 
+            line-height: 1.8;
+        }
+    </style>
 </head>
 <body>
 
-<div class="video-container">
-    <h1>
-        <ruby>伍佰<rp>(</rp><rt>Gō͘-pah</rt><rp>)</rp></ruby>
-        _
-        <ruby>白鴒鷥<rp>(</rp><rt>pe̍h-lêng-si</rt><rp>)</rp></ruby>
-        kap
-        <ruby>字幕<rp>(</rp><rt>jī-bō͘</rt><rp>)</rp></ruby>
-    </h1>
+    <div class="pin top-left">📌</div>
+    <div class="pin top-right">📌</div>
+
+    <div class="video-container">
+        <h1>
+            <ruby>伍佰<rp>(</rp><rt>Gō͘-pah</rt><rp>)</rp></ruby>
+            _
+            <ruby>白鴒鷥<rp>(</rp><rt>pe̍h-lêng-si</rt><rp>)</rp></ruby>
+            kap
+            <ruby>字幕<rp>(</rp><rt>jī-bō͘</rt><rp>)</rp></ruby>
+        </h1>
         
         <div class="separator"></div>
 
@@ -146,13 +173,12 @@
         </div>
     </div>
     
-
     <footer>
         <p class="disclaimer">
             本影片內底ê圖kap音樂lóng是ùi網路chhōe來--ê<br>
             本影片是上課ê宿題，無惡意使用的意圖
         </p>
     </footer>
-
+    
 </body>
 </html>
