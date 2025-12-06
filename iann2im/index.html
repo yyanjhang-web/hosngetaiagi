@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>伍佰_白翎鷥kap字幕</title>
+    <title>伍佰_白鴒鷥kap字幕</title>
     <style>
-        /* CSS 樣式 */
+        /* CSS 樣式：讓影片在頁面中央並美觀一點 */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -23,38 +23,52 @@
             background-color: #fff;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
+            max-width: 680px; /* 容器最大寬度 */
+            width: 90%;
         }
 
         h1 {
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
-
-        /* 您的按鈕A1格式 */
-        #playButton {
+        
+        /* 保持按鈕A1的樣式，但作為資訊連結 */
+        .info-link {
+            /* 您的按鈕A1格式 */
             background-color: #e0e0e0; /* 灰白色調 */
+            color: #333;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 15px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
             font-size: 0.85em; /* 字體大小 */
-            margin-top: 15px;
-            cursor: pointer;
+            margin-bottom: 20px;
             border-radius: 4px;
             transition: background-color 0.3s;
-            color: #333;
+            cursor: default; /* 設為預設指標 */
         }
-
-        #playButton:hover {
+        
+        .info-link:hover {
             background-color: #c0c0c0; /* 滑鼠懸停時 */
         }
 
-        /* 隱藏影片元素直到點擊按鈕 */
-        #myVideo {
-            display: none;
+        /* 讓 iframe 響應式 */
+        .iframe-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 比例 (高/寬 = 9/16 = 0.5625) */
+            height: 0;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .iframe-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 640px;
+            height: 100%;
+            border: none;
             border-radius: 4px;
         }
     </style>
@@ -62,40 +76,21 @@
 <body>
 
     <div class="video-container">
-        <h1>點擊按鈕播放 Google Drive 影片</h1>
+        <h1>Google Drive 影片已成功嵌入</h1>
         
-        <button id="playButton">
-            開始播放
-        </button>
+        <div class="info-link">
+            請直接點擊下方影片中的播放按鈕 (無法使用自訂按鈕控制)
+        </div>
 
-        <video id="myVideo" controls>
-            <source src="https://drive.google.com/uc?export=download&id=1Mr9MJJlAUHZUur3HSWFmCtU5V6Hao3sH" type="video/mp4">
-            您的瀏覽器不支援 HTML5 影片標籤。
-        </video>
+        <div class="iframe-wrapper">
+            <iframe 
+                src="https://drive.google.com/file/d/1Mr9MJJlAUHZUur3HSWFmCtU5V6Hao3sH/preview" 
+                allow="autoplay" 
+                frameborder="0" 
+                allowfullscreen
+            ></iframe>
+        </div>
     </div>
-
-    <script>
-        document.getElementById('playButton').addEventListener('click', function() {
-            const video = document.getElementById('myVideo');
-            const button = document.getElementById('playButton');
-            
-            // 1. 顯示影片元素
-            video.style.display = 'block';
-            
-            // 2. 嘗試播放影片
-            video.play()
-                .then(() => {
-                    // 播放成功後，隱藏按鈕
-                    button.style.display = 'none';
-                    console.log("影片已開始播放");
-                })
-                .catch(error => {
-                    // 播放失敗 (通常是因為檔案權限問題或瀏覽器限制)
-                    console.error("影片播放失敗:", error);
-                    alert("無法自動播放影片，請檢查 Google Drive 的分享權限是否已設為公開，或手動點擊影片上的播放按鈕。");
-                });
-        });
-    </script>
 
 </body>
 </html>
