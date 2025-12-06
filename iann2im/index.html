@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MP4 影片播放器</title>
+    <title>Google Drive 影片播放器</title>
     <style>
-        /* CSS 樣式：讓影片在頁面中央並美觀一點 */
+        /* CSS 樣式 */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -30,8 +30,8 @@
             margin-bottom: 20px;
         }
 
+        /* 您的按鈕A1格式 */
         #playButton {
-            /* 使用您喜歡的按鈕A1格式 */
             background-color: #e0e0e0; /* 灰白色調 */
             border: none;
             padding: 10px 20px;
@@ -53,8 +53,8 @@
         /* 隱藏影片元素直到點擊按鈕 */
         #myVideo {
             display: none;
-            width: 100%; /* 讓影片填滿容器 */
-            max-width: 640px; /* 最大寬度 */
+            width: 100%;
+            max-width: 640px;
             border-radius: 4px;
         }
     </style>
@@ -62,14 +62,14 @@
 <body>
 
     <div class="video-container">
-        <h1>點擊按鈕播放 MP4 影片</h1>
+        <h1>點擊按鈕播放 Google Drive 影片</h1>
         
         <button id="playButton">
             開始播放
         </button>
 
         <video id="myVideo" controls>
-            <source src="your_video.mp4" type="video/mp4">
+            <source src="https://drive.google.com/uc?export=download&id=1Mr9MJJlAUHZUur3HSWFmCtU5V6Hao3sH" type="video/mp4">
             您的瀏覽器不支援 HTML5 影片標籤。
         </video>
     </div>
@@ -83,8 +83,6 @@
             video.style.display = 'block';
             
             // 2. 嘗試播放影片
-            // 注意：現代瀏覽器為了防止惡意廣告，會阻止沒有使用者互動的「自動播放」。
-            // 這裡的播放是在使用者點擊按鈕（使用者互動）後觸發的，因此會成功。
             video.play()
                 .then(() => {
                     // 播放成功後，隱藏按鈕
@@ -92,9 +90,9 @@
                     console.log("影片已開始播放");
                 })
                 .catch(error => {
-                    // 播放失敗 (例如瀏覽器仍有額外限制)
+                    // 播放失敗 (通常是因為檔案權限問題或瀏覽器限制)
                     console.error("影片播放失敗:", error);
-                    alert("無法自動播放影片。請手動點擊影片上的播放按鈕。");
+                    alert("無法自動播放影片，請檢查 Google Drive 的分享權限是否已設為公開，或手動點擊影片上的播放按鈕。");
                 });
         });
     </script>
