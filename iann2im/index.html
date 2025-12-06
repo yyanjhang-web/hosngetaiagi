@@ -5,90 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>伍佰_白鴒鷥kap字幕</title>
     <style>
-        /* CSS 樣式 */
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-            text-align: center;
-        }
+    /* 1. 簡樸舒適的顏色基調 */
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        /* 💡 修訂：使用柔和的淺米灰色背景，營造舒適感 */
+        background-color: #f8f8f8; 
+        text-align: center;
+    }
 
-        .video-container {
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            max-width: 680px; /* 容器最大寬度 */
-            width: 90%;
-        }
+    /* 2. 容器卡片樣式 */
+    .video-container {
+        padding: 20px;
+        background-color: #ffffff; /* 保持白色 */
+        /* 💡 修訂：加入更柔和的陰影，讓卡片有浮出感但不僵硬 */
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08); 
+        border-radius: 12px; /* 增加圓角，更柔和 */
+        max-width: 680px; 
+        width: 90%;
+    }
 
-        h1 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.8em; 
-        }
-        
-        /* 保持按鈕A1的樣式，但作為資訊連結 */
-        .info-link {
-            /* 您的按鈕A1格式 */
-            background-color: #e0e0e0; /* 灰白色調 */
-            color: #333;
-            border: none;
-            padding: 8px 15px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 0.85em; /* 字體大小 */
-            margin-bottom: 20px;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-            cursor: default;
-        }
-        
-        .info-link:hover {
-            background-color: #c0c0c0; /* 滑鼠懸停時 */
-        }
+    h1 {
+        color: #4a4a4a; /* 💡 修訂：標題顏色使用深灰色，柔和度比純黑高 */
+        margin-bottom: 15px;
+        font-size: 1.8em; 
+    }
+    
+    /* 3. 資訊連結/按鈕樣式 (維持您的A1灰白色調) */
+    .info-link {
+        background-color: #e0e0e0; 
+        color: #4a4a4a; /* 💡 修訂：文字使用深灰色 */
+        border: 1px solid #d0d0d0; /* 新增微弱邊框，增加立體感 */
+        padding: 8px 15px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 0.85em;
+        margin-bottom: 20px;
+        border-radius: 6px; /* 稍微增加圓角 */
+        transition: background-color 0.3s;
+        cursor: default;
+    }
+    
+    .info-link:hover {
+        background-color: #c0c0c0;
+    }
 
-        /* 讓 iframe 響應式 */
-        .iframe-wrapper {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 比例 */
-            height: 0;
-            overflow: hidden;
-            margin-top: 15px;
-        }
+    /* 讓 iframe 響應式 (保持不變) */
+    .iframe-wrapper {
+        position: relative;
+        padding-bottom: 56.25%; 
+        height: 0;
+        overflow: hidden;
+        margin-top: 15px;
+    }
 
-        .iframe-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 4px;
-        }
+    .iframe-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 8px; /* 讓影片框也有圓角 */
+    }
 
-        /* 新增：頁腳樣式 */
-        footer {
-            margin-top: 30px;
-            padding: 10px;
-            text-align: center;
-            color: #666; /* 讓字體顏色淺一點 */
-            max-width: 680px;
-            width: 90%;
-        }
+    /* 4. 頁腳樣式 */
+    footer {
+        margin-top: 30px;
+        padding: 10px;
+        text-align: center;
+        color: #888; /* 💡 修訂：使用更柔和的灰色 */
+        max-width: 680px;
+        width: 90%;
+    }
 
-        .disclaimer {
-            /* 您的要求：字體較小的文字 */
-            font-size: 0.75em; 
-            line-height: 1.6;
-        }
-    </style>
+    .disclaimer {
+        font-size: 0.75em; 
+        line-height: 1.6;
+    }
+</style>
 </head>
 <body>
 
