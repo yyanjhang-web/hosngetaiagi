@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>課程心得報告 (漢字-白話字對照)</title>
+    <meta name="referrer" content="strict-origin-when-cross-origin"> 
+    <style>
+        /* CSS 樣式：繼承之前的卡片排版風格 */
+        body {
+            font-family: 'Times New Roman', "serif", 'Microsoft YaHei', 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f8f8f8; 
+            text-align: center;
+        }
+
+        .content-container {
+            position: relative; 
+            padding: 30px 40px; 
+            background-color: #ffffff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 16px; 
+            max-width: 800px;
+            width: 90%;
+            border: 1px solid #eeeeee;
+            margin: 40px auto 10px auto; 
+            text-align: left; 
+        }
+
+        /* 釘子樣式（維持風格） */
+        .pin {
+            position: absolute;
+            font-size: 2em;
+            z-index: 10;
+            opacity: 0.8;
+            transform: translate(-50%, -50%); 
+        }
+
+        .top-left {
+            top: 0px; 
+            left: 0px; 
+            transform: translate(-50%, -50%) rotate(-20deg);
+        }
+
+        .top-right {
+            top: 0px; 
+            right: 0px; 
+            transform: translate(50%, -50%) rotate(20deg);
+        }
+
+        /* 標題 */
+        h1 {
+            color: #2c3e50; 
+            margin-bottom: 20px; 
+            font-size: 2.2em; 
+            font-weight: 700;
+            text-align: center; 
+        }
+        
+        /* 💡 新增：書桌圖片樣式 */
+        .desk-image {
+            width: 100%; 
+            max-height: 300px; /* 限制高度，避免圖片過大 */
+            object-fit: cover; /* 裁切圖片以填滿空間，保持美觀 */
+            border-radius: 10px; 
+            margin-top: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* H2 標題 (我的困難點/結論) 樣式 */
+        h2 {
+            color: #34495e;
+            font-size: 1.4em;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1; 
+            padding-bottom: 5px;
+        }
+
+        /* 內文段落 */
+        p, li {
+            font-size: 1.1em;
+            line-height: 2.2; 
+            color: #34495e;
+            margin-bottom: 15px;
+        }
+        
+        ul {
+            padding-left: 25px;
+        }
+
+        /* Ruby 小字樣式：確保小且不醒目 */
+        rt {
+            font-size: 0.5em; 
+            color: #95a5a6; 
+            font-weight: 400; 
+        }
+        
+        /* 回到首頁按鈕的容器 */
+        .back-button-container {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            max-width: 800px;
+            width: 90%;
+        }
+
+        /* 回到首頁按鈕的樣式 */
+        .back-button {
+            display: inline-block;
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+            background-color: #3498db; 
+            color: white;
+            border: 1px solid #2980b9;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        /* 頁腳樣式 (極小字且不醒目) */
+        footer {
+            margin-top: 15px; 
+            padding: 5px 10px; 
+            color: #bdc3c7; 
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+            margin-bottom: 20px;
+            font-size: 0.85em; 
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="content-container">
+        <div class="pin top-left">📌</div>
+        <div class="pin top-right">📌</div>
+
+        <h1>
+            <ruby>這門課<rp>(</rp><rt>Chit mn̂g khò</rt><rp>)</rp></ruby>
+            <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+            <ruby>心得<rp>(</rp><rt>sim-tek</rt><rp>)</rp></ruby>
+        </h1>
+        
+        <img src="picture.jpg" alt="書桌上有一本書和一杯茶" class="desk-image">
+        
+        <p>
+            <ruby>我<rp>(</rp><rt>Góa</rt><rp>)</rp></ruby>
+            <ruby>佇<rp>(</rp><rt>tī</rt><rp>)</rp></ruby>
+            <ruby>這門課<rp>(</rp><rt>chit mn̂g khò</rt><rp>)</rp></ruby>
+            <ruby>學著<rp>(</rp><rt>o̍h-tio̍h</rt><rp>)</rp></ruby>
+            <ruby>真濟<rp>(</rp><rt>chin-chē</rt><rp>)</rp></ruby>
+            <ruby>物件<rp>(</rp><rt>mi̍h-kiāⁿ</rt><rp>)</rp></ruby>，
+            <ruby>毋過<rp>(</rp><rt>m̄-koh</rt><rp>)</rp></ruby>
+            <ruby>我<rp>(</rp><rt>góa</rt><rp>)</rp></ruby>
+            <ruby>猶未<rp>(</rp><rt>iáu-bōe</rt><rp>)</rp></ruby>
+            <ruby>熟手<rp>(</rp><rt>se̍k-chhiú</rt><rp>)</rp></ruby>。
+            <ruby>所以<rp>(</rp><rt>Só͘-í</rt><rp>)</rp></ruby>
+            <ruby>老師<rp>(</rp><rt>láu-su</rt><rp>)</rp></ruby>
+            <ruby>教<rp>(</rp><rt>kà</rt><rp>)</rp></ruby>
+            <ruby>我<rp>(</rp><rt>góa</rt><rp>)</rp></ruby>
+            <ruby>的<rp>(</rp><rt>ê</rt><rp>)</ruby>
+            <ruby>物件<rp>(</rp><rt>mi̍h-kiāⁿ</rt><rp>)</rp></ruby>，
+            <ruby>我<rp>(</rp><rt>góa</rt><rp>)</rp></ruby>
+            <ruby>攏<rp>(</rp><rt>lóng</rt><rp>)</rp></ruby>
+            <ruby>佇<rp>(</rp><rt>tī</rt><rp>)</rp></ruby>
+            google
+            <ruby>揣<rp>(</rp><rt>chhōe</rt><rp>)</rp></ruby>
+            <ruby>真久<rp>(</rp><rt>chin kú</rt><rp>)</rp></ruby>，
+            <ruby>嘛<rp>(</rp><rt>mā</rt><rp>)</rp></ruby>
+            <ruby>定定<rp>(</rp><rt>tiāⁿ-tiāⁿ</rt><rp>)</rp></ruby>
+            <ruby>著愛<rp>(</rp><rt>tio̍h ài</rt><rp>)</rp></ruby>
+            <ruby>叫<rp>(</rp><rt>kiò</rt><rp>)</rp></ruby>
+            AI
+            <ruby>來<rp>(</rp><rt>lâi</rt><rp>)</rp></ruby>
+            <ruby>鬥相共<rp>(</rp><rt>tàu-saⁿ-kāng</rt><rp>)</rp></ruby>。
+            <ruby>我<rp>(</rp><rt>Góa</rt><rp>)</rp></ruby>
+            <ruby>共<rp>(</rp><rt>kā</rt><rp>)</rp></ruby>
+            <ruby>我的<rp>(</rp><rt>góa ê</rt><rp>)</rp></ruby>
+            <ruby>困難點<rp>(</rp><rt>khùn-lân-tiám</rt><rp>)</rp></ruby>
+            <ruby>寫落來<rp>(</rp><rt>siá--lo̍h-lâi</rt><rp>)</rp></ruby>。
+            <ruby>順紲<rp>(</rp><rt>Sūn-sòa</rt><rp>)</rp></ruby>
+            <ruby>練習<rp>(</rp><rt>liān-si̍p</rt><rp>)</rp></ruby>
+            <ruby>網頁<rp>(</rp><rt>bāng-ia̍h</rt><rp>)</rp></ruby>
+            <ruby>文字<rp>(</rp><rt>bûn-jī</rt><rp>)</rp></ruby>
+            <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+            <ruby>編輯<rp>(</rp><rt>pian-chip</rt><rp>)</rp></ruby>：
+        </p>
+
+        <h2><ruby>我<rp>(</rp><rt>Góa</rt><rp>)</rp></ruby>
+        <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+        <ruby>困難點<rp>(</rp><rt>khùn-lân-tiám</rt><rp>)</rp></ruby></h2>
+        
+        <ul>
+            <li>
+                <ruby>影片<rp>(</rp><rt>Iáⁿ-phìⁿ</rt><rp>)</rp></ruby>
+                <ruby>和<rp>(</rp><rt>hām</rt><rp>)</rp></ruby>
+                srt
+                <ruby>字幕<rp>(</rp><rt>jī-bō͘</rt><rp>)</rp></ruby>
+                <ruby>敆<rp>(</rp><rt>kap</rt><rp>)</rp></ruby>
+                <ruby>做伙<rp>(</rp><rt>chò-hóe</rt><rp>)</rp></ruby>
+                <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+                <ruby>過程<rp>(</rp><rt>kòe-têng</rt><rp>)</rp></ruby>，
+                <ruby>因為<rp>(</rp><rt>in-ūi</rt><rp>)</rp></ruby>
+                <ruby>毋知<rp>(</rp><rt>m̄ chai</rt><rp>)</rp></ruby>
+                <ruby>影<rp>(</rp><rt>iáⁿ</rt><rp>)</rp></ruby>
+                <ruby>轉出來<rp>(</rp><rt>choán--chhut-lâi</rt><rp>)</rp></ruby>
+                <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+                <ruby>字幕<rp>(</rp><rt>jī-bō͘</rt><rp>)</rp></ruby>
+                <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+                <ruby>色水<rp>(</rp><rt>sek-chúi</rt><rp>)</rp></ruby>、
+                <ruby>大細<rp>(</rp><rt>tōa-sè</rt><rp>)</rp></ruby>、
+                <ruby>字型<rp>(</rp><rt>jī-hêng</rt><rp>)</rp></ruby>
+                <ruby>生做<rp>(</rp><rt>seng chò</rt><rp>)</rp></ruby>
+                <ruby>啥物款<rp>(</rp><rt>siáⁿ-mi̍h khoán</rt><rp>)</rp>)</ruby>。
+                <ruby>愛轉<rp>(</rp><rt>Ài choán</rt><rp>)</rp></ruby>
+                <ruby>出來<rp>(</rp><rt>chhut-lâi</rt><rp>)</rp></ruby>
+                <ruby>才<rp>(</rp><rt>chiah</rt><rp>)</rp></ruby>
+                <ruby>看會著<rp>(</rp><rt>khòaⁿ ē tio̍h</rt><rp>)</rp></ruby>，
+                <ruby>所以<rp>(</rp><rt>Só͘-í</rt><rp>)</rp></ruby>
+                <ruby>轉出<rp>(</rp><rt>choán-chhut</rt><rp>)</rp></ruby>
+                <ruby>十幾个<rp>(</rp><rt>cha̍p-kúi-ê</rt><rp>)</rp></ruby>
+                <ruby>檔案<rp>(</rp><rt>tóng-àn</rt><rp>)</rp></ruby>
+                <ruby>才有<rp>(</rp><rt>chiah ū</rt><rp>)</rp></ruby>
+                <ruby>較好看的<rp>(</rp><rt>khah hó-khòaⁿ--ê</rt><rp>)</rp></ruby>。
+            </li>
+            <li>
+                <ruby>網頁<rp>(</rp><rt>Bāng-ia̍h</rt><rp>)</rp></ruby>
+                <ruby>文字<rp>(</rp><rt>bûn-jī</rt><rp>)</rp></ruby>
+                <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+                <ruby>編寫<rp>(</rp><rt>piⁿ-siá</rt><rp>)</rp></ruby>
+                <ruby>真<rp>(</rp><rt>chin</rt><rp>)</rp></ruby>
+                <ruby>費氣<rp>(</rp><rt>hùi-khì</rt><rp>)</rp></ruby>，
+                <ruby>有<rp>(</rp><rt>ū</rt><rp>)</rp></ruby>
+                <ruby>真濟<rp>(</rp><rt>chin-chē</rt><rp>)</rp></ruby>
+                <ruby>語法<rp>(</rp><rt>gú-hoat</rt><rp>)</rp></ruby>
+                <ruby>愛記<rp>(</rp><rt>ài kì</rt><rp>)</rp></ruby>。
+                <ruby>欲<rp>(</rp><rt>Beh</rt><rp>)</rp></ruby>
+                <ruby>換<rp>(</rp><rt>ōaⁿ</rt><rp>)</rp></ruby>
+                <ruby>逝<rp>(</rp><rt>chōa</rt><rp>)</rp></ruby>、
+                <ruby>欲<rp>(</rp><rt>beh</rt><rp>)</rp></ruby>
+                <ruby>改<rp>(</rp><rt>kái</rt><rp>)</rp></ruby>
+                <ruby>大細<rp>(</rp><rt>tōa sè</rt><rp>)</rp></ruby>
+                <ruby>字<rp>(</rp><rt>jī</rt><rp>)</rp></ruby>
+                <ruby>攏<rp>(</rp><rt>lóng</rt><rp>)</rp></ruby>
+                <ruby>真<rp>(</rp><rt>chin</rt><rp>)</rp></ruby>
+                <ruby>無<rp>(</rp><rt>bô</rt><rp>)</rp></ruby>
+                <ruby>方便<rp>(</rp><rt>hong-pân</rt><rp>)</rp></ruby>。
+                <ruby>想欲<rp>(</rp><rt>Siūⁿ beh</rt><rp>)</rp></ruby>
+                <ruby>愛有<rp>(</rp><rt>ài ū</rt><rp>)</rp></ruby>
+                <ruby>淡薄仔<rp>(</rp><rt>tām-po̍h-á</rt><rp>)</rp></ruby>
+                <ruby>變化<rp>(</rp><rt>piàn-hòa</rt><rp>)</rp></ruby>，
+                <ruby>就愛<rp>(</rp><rt>tō ài</rt><rp>)</rp></ruby>
+                <ruby>寫<rp>(</rp><rt>siá</rt><rp>)</rp></ruby>
+                <ruby>規大堆<rp>(</rp><rt>kui-tōa-tui</rt><rp>)</rp></ruby>。
+                <ruby>尾後<rp>(</rp><rt>Bóe-āu</rt><rp>)</rp></ruby>
+                <ruby>聽講<rp>(</rp><rt>thiaⁿ-kóng</rt><rp>)</rp></ruby>
+                <ruby>有<rp>(</rp><rt>ū</rt><rp>)</rp></ruby>
+                google
+                <ruby>協作平台<rp>(</rp><rt>hia̍p-chok-pêⁿ-tâi</rt><rp>)</rp></ruby>，
+                <ruby>才<rp>(</rp><rt>chiah</rt><rp>)</rp></ruby>
+                <ruby>無去<rp>(</rp><rt>bô khì</rt><rp>)</rp></ruby>
+                <ruby>舞甲<rp>(</rp><rt>bú-kah</rt><rp>)</rp></ruby>
+                <ruby>糜糜卯卯<rp>(</rp><rt>mi-mi-mauh-mauh</rt><rp>)</rp></ruby>。
+            </li>
+        </ul>
+        
+        <h2><ruby>結論<rp>(</rp><rt>Kiat-lūn</rt><rp>)</rp></ruby></h2>
+        
+        <p>
+            <ruby>總是<rp>(</rp><rt>Chóng--sī</rt><rp>)</rp></ruby>，
+            <ruby>佇<rp>(</rp><rt>tī</rt><rp>)</rp></ruby>
+            <ruby>這門課<rp>(</rp><rt>chit mn̂g khò</rt><rp>)</rp></ruby>
+            <ruby>我<rp>(</rp><rt>góa</rt><rp>)</rp></ruby>
+            <ruby>學著<rp>(</rp><rt>o̍h-tio̍h</rt><rp>)</rp></ruby>
+            <ruby>真濟<rp>(</rp><rt>chin-chē</rt><rp>)</rp></ruby>
+            <ruby>多媒體<rp>(</rp><rt>to-mûi-thé</rt><rp>)</rp></ruby>
+            <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+            <ruby>操作<rp>(</rp><rt>chhau-chok</rt><rp>)</rp></ruby>
+            <ruby>方式<rp>(</rp><rt>hong-sek</rt><rp>)</rp></ruby>
+            <ruby>佮<rp>(</rp><rt>kap</rt><rp>)</rp></ruby>
+            <ruby>概念<rp>(</rp><rt>khài-liām</rt><rp>)</rp></ruby>，
+            <ruby>像<rp>(</rp><rt>chhiūⁿ</rt><rp>)</rp></ruby>
+            <ruby>檔案<rp>(</rp><rt>tóng-àn</rt><rp>)</rp></ruby>
+            <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+            <ruby>格式<rp>(</rp><rt>kek-sek</rt><rp>)</rp></ruby>、
+            <ruby>專門<rp>(</rp><rt>choan-bûn</rt><rp>)</rp></ruby>
+            <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+            <ruby>軟體<rp>(</rp><rt>nńg-thé</rt><rp>)</rp></ruby>、
+            <ruby>字型<rp>(</rp><rt>jī-hêng</rt><rp>)</rp></ruby>
+            <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+            <ruby>安裝<rp>(</rp><rt>an-chong</rt><rp>)</rp></ruby>，
+            <ruby>有影<rp>(</rp><rt>ū-iáⁿ</rt><rp>)</rp></ruby>
+            <ruby>加添著<rp>(</rp><rt>ka-thiam tio̍h</rt><rp>)</rp></ruby>
+            <ruby>我的<rp>(</rp><rt>góa ê</rt><rp>)</rp></ruby>
+            <ruby>智識<rp>(</rp><rt>tì-sek</rt><rp>)</rp></ruby>，
+            <ruby>予<rp>(</rp><rt>hō͘</rt><rp>)</rp></ruby>
+            <ruby>我會使<rp>(</rp><rt>góa ē sái</rt><rp>)</rp></ruby>
+            <ruby>佇<rp>(</rp><rt>tī</rt><rp>)</rp></ruby>
+            <ruby>未來<rp>(</rp><rt>bī-lâi</rt><rp>)</rp></ruby>
+            <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
+            <ruby>教學<rp>(</rp><rt>kàu-ha̍k</rt><rp>)</rp></ruby>
+            <ruby>運用<rp>(</rp><rt>ūn-iōng</rt><rp>)</rp></ruby>。
+        </p>
+
+    </div>
+    
+    <div class="back-button-container">
+        <a href="index.html" class="back-button">Tńg-khì thâu-ia̍h</a>
+    </div>
+
+    <footer>
+        <p>Ruby ê pâi-pán ū chhiánn AI tàu-sann-kāng</p>
+    </footer>
+
+</body>
+</html>
