@@ -15,14 +15,16 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f8f8f8; 
+            /* 背景顏色改為淺米白色 (Body) */
+            background-color: #e8e4db; 
             text-align: center;
         }
 
         .content-container {
             position: relative; 
             padding: 30px 40px; 
-            background-color: #ffffff;
+            /* 內容框背景顏色改為米黃色 (聖經紙/牛皮紙效果) */
+            background-color: #fcf9f3; 
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             border-radius: 16px; 
             max-width: 800px;
@@ -38,18 +40,20 @@
             font-size: 2em;
             z-index: 10;
             opacity: 0.8;
-            transform: translate(-50%, -50%); 
+            /* 讓釘子圖案看起來更像真的釘子 */
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.2); 
         }
 
+        /* 💡 調整 (1)：將釘子位置往內移 15px */
         .top-left {
-            top: 0px; 
-            left: 0px; 
+            top: 15px; 
+            left: 15px; 
             transform: translate(-50%, -50%) rotate(-20deg);
         }
 
         .top-right {
-            top: 0px; 
-            right: 0px; 
+            top: 15px; 
+            right: 15px; 
             transform: translate(50%, -50%) rotate(20deg);
         }
 
@@ -62,11 +66,11 @@
             text-align: center; 
         }
         
-        /* 💡 新增：書桌圖片樣式 */
+        /* 書桌圖片樣式 */
         .desk-image {
             width: 100%; 
-            max-height: 300px; /* 限制高度，避免圖片過大 */
-            object-fit: cover; /* 裁切圖片以填滿空間，保持美觀 */
+            max-height: 300px; 
+            object-fit: cover; 
             border-radius: 10px; 
             margin-top: 10px;
             margin-bottom: 30px;
@@ -95,10 +99,10 @@
             padding-left: 25px;
         }
 
-        /* Ruby 小字樣式：確保小且不醒目 */
+        /* Ruby 小字樣式，顏色改為深棕灰，確保在米黃底上清楚 */
         rt {
             font-size: 0.5em; 
-            color: #95a5a6; 
+            color: #79706a; 
             font-weight: 400; 
         }
         
@@ -151,6 +155,7 @@
         <div class="pin top-right">📌</div>
 
         <h1>
+            ☕
             <ruby>這門課<rp>(</rp><rt>Chit mn̂g khò</rt><rp>)</rp></ruby>
             <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
             <ruby>心得<rp>(</rp><rt>sim-tek</rt><rp>)</rp></ruby>
@@ -173,7 +178,7 @@
             <ruby>老師<rp>(</rp><rt>láu-su</rt><rp>)</rp></ruby>
             <ruby>教<rp>(</rp><rt>kà</rt><rp>)</rp></ruby>
             <ruby>我<rp>(</rp><rt>góa</rt><rp>)</rp></ruby>
-            <ruby>的<rp>(</rp><rt>ê</rt><rp>)</ruby>
+            <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
             <ruby>物件<rp>(</rp><rt>mi̍h-kiāⁿ</rt><rp>)</rp></ruby>，
             <ruby>我<rp>(</rp><rt>góa</rt><rp>)</rp></ruby>
             <ruby>攏<rp>(</rp><rt>lóng</rt><rp>)</rp></ruby>
@@ -201,9 +206,12 @@
             <ruby>編輯<rp>(</rp><rt>pian-chip</rt><rp>)</rp></ruby>：
         </p>
 
-        <h2><ruby>我<rp>(</rp><rt>Góa</rt><rp>)</rp></ruby>
+        <h2>
+        📝
+        <ruby>我<rp>(</rp><rt>Góa</rt><rp>)</rp></ruby>
         <ruby>的<rp>(</rp><rt>ê</rt><rp>)</rp></ruby>
-        <ruby>困難點<rp>(</rp><rt>khùn-lân-tiám</rt><rp>)</rp></ruby></h2>
+        <ruby>困難點<rp>(</rp><rt>khùn-lân-tiám</rt><rp>)</rp></ruby>
+        </h2>
         
         <ul>
             <li>
@@ -266,7 +274,7 @@
                 <ruby>變化<rp>(</rp><rt>piàn-hòa</rt><rp>)</rp></ruby>，
                 <ruby>就愛<rp>(</rp><rt>tō ài</rt><rp>)</rp></ruby>
                 <ruby>寫<rp>(</rp><rt>siá</rt><rp>)</rp></ruby>
-                <ruby>規大堆<rp>(</rp><rt>kui-tōa-tui</rt><rp>)</rp></ruby>。
+                <ruby>規大堆<rp>(</rp><rt>kui-tōa-tui</rt><rp>)</rp></ruby>
                 <ruby>尾後<rp>(</rp><rt>Bóe-āu</rt><rp>)</rp></ruby>
                 <ruby>聽講<rp>(</rp><rt>thiaⁿ-kóng</rt><rp>)</rp></ruby>
                 <ruby>有<rp>(</rp><rt>ū</rt><rp>)</rp></ruby>
@@ -279,7 +287,10 @@
             </li>
         </ul>
         
-        <h2><ruby>結論<rp>(</rp><rt>Kiat-lūn</rt><rp>)</rp></ruby></h2>
+        <h2>
+        📖
+        <ruby>結論<rp>(</rp><rt>Kiat-lūn</rt><rp>)</rp></ruby>
+        </h2>
         
         <p>
             <ruby>總是<rp>(</rp><rt>Chóng--sī</rt><rp>)</rp></ruby>，
@@ -324,7 +335,7 @@
     </div>
 
     <footer>
-        <p>Ruby ê pâi-pán ū chhiánn AI tàu-sann-kāng</p>
+        <p>Ruby ê pâi-pán ū chhiáⁿ AI tàu-saⁿ-kāng</p>
     </footer>
 
 </body>
