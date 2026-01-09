@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8">https://github.com/yyanjhang-web/hosngetaiagi/blob/main/customize/index.html
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自訂翻牌</title>
+    <title>自訂翻牌 - 協作同步版</title>
     <style>
         :root {
             /* 預設風格1的變數 (清新藍綠) */
@@ -62,7 +62,7 @@
         .size-buttons, .style-buttons {
             margin-bottom: 20px;
         }
-        .style-btn, .size-btn, #apply-btn {
+        .style-btn, .size-btn, #apply-btn, .sync-btn {
             padding: 8px 16px;
             font-size: 1em;
             cursor: pointer;
@@ -72,6 +72,14 @@
             border-radius: 5px;
             margin: 0 5px;
             transition: background-color 0.3s;
+        }
+        /* 同步按鈕顏色稍微區分 */
+        .sync-btn {
+            background-color: #4caf50;
+            margin-bottom: 10px;
+        }
+        .sync-btn:hover {
+            background-color: #388e3c;
         }
         .style-btn {
             font-size: 0.9em;
@@ -237,7 +245,16 @@
         }
         .dictionary-input h3 {
             margin-top: 0;
+            margin-bottom: 10px;
             color: #333;
+        }
+        .dictionary-input input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
         }
         .dictionary-input textarea {
             width: 100%;
@@ -300,6 +317,14 @@
 <body class="theme-style1">
 
     <div class="dictionary-input">
+        <h3>1. 多人同步模式</h3>
+        <p class="subtle-text">貼上 Google 試算表「發佈到網路」的 CSV 連結</p>
+        <input type="text" id="sheet-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
+        <button id="load-sheet-btn" class="sync-btn">從試算表同步詞庫</button>
+        
+        <hr style="margin: 15px 0; border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
+
+        <h3>2. 手動輸入模式</h3>
         <p>至少輸入9組詞語，一組一行。每組以全形「，」或半形「,」分開卡牌的正反面</p>
         <p class="subtle-text">最下方按鈕可分享帶詞庫網址，但大詞庫產生的過長網址可能導致網址失效，請隨時備份您的詞庫</p>
         <textarea id="custom-dictionary" placeholder="例如：&#10;翻牌後1, 翻牌前1&#10;翻牌後2, 翻牌前2&#10;蘋果, apple&#10;(翻牌後的內容),(空白表示翻牌前無內容)"></textarea>
@@ -342,16 +367,59 @@
 
         const container = document.querySelector('.container');
         const customDictTextarea = document.getElementById('custom-dictionary');
+        const sheetUrlInput = document.getElementById('sheet-url');
+        const loadSheetBtn = document.getElementById('load-sheet-btn');
         const applyBtn = document.getElementById('apply-btn');
         const shareBtn = document.getElementById('share-button');
         const resetBtn = document.getElementById('reset-button');
         let currentSize = 3;
         let activeCards = [];
 
+        // --- 新增：從 Google 試算表讀取 CSV 的功能 ---
+        async function fetchGoogleSheet() {
+            const url = sheetUrlInput.value.trim();
+            if (!url) {
+                alert("請先貼上 CSV 連結");
+                return;
+            }
+            if (!url.includes("output=csv")) {
+                alert("連結格式似乎不正確。請確保在 Google 試算表選擇「發佈到網路」並設定格式為「CSV」。");
+                return;
+            }
+
+            try {
+                const response = await fetch(url);
+                const csvData = await response.text();
+                
+                // 解析 CSV 行
+                const lines = csvData.split(/\r?\n/);
+                const newCards = lines.map(line => {
+                    const normalizedLine = line.replace(/，/g, ',');
+                    const parts = normalizedLine.split(',');
+                    if (parts.length >= 2) {
+                        return { hanzi: parts[0].trim(), roman: parts[1].trim() };
+                    }
+                    return null;
+                }).filter(card => card !== null);
+
+                if (newCards.length > 0) {
+                    activeCards = newCards;
+                    // 同步到 textarea 方便使用者查看與備份
+                    customDictTextarea.value = activeCards.map(c => `${c.hanzi},${c.roman}`).join('\n');
+                    alert(`同步成功！已從試算表載入 ${activeCards.length} 組詞彙。`);
+                    shuffleCards(currentSize);
+                } else {
+                    alert("無法從連結中解析出有效詞彙，請檢查試算表內容。");
+                }
+            } catch (error) {
+                console.error("同步失敗:", error);
+                alert("讀取失敗，可能是網路問題或試算表未正確發佈。");
+            }
+        }
+
         function parseDictionaryText(inputText) {
             const lines = inputText.trim().split('\n');
             return lines.map(line => {
-                // 將全形逗號替換為半形逗號
                 const normalizedLine = line.replace(/，/g, ',');
                 const parts = normalizedLine.split(',');
                 if (parts.length === 2) {
@@ -512,6 +580,7 @@
         }
 
         applyBtn.addEventListener('click', parseAndStoreDictionary);
+        loadSheetBtn.addEventListener('click', fetchGoogleSheet);
         shareBtn.addEventListener('click', copyShareUrl);
         resetBtn.addEventListener('click', resetToInitialState);
 
