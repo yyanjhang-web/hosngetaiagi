@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>賓果翻牌 - 教學專用版</title>
+    <title>賓果翻牌 - 教學專用版 (工作表1同步)</title>
     <style>
         :root {
+            /* 預設風格1的變數 (清新藍綠) */
             --bg-color: #f0f9ff;
             --container-bg-color: #e0f2f7;
             --btn-color: #20b2aa;
@@ -130,7 +131,7 @@
             <button class="edit-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1KAojsfq8A0ycK_YBzz93KhKU8h2OJEqzKEbwr3HsRfs/edit?usp=sharing', '_blank')">👉 開啟線上共編詞庫</button>
             
             <div class="input-group">
-                <input type="text" id="sheet-url" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRY-SeJcGiStT_zloHzliRlEZ7-ivqer_voY-D6D3Py1TaIxWvluVSs45HP_qHguyhXunceTwGj191l/pub?output=csv">
+                <input type="text" id="sheet-url" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRY-SeJcGiStT_zloHzliRlEZ7-ivqer_voY-D6D3Py1TaIxWvluVSs45HP_qHguyhXunceTwGj191l/pub?gid=0&single=true&output=csv">
             </div>
             <button id="load-sheet-btn" class="sync-btn">🔄 從試算表同步資料</button>
         </div>
@@ -177,16 +178,21 @@
                 const res = await fetch(url);
                 const text = await res.text();
                 const lines = text.split(/\r?\n/);
+                // 修正解析邏輯，處理可能包含標題列或空行的狀況
                 activeCards = lines.map(l => {
                     const p = l.replace(/，/g, ',').split(',');
                     return p.length >= 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
-                }).filter(c => c !== null);
+                }).filter(c => c !== null && c.h !== "" && c.r !== "");
                 
                 if (activeCards.length > 0) {
                     alert(`成功載入 ${activeCards.length} 組單字！`);
                     shuffleCards(currentSize);
+                } else {
+                    alert("載入失敗：請確認試算表內有正確的單字資料。");
                 }
-            } catch (e) { alert("讀取失敗，請確認網路或試算表是否已發布。"); }
+            } catch (e) { 
+                alert("讀取失敗：請確認網路連線，或檢查試算表是否已發佈為 CSV。"); 
+            }
         }
 
         function shuffleCards(size) {
@@ -195,10 +201,11 @@
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
             
             if (activeCards.length < size*size) {
-                container.innerHTML = '<p style="grid-column:1/-1; text-align:center;">詞彙不足，請先同步資料。</p>';
+                container.innerHTML = '<p style="grid-column:1/-1; text-align:center;">詞彙不足，請點擊上方按鈕同步資料。</p>';
                 return;
             }
 
+            // 洗牌演算法
             const deck = [...activeCards].sort(() => Math.random() - 0.5).slice(0, size*size);
             deck.forEach(data => {
                 const card = document.createElement('div');
@@ -220,7 +227,9 @@
         }
 
         function applyStyle(s) { document.body.className = s; }
+        
         document.getElementById('load-sheet-btn').onclick = fetchSheet;
+        
         document.getElementById('apply-btn').onclick = () => {
             const lines = document.getElementById('custom-dictionary').value.trim().split('\n');
             activeCards = lines.map(l => {
@@ -230,7 +239,9 @@
             shuffleCards(currentSize);
         };
 
-        window.onload = () => { shuffleCards(3); };
+        window.onload = () => { 
+            shuffleCards(3); 
+        };
     </script>
 </body>
 </html>
