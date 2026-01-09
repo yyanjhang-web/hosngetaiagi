@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自訂翻牌 - 協作同步版</title>
+    <title>自訂翻牌 - 快速協作版</title>
     <style>
         :root {
-            /* 預設風格1的變數 (清新藍綠) */
             --bg-color: #f0f9ff;
             --container-bg-color: #e0f2f7;
             --btn-color: #20b2aa;
@@ -26,7 +25,6 @@
             --card-front-text: #92400e;
             --card-back-text: #6b21a8;
         }
-
         .theme-style3 {
             --bg-color: #1a202c;
             --container-bg-color: #2d3748;
@@ -36,14 +34,6 @@
             --card-back-color: #fcd34d;
             --card-front-text: #e2e8f0;
             --card-back-text: #713f12;
-        }
-        /* 針對 Style 3 調整文字顏色 */
-        .theme-style3 .dictionary-input p,
-        .theme-style3 .dictionary-input h3 {
-            color: #e2e8f0; /* 使用淺色文字 */
-        }
-        .theme-style3 .subtle-text {
-            color: #a0aec0; /* 使用稍暗的淺色，與主要文字區分 */
         }
         
         body {
@@ -59,10 +49,8 @@
             box-sizing: border-box;
             padding: 20px;
         }
-        .size-buttons, .style-buttons {
-            margin-bottom: 20px;
-        }
-        .style-btn, .size-btn, #apply-btn, .sync-btn {
+        .size-buttons, .style-buttons { margin-bottom: 20px; }
+        .style-btn, .size-btn, #apply-btn, .sync-btn, .edit-btn {
             padding: 8px 16px;
             font-size: 1em;
             cursor: pointer;
@@ -70,24 +58,14 @@
             color: white;
             border: none;
             border-radius: 5px;
-            margin: 0 5px;
+            margin: 5px;
             transition: background-color 0.3s;
         }
-        /* 同步按鈕顏色稍微區分 */
-        .sync-btn {
-            background-color: #4caf50;
-            margin-bottom: 10px;
-        }
-        .sync-btn:hover {
-            background-color: #388e3c;
-        }
-        .style-btn {
-            font-size: 0.9em;
-            padding: 5px 10px;
-        }
-        .style-btn:hover, .size-btn:hover, #apply-btn:hover {
-            background-color: var(--btn-hover-color);
-        }
+        .sync-btn { background-color: #4caf50; font-weight: bold; }
+        .sync-btn:hover { background-color: #388e3c; }
+        .edit-btn { background-color: #607d8b; } /* 灰色調區分 */
+        .edit-btn:hover { background-color: #455a64; }
+
         .container {
             display: grid;
             gap: 2.5vw;
@@ -95,7 +73,6 @@
             background-color: var(--container-bg-color);
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.5s;
             width: 90%;
             max-width: 600px;
             box-sizing: border-box;
@@ -108,76 +85,19 @@
             border-radius: 10px;
             cursor: pointer;
             perspective: 1000px;
-            font-weight: bold;
-            color: var(--card-front-text);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-            transition: transform 0.6s, box-shadow 0.3s;
             position: relative;
-            box-sizing: border-box;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        /* 媒體查詢：針對小螢幕（手機直向模式）進行優化 */
-        @media (max-width: 600px) and (orientation: portrait) {
-            .container {
-                gap: 10px;
-                padding: 10px;
-            }
-            .card-face {
-                font-size: 0.9em;
-            }
-        }
-
-        /* 針對平板或電腦橫向模式 */
-        @media (min-width: 601px) {
-            .container {
-                gap: 15px;
-                padding: 20px;
-            }
-            .card {
-                width: 120px;
-                height: 80px;
-                padding-bottom: 0;
-            }
-            .card-face {
-                font-size: 1.2em;
-            }
-        }
-        .theme-style2 .card-inner.flipped {
-            animation: bounce 0.6s forwards;
-        }
-        @keyframes bounce {
-            0% { transform: rotateY(0deg) scale(1); }
-            50% { transform: rotateY(90deg) scale(1.1); }
-            100% { transform: rotateY(180deg) scale(1); }
-        }
-        .theme-style3 .card-inner.flipped {
-            animation: zoomFlip 0.6s forwards;
-        }
-        @keyframes zoomFlip {
-            0% { transform: rotateY(0deg) scale(1); }
-            50% { transform: rotateY(90deg) scale(0.9); }
-            100% { transform: rotateY(180deg) scale(1); }
-        }
-
         .card-inner {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             text-align: center;
             transition: transform 0.6s;
             transform-style: preserve-3d;
         }
-        .card.flipped .card-inner {
-            transform: rotateY(180deg);
-        }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
         .card-face {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             backface-visibility: hidden;
             display: flex;
             justify-content: center;
@@ -186,67 +106,30 @@
             padding: 5px;
             box-sizing: border-box;
             word-wrap: break-word;
-            overflow-wrap: break-word;
-            line-height: 1.2;
             text-align: center;
+            font-weight: bold;
         }
-        .card-front {
-            background-color: var(--card-front-color);
-            color: var(--card-front-text);
-        }
-        .card-back {
-            background-color: var(--card-back-color);
-            transform: rotateY(180deg);
-            color: var(--card-back-text);
-        }
+        .card-front { background-color: var(--card-front-color); color: var(--card-front-text); }
+        .card-back { background-color: var(--card-back-color); color: var(--card-back-text); transform: rotateY(180deg); }
 
         .mark-btn {
             position: absolute;
-            bottom: 5px;
-            right: 5px;
-            width: 15px;
-            height: 15px;
-            border: none;
-            background-color: rgba(240, 240, 240, 0.5);
+            bottom: 5px; right: 5px;
+            width: 15px; height: 15px;
             border-radius: 50%;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            background-color: rgba(240, 240, 240, 0.5);
             z-index: 10;
         }
-        .mark-btn.marked {
-            background-color: rgba(255, 82, 82, 0.6);
-        }
+        .mark-btn.marked { background-color: rgba(255, 82, 82, 0.8); }
 
-        .footer {
-            margin-top: 5px;
-            text-align: center;
-            font-size: 0.85em;
-            color: #666;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .info-text {
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-size: 0.9em;
-            color: #555;
-        }
-        /* 新增詞庫輸入區塊的樣式 */
         .dictionary-input {
             width: 90%;
             max-width: 600px;
             background-color: var(--container-bg-color);
             padding: 20px;
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
             text-align: center;
-        }
-        .dictionary-input h3 {
-            margin-top: 0;
-            margin-bottom: 10px;
-            color: #333;
         }
         .dictionary-input input[type="text"] {
             width: 100%;
@@ -256,78 +139,29 @@
             border-radius: 5px;
             box-sizing: border-box;
         }
-        .dictionary-input textarea {
-            width: 100%;
-            min-height: 100px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1em;
-            box-sizing: border-box;
-        }
-        .dictionary-input button {
-            margin-top: 10px;
-        }
-        /* 分享按鈕的樣式 */
-        .share-button {
-            background-color: #e0e0e0;
-            color: #555;
-            font-size: 0.85em;
-            padding: 4px 8px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            margin-left: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .share-button:hover {
-            background-color: #c0c0c0;
-        }
-        .counter-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        /* 新增不醒目的說明文字樣式 */
-        .subtle-text {
-            font-size: 0.8em;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .action-buttons {
-            margin-top: 10px;
-        }
-        .action-button {
-            padding: 8px 16px;
-            font-size: 0.9em;
-            cursor: pointer;
-            background-color: #f44336;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            margin: 0 5px;
-            transition: background-color 0.3s;
-        }
-        .action-button:hover {
-            background-color: #d32f2f;
-        }
+        .dictionary-input textarea { width: 100%; min-height: 80px; padding: 10px; border-radius: 5px; box-sizing: border-box; }
+        
+        .footer { margin-top: 10px; text-align: center; font-size: 0.85em; color: #666; }
+        .counter-container { display: flex; align-items: center; margin-bottom: 10px; }
+        .subtle-text { font-size: 0.8em; color: #666; margin-bottom: 10px; }
+        .action-button { padding: 8px 16px; background-color: #f44336; color: white; border: none; border-radius: 5px; margin: 5px; cursor: pointer; }
     </style>
 </head>
 <body class="theme-style1">
 
     <div class="dictionary-input">
-        <h3>1. 多人同步模式</h3>
-        <p class="subtle-text">貼上 Google 試算表「發佈到網路」的 CSV 連結</p>
-        <input type="text" id="sheet-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
-        <button id="load-sheet-btn" class="sync-btn">從試算表同步詞庫</button>
+        <h3>多人同步模式</h3>
+        <input type="text" id="sheet-url" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRY-SeJcGiStT_zloHzliRlEZ7-ivqer_voY-D6D3Py1TaIxWvluVSs45HP_qHguyhXunceTwGj191l/pub?output=csv">
         
-        <hr style="margin: 15px 0; border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
+        <div>
+            <button id="load-sheet-btn" class="sync-btn">從試算表同步詞庫</button>
+            <button class="edit-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1KAojsfq8A0ycK_YBzz93KhKU8h2OJEqzKEbwr3HsRfs/edit?usp=sharing', '_blank')">線上共編詞庫</button>
+        </div>
+        
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid rgba(0,0,0,0.1);">
 
-        <h3>2. 手動輸入模式</h3>
-        <p>至少輸入9組詞語，一組一行。每組以全形「，」或半形「,」分開卡牌的正反面</p>
-        <p class="subtle-text">最下方按鈕可分享帶詞庫網址，但大詞庫產生的過長網址可能導致網址失效，請隨時備份您的詞庫</p>
-        <textarea id="custom-dictionary" placeholder="例如：&#10;翻牌後1, 翻牌前1&#10;翻牌後2, 翻牌前2&#10;蘋果, apple&#10;(翻牌後的內容),(空白表示翻牌前無內容)"></textarea>
+        <h3>手動輸入模式</h3>
+        <textarea id="custom-dictionary" placeholder="格式：翻牌後, 翻牌前"></textarea>
         <button id="apply-btn">套用並開始</button>
     </div>
 
@@ -339,8 +173,6 @@
 
     <div class="container"></div>
 
-    <p class="info-text">表格上方按鈕可重新發牌或調整大小。下方按鈕可以調整顏色</p>
-
     <div class="style-buttons">
         <button class="style-btn" onclick="applyStyle('theme-style1')">式1</button>
         <button class="style-btn" onclick="applyStyle('theme-style2')">式2</button>
@@ -348,7 +180,7 @@
     </div>
 
     <div class="action-buttons">
-        <button id="reset-button" class="action-button">清空詞庫</button>
+        <button id="reset-button" class="action-button" onclick="location.reload()">重新整理網頁</button>
     </div>
 
     <div class="footer">
@@ -359,237 +191,99 @@
         <a href="https://www.hitwebcounter.com/" target="_blank">
             <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" Alt="Counters" border="0" />
         </a>
-        <button id="share-button" class="share-button">分享帶詞庫網址</button>
+        <button id="share-button" style="margin-left:10px; padding:4px 8px; font-size:0.8em;">複製目前詞庫網址</button>
     </div>
 
     <script>
-        const defaultCards = [];
-
         const container = document.querySelector('.container');
         const customDictTextarea = document.getElementById('custom-dictionary');
         const sheetUrlInput = document.getElementById('sheet-url');
-        const loadSheetBtn = document.getElementById('load-sheet-btn');
-        const applyBtn = document.getElementById('apply-btn');
-        const shareBtn = document.getElementById('share-button');
-        const resetBtn = document.getElementById('reset-button');
-        let currentSize = 3;
         let activeCards = [];
+        let currentSize = 3;
 
-        // --- 新增：從 Google 試算表讀取 CSV 的功能 ---
         async function fetchGoogleSheet() {
             const url = sheetUrlInput.value.trim();
-            if (!url) {
-                alert("請先貼上 CSV 連結");
-                return;
-            }
-            if (!url.includes("output=csv")) {
-                alert("連結格式似乎不正確。請確保在 Google 試算表選擇「發佈到網路」並設定格式為「CSV」。");
-                return;
-            }
-
             try {
                 const response = await fetch(url);
                 const csvData = await response.text();
-                
-                // 解析 CSV 行
                 const lines = csvData.split(/\r?\n/);
-                const newCards = lines.map(line => {
-                    const normalizedLine = line.replace(/，/g, ',');
-                    const parts = normalizedLine.split(',');
-                    if (parts.length >= 2) {
-                        return { hanzi: parts[0].trim(), roman: parts[1].trim() };
-                    }
-                    return null;
-                }).filter(card => card !== null);
+                activeCards = lines.map(line => {
+                    const parts = line.replace(/，/g, ',').split(',');
+                    return parts.length >= 2 ? { hanzi: parts[0].trim(), roman: parts[1].trim() } : null;
+                }).filter(c => c !== null);
 
-                if (newCards.length > 0) {
-                    activeCards = newCards;
-                    // 同步到 textarea 方便使用者查看與備份
+                if (activeCards.length > 0) {
                     customDictTextarea.value = activeCards.map(c => `${c.hanzi},${c.roman}`).join('\n');
-                    alert(`同步成功！已從試算表載入 ${activeCards.length} 組詞彙。`);
+                    alert(`同步成功！載入 ${activeCards.length} 組詞彙`);
                     shuffleCards(currentSize);
-                } else {
-                    alert("無法從連結中解析出有效詞彙，請檢查試算表內容。");
                 }
             } catch (error) {
-                console.error("同步失敗:", error);
-                alert("讀取失敗，可能是網路問題或試算表未正確發佈。");
+                alert("同步失敗，請檢查網路。");
             }
-        }
-
-        function parseDictionaryText(inputText) {
-            const lines = inputText.trim().split('\n');
-            return lines.map(line => {
-                const normalizedLine = line.replace(/，/g, ',');
-                const parts = normalizedLine.split(',');
-                if (parts.length === 2) {
-                    return { hanzi: parts[0].trim(), roman: parts[1].trim() };
-                }
-                return null;
-            }).filter(card => card !== null);
-        }
-
-        function encodeDictionary(cards) {
-            try {
-                const jsonString = JSON.stringify(cards);
-                return btoa(unescape(encodeURIComponent(jsonString)));
-            } catch (e) {
-                console.error("編碼失敗:", e);
-                return null;
-            }
-        }
-
-        function decodeDictionary(encodedData) {
-            try {
-                const jsonString = decodeURIComponent(escape(atob(encodedData)));
-                return JSON.parse(jsonString);
-            } catch (e) {
-                console.error("解碼失敗:", e);
-                return null;
-            }
-        }
-
-        function parseAndStoreDictionary() {
-            const newCards = parseDictionaryText(customDictTextarea.value);
-
-            if (newCards.length > 0) {
-                activeCards = newCards;
-                alert('自訂詞庫已套用！');
-            } else {
-                activeCards = defaultCards;
-                alert('已清空詞庫，請輸入新的詞彙。');
-            }
-            shuffleCards(currentSize);
-        }
-
-        function loadDictionary() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const encodedData = urlParams.get('data');
-            
-            if (encodedData) {
-                const decodedCards = decodeDictionary(encodedData);
-                if (decodedCards) {
-                    activeCards = decodedCards;
-                    customDictTextarea.value = activeCards.map(c => `${c.hanzi},${c.roman}`).join('\n');
-                    alert('已從網址載入詞庫！');
-                    return;
-                }
-            }
-            
-            activeCards = defaultCards;
-            customDictTextarea.value = '';
         }
 
         function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+                [arr[i], arr[j]] = [arr[j], arr[i]];
             }
-            return array;
+            return arr;
         }
 
-        function renderCards(cards, size) {
+        function renderCards(size) {
             container.innerHTML = '';
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-
-            const cardCount = size * size;
-            
-            if (cards.length < cardCount) {
-                if (cards.length === 0) {
-                    container.innerHTML = `<p style="text-align: center; color: #555;">尚未輸入詞庫</p>`;
-                    return;
-                } else {
-                    alert(`詞庫詞彙不足，目前有 ${cards.length} 組，請至少提供 ${cardCount} 組以進行遊戲。`);
-                    return;
-                }
+            const count = size * size;
+            if (activeCards.length < count) {
+                container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">需至少 ${count} 組詞彙</p>`;
+                return;
             }
-
-            const selectedCards = shuffleArray([...cards]).slice(0, cardCount);
-
-            selectedCards.forEach(cardData => {
-                const cardElement = document.createElement('div');
-                cardElement.classList.add('card');
-                cardElement.innerHTML = `
+            const selected = shuffleArray(activeCards).slice(0, count);
+            selected.forEach(data => {
+                const el = document.createElement('div');
+                el.className = 'card';
+                el.innerHTML = `
                     <div class="card-inner">
-                        <div class="card-face card-front">${cardData.roman}</div>
-                        <div class="card-face card-back">${cardData.hanzi}</div>
+                        <div class="card-face card-front">${data.roman}</div>
+                        <div class="card-face card-back">${data.hanzi}</div>
                     </div>
                     <div class="mark-btn"></div>
                 `;
-                container.appendChild(cardElement);
-
-                const cardInner = cardElement.querySelector('.card-inner');
-                cardElement.addEventListener('click', () => {
-                    cardElement.classList.toggle('flipped');
-                    if (cardElement.classList.contains('flipped')) {
-                        cardInner.classList.add('flipped');
-                    } else {
-                        cardInner.classList.remove('flipped');
-                    }
+                el.addEventListener('click', () => el.classList.toggle('flipped'));
+                el.querySelector('.mark-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    e.target.classList.toggle('marked');
                 });
-
-                const markBtn = cardElement.querySelector('.mark-btn');
-                markBtn.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    markBtn.classList.toggle('marked');
-                });
+                container.appendChild(el);
             });
         }
 
-        function shuffleCards(size) {
-            currentSize = size;
-            renderCards(activeCards, currentSize);
-        }
+        function shuffleCards(size) { currentSize = size; renderCards(size); }
+        function applyStyle(s) { document.body.className = s; }
 
-        function applyStyle(styleName) {
-            const body = document.body;
-            body.className = '';
-            body.classList.add(styleName);
-        }
-        
-        function copyShareUrl() {
-            if (activeCards.length === 0) {
-                alert('請先輸入詞庫後再分享！');
-                return;
-            }
-
-            const encodedData = encodeDictionary(activeCards);
-            if (!encodedData) {
-                alert('詞庫編碼失敗，請檢查輸入內容。');
-                return;
-            }
-
-            const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            const newUrl = `${baseUrl}?data=${encodedData}`;
-
-            if (newUrl.length > 2048) {
-                alert(`網址長度過長 (${newUrl.length} 字元)，可能導致分享失敗。請減少詞庫數量。`);
-            }
-            
-            navigator.clipboard.writeText(newUrl).then(() => {
-                alert('已複製帶詞庫網址！');
-            }).catch(err => {
-                console.error('複製失敗: ', err);
-                alert('複製失敗，請手動複製以下網址：\n' + newUrl);
-            });
-        }
-
-        function resetToInitialState() {
-            const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            window.location.href = baseUrl;
-        }
-
-        applyBtn.addEventListener('click', parseAndStoreDictionary);
-        loadSheetBtn.addEventListener('click', fetchGoogleSheet);
-        shareBtn.addEventListener('click', copyShareUrl);
-        resetBtn.addEventListener('click', resetToInitialState);
+        document.getElementById('load-sheet-btn').addEventListener('click', fetchGoogleSheet);
+        document.getElementById('apply-btn').addEventListener('click', () => {
+            const lines = customDictTextarea.value.trim().split('\n');
+            activeCards = lines.map(l => {
+                const p = l.replace(/，/g, ',').split(',');
+                return p.length === 2 ? { hanzi: p[0].trim(), roman: p[1].trim() } : null;
+            }).filter(c => c !== null);
+            shuffleCards(currentSize);
+        });
 
         window.onload = () => {
-            loadDictionary();
+            // 嘗試讀取網址參數，若無則留空
+            const params = new URLSearchParams(window.location.search);
+            const data = params.get('data');
+            if (data) {
+                try {
+                    activeCards = JSON.parse(decodeURIComponent(escape(atob(data))));
+                    customDictTextarea.value = activeCards.map(c => `${c.hanzi},${c.roman}`).join('\n');
+                } catch(e) {}
+            }
             shuffleCards(3);
-            applyStyle('theme-style1');
         };
     </script>
-
 </body>
 </html>
