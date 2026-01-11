@@ -2,63 +2,96 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>啥人講白賊 - 語文教學版</title>
+    <title>啥人講白賊</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        :root { --primary: #007bff; --spy: #dc3545; --bg: #f4f7f9; --hint-bg: #fff9db; }
-        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); text-align: center; padding: 20px; margin: 0; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); min-height: 80vh; display: flex; flex-direction: column; }
+        /* 定義三種配色變數 */
+        :root { 
+            --primary: #007bff; --bg: #f4f7f9; --container-bg: #ffffff; 
+            --text-main: #222222; --text-sub: #555555; --text-mean: #777777;
+            --card-border: #007bff; --hint-bg: #fff9db; --hint-text: #856404;
+        }
+
+        /* 夢幻粉 */
+        body.theme-pink { 
+            --primary: #d63384; --bg: #fff0f6; --container-bg: #ffffff; 
+            --text-main: #444444; --text-sub: #666666; --text-mean: #888888;
+            --card-border: #ff85c0; --hint-bg: #fff0f6; --hint-text: #a61e4d;
+        }
+
+        /* 高貴黃 */
+        body.theme-yellow { 
+            --primary: #e67e22; --bg: #fff9db; --container-bg: #ffffff; 
+            --text-main: #443300; --text-sub: #665500; --text-mean: #887700;
+            --card-border: #fab005; --hint-bg: #fff9db; --hint-text: #856404;
+        }
+
+        /* 寧靜黑 */
+        body.theme-black { 
+            --primary: #4dabf7; --bg: #121212; --container-bg: #1e1e1e; 
+            --text-main: #ffffff; --text-sub: #cccccc; --text-mean: #aaaaaa;
+            --card-border: #4dabf7; --hint-bg: #2c2c2c; --hint-text: #ffd43b;
+        }
+
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); text-align: center; padding: 10px; margin: 0; transition: background 0.3s; }
+        .container { max-width: 600px; margin: 0 auto; background: var(--container-bg); padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); min-height: 85vh; display: flex; flex-direction: column; transition: background 0.3s; }
         
+        /* 顏色切換按鈕 */
+        .theme-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .theme-btn { padding: 8px 15px; font-size: 14px; border-radius: 20px; border: 1px solid #ddd; cursor: pointer; font-weight: bold; }
+        .btn-pink { background: #ff85c0; color: white; }
+        .btn-yellow { background: #fab005; color: #443300; }
+        .btn-black { background: #333333; color: white; }
+
         h2 { color: var(--primary); margin-bottom: 25px; font-size: 28px; }
-        .step-title { font-weight: bold; color: #555; margin-bottom: 15px; font-size: 1.1em; }
+        .step-title { font-weight: bold; color: var(--text-sub); margin-bottom: 15px; font-size: 1.2em; }
         
-        /* 輸入框美化 */
-        input#roomCode { width: 85%; padding: 15px; font-size: 20px; border: 2px solid #ddd; border-radius: 12px; margin-bottom: 30px; text-align: center; }
+        input#roomCode { width: 85%; padding: 15px; font-size: 20px; border: 2px solid #ddd; border-radius: 12px; margin-bottom: 30px; text-align: center; background: var(--container-bg); color: var(--text-main); }
 
-        /* 按鈕樣式 */
         .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 30px; }
-        button { padding: 12px 25px; font-size: 18px; border: 2px solid var(--primary); background: white; color: var(--primary); border-radius: 12px; cursor: pointer; transition: 0.2s; font-weight: bold; }
-        button.active { background: var(--primary); color: white; }
-        button:hover { background: #f0f7ff; }
+        .btn-group button { padding: 12px 25px; font-size: 18px; border: 2px solid var(--primary); background: transparent; color: var(--primary); border-radius: 12px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        .btn-group button.active { background: var(--primary); color: #fff; }
 
-        /* 隱藏區塊 */
         .hidden { display: none; }
 
-        /* 卡牌美化 */
-        #resultCard { margin-top: 10px; padding: 40px 20px; border: 4px solid var(--primary); border-radius: 20px; background: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        /* 卡牌樣式 */
+        #resultCard { margin-top: 10px; padding: 40px 20px; border: 4px solid var(--card-border); border-radius: 20px; background: var(--container-bg); }
+        .word-main { font-size: 52px; font-weight: 900; color: var(--text-main); margin: 0; line-height: 1.2; }
+        .word-pron { font-size: 26px; color: var(--text-sub); margin: 12px 0; font-family: "Lucida Sans", sans-serif; }
+        .word-mean { font-size: 20px; color: var(--text-mean); border-top: 1px solid #eee; margin-top: 20px; padding-top: 15px; }
         
-        .word-main { font-size: 52px; font-weight: 900; color: #222; margin: 0; line-height: 1.2; }
-        .word-pron { font-size: 26px; color: #555; margin: 12px 0; font-family: "Lucida Sans", sans-serif; }
-        .word-mean { font-size: 20px; color: #777; border-top: 1px solid #eee; margin-top: 20px; padding-top: 15px; }
+        /* 說話提示 */
+        .hint-box { margin-top: 25px; padding: 20px; background: var(--hint-bg); border-radius: 15px; text-align: left; border-left: 5px solid var(--primary); }
+        .hint-title { font-weight: bold; color: var(--hint-text); margin-bottom: 10px; font-size: 17px; }
+        .hint-list { list-style: none; padding: 0; margin: 0; color: var(--text-sub); line-height: 1.8; font-size: 16px; }
         
-        /* 說話提示區 */
-        .hint-box { margin-top: 25px; padding: 20px; background: var(--hint-bg); border-radius: 15px; text-align: left; border-left: 5px solid #fab005; }
-        .hint-title { font-weight: bold; color: #856404; margin-bottom: 10px; font-size: 17px; }
-        .hint-list { list-style: none; padding: 0; margin: 0; color: #665c33; line-height: 1.8; font-size: 16px; }
-        
-        .locked-msg { margin-top: 20px; color: #dc3545; font-weight: bold; font-size: 0.9em; letter-spacing: 1px; }
+        .locked-msg { margin-top: 20px; color: #dc3545; font-weight: bold; font-size: 0.9em; }
+        .warning-text { color: #888; font-size: 14px; margin-top: 20px; }
 
-        /* 頁尾 */
         footer { margin-top: auto; padding-top: 40px; font-size: 12px; color: #bbb; }
-
-        /* 動畫 */
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10deg); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body>
+<body class="theme-pink">
 
 <div class="container">
+    <div class="theme-selector">
+        <div class="theme-btn btn-pink" onclick="setTheme('pink')">夢幻粉</div>
+        <div class="theme-btn btn-yellow" onclick="setTheme('yellow')">高貴黃</div>
+        <div class="theme-btn btn-black" onclick="setTheme('black')">寧靜黑</div>
+    </div>
+
     <div id="setupArea">
         <h2>🕵️ 啥人講白賊-發牌系統</h2>
 
         <div id="step1">
-            <div class="step-title">步驟一：請輸入房間號碼</div>
-            <input type="number" id="roomCode" placeholder="例如：0121" inputmode="numeric">
+            <div class="step-title">第一步：輸入共同號碼</div>
+            <input type="number" id="roomCode" placeholder="像講：0121" inputmode="numeric">
         </div>
 
         <div id="step2">
-            <div class="step-title">步驟二：全班共有幾組？</div>
+            <div class="step-title">第二步：咱攏總分做幾組</div>
             <div class="btn-group">
                 <button onclick="setTotalGroups(4)" id="total4">共 4 組</button>
                 <button onclick="setTotalGroups(5)" id="total5">共 5 組</button>
@@ -67,9 +100,11 @@
         </div>
 
         <div id="step3" class="hidden">
-            <div class="step-title">步驟三：你是第幾組？</div>
+            <div class="step-title">第三步：你是第幾組』</div>
             <div class="btn-group" id="myGroupBtns"></div>
         </div>
+        
+        <div class="warning-text">※請注意：烏白設定會害遊戲袂當進行</div>
     </div>
 
     <div id="resultArea" class="hidden fade-in">
@@ -106,6 +141,11 @@
         totalGroups: 0
     };
 
+    // 切換配色主題
+    function setTheme(themeName) {
+        document.body.className = 'theme-' + themeName;
+    }
+
     function hash(str) {
         let h = 0;
         for (let i = 0; i < str.length; i++) {
@@ -117,19 +157,17 @@
     function setTotalGroups(n) {
         state.roomCode = document.getElementById('roomCode').value;
         if (!state.roomCode) {
-            alert("請先輸入房間號碼");
+            alert("請先輸入號碼");
             return;
         }
         state.totalGroups = n;
 
-        // 切換按鈕樣式
         [4,5,6].forEach(num => {
             const btn = document.getElementById('total' + num);
             if(btn) btn.classList.remove('active');
         });
         document.getElementById('total' + n).classList.add('active');
 
-        // 動態生成組別按鈕
         const btnContainer = document.getElementById('myGroupBtns');
         btnContainer.innerHTML = '';
         for (let i = 1; i <= n; i++) {
@@ -148,13 +186,12 @@
             const response = await fetch(csvUrl);
             const data = await response.text();
             
-            // 解析 CSV 並過濾標題
             const rows = data.split('\n')
                              .map(row => row.split(','))
                              .filter(r => r.length >= 6 && !r[0].includes("平民"));
 
             if (rows.length === 0) {
-                alert('試算表中沒有找到詞彙資料');
+                alert('試算表中無資料');
                 return;
             }
 
@@ -162,32 +199,28 @@
             const pairIndex = seed % rows.length;
             const rowData = rows[pairIndex];
 
-            // 隨機決定臥底
             const spyGroup = (hash(seed.toString()) % state.totalGroups) + 1;
 
             let word, pron, mean;
             if (groupIndex === spyGroup) {
-                word = rowData[3].trim(); // D 臥底詞
-                pron = rowData[4].trim(); // E 臥底發音
-                mean = rowData[5].trim(); // F 臥底釋義
+                word = rowData[3].trim();
+                pron = rowData[4].trim();
+                mean = rowData[5].trim();
             } else {
-                word = rowData[0].trim(); // A 平民詞
-                pron = rowData[1].trim(); // B 平民發音
-                mean = rowData[2].trim(); // C 平民釋義
+                word = rowData[0].trim();
+                pron = rowData[1].trim();
+                mean = rowData[2].trim();
             }
 
-            // 更新內容
             document.getElementById('displayWord').innerText = word;
             document.getElementById('displayPron').innerText = pron;
             document.getElementById('displayMean').innerText = "華語：" + mean;
 
-            // 切換畫面
             document.getElementById('setupArea').classList.add('hidden');
             document.getElementById('resultArea').classList.remove('hidden');
-            document.body.style.background = "#dee2e6";
-
+            
         } catch (error) {
-            alert('讀取失敗，請確認網路連線');
+            alert('讀取失敗');
             console.error(error);
         }
     }
