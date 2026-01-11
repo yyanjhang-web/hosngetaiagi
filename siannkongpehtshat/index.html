@@ -2,62 +2,83 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>誰是臥底 - 課堂教學專用版</title>
+    <title>誰是臥底 - 語文教學版</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding: 20px; background: #f8f9fa; color: #333; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #007bff; margin-bottom: 25px; }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
-        input { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; transition: border-color 0.3s; }
-        input:focus { border-color: #007bff; outline: none; }
-        button { width: 100%; background: #007bff; color: white; border: none; padding: 15px; font-size: 18px; border-radius: 10px; cursor: pointer; margin-top: 10px; font-weight: bold; }
-        button:hover { background: #0056b3; }
-        #gameArea { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
-        .card { border: 3px dashed #007bff; padding: 50px 20px; margin: 20px auto; background: #e7f1ff; border-radius: 15px; cursor: pointer; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        :root { --primary: #007bff; --spy: #dc3545; --bg: #f0f2f5; }
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); text-align: center; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        h2 { color: var(--primary); margin-bottom: 25px; }
+        .step-title { font-weight: bold; color: #555; margin-bottom: 15px; font-size: 1.1em; }
+        
+        /* 輸入框美化 */
+        input#roomCode { width: 80%; padding: 15px; font-size: 18px; border: 2px solid #ddd; border-radius: 12px; margin-bottom: 30px; text-align: center; }
+
+        /* 按鈕樣式 */
+        .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 30px; }
+        button { padding: 12px 25px; font-size: 16px; border: 2px solid var(--primary); background: white; color: var(--primary); border-radius: 12px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        button.active { background: var(--primary); color: white; }
+        button:disabled { border-color: #ccc; color: #ccc; cursor: not-allowed; }
+
+        /* 隱藏區塊 */
         .hidden { display: none; }
-        .word-text { font-size: 36px; color: #dc3545; margin: 0; }
-        .hint { color: #888; font-size: 14px; margin-top: 10px; }
+
+        /* 卡牌美化 */
+        #resultCard { margin-top: 20px; padding: 40px 20px; border: 4px solid var(--primary); border-radius: 20px; background: #fff; animation: flipIn 0.6s ease-out; }
+        @keyframes flipIn { from { transform: rotateY(90deg); opacity: 0; } to { transform: rotateY(0deg); opacity: 1; } }
+        
+        .word-main { font-size: 48px; font-weight: 900; color: #333; margin: 0; line-height: 1.2; }
+        .word-pron { font-size: 24px; color: #666; margin: 10px 0; }
+        .word-mean { font-size: 18px; color: #888; border-top: 1px solid #eee; margin-top: 20px; padding-top: 15px; }
+        
+        .locked-msg { margin-top: 30px; color: #dc3545; font-weight: bold; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="mainApp">
     <h2>🕵️ 誰是臥底 - 發牌系統</h2>
-    
-    <div class="input-group">
-        <label>1. 房間號碼 (老師給的數字)</label>
-        <input type="number" id="roomCode" placeholder="例如：102">
+
+    <div id="step1">
+        <div class="step-title">步驟一：請輸入房間號碼</div>
+        <input type="number" id="roomCode" placeholder="例如：0121" pattern="\d*">
     </div>
 
-    <div class="input-group">
-        <label>2. 現場總組數 (4-6)</label>
-        <input type="number" id="totalGroups" value="6" min="1">
-    </div>
-
-    <div class="input-group">
-        <label>3. 你的組別 (你是第幾組？)</label>
-        <input type="number" id="groupNum" placeholder="例如：1">
-    </div>
-
-    <button onclick="startGame()">查看本組卡牌</button>
-
-    <div id="gameArea" class="hidden">
-        <h3 id="displayGroup">第 X 組</h3>
-        <div class="card" onclick="toggleCard()">
-            <span id="instruction">點擊翻牌 👆</span>
-            <h1 id="word" class="word-text hidden">載入中...</h1>
+    <div id="step2">
+        <div class="step-title">步驟二：全班共有幾組？</div>
+        <div class="btn-group">
+            <button onclick="setTotalGroups(4)" id="total4">共 4 組</button>
+            <button onclick="setTotalGroups(5)" id="total5">共 5 組</button>
+            <button onclick="setTotalGroups(6)" id="total6">共 6 組</button>
         </div>
-        <p class="hint">看過後請再次點擊卡牌隱藏，勿讓他人看見！</p>
+    </div>
+
+    <div id="step3" class="hidden">
+        <div class="step-title">步驟三：你是第幾組？</div>
+        <div class="btn-group" id="myGroupBtns">
+            </div>
+    </div>
+
+    <div id="resultArea" class="hidden">
+        <div id="resultCard">
+            <div class="word-main" id="displayWord">紅茶</div>
+            <div class="word-pron" id="displayPron">âng-tê</div>
+            <div class="word-mean" id="displayMean">華語：紅茶</div>
+        </div>
+        <div class="locked-msg">⚠️ 卡牌已鎖定，請各組開始討論</div>
     </div>
 </div>
 
 <script>
-    // 已自動填入您的 Google CSV 連結
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXr-NxRpudrsU6BBpxKN4tOGZ5YmH_m4e1Fpcq1BvQyXjqO7wIhtVk3jRBpDQFKQpmmluUrbNfiDfm/pub?gid=0&single=true&output=csv';
+    
+    let state = {
+        roomCode: '',
+        totalGroups: 0,
+        myGroup: 0
+    };
 
-    // 簡單的雜湊函式，確保隨機性與公平性
     function hash(str) {
         let h = 0;
         for (let i = 0; i < str.length; i++) {
@@ -66,68 +87,83 @@
         return Math.abs(h);
     }
 
-    async function startGame() {
-        const roomCode = document.getElementById('roomCode').value;
-        const groupNum = parseInt(document.getElementById('groupNum').value);
-        const totalGroups = parseInt(document.getElementById('totalGroups').value);
-        
-        if (!roomCode || !groupNum || !totalGroups) {
-            alert('請填寫完整資訊');
+    // 選擇總組數
+    function setTotalGroups(n) {
+        state.roomCode = document.getElementById('roomCode').value;
+        if (!state.roomCode) {
+            alert("請先輸入房間號碼");
             return;
         }
-        if (groupNum > totalGroups) {
-            alert('錯誤：組別不可大於總組數');
-            return;
+        state.totalGroups = n;
+
+        // 視覺反饋
+        [4,5,6].forEach(num => {
+            document.getElementById('total' + num).classList.remove('active');
+        });
+        document.getElementById('total' + n).classList.add('active');
+
+        // 動態生成「第幾組」按鈕
+        const btnContainer = document.getElementById('myGroupBtns');
+        btnContainer.innerHTML = '';
+        for (let i = 1; i <= n; i++) {
+            const btn = document.createElement('button');
+            btn.innerText = `第 ${i} 組`;
+            btn.onclick = () => showCard(i);
+            btnContainer.appendChild(btn);
         }
+
+        document.getElementById('step3').classList.remove('hidden');
+        // 捲動到底部
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    // 抽牌並顯示結果
+    async function showCard(groupIndex) {
+        state.myGroup = groupIndex;
 
         try {
             const response = await fetch(csvUrl);
             const data = await response.text();
             
-            // 解析 CSV 內容，過濾掉標題列
+            // 解析 CSV，過濾標題列，確保有資料
             const rows = data.split('\n')
                              .map(row => row.split(','))
-                             .filter(r => r.length >= 2 && !r[0].includes("平民"));
+                             .filter(r => r.length >= 6 && !r[0].includes("平民"));
 
-            if (rows.length === 0) {
-                alert('試算表中沒有找到詞彙資料');
-                return;
+            const seed = hash(state.roomCode.toString());
+            const pairIndex = seed % rows.length;
+            const rowData = rows[pairIndex];
+
+            // 決定臥底組別 (基於種子與總組數，確保不同平板結果一致)
+            const spyGroup = (hash(seed.toString()) % state.totalGroups) + 1;
+
+            // 判斷該顯示平民(ABC)還是臥底(DEF)
+            let word, pron, mean;
+            if (groupIndex === spyGroup) {
+                word = rowData[3]; // D 臥底詞
+                pron = rowData[4]; // E 臥底發音
+                mean = rowData[5]; // F 臥底釋義
+            } else {
+                word = rowData[0]; // A 平民詞
+                pron = rowData[1]; // B 平民發音
+                mean = rowData[2]; // C 平民釋義
             }
 
-            // 使用房間號碼計算種子
-            const seed = hash(roomCode.toString());
-            
-            // 決定抽哪一組詞彙
-            const pairIndex = seed % rows.length;
-            const [civWord, spyWord] = rows[pairIndex].map(w => w.trim());
+            // 渲染畫面
+            document.getElementById('displayWord').innerText = word;
+            document.getElementById('displayPron').innerText = pron;
+            document.getElementById('displayMean').innerText = "華語：" + mean;
 
-            // 決定哪一組是臥底 (使用二次雜湊增加隨機度)
-            const spyGroup = (hash(seed.toString()) % totalGroups) + 1;
-
-            // 顯示結果
-            document.getElementById('displayGroup').innerText = `第 ${groupNum} 組`;
-            document.getElementById('word').innerText = (groupNum === spyGroup) ? spyWord : civWord;
-            
-            // 重設卡牌狀態
-            document.getElementById('word').classList.add('hidden');
-            document.getElementById('instruction').classList.remove('hidden');
-            document.getElementById('gameArea').classList.remove('hidden');
+            // 隱藏設定區，顯示卡牌
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.add('hidden');
+            document.getElementById('resultArea').classList.remove('hidden');
+            document.body.style.background = "#e9ecef";
 
         } catch (error) {
-            alert('讀取資料失敗，請檢查網路或 CSV 連結。');
+            alert('讀取失敗，請確認網路連線');
             console.error(error);
-        }
-    }
-
-    function toggleCard() {
-        const word = document.getElementById('word');
-        const inst = document.getElementById('instruction');
-        if (word.classList.contains('hidden')) {
-            word.classList.remove('hidden');
-            inst.classList.add('hidden');
-        } else {
-            word.classList.add('hidden');
-            inst.classList.remove('hidden');
         }
     }
 </script>
