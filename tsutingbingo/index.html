@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>賓果翻牌 - 教學專用版 (工作表1同步)</title>
+    <style>
+        :root {
+            /* 預設風格1的變數 (清新藍綠) */
+            --bg-color: #f0f9ff;
+            --container-bg-color: #e0f2f7;
+            --btn-color: #20b2aa;
+            --btn-hover-color: #008b8b;
+            --card-front-color: #b3e0ff;
+            --card-back-color: #81c784;
+            --card-front-text: #005f99;
+            --card-back-text: #004085;
+        }
+        .theme-style2 {
+            --bg-color: #fffaf0;
+            --container-bg-color: #ffeccf;
+            --btn-color: #f59e0b;
+            --btn-hover-color: #d97706;
+            --card-front-color: #fbd38d;
+            --card-back-color: #d8b4fe;
+            --card-front-text: #92400e;
+            --card-back-text: #6b21a8;
+        }
+        .theme-style3 {
+            --bg-color: #1a202c;
+            --container-bg-color: #2d3748;
+            --btn-color: #4299e1;
+            --btn-hover-color: #2b6cb0;
+            --card-front-color: #4a5568;
+            --card-back-color: #fcd34d;
+            --card-front-text: #e2e8f0;
+            --card-back-text: #713f12;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: #333;
+            transition: background-color 0.5s;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .dictionary-input {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--container-bg-color);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .sync-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--btn-color);
+            color: white;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+        button:hover { background-color: var(--btn-hover-color); opacity: 0.9; }
+
+        .sync-btn { background-color: #4caf50; font-weight: bold; width: 100%; }
+        .edit-btn { background-color: #2196f3; font-weight: bold; width: 100%; }
+
+        .container {
+            display: grid;
+            gap: 15px;
+            padding: 15px;
+            background-color: var(--container-bg-color);
+            border-radius: 15px;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        .card { width: 100%; padding-bottom: 70%; height: 0; background-color: var(--card-front-color); border-radius: 10px; cursor: pointer; perspective: 1000px; position: relative; }
+        .card-inner { position: absolute; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; border-radius: 10px; padding: 5px; text-align: center; font-weight: bold; box-sizing: border-box; }
+        .card-front { background-color: var(--card-front-color); color: var(--card-front-text); }
+        .card-back { background-color: var(--card-back-color); color: var(--card-back-text); transform: rotateY(180deg); }
+        
+        .mark-btn { position: absolute; bottom: 5px; right: 5px; width: 18px; height: 18px; border-radius: 50%; background-color: rgba(255,255,255,0.4); border: 1px solid #ccc; z-index: 5; }
+        .mark-btn.marked { background-color: #ff5252; }
+
+        .footer { margin-top: 20px; text-align: center; font-size: 0.85em; color: #666; }
+        .counter-container { margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+    </style>
+</head>
+<body class="theme-style1">
+
+    <div class="dictionary-input">
+        <h3>多人同步模式</h3>
+        <div class="sync-section">
+            <button class="edit-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1KAojsfq8A0ycK_YBzz93KhKU8h2OJEqzKEbwr3HsRfs/edit?usp=sharing', '_blank')">👉 開啟線上共編詞庫</button>
+            
+            <div class="input-group">
+                <input type="text" id="sheet-url" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRY-SeJcGiStT_zloHzliRlEZ7-ivqer_voY-D6D3Py1TaIxWvluVSs45HP_qHguyhXunceTwGj191l/pub?gid=0&single=true&output=csv">
+            </div>
+            <button id="load-sheet-btn" class="sync-btn">🔄 從試算表同步資料</button>
+        </div>
+        
+        <details style="margin-top: 10px; font-size: 0.8em; cursor: pointer;">
+            <summary>手動輸入模式（備用）</summary>
+            <textarea id="custom-dictionary" style="width:100%; height:60px; margin-top:5px;"></textarea>
+            <button id="apply-btn" style="width:100%; margin-top:5px;">套用手動詞庫</button>
+        </details>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <button onclick="shuffleCards(3)">3x3</button>
+        <button onclick="shuffleCards(4)">4x4</button>
+        <button onclick="shuffleCards(5)">5x5</button>
+    </div>
+
+    <div id="game-container" class="container"></div>
+
+    <div style="margin-top: 20px;">
+        <button onclick="applyStyle('theme-style1')">清新藍</button>
+        <button onclick="applyStyle('theme-style2')">暖心橘</button>
+        <button onclick="applyStyle('theme-style3')">深色系</button>
+    </div>
+
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let activeCards = [];
+        let currentSize = 3;
+        const container = document.getElementById('game-container');
+        const sheetInput = document.getElementById('sheet-url');
+
+        async function fetchSheet() {
+            const url = sheetInput.value.trim();
+            try {
+                const res = await fetch(url);
+                const text = await res.text();
+                const lines = text.split(/\r?\n/);
+                // 修正解析邏輯，處理可能包含標題列或空行的狀況
+                activeCards = lines.map(l => {
+                    const p = l.replace(/，/g, ',').split(',');
+                    return p.length >= 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
+                }).filter(c => c !== null && c.h !== "" && c.r !== "");
+                
+                if (activeCards.length > 0) {
+                    alert(`成功載入 ${activeCards.length} 組單字！`);
+                    shuffleCards(currentSize);
+                } else {
+                    alert("載入失敗：請確認試算表內有正確的單字資料。");
+                }
+            } catch (e) { 
+                alert("讀取失敗：請確認網路連線，或檢查試算表是否已發佈為 CSV。"); 
+            }
+        }
+
+        function shuffleCards(size) {
+            currentSize = size;
+            container.innerHTML = '';
+            container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            
+            if (activeCards.length < size*size) {
+                container.innerHTML = '<p style="grid-column:1/-1; text-align:center;">詞彙不足，請點擊上方按鈕同步資料。</p>';
+                return;
+            }
+
+            // 洗牌演算法
+            const deck = [...activeCards].sort(() => Math.random() - 0.5).slice(0, size*size);
+            deck.forEach(data => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-face card-front">${data.r}</div>
+                        <div class="card-face card-back">${data.h}</div>
+                    </div>
+                    <div class="mark-btn"></div>
+                `;
+                card.onclick = () => card.classList.toggle('flipped');
+                card.querySelector('.mark-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    e.target.classList.toggle('marked');
+                };
+                container.appendChild(card);
+            });
+        }
+
+        function applyStyle(s) { document.body.className = s; }
+        
+        document.getElementById('load-sheet-btn').onclick = fetchSheet;
+        
+        document.getElementById('apply-btn').onclick = () => {
+            const lines = document.getElementById('custom-dictionary').value.trim().split('\n');
+            activeCards = lines.map(l => {
+                const p = l.replace(/，/g, ',').split(',');
+                return p.length === 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
+            }).filter(c => c !== null);
+            shuffleCards(currentSize);
+        };
+
+        window.onload = () => { 
+            shuffleCards(3); 
+        };
+    </script>
+</body>
+</html>
