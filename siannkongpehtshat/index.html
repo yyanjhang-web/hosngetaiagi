@@ -1,75 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-    <title>誰講白賊</title>
+    <meta charset="UTF-8">
+    <title>誰是臥底 - 課堂教學專用版</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; }
-        .card { border: 2px dashed #333; padding: 40px; margin: 20px auto; max-width: 300px; background: white; border-radius: 15px; cursor: pointer; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding: 20px; background: #f8f9fa; color: #333; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #007bff; margin-bottom: 25px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; transition: border-color 0.3s; }
+        input:focus { border-color: #007bff; outline: none; }
+        button { width: 100%; background: #007bff; color: white; border: none; padding: 15px; font-size: 18px; border-radius: 10px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        #gameArea { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
+        .card { border: 3px dashed #007bff; padding: 50px 20px; margin: 20px auto; background: #e7f1ff; border-radius: 15px; cursor: pointer; min-height: 80px; display: flex; align-items: center; justify-content: center; }
         .hidden { display: none; }
-        input, button { padding: 10px; font-size: 16px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
-        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        .word-text { font-size: 36px; color: #dc3545; margin: 0; }
+        .hint { color: #888; font-size: 14px; margin-top: 10px; }
     </style>
-</head>https://docs.google.com/spreadsheets/d/e/2PACX-1vRXr-NxRpudrsU6BBpxKN4tOGZ5YmH_m4e1Fpcq1BvQyXjqO7wIhtVk3jRBpDQFKQpmmluUrbNfiDfm/pub?gid=0&single=true&output=csv
+</head>
 <body>
-    <h2>🕵️ 誰講白賊 - 遊戲大廳</h2>
+
+<div class="container">
+    <h2>🕵️ 誰是臥底 - 發牌系統</h2>
     
-    <div>
-        <input type="number" id="roomCode" placeholder="輸入老師給的房間號碼 (如: 123)">
-        <input type="number" id="groupNum" placeholder="輸入你的組別 (1-6)">
-        <button onclick="startGame()">查看卡牌</button>
+    <div class="input-group">
+        <label>1. 房間號碼 (老師給的數字)</label>
+        <input type="number" id="roomCode" placeholder="例如：102">
     </div>
+
+    <div class="input-group">
+        <label>2. 現場總組數 (4-6)</label>
+        <input type="number" id="totalGroups" value="6" min="1">
+    </div>
+
+    <div class="input-group">
+        <label>3. 你的組別 (你是第幾組？)</label>
+        <input type="number" id="groupNum" placeholder="例如：1">
+    </div>
+
+    <button onclick="startGame()">查看本組卡牌</button>
 
     <div id="gameArea" class="hidden">
-        <hr>
         <h3 id="displayGroup">第 X 組</h3>
         <div class="card" onclick="toggleCard()">
-            <span id="instruction">點擊翻牌</span>
-            <h1 id="word" class="hidden">載入中...</h1>
+            <span id="instruction">點擊翻牌 👆</span>
+            <h1 id="word" class="word-text hidden">載入中...</h1>
         </div>
-        <p style="color: gray; font-size: 0.8em;">看完請再次點擊隱藏，勿讓他人看見</p>
+        <p class="hint">看過後請再次點擊卡牌隱藏，勿讓他人看見！</p>
     </div>
+</div>
 
-    <script>
-        // 將這裡替換成你 Google 試算表發布的 CSV 連結
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXr-NxRpudrsU6BBpxKN4tOGZ5YmH_m4e1Fpcq1BvQyXjqO7wIhtVk3jRBpDQFKQpmmluUrbNfiDfm/pub?gid=0&single=true&output=csv';
+<script>
+    // 已自動填入您的 Google CSV 連結
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXr-NxRpudrsU6BBpxKN4tOGZ5YmH_m4e1Fpcq1BvQyXjqO7wIhtVk3jRBpDQFKQpmmluUrbNfiDfm/pub?gid=0&single=true&output=csv';
 
-        async function startGame() {
-            const roomCode = document.getElementById('roomCode').value;
-            const groupNum = parseInt(document.getElementById('groupNum').value);
-            
-            if (!roomCode || !groupNum) return alert('請輸入完整資訊');
+    // 簡單的雜湊函式，確保隨機性與公平性
+    function hash(str) {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) {
+            h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+        }
+        return Math.abs(h);
+    }
 
+    async function startGame() {
+        const roomCode = document.getElementById('roomCode').value;
+        const groupNum = parseInt(document.getElementById('groupNum').value);
+        const totalGroups = parseInt(document.getElementById('totalGroups').value);
+        
+        if (!roomCode || !groupNum || !totalGroups) {
+            alert('請填寫完整資訊');
+            return;
+        }
+        if (groupNum > totalGroups) {
+            alert('錯誤：組別不可大於總組數');
+            return;
+        }
+
+        try {
             const response = await fetch(csvUrl);
             const data = await response.text();
-            const rows = data.split('\n').map(row => row.split(','));
-            // 排除標題列並過濾空白
-            const wordPairs = rows.filter(r => r.length >= 2 && r[0] !== "平民詞彙");
+            
+            // 解析 CSV 內容，過濾掉標題列
+            const rows = data.split('\n')
+                             .map(row => row.split(','))
+                             .filter(r => r.length >= 2 && !r[0].includes("平民"));
 
-            // 使用房間號碼作為隨機種子
-            const seed = parseInt(roomCode);
-            const pairIndex = seed % wordPairs.length;
-            const [civWord, spyWord] = wordPairs[pairIndex];
+            if (rows.length === 0) {
+                alert('試算表中沒有找到詞彙資料');
+                return;
+            }
 
-            // 決定哪一組是臥底 (假設總共 6 組，使用種子隨機選一組)
-            const spyGroup = (seed % 6) + 1;
+            // 使用房間號碼計算種子
+            const seed = hash(roomCode.toString());
+            
+            // 決定抽哪一組詞彙
+            const pairIndex = seed % rows.length;
+            const [civWord, spyWord] = rows[pairIndex].map(w => w.trim());
 
+            // 決定哪一組是臥底 (使用二次雜湊增加隨機度)
+            const spyGroup = (hash(seed.toString()) % totalGroups) + 1;
+
+            // 顯示結果
             document.getElementById('displayGroup').innerText = `第 ${groupNum} 組`;
             document.getElementById('word').innerText = (groupNum === spyGroup) ? spyWord : civWord;
-            document.getElementById('gameArea').style.display = 'block';
-        }
+            
+            // 重設卡牌狀態
+            document.getElementById('word').classList.add('hidden');
+            document.getElementById('instruction').classList.remove('hidden');
+            document.getElementById('gameArea').classList.remove('hidden');
 
-        function toggleCard() {
-            const word = document.getElementById('word');
-            const inst = document.getElementById('instruction');
-            if (word.classList.contains('hidden')) {
-                word.classList.remove('hidden');
-                inst.classList.add('hidden');
-            } else {
-                word.classList.add('hidden');
-                inst.classList.remove('hidden');
-            }
+        } catch (error) {
+            alert('讀取資料失敗，請檢查網路或 CSV 連結。');
+            console.error(error);
         }
-    </script>
+    }
+
+    function toggleCard() {
+        const word = document.getElementById('word');
+        const inst = document.getElementById('instruction');
+        if (word.classList.contains('hidden')) {
+            word.classList.remove('hidden');
+            inst.classList.add('hidden');
+        } else {
+            word.classList.add('hidden');
+            inst.classList.remove('hidden');
+        }
+    }
+</script>
+
 </body>
 </html>
