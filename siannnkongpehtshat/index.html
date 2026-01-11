@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>誰講白賊</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; }
+        .card { border: 2px dashed #333; padding: 40px; margin: 20px auto; max-width: 300px; background: white; border-radius: 15px; cursor: pointer; }
+        .hidden { display: none; }
+        input, button { padding: 10px; font-size: 16px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+    </style>
+</head>https://docs.google.com/spreadsheets/d/e/2PACX-1vRXr-NxRpudrsU6BBpxKN4tOGZ5YmH_m4e1Fpcq1BvQyXjqO7wIhtVk3jRBpDQFKQpmmluUrbNfiDfm/pub?gid=0&single=true&output=csv
+<body>
+    <h2>🕵️ 誰講白賊 - 遊戲大廳</h2>
+    
+    <div>
+        <input type="number" id="roomCode" placeholder="輸入老師給的房間號碼 (如: 123)">
+        <input type="number" id="groupNum" placeholder="輸入你的組別 (1-6)">
+        <button onclick="startGame()">查看卡牌</button>
+    </div>
+
+    <div id="gameArea" class="hidden">
+        <hr>
+        <h3 id="displayGroup">第 X 組</h3>
+        <div class="card" onclick="toggleCard()">
+            <span id="instruction">點擊翻牌</span>
+            <h1 id="word" class="hidden">載入中...</h1>
+        </div>
+        <p style="color: gray; font-size: 0.8em;">看完請再次點擊隱藏，勿讓他人看見</p>
+    </div>
+
+    <script>
+        // 將這裡替換成你 Google 試算表發布的 CSV 連結
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXr-NxRpudrsU6BBpxKN4tOGZ5YmH_m4e1Fpcq1BvQyXjqO7wIhtVk3jRBpDQFKQpmmluUrbNfiDfm/pub?gid=0&single=true&output=csv';
+
+        async function startGame() {
+            const roomCode = document.getElementById('roomCode').value;
+            const groupNum = parseInt(document.getElementById('groupNum').value);
+            
+            if (!roomCode || !groupNum) return alert('請輸入完整資訊');
+
+            const response = await fetch(csvUrl);
+            const data = await response.text();
+            const rows = data.split('\n').map(row => row.split(','));
+            // 排除標題列並過濾空白
+            const wordPairs = rows.filter(r => r.length >= 2 && r[0] !== "平民詞彙");
+
+            // 使用房間號碼作為隨機種子
+            const seed = parseInt(roomCode);
+            const pairIndex = seed % wordPairs.length;
+            const [civWord, spyWord] = wordPairs[pairIndex];
+
+            // 決定哪一組是臥底 (假設總共 6 組，使用種子隨機選一組)
+            const spyGroup = (seed % 6) + 1;
+
+            document.getElementById('displayGroup').innerText = `第 ${groupNum} 組`;
+            document.getElementById('word').innerText = (groupNum === spyGroup) ? spyWord : civWord;
+            document.getElementById('gameArea').style.display = 'block';
+        }
+
+        function toggleCard() {
+            const word = document.getElementById('word');
+            const inst = document.getElementById('instruction');
+            if (word.classList.contains('hidden')) {
+                word.classList.remove('hidden');
+                inst.classList.add('hidden');
+            } else {
+                word.classList.add('hidden');
+                inst.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
