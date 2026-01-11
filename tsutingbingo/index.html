@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>賓果翻牌 - 教學專用版 (工作表1同步)</title>
+    <title>共編賓果</title>
     <style>
         :root {
-            /* 預設風格1的變數 (清新藍綠) */
             --bg-color: #f0f9ff;
             --container-bg-color: #e0f2f7;
             --btn-color: #20b2aa;
@@ -15,6 +14,7 @@
             --card-back-color: #81c784;
             --card-front-text: #005f99;
             --card-back-text: #004085;
+            --text-color: #333;
         }
         .theme-style2 {
             --bg-color: #fffaf0;
@@ -25,7 +25,9 @@
             --card-back-color: #d8b4fe;
             --card-front-text: #92400e;
             --card-back-text: #6b21a8;
+            --text-color: #333;
         }
+        /* 沉穩黑配色優化 */
         .theme-style3 {
             --bg-color: #1a202c;
             --container-bg-color: #2d3748;
@@ -35,6 +37,7 @@
             --card-back-color: #fcd34d;
             --card-front-text: #e2e8f0;
             --card-back-text: #713f12;
+            --text-color: #e2e8f0; /* 淺色文字提高對比 */
         }
         
         body {
@@ -45,7 +48,7 @@
             align-items: center;
             min-height: 100vh;
             background-color: var(--bg-color);
-            color: #333;
+            color: var(--text-color);
             transition: background-color 0.5s;
             padding: 20px;
             box-sizing: border-box;
@@ -63,23 +66,29 @@
             box-sizing: border-box;
         }
 
-        .sync-section {
+        /* 按鈕並列樣式 */
+        .btn-row {
             display: flex;
-            flex-direction: column;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+        }
+        .btn-row button {
+            flex: 1;
+            font-weight: bold;
         }
 
         .input-group {
-            display: flex;
-            gap: 5px;
+            margin-top: 5px;
+            margin-bottom: 15px;
         }
 
         input[type="text"] {
-            flex: 1;
+            width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            box-sizing: border-box;
+            background-color: rgba(255, 255, 255, 0.9);
         }
 
         button {
@@ -95,8 +104,8 @@
         }
         button:hover { background-color: var(--btn-hover-color); opacity: 0.9; }
 
-        .sync-btn { background-color: #4caf50; font-weight: bold; width: 100%; }
-        .edit-btn { background-color: #2196f3; font-weight: bold; width: 100%; }
+        .sync-btn { background-color: #4caf50; }
+        .edit-btn { background-color: #2196f3; }
 
         .container {
             display: grid;
@@ -119,27 +128,34 @@
         .mark-btn { position: absolute; bottom: 5px; right: 5px; width: 18px; height: 18px; border-radius: 50%; background-color: rgba(255,255,255,0.4); border: 1px solid #ccc; z-index: 5; }
         .mark-btn.marked { background-color: #ff5252; }
 
-        .footer { margin-top: 20px; text-align: center; font-size: 0.85em; color: #666; }
+        .footer { margin-top: 20px; text-align: center; font-size: 0.85em; color: #777; }
+        /* 沉穩黑下的頁尾文字顏色 */
+        .theme-style3 .footer { color: #a0aec0; }
+        .theme-style3 .dictionary-input h3 { color: #fff; }
+        .theme-style3 .dictionary-input summary { color: #cbd5e0; }
+
         .counter-container { margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; }
     </style>
 </head>
 <body class="theme-style1">
 
     <div class="dictionary-input">
-        <h3>多人同步模式</h3>
-        <div class="sync-section">
-            <button class="edit-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1KAojsfq8A0ycK_YBzz93KhKU8h2OJEqzKEbwr3HsRfs/edit?usp=sharing', '_blank')">👉 開啟線上共編詞庫</button>
-            
-            <div class="input-group">
-                <input type="text" id="sheet-url" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vRY-SeJcGiStT_zloHzliRlEZ7-ivqer_voY-D6D3Py1TaIxWvluVSs45HP_qHguyhXunceTwGj191l/pub?gid=0&single=true&output=csv">
-            </div>
-            <button id="load-sheet-btn" class="sync-btn">🔄 從試算表同步資料</button>
+        <h3 style="margin-top: 0;">做伙耍賓果<br><span style="font-size: 0.8em; font-weight: normal;">Tsò-hué sńg Bingo</span></h3>
+        
+        <div class="btn-row">
+            <button class="edit-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1B6cFxxdU7hmXwaNcGijEdsm-2SthmKD-UA9sz4DsKLM/edit?usp=sharing', '_blank')">共編詞庫</button>
+            <button id="load-sheet-btn" class="sync-btn">載入共編</button>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="sheet-url" placeholder="亦可輸入google表單發布到網路的csv網址">
         </div>
         
-        <details style="margin-top: 10px; font-size: 0.8em; cursor: pointer;">
-            <summary>手動輸入模式（備用）</summary>
-            <textarea id="custom-dictionary" style="width:100%; height:60px; margin-top:5px;"></textarea>
-            <button id="apply-btn" style="width:100%; margin-top:5px;">套用手動詞庫</button>
+        <details style="margin-top: 10px; font-size: 0.9em; cursor: pointer;">
+            <summary style="font-weight: bold;">手動輸入詞庫</summary>
+            <textarea id="custom-dictionary" style="width:100%; height:80px; margin-top:10px; padding: 8px; border-radius: 5px; box-sizing: border-box;" 
+                      placeholder="以逗號分隔正反面。逗號全形半形皆可&#10;蘋果, phông-kó&#10;弓蕉，king-tsio"></textarea>
+            <button id="apply-btn" style="width:100%; margin-top:8px;">套用手動詞庫</button>
         </details>
     </div>
 
@@ -154,7 +170,7 @@
     <div style="margin-top: 20px;">
         <button onclick="applyStyle('theme-style1')">清新藍</button>
         <button onclick="applyStyle('theme-style2')">暖心橘</button>
-        <button onclick="applyStyle('theme-style3')">深色系</button>
+        <button onclick="applyStyle('theme-style3')">沉穩黑</button>
     </div>
 
     <div class="footer">
@@ -167,18 +183,21 @@
     </div>
 
     <script>
+        // (5) & (8) 預設 CSV 網址，即使輸入框為空也會使用此網址
+        const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQrfWVnTaayXh95cqCn96wTeWOYFxVwWIn_O3BDYBoiab130Ur4s49vJDSd5SCGmm-RDxhkLx3l8bBg/pub?gid=0&single=true&output=csv";
+        
         let activeCards = [];
         let currentSize = 3;
         const container = document.getElementById('game-container');
         const sheetInput = document.getElementById('sheet-url');
 
         async function fetchSheet() {
-            const url = sheetInput.value.trim();
+            // (7) 如果輸入框為空，則使用預設網址
+            const url = sheetInput.value.trim() || DEFAULT_CSV_URL;
             try {
                 const res = await fetch(url);
                 const text = await res.text();
                 const lines = text.split(/\r?\n/);
-                // 修正解析邏輯，處理可能包含標題列或空行的狀況
                 activeCards = lines.map(l => {
                     const p = l.replace(/，/g, ',').split(',');
                     return p.length >= 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
@@ -205,7 +224,6 @@
                 return;
             }
 
-            // 洗牌演算法
             const deck = [...activeCards].sort(() => Math.random() - 0.5).slice(0, size*size);
             deck.forEach(data => {
                 const card = document.createElement('div');
