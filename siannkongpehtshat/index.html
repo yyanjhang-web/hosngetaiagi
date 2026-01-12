@@ -10,6 +10,7 @@
             --primary: #007bff; --bg: #f4f7f9; --container-bg: #ffffff; 
             --text-main: #222222; --text-sub: #555555; --text-mean: #777777;
             --card-border: #007bff; --hint-bg: #fff9db; --hint-text: #856404;
+            --rule-text: #888888;
         }
 
         /* 夢幻粉 */
@@ -17,6 +18,7 @@
             --primary: #d63384; --bg: #fff0f6; --container-bg: #ffffff; 
             --text-main: #444444; --text-sub: #666666; --text-mean: #888888;
             --card-border: #ff85c0; --hint-bg: #fff0f6; --hint-text: #a61e4d;
+            --rule-text: #999999;
         }
 
         /* 高貴黃 */
@@ -24,6 +26,7 @@
             --primary: #e67e22; --bg: #fff9db; --container-bg: #ffffff; 
             --text-main: #443300; --text-sub: #665500; --text-mean: #887700;
             --card-border: #fab005; --hint-bg: #fff9db; --hint-text: #856404;
+            --rule-text: #776622;
         }
 
         /* 寧靜黑 */
@@ -31,6 +34,7 @@
             --primary: #4dabf7; --bg: #121212; --container-bg: #1e1e1e; 
             --text-main: #ffffff; --text-sub: #cccccc; --text-mean: #aaaaaa;
             --card-border: #4dabf7; --hint-bg: #2c2c2c; --hint-text: #ffd43b;
+            --rule-text: #999999;
         }
 
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); text-align: center; padding: 10px; margin: 0; transition: background 0.3s; }
@@ -65,7 +69,11 @@
         .hint-title { font-weight: bold; color: var(--hint-text); margin-bottom: 10px; font-size: 17px; }
         .hint-list { list-style: none; padding: 0; margin: 0; color: var(--text-sub); line-height: 1.8; font-size: 16px; }
         
+        /* 算分方式與鎖定訊息 */
         .locked-msg { margin-top: 20px; color: #dc3545; font-weight: bold; font-size: 0.9em; }
+        .score-rules { margin-top: 20px; padding: 15px; text-align: left; font-size: 13px; color: var(--rule-text); border-top: 1px dashed #ccc; }
+        .score-rules b { color: var(--primary); }
+        
         .warning-text { color: #888; font-size: 14px; margin-top: 20px; }
 
         footer { margin-top: auto; padding-top: 40px; font-size: 12px; color: #bbb; }
@@ -91,7 +99,7 @@
         </div>
 
         <div id="step2">
-            <div class="step-title">第二步：咱攏總分做幾組</div>
+            <div class="step-title">第二步：咱攏總分做幾組？</div>
             <div class="btn-group">
                 <button onclick="setTotalGroups(4)" id="total4">共 4 組</button>
                 <button onclick="setTotalGroups(5)" id="total5">共 5 組</button>
@@ -100,7 +108,7 @@
         </div>
 
         <div id="step3" class="hidden">
-            <div class="step-title">第三步：你是第幾組』</div>
+            <div class="step-title">第三步：你是第幾組？</div>
             <div class="btn-group" id="myGroupBtns"></div>
         </div>
         
@@ -124,6 +132,12 @@
                 <li>(5) 啥物時陣較看會著…</li>
             </ul>
         </div>
+
+        <div class="score-rules">
+            <b>⚖️ 算分方式：</b><br>
+            (1) 講白賊的若予人掠著，講老實話的攏加1分 → 重抽題<br>
+            (2) 3輪了後，講白賊若無予人掠著，講白賊的加2分 → 重抽題
+        </div>
         
         <div class="locked-msg">⚠️ 卡牌已鎖定，請各組開始討論</div>
     </div>
@@ -141,7 +155,6 @@
         totalGroups: 0
     };
 
-    // 切換配色主題
     function setTheme(themeName) {
         document.body.className = 'theme-' + themeName;
     }
@@ -196,20 +209,35 @@
             }
 
             const seed = hash(state.roomCode.toString());
-            const pairIndex = seed % rows.length;
-            const rowData = rows[pairIndex];
+            
+            // 雙倍題目邏輯：
+            // 使用 seed 除以 (行數*2) 的餘數來決定
+            const totalScenarios = rows.length * 2;
+            const scenarioIndex = seed % totalScenarios;
+            
+            // 決定使用哪一行
+            const rowIndex = scenarioIndex % rows.length;
+            const rowData = rows[rowIndex];
 
+            // 決定是否翻轉角色 (ABC與DEF互換)
+            const isFlipped = scenarioIndex >= rows.length;
+
+            // 決定哪一組是臥底
             const spyGroup = (hash(seed.toString()) % state.totalGroups) + 1;
 
             let word, pron, mean;
             if (groupIndex === spyGroup) {
-                word = rowData[3].trim();
-                pron = rowData[4].trim();
-                mean = rowData[5].trim();
+                // 如果是臥底：若翻轉則抓ABC，否則抓DEF
+                const offset = isFlipped ? 0 : 3;
+                word = rowData[offset].trim();
+                pron = rowData[offset + 1].trim();
+                mean = rowData[offset + 2].trim();
             } else {
-                word = rowData[0].trim();
-                pron = rowData[1].trim();
-                mean = rowData[2].trim();
+                // 如果是平民：若翻轉則抓DEF，否則抓ABC
+                const offset = isFlipped ? 3 : 0;
+                word = rowData[offset].trim();
+                pron = rowData[offset + 1].trim();
+                mean = rowData[offset + 2].trim();
             }
 
             document.getElementById('displayWord').innerText = word;
