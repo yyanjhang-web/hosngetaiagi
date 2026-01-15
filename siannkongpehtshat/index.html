@@ -40,7 +40,6 @@
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); text-align: center; padding: 10px; margin: 0; transition: background 0.3s; }
         .container { max-width: 600px; margin: 0 auto; background: var(--container-bg); padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); min-height: 85vh; display: flex; flex-direction: column; transition: background 0.3s; }
         
-        /* 顏色切換按鈕 */
         .theme-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         .theme-btn { padding: 8px 15px; font-size: 14px; border-radius: 20px; border: 1px solid #ddd; cursor: pointer; font-weight: bold; }
         .btn-pink { background: #ff85c0; color: white; }
@@ -50,7 +49,7 @@
         h2 { color: var(--primary); margin-bottom: 25px; font-size: 28px; }
         .step-title { font-weight: bold; color: var(--text-sub); margin-bottom: 15px; font-size: 1.2em; }
         
-        input#roomCode { width: 85%; padding: 15px; font-size: 20px; border: 2px solid #ddd; border-radius: 12px; margin-bottom: 30px; text-align: center; background: var(--container-bg); color: var(--text-main); }
+        input { width: 85%; padding: 15px; font-size: 20px; border: 2px solid #ddd; border-radius: 12px; margin-bottom: 30px; text-align: center; background: var(--container-bg); color: var(--text-main); }
 
         .btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 30px; }
         .btn-group button { padding: 12px 25px; font-size: 18px; border: 2px solid var(--primary); background: transparent; color: var(--primary); border-radius: 12px; cursor: pointer; transition: 0.2s; font-weight: bold; }
@@ -58,23 +57,26 @@
 
         .hidden { display: none; }
 
-        /* 卡牌樣式 */
         #resultCard { margin-top: 10px; padding: 40px 20px; border: 4px solid var(--card-border); border-radius: 20px; background: var(--container-bg); }
         .word-main { font-size: 52px; font-weight: 900; color: var(--text-main); margin: 0; line-height: 1.2; }
         .word-pron { font-size: 26px; color: var(--text-sub); margin: 12px 0; font-family: "Lucida Sans", sans-serif; }
         .word-mean { font-size: 20px; color: var(--text-mean); border-top: 1px solid #eee; margin-top: 20px; padding-top: 15px; }
         
-        /* 說話提示 */
         .hint-box { margin-top: 25px; padding: 20px; background: var(--hint-bg); border-radius: 15px; text-align: left; border-left: 5px solid var(--primary); }
         .hint-title { font-weight: bold; color: var(--hint-text); margin-bottom: 10px; font-size: 17px; }
         .hint-list { list-style: none; padding: 0; margin: 0; color: var(--text-sub); line-height: 1.8; font-size: 16px; }
         
-        /* 算分方式與鎖定訊息 */
         .locked-msg { margin-top: 20px; color: #dc3545; font-weight: bold; font-size: 0.9em; }
         .score-rules { margin-top: 20px; padding: 15px; text-align: left; font-size: 13px; color: var(--rule-text); border-top: 1px dashed #ccc; }
         .score-rules b { color: var(--primary); }
         
         .warning-text { color: #888; font-size: 14px; margin-top: 20px; }
+
+        /* 老師模式專用樣式 */
+        .teacher-view { text-align: left; }
+        .teacher-info { padding: 15px; border: 2px solid var(--primary); border-radius: 15px; margin-top: 20px; }
+        .spy-highlight { color: #dc3545; font-size: 1.5em; font-weight: bold; }
+        .word-box { margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 10px; }
 
         footer { margin-top: auto; padding-top: 40px; font-size: 12px; color: #bbb; }
         .fade-in { animation: fadeIn 0.5s ease-in; }
@@ -92,12 +94,10 @@
 
     <div id="setupArea">
         <h2>🕵️ 啥人講白賊-發牌系統</h2>
-
         <div id="step1">
             <div class="step-title">第一步：輸入共同號碼</div>
-            <input type="number" id="roomCode" placeholder="像講：0121" inputmode="numeric">
+            <input type="text" id="roomCode" placeholder="像講：0121" oninput="checkTeacherMode(this.value)">
         </div>
-
         <div id="step2">
             <div class="step-title">第二步：咱攏總分做幾組？</div>
             <div class="btn-group">
@@ -106,12 +106,10 @@
                 <button onclick="setTotalGroups(6)" id="total6">共 6 組</button>
             </div>
         </div>
-
         <div id="step3" class="hidden">
             <div class="step-title">第三步：你是第幾組？</div>
             <div class="btn-group" id="myGroupBtns"></div>
         </div>
-        
         <div class="warning-text">※請注意：烏白設定會害遊戲袂當進行</div>
     </div>
 
@@ -121,7 +119,6 @@
             <div class="word-pron" id="displayPron">...</div>
             <div class="word-mean" id="displayMean">...</div>
         </div>
-
         <div class="hint-box">
             <div class="hint-title">💡 你毋通講了傷過明顯，你會使按呢講：</div>
             <ul class="hint-list">
@@ -132,14 +129,40 @@
                 <li>(5) 啥物時陣/佇佗較看會著…</li>
             </ul>
         </div>
-
         <div class="score-rules">
             <b>⚖️ 算分方式：</b><br>
             (1) 講白賊的若予人掠著，講老實話的攏加1分 → 重抽題<br>
             (2) 3輪了後，講白賊若無予人掠著，講白賊的加2分 → 重抽題
         </div>
-        
         <div class="locked-msg">⚠️ 卡牌已鎖定，請各組開始討論</div>
+    </div>
+
+    <div id="teacherArea" class="hidden fade-in teacher-view">
+        <h2 style="color:#dc3545">👁️ 上帝之眼 - 老師監控模式</h2>
+        <div class="step-title">1. 輸入學生正在用的號碼</div>
+        <input type="number" id="tRoomCode" placeholder="共同號碼">
+        <div class="step-title">2. 全班分做幾組？</div>
+        <div class="btn-group">
+            <button onclick="calculateTeacherResult(4)">4 組</button>
+            <button onclick="calculateTeacherResult(5)">5 組</button>
+            <button onclick="calculateTeacherResult(6)">6 組</button>
+        </div>
+        
+        <div id="teacherResult" class="hidden">
+            <div class="teacher-info">
+                <div>今日臥底組別：<span id="tSpyGroup" class="spy-highlight">?</span></div>
+                <hr>
+                <div class="word-box">
+                    <b style="color:#dc3545">🚨 臥底 (講白賊) 看到的牌：</b>
+                    <div id="tSpyWord" style="font-size:1.2em; font-weight:bold">...</div>
+                </div>
+                <div class="word-box">
+                    <b style="color:#007bff">👤 平民 (講老實話) 看到的牌：</b>
+                    <div id="tCivWord" style="font-size:1.2em; font-weight:bold">...</div>
+                </div>
+            </div>
+            <button onclick="location.reload()" style="margin-top:20px; border-color:#888; color:#888">離開老師模式</button>
+        </div>
     </div>
 
     <footer>
@@ -150,14 +173,9 @@
 <script>
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXr-NxRpudrsU6BBpxKN4tOGZ5YmH_m4e1Fpcq1BvQyXjqO7wIhtVk3jRBpDQFKQpmmluUrbNfiDfm/pub?gid=0&single=true&output=csv';
     
-    let state = {
-        roomCode: '',
-        totalGroups: 0
-    };
+    let state = { roomCode: '', totalGroups: 0 };
 
-    function setTheme(themeName) {
-        document.body.className = 'theme-' + themeName;
-    }
+    function setTheme(themeName) { document.body.className = 'theme-' + themeName; }
 
     function hash(str) {
         let h = 0;
@@ -167,20 +185,24 @@
         return Math.abs(h);
     }
 
+    // 檢查老師模式觸發碼
+    function checkTeacherMode(val) {
+        if (val === 'eyeofprovidence') {
+            document.getElementById('setupArea').classList.add('hidden');
+            document.getElementById('teacherArea').classList.remove('hidden');
+            document.body.className = 'theme-black'; // 自動切換寧靜黑，增加專業感
+        }
+    }
+
     function setTotalGroups(n) {
         state.roomCode = document.getElementById('roomCode').value;
-        if (!state.roomCode) {
-            alert("請先輸入號碼");
-            return;
-        }
+        if (!state.roomCode) { alert("請先輸入號碼"); return; }
         state.totalGroups = n;
-
         [4,5,6].forEach(num => {
             const btn = document.getElementById('total' + num);
             if(btn) btn.classList.remove('active');
         });
         document.getElementById('total' + n).classList.add('active');
-
         const btnContainer = document.getElementById('myGroupBtns');
         btnContainer.innerHTML = '';
         for (let i = 1; i <= n; i++) {
@@ -189,7 +211,6 @@
             btn.onclick = () => showCard(i);
             btnContainer.appendChild(btn);
         }
-
         document.getElementById('step3').classList.remove('hidden');
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
@@ -198,59 +219,62 @@
         try {
             const response = await fetch(csvUrl);
             const data = await response.text();
-            
-            const rows = data.split('\n')
-                             .map(row => row.split(','))
-                             .filter(r => r.length >= 6 && !r[0].includes("平民"));
-
-            if (rows.length === 0) {
-                alert('試算表中無資料');
-                return;
-            }
-
+            const rows = data.split('\n').map(row => row.split(',')).filter(r => r.length >= 6 && !r[0].includes("平民"));
             const seed = hash(state.roomCode.toString());
-            
-            // 雙倍題目邏輯：
-            // 使用 seed 除以 (行數*2) 的餘數來決定
             const totalScenarios = rows.length * 2;
             const scenarioIndex = seed % totalScenarios;
-            
-            // 決定使用哪一行
             const rowIndex = scenarioIndex % rows.length;
             const rowData = rows[rowIndex];
-
-            // 決定是否翻轉角色 (ABC與DEF互換)
             const isFlipped = scenarioIndex >= rows.length;
-
-            // 決定哪一組是臥底
             const spyGroup = (hash(seed.toString()) % state.totalGroups) + 1;
 
             let word, pron, mean;
             if (groupIndex === spyGroup) {
-                // 如果是臥底：若翻轉則抓ABC，否則抓DEF
                 const offset = isFlipped ? 0 : 3;
-                word = rowData[offset].trim();
-                pron = rowData[offset + 1].trim();
-                mean = rowData[offset + 2].trim();
+                word = rowData[offset].trim(); pron = rowData[offset + 1].trim(); mean = rowData[offset + 2].trim();
             } else {
-                // 如果是平民：若翻轉則抓DEF，否則抓ABC
                 const offset = isFlipped ? 3 : 0;
-                word = rowData[offset].trim();
-                pron = rowData[offset + 1].trim();
-                mean = rowData[offset + 2].trim();
+                word = rowData[offset].trim(); pron = rowData[offset + 1].trim(); mean = rowData[offset + 2].trim();
             }
-
             document.getElementById('displayWord').innerText = word;
             document.getElementById('displayPron').innerText = pron;
             document.getElementById('displayMean').innerText = "華語：" + mean;
-
             document.getElementById('setupArea').classList.add('hidden');
             document.getElementById('resultArea').classList.remove('hidden');
+        } catch (error) { alert('讀取失敗'); }
+    }
+
+    // 老師監控模式計算
+    async function calculateTeacherResult(numGroups) {
+        const tCode = document.getElementById('tRoomCode').value;
+        if (!tCode) { alert("請輸入號碼"); return; }
+        
+        try {
+            const response = await fetch(csvUrl);
+            const data = await response.text();
+            const rows = data.split('\n').map(row => row.split(',')).filter(r => r.length >= 6 && !r[0].includes("平民"));
             
-        } catch (error) {
-            alert('讀取失敗');
-            console.error(error);
-        }
+            const seed = hash(tCode.toString());
+            const totalScenarios = rows.length * 2;
+            const scenarioIndex = seed % totalScenarios;
+            const rowIndex = scenarioIndex % rows.length;
+            const rowData = rows[rowIndex];
+            const isFlipped = scenarioIndex >= rows.length;
+            const spyGroup = (hash(seed.toString()) % numGroups) + 1;
+
+            // 取得臥底牌
+            const sOff = isFlipped ? 0 : 3;
+            const sW = `${rowData[sOff].trim()} (${rowData[sOff+1].trim()}) - ${rowData[sOff+2].trim()}`;
+            
+            // 取得平民牌
+            const cOff = isFlipped ? 3 : 0;
+            const cW = `${rowData[cOff].trim()} (${rowData[cOff+1].trim()}) - ${rowData[cOff+2].trim()}`;
+
+            document.getElementById('tSpyGroup').innerText = `第 ${spyGroup} 組`;
+            document.getElementById('tSpyWord').innerText = sW;
+            document.getElementById('tCivWord').innerText = cW;
+            document.getElementById('teacherResult').classList.remove('hidden');
+        } catch (error) { alert('計算失敗'); }
     }
 </script>
 
