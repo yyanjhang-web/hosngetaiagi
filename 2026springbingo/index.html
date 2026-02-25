@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共編賓果 & 閃示卡</title>
+    <style>
+        :root {
+            --bg-color: #f0f9ff;
+            --container-bg-color: #e0f2f7;
+            --btn-color: #20b2aa;
+            --btn-hover-color: #008b8b;
+            --card-front-color: #b3e0ff;
+            --card-back-color: #81c784;
+            --card-front-text: #005f99;
+            --card-back-text: #004085;
+            --text-color: #333;
+        }
+        .theme-style2 {
+            --bg-color: #fffaf0;
+            --container-bg-color: #ffeccf;
+            --btn-color: #f59e0b;
+            --btn-hover-color: #d97706;
+            --card-front-color: #fbd38d;
+            --card-back-color: #d8b4fe;
+            --card-front-text: #92400e;
+            --card-back-text: #6b21a8;
+            --text-color: #333;
+        }
+        .theme-style3 {
+            --bg-color: #1a202c;
+            --container-bg-color: #2d3748;
+            --btn-color: #4299e1;
+            --btn-hover-color: #2b6cb0;
+            --card-front-color: #4a5568;
+            --card-back-color: #fcd34d;
+            --card-front-text: #e2e8f0;
+            --card-back-text: #713f12;
+            --text-color: #e2e8f0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.5s;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .dictionary-input {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--container-bg-color);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        /* 課程按鈕區塊 */
+        .lesson-btn-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 500px) {
+            .lesson-btn-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .lesson-btn {
+            background-color: var(--btn-color);
+            color: white;
+            border: none;
+            padding: 8px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: filter 0.2s;
+        }
+        .lesson-btn:hover { filter: brightness(90%); }
+        .lesson-btn.active { border: 2px solid #fff; box-shadow: 0 0 0 2px var(--btn-hover-color); font-weight: bold; }
+
+        .control-group {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            display: none; /* 隱藏手動輸入框，除非需要 */
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--btn-color);
+            color: white;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+        button:hover { background-color: var(--btn-hover-color); opacity: 0.9; }
+
+        .container {
+            display: grid;
+            gap: 15px;
+            padding: 15px;
+            background-color: var(--container-bg-color);
+            border-radius: 15px;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+
+        /* Bingo Card Styles */
+        .card { width: 100%; padding-bottom: 70%; height: 0; background-color: var(--card-front-color); border-radius: 10px; cursor: pointer; perspective: 1000px; position: relative; }
+        .card-inner { position: absolute; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; border-radius: 10px; padding: 5px; text-align: center; font-weight: bold; box-sizing: border-box; font-size: clamp(1rem, 2.5vw, 1.5rem); overflow: hidden; word-break: break-word;}
+        
+        /* Bingo 模式: Front = B欄 (r), Back = A欄 (h) */
+        .card-front { background-color: var(--card-front-color); color: var(--card-front-text); }
+        .card-back { background-color: var(--card-back-color); color: var(--card-back-text); transform: rotateY(180deg); }
+        
+        /* Flashcard Mode Specific Styles */
+        .flashcard-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .flashcard {
+            width: 100%;
+            max-width: 400px;
+            height: 250px; /* 固定高度 */
+            padding-bottom: 0;
+            margin-bottom: 20px;
+        }
+        .flashcard .card-face {
+            font-size: 2em; /* 字體加大 */
+            padding: 20px;
+        }
+        /* Flashcard 模式: 預設顯示 A欄(h) -> Front, 翻面顯示 B欄(r) -> Back */
+        /* 我們透過 JS 動態交換內容，所以 CSS 結構不變，但視覺上順序變了 */
+
+        .mark-btn { position: absolute; bottom: 5px; right: 5px; width: 18px; height: 18px; border-radius: 50%; background-color: rgba(255,255,255,0.4); border: 1px solid #ccc; z-index: 5; }
+        .mark-btn.marked { background-color: #ff5252; }
+
+        .nav-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .nav-btn {
+            background-color: #607d8b;
+            width: 100px;
+        }
+        .nav-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .footer { margin-top: 20px; text-align: center; font-size: 0.85em; color: #777; }
+        .theme-style3 .footer { color: #a0aec0; }
+        .theme-style3 .dictionary-input h3 { color: #fff; }
+        .theme-style3 .dictionary-input summary { color: #cbd5e0; }
+
+        .counter-container { margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+    </style>
+</head>
+<body class="theme-style1">
+
+    <div class="dictionary-input">
+        <h3 style="margin-top: 0;">做伙耍賓果 & 閃示卡<br><span style="font-size: 0.8em; font-weight: normal;">Tsò-hué sńg Bingo</span></h3>
+        
+        <div class="lesson-btn-group" id="lesson-buttons">
+            </div>
+
+        <details style="margin-top: 10px; font-size: 0.9em; cursor: pointer;">
+            <summary style="font-weight: bold;">手動輸入詞庫</summary>
+            <textarea id="custom-dictionary" style="width:100%; height:80px; margin-top:10px; padding: 8px; border-radius: 5px; box-sizing: border-box;" 
+                      placeholder="以逗號分隔正反面。逗號全形半形皆可&#10;蘋果, phông-kó&#10;弓蕉，king-tsio"></textarea>
+            <button id="apply-btn" style="width:100%; margin-top:8px;">套用手動詞庫</button>
+        </details>
+    </div>
+
+    <div class="control-group">
+        <button onclick="startGame(3)">3x3</button>
+        <button onclick="startGame(4)">4x4</button>
+        <button onclick="startGame(5)">5x5</button>
+        <button onclick="startFlashcardMode()" style="background-color: #e91e63;">全部 (Flashcard)</button>
+    </div>
+
+    <div id="game-container" class="container"></div>
+
+    <div id="flashcard-controls" class="nav-buttons" style="display: none;">
+        <button id="prev-card-btn" class="nav-btn" onclick="navCard(-1)">頂一張</button>
+        <button id="next-card-btn" class="nav-btn" onclick="navCard(1)">後一張</button>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <button onclick="applyStyle('theme-style1')">清新藍</button>
+        <button onclick="applyStyle('theme-style2')">暖心橘</button>
+        <button onclick="applyStyle('theme-style3')">沉穩黑</button>
+    </div>
+
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // 設定區
+        // 您提供的發布網址 (預設載入)
+        const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZ50ZUWgPbO5U_Cv6_Y4Qnff6c12Waa9F8KJuW_jyxjRu7v4PaqBGP8MZ0XTikl38HIos7q5IEaspX/pub?output=csv";
+        
+        // Google 試算表的 ID (用於課程按鈕切換工作表)
+        // 這是從您原本的程式碼中擷取的 ID。如果這是不同的檔案，請更新這裡。
+        const SPREADSHEET_ID = "1B6cFxxdU7hmXwaNcGijEdsm-2SthmKD-UA9sz4DsKLM"; 
+        
+        const lessons = ["B2L1", "B2L2", "B2L3", "B2L4", "B4L1", "B4L2", "B4L3", "B4L4"];
+
+        // 狀態變數
+        let activeCards = [];
+        let currentSize = 3;
+        let isFlashcard = false;
+        let flashcardDeck = [];
+        let flashcardIndex = 0;
+
+        const container = document.getElementById('game-container');
+        const lessonContainer = document.getElementById('lesson-buttons');
+        const flashcardControls = document.getElementById('flashcard-controls');
+        const prevBtn = document.getElementById('prev-card-btn');
+        const nextBtn = document.getElementById('next-card-btn');
+
+        // 初始化課程按鈕
+        function initLessonButtons() {
+            lessons.forEach(lesson => {
+                const btn = document.createElement('button');
+                btn.className = 'lesson-btn';
+                btn.textContent = lesson;
+                btn.onclick = () => loadLesson(lesson, btn);
+                lessonContainer.appendChild(btn);
+            });
+        }
+
+        // 載入指定工作表 (使用 Visualization API)
+        async function loadLesson(sheetName, btnElement) {
+            // 更新按鈕樣式
+            document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+
+            // 建構 gviz 網址
+            const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+            
+            await fetchAndParse(queryUrl, `已載入課程：${sheetName}`);
+        }
+
+        // 核心讀取與解析函式
+        async function fetchAndParse(url, successMsg) {
+            try {
+                const res = await fetch(url);
+                const text = await res.text();
+                
+                // 簡易 CSV 解析 (處理 gviz 可能帶有的引號)
+                const lines = text.split(/\r?\n/);
+                activeCards = lines.map(l => {
+                    // 去除 gviz CSV 可能包住字串的引號 "..."
+                    let cleanLine = l.replace(/"/g, ''); 
+                    const p = cleanLine.replace(/，/g, ',').split(',');
+                    // p[0] 是 A欄, p[1] 是 B欄
+                    return p.length >= 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
+                }).filter(c => c !== null && c.h !== "" && c.r !== "");
+
+                if (activeCards.length > 0) {
+                    // 如果目前是 Flashcard 模式，重新開始 Flashcard，否則重新開始 Bingo
+                    if (isFlashcard) {
+                        startFlashcardMode();
+                    } else {
+                        startGame(currentSize);
+                    }
+                    // 只有在不是自動載入時才跳 alert，避免干擾
+                    // alert(`${successMsg}\n共 ${activeCards.length} 個詞彙`);
+                } else {
+                    alert("載入失敗或無資料。");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("讀取失敗：請檢查網路或 Spreadsheet ID 是否正確。");
+            }
+        }
+
+        // 預設載入 (使用 2PACX 網址)
+        async function loadDefault() {
+            await fetchAndParse(DEFAULT_CSV_URL, "已載入預設題庫");
+        }
+
+        // 啟動 Bingo 模式
+        function startGame(size) {
+            isFlashcard = false;
+            currentSize = size;
+            flashcardControls.style.display = 'none';
+            container.className = 'container'; // 回復 Grid 布局
+            container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            
+            if (activeCards.length < size*size) {
+                container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">詞彙不足 (${activeCards.length}/${size*size})，請選擇其他課程。</p>`;
+                return;
+            }
+
+            // 洗牌
+            const deck = [...activeCards].sort(() => Math.random() - 0.5).slice(0, size*size);
+            
+            container.innerHTML = '';
+            deck.forEach(data => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                // Bingo 邏輯：正面顯示 B欄(r), 背面顯示 A欄(h)
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-face card-front">${data.r}</div>
+                        <div class="card-face card-back">${data.h}</div>
+                    </div>
+                    <div class="mark-btn"></div>
+                `;
+                card.onclick = () => card.classList.toggle('flipped');
+                card.querySelector('.mark-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    e.target.classList.toggle('marked');
+                };
+                container.appendChild(card);
+            });
+        }
+
+        // 啟動 Flashcard 模式 (全部)
+        function startFlashcardMode() {
+            if (activeCards.length === 0) {
+                alert("目前無詞彙，請先載入課程。");
+                return;
+            }
+            isFlashcard = true;
+            
+            // 隨機排列所有卡片
+            flashcardDeck = [...activeCards].sort(() => Math.random() - 0.5);
+            flashcardIndex = 0;
+            
+            container.className = 'container flashcard-container';
+            container.style.gridTemplateColumns = '1fr'; // 單欄
+            flashcardControls.style.display = 'flex';
+            
+            renderFlashcard();
+        }
+
+        function renderFlashcard() {
+            container.innerHTML = '';
+            
+            if (flashcardIndex >= flashcardDeck.length) {
+                container.innerHTML = '<h2 style="text-align:center; color: var(--btn-color);">完 (Tshuan-liáu)</h2>';
+                prevBtn.disabled = false;
+                nextBtn.disabled = true;
+                return;
+            }
+
+            const data = flashcardDeck[flashcardIndex];
+            const card = document.createElement('div');
+            card.className = 'card flashcard';
+            
+            // Flashcard 邏輯：您要求「先顯示欄A」。
+            // 所以我們把 A欄(h) 放在 Front，B欄(r) 放在 Back。
+            // 注意：這裡交換了 h 和 r 的位置以符合您的需求。
+            card.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-face card-front" style="background-color: var(--card-back-color); color: var(--card-back-text);">${data.h}</div>
+                    <div class="card-face card-back" style="background-color: var(--card-front-color); color: var(--card-front-text); transform: rotateY(180deg);">${data.r}</div>
+                </div>
+            `;
+            
+            card.onclick = () => card.classList.toggle('flipped');
+            container.appendChild(card);
+
+            // 更新按鈕狀態
+            prevBtn.disabled = (flashcardIndex === 0);
+            nextBtn.disabled = false;
+        }
+
+        function navCard(direction) {
+            flashcardIndex += direction;
+            renderFlashcard();
+        }
+
+        function applyStyle(s) { document.body.className = s; }
+        
+        document.getElementById('apply-btn').onclick = () => {
+            const lines = document.getElementById('custom-dictionary').value.trim().split('\n');
+            activeCards = lines.map(l => {
+                const p = l.replace(/，/g, ',').split(',');
+                return p.length === 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
+            }).filter(c => c !== null);
+            if(isFlashcard) startFlashcardMode(); else startGame(currentSize);
+        };
+
+        window.onload = () => { 
+            initLessonButtons();
+            loadDefault().then(() => {
+                startGame(3);
+            });
+        };
+    </script>
+</body>
+</html>
