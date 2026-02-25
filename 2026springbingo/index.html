@@ -234,13 +234,14 @@
 
     <script>
         // 設定區
-        // 您提供的發布網址 (預設載入)
+        // 預設載入的 CSV 網址 (保留作為備用或初始載入)
         const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZ50ZUWgPbO5U_Cv6_Y4Qnff6c12Waa9F8KJuW_jyxjRu7v4PaqBGP8MZ0XTikl38HIos7q5IEaspX/pub?output=csv";
         
-        // Google 試算表的 ID (用於課程按鈕切換工作表)
-        // 這是從您原本的程式碼中擷取的 ID。如果這是不同的檔案，請更新這裡。
-        const SPREADSHEET_ID = "1B6cFxxdU7hmXwaNcGijEdsm-2SthmKD-UA9sz4DsKLM"; 
+        // ★★★ 更新後的 Google 試算表 ID ★★★
+        // 用於讓按鈕 (B2L1...) 可以切換工作表
+        const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc"; 
         
+        // 課程列表 (對應試算表下方的工作表名稱)
         const lessons = ["B2L1", "B2L2", "B2L3", "B2L4", "B4L1", "B4L2", "B4L3", "B4L4"];
 
         // 狀態變數
@@ -273,7 +274,7 @@
             document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
 
-            // 建構 gviz 網址
+            // 建構 gviz 網址，使用新的 SPREADSHEET_ID
             const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
             
             await fetchAndParse(queryUrl, `已載入課程：${sheetName}`);
@@ -283,9 +284,11 @@
         async function fetchAndParse(url, successMsg) {
             try {
                 const res = await fetch(url);
+                if (!res.ok) throw new Error("Network response was not ok");
+                
                 const text = await res.text();
                 
-                // 簡易 CSV 解析 (處理 gviz 可能帶有的引號)
+                // 簡易 CSV 解析
                 const lines = text.split(/\r?\n/);
                 activeCards = lines.map(l => {
                     // 去除 gviz CSV 可能包住字串的引號 "..."
@@ -302,20 +305,32 @@
                     } else {
                         startGame(currentSize);
                     }
-                    // 只有在不是自動載入時才跳 alert，避免干擾
-                    // alert(`${successMsg}\n共 ${activeCards.length} 個詞彙`);
+                    // 為了不干擾體驗，這裡不跳 alert，直接更新畫面
                 } else {
-                    alert("載入失敗或無資料。");
+                    alert("載入失敗：該工作表似乎沒有資料，或工作表名稱不符。");
                 }
             } catch (e) {
                 console.error(e);
-                alert("讀取失敗：請檢查網路或 Spreadsheet ID 是否正確。");
+                alert("讀取失敗：\n1. 請確認試算表權限已設為「知道連結的人皆可檢視」。\n2. 請確認工作表名稱 (B2L1...) 是否正確。");
             }
         }
 
-        // 預設載入 (使用 2PACX 網址)
+        // 預設載入 (使用 2PACX 網址，作為備用)
         async function loadDefault() {
-            await fetchAndParse(DEFAULT_CSV_URL, "已載入預設題庫");
+            // 這裡可以選擇預設載入第一課，或者維持原本的 CSV
+            // 為了保持一致性，我們嘗試載入第一課，如果失敗則載入 CSV
+            const firstLesson = lessons[0];
+            const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${firstLesson}`;
+            
+            try {
+                await fetchAndParse(queryUrl, "初始化");
+                // 標記第一個按鈕
+                const firstBtn = document.querySelector('.lesson-btn');
+                if(firstBtn) firstBtn.classList.add('active');
+            } catch(e) {
+                // 如果失敗(例如權限沒開)，回退到舊的 CSV 方式
+                await fetchAndParse(DEFAULT_CSV_URL, "已載入預設題庫");
+            }
         }
 
         // 啟動 Bingo 模式
@@ -390,7 +405,6 @@
             
             // Flashcard 邏輯：您要求「先顯示欄A」。
             // 所以我們把 A欄(h) 放在 Front，B欄(r) 放在 Back。
-            // 注意：這裡交換了 h 和 r 的位置以符合您的需求。
             card.innerHTML = `
                 <div class="card-inner">
                     <div class="card-face card-front" style="background-color: var(--card-back-color); color: var(--card-back-text);">${data.h}</div>
@@ -408,6 +422,7 @@
 
         function navCard(direction) {
             flashcardIndex += direction;
+            if (flashcardIndex < 0) flashcardIndex = 0;
             renderFlashcard();
         }
 
@@ -424,9 +439,7 @@
 
         window.onload = () => { 
             initLessonButtons();
-            loadDefault().then(() => {
-                startGame(3);
-            });
+            loadDefault();
         };
     </script>
 </body>
