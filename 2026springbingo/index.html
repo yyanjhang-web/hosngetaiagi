@@ -159,8 +159,6 @@
             font-size: 2em; /* 字體加大 */
             padding: 20px;
         }
-        /* Flashcard 模式: 預設顯示 A欄(h) -> Front, 翻面顯示 B欄(r) -> Back */
-        /* 我們透過 JS 動態交換內容，所以 CSS 結構不變，但視覺上順序變了 */
 
         .mark-btn { position: absolute; bottom: 5px; right: 5px; width: 18px; height: 18px; border-radius: 50%; background-color: rgba(255,255,255,0.4); border: 1px solid #ccc; z-index: 5; }
         .mark-btn.marked { background-color: #ff5252; }
@@ -238,7 +236,6 @@
         const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZ50ZUWgPbO5U_Cv6_Y4Qnff6c12Waa9F8KJuW_jyxjRu7v4PaqBGP8MZ0XTikl38HIos7q5IEaspX/pub?output=csv";
         
         // ★★★ 更新後的 Google 試算表 ID ★★★
-        // 用於讓按鈕 (B2L1...) 可以切換工作表
         const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc"; 
         
         // 課程列表 (對應試算表下方的工作表名稱)
@@ -270,11 +267,9 @@
 
         // 載入指定工作表 (使用 Visualization API)
         async function loadLesson(sheetName, btnElement) {
-            // 更新按鈕樣式
             document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
 
-            // 建構 gviz 網址，使用新的 SPREADSHEET_ID
             const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
             
             await fetchAndParse(queryUrl, `已載入課程：${sheetName}`);
@@ -291,7 +286,6 @@
                 // 簡易 CSV 解析
                 const lines = text.split(/\r?\n/);
                 activeCards = lines.map(l => {
-                    // 去除 gviz CSV 可能包住字串的引號 "..."
                     let cleanLine = l.replace(/"/g, ''); 
                     const p = cleanLine.replace(/，/g, ',').split(',');
                     // p[0] 是 A欄, p[1] 是 B欄
@@ -299,13 +293,11 @@
                 }).filter(c => c !== null && c.h !== "" && c.r !== "");
 
                 if (activeCards.length > 0) {
-                    // 如果目前是 Flashcard 模式，重新開始 Flashcard，否則重新開始 Bingo
                     if (isFlashcard) {
                         startFlashcardMode();
                     } else {
                         startGame(currentSize);
                     }
-                    // 為了不干擾體驗，這裡不跳 alert，直接更新畫面
                 } else {
                     alert("載入失敗：該工作表似乎沒有資料，或工作表名稱不符。");
                 }
@@ -315,20 +307,16 @@
             }
         }
 
-        // 預設載入 (使用 2PACX 網址，作為備用)
+        // 預設載入
         async function loadDefault() {
-            // 這裡可以選擇預設載入第一課，或者維持原本的 CSV
-            // 為了保持一致性，我們嘗試載入第一課，如果失敗則載入 CSV
             const firstLesson = lessons[0];
             const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${firstLesson}`;
             
             try {
                 await fetchAndParse(queryUrl, "初始化");
-                // 標記第一個按鈕
                 const firstBtn = document.querySelector('.lesson-btn');
                 if(firstBtn) firstBtn.classList.add('active');
             } catch(e) {
-                // 如果失敗(例如權限沒開)，回退到舊的 CSV 方式
                 await fetchAndParse(DEFAULT_CSV_URL, "已載入預設題庫");
             }
         }
@@ -338,7 +326,7 @@
             isFlashcard = false;
             currentSize = size;
             flashcardControls.style.display = 'none';
-            container.className = 'container'; // 回復 Grid 布局
+            container.className = 'container';
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
             
             if (activeCards.length < size*size) {
@@ -346,7 +334,6 @@
                 return;
             }
 
-            // 洗牌
             const deck = [...activeCards].sort(() => Math.random() - 0.5).slice(0, size*size);
             
             container.innerHTML = '';
@@ -403,12 +390,13 @@
             const card = document.createElement('div');
             card.className = 'card flashcard';
             
-            // Flashcard 邏輯：您要求「先顯示欄A」。
-            // 所以我們把 A欄(h) 放在 Front，B欄(r) 放在 Back。
+            // ★★★ 修改處：現在正面顯示 data.r (B欄)，背面顯示 data.h (A欄) ★★★
+            // 同時移除了之前寫死的 style 顏色，讓它自動繼承 CSS 的設定
+            // 這樣顏色也會跟 Bingo 模式一致
             card.innerHTML = `
                 <div class="card-inner">
-                    <div class="card-face card-front" style="background-color: var(--card-back-color); color: var(--card-back-text);">${data.h}</div>
-                    <div class="card-face card-back" style="background-color: var(--card-front-color); color: var(--card-front-text); transform: rotateY(180deg);">${data.r}</div>
+                    <div class="card-face card-front">${data.r}</div>
+                    <div class="card-face card-back">${data.h}</div>
                 </div>
             `;
             
