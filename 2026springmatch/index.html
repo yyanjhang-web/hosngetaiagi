@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英語單字配對練習</title>
+    <style>
+        /* 基礎版面設定 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* 主內容區塊 */
+        .main-content {
+            flex: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* 標題樣式 */
+        h2 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        /* 按鈕群組 (使用 Grid 讓按鈕排列整齊) */
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        /* 按鈕樣式 */
+        .btn {
+            display: inline-block;
+            background-color: #4CAF50; /* 柔和的綠色 */
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+        }
+
+        /* 頁尾與版權資訊 */
+        footer {
+            padding: 20px;
+            text-align: center;
+            background-color: #ffffff;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* 小字且不明顯的設計者資訊 */
+        .credits {
+            font-size: 0.8rem;
+            color: #adb5bd; /* 淺灰色，不明顯 */
+            margin: 0;
+        }
+
+        /* 計數器微調 */
+        .counter-container {
+            opacity: 0.8; /* 稍微降低透明度讓它融入背景 */
+            transition: opacity 0.3s ease;
+        }
+        
+        .counter-container:hover {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-content">
+        <h2>七年級下學期</h2>
+        <div class="button-group">
+            <a href="https://quizlet.com/1148344240/match" target="_blank" class="btn">B2L1</a>
+            <a href="https://quizlet.com/1148344576/match" target="_blank" class="btn">B2L2</a>
+            <a href="https://quizlet.com/1148344816/match" target="_blank" class="btn">B2L3</a>
+            <a href="https://quizlet.com/1148345145/match" target="_blank" class="btn">B2L4</a>
+        </div>
+
+        <h2>八年級下學期</h2>
+        <div class="button-group">
+            <a href="https://quizlet.com/1148346185/match" target="_blank" class="btn">B4L1</a>
+            <a href="https://quizlet.com/1148346473/match" target="_blank" class="btn">B4L2</a>
+            <a href="https://quizlet.com/1148346790/match" target="_blank" class="btn">B4L3</a>
+            <a href="https://quizlet.com/1148347406/match" target="_blank" class="btn">B4L4</a>
+        </div>
+    </div>
+
+    <footer>
+        <p class="credits">設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+    </footer>
+
+</body>
+</html>
