@@ -29,36 +29,46 @@
             to { background-color: #ffdddd; } 
         }
         
-        /* 獲勝時的背景閃爍效果 (淺金色) */
+        /* 獲勝時的背景閃爍效果 */
         body.win-blink {
-            animation: winBlinker 0.5s linear 6 alternate; /* 閃爍 6 次 */
-            background-color: #fffae6 !important; /* 確保最終停在淺金色 */
+            animation: winBlinker 0.5s linear 6 alternate; 
+            background-color: #fffae6 !important; 
         }
         @keyframes winBlinker {
             from { background-color: #f0f0f0; }
-            to { background-color: #ffe0b2; } /* 淺橘色/金色 */
+            to { background-color: #ffe0b2; } 
         }
 
         /* 挑戰失敗/結束時的背景警示色 */
         body.fail-end {
-            background-color: #ffdddd !important; /* 淺紅色警示 */
+            background-color: #ffdddd !important; 
         }
 
-        /* --- 課文選擇按鈕區塊 --- */
+        /* --- 課文選擇按鈕區塊 (分為兩行) --- */
         .lesson-buttons {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-direction: column; /* 讓兩行上下排列 */
+            align-items: center;
             gap: 1vmin;
             margin-bottom: 2vmin;
             width: 100%;
             max-width: 90vmin;
+        }
+        .lesson-row {
+            display: flex;
+            justify-content: center;
+            gap: 1vmin;
+            width: 100%;
         }
         .lesson-btn {
             background-color: #17a2b8;
             padding: 1vmin 2vmin;
             font-size: 1.8vmin;
             border-radius: 5px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
         .lesson-btn:hover:not(:disabled) {
             background-color: #138496;
@@ -69,7 +79,7 @@
             font-weight: bold;
         }
         
-        /* --- 競賽模式資訊區塊：固定分數定位 --- */
+        /* --- 競賽模式資訊區塊 --- */
         #competitive-info {
             display: none; 
             width: 100%;
@@ -100,14 +110,8 @@
             white-space: nowrap; 
             flex-shrink: 0; 
         }
-        #scoreLeft { 
-            background-color: #007BFF; 
-            text-align: left; 
-        }
-        #scoreRight { 
-            background-color: #28a745; 
-            text-align: right; 
-        }
+        #scoreLeft { background-color: #007BFF; text-align: left; }
+        #scoreRight { background-color: #28a745; text-align: right; }
 
         .game-status {
             font-size: 3.5vmin;
@@ -118,7 +122,6 @@
             margin-top: 5vmin; 
         }
         
-        /* 最終狀態文字的樣式強化 */
         .game-status.final-message {
             font-size: 5vmin; 
             font-weight: 900; 
@@ -185,7 +188,6 @@
         }
         #card1 { background-color: #e6f7ff; }
         #card2 { background-color: #e6ffe6; }
-        /* 作答錯誤的回饋樣式 */
         #card1.darken-left, #card2.darken-left { background-color: #1E517C; opacity: 0.3; }
         #card1.darken-right, #card2.darken-right { background-color: #84B685; opacity: 0.3; }
         
@@ -221,7 +223,6 @@
             width: 100%;
             max-width: 90vmin;
         }
-        /* 競賽模式下專用的操作按鈕列 */
         .competitive-buttons-row {
             display: flex;
             justify-content: center;
@@ -274,29 +275,24 @@
         button:hover:not(:disabled) { background-color: #0056b3; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
         
-        .rule-text { 
-            margin-top: 0.5vmin; 
-            font-size: 2vmin;
-        }
-        
-        .designer-info { 
-            margin-top: 0.5vmin; 
-            margin-bottom: 0.5vmin; 
-            font-size: 1.5vmin; 
-            color: #6c757d;
-        }
+        .rule-text { margin-top: 0.5vmin; font-size: 2vmin; }
+        .designer-info { margin-top: 0.5vmin; margin-bottom: 0.5vmin; font-size: 1.5vmin; color: #6c757d; }
     </style>
 </head>
 <body>
     <div class="lesson-buttons" id="lessonButtons">
-        <button class="lesson-btn" onclick="loadLesson('B2L1', this)">B2L1</button>
-        <button class="lesson-btn" onclick="loadLesson('B2L2', this)">B2L2</button>
-        <button class="lesson-btn" onclick="loadLesson('B2L3', this)">B2L3</button>
-        <button class="lesson-btn" onclick="loadLesson('B2L4', this)">B2L4</button>
-        <button class="lesson-btn" onclick="loadLesson('B4L1', this)">B4L1</button>
-        <button class="lesson-btn" onclick="loadLesson('B4L2', this)">B4L2</button>
-        <button class="lesson-btn" onclick="loadLesson('B4L3', this)">B4L3</button>
-        <button class="lesson-btn" onclick="loadLesson('B4L4', this)">B4L4</button>
+        <div class="lesson-row">
+            <button class="lesson-btn" onclick="loadLesson('B2L1', this)">B2L1</button>
+            <button class="lesson-btn" onclick="loadLesson('B2L2', this)">B2L2</button>
+            <button class="lesson-btn" onclick="loadLesson('B2L3', this)">B2L3</button>
+            <button class="lesson-btn" onclick="loadLesson('B2L4', this)">B2L4</button>
+        </div>
+        <div class="lesson-row">
+            <button class="lesson-btn" onclick="loadLesson('B4L1', this)">B4L1</button>
+            <button class="lesson-btn" onclick="loadLesson('B4L2', this)">B4L2</button>
+            <button class="lesson-btn" onclick="loadLesson('B4L3', this)">B4L3</button>
+            <button class="lesson-btn" onclick="loadLesson('B4L4', this)">B4L4</button>
+        </div>
     </div>
 
     <div id="competitive-info">
@@ -340,34 +336,28 @@
     </div>
 
     <script>
-        // --- 詞庫變數改為使用 let，以便動態更新 ---
         let vocabulary = {};
         let vocabularyEntries = [];
         let lomaToHanji = {};
         let allHanji = [];
         let allLoma = [];
 
-        // --- 從 Google 試算表載入資料的函數 ---
         async function loadLesson(sheetName, buttonElement) {
-            // 更新按鈕外觀，標示目前在哪一課
             document.querySelectorAll('.lesson-btn').forEach(btn => btn.classList.remove('active'));
             if (buttonElement) {
                 buttonElement.classList.add('active');
             } else {
-                // 如果是網頁初次載入，選取對應的按鈕
                 const btns = document.querySelectorAll('.lesson-btn');
                 btns.forEach(btn => {
                     if (btn.textContent === sheetName) btn.classList.add('active');
                 });
             }
 
-            // 鎖定遊戲與按鈕，直到載入完成
             changeCardsBtnNormal.disabled = true;
             changeCardsBtn.disabled = true;
             gameStatusDisplay.textContent = `正在載入 ${sheetName} 詞庫...`;
             if (!isCompetitiveMode) gameStatusDisplay.style.display = 'block';
 
-            // Google 試算表 ID 與匯出網址
             const sheetId = '1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc';
             const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
 
@@ -376,33 +366,23 @@
                 if (!response.ok) throw new Error('網路回應錯誤');
                 const csvText = await response.text();
                 
-                // 清空當前詞庫
                 vocabulary = {};
-
-                // 簡易解析 CSV
                 const lines = csvText.split('\n');
                 for (let i = 0; i < lines.length; i++) {
-                    // 去除每列頭尾可能因為 CSV 格式產生的引號，並以逗號分隔
                     let row = lines[i].split(',').map(item => item.replace(/^"(.*)"$/, '$1').trim());
-                    
                     if (row.length >= 2) {
                         let hanji = row[0];
                         let loma = row[1];
-                        
-                        // 跳過空白列或是標題列 (假設你試算表第一列如果是 '漢字'、'羅馬字' 就跳過)
                         if (!hanji || !loma || hanji === '漢字' || loma.includes('羅馬')) continue;
-
                         vocabulary[hanji] = loma;
                     }
                 }
 
-                // 更新與詞庫相關的衍生變數
                 vocabularyEntries = Object.entries(vocabulary);
                 lomaToHanji = Object.fromEntries(vocabularyEntries.map(([h, l]) => [l, h]));
                 allHanji = vocabularyEntries.map(p => p[0]);
                 allLoma = vocabularyEntries.map(p => p[1]);
 
-                // 載入成功，準備遊戲
                 gameStatusDisplay.textContent = `${sheetName} 載入成功！`;
                 setTimeout(() => {
                     if (!isCompetitiveMode) {
@@ -412,11 +392,9 @@
                     }
                 }, 1500);
 
-                // 解鎖按鈕並重新發牌
                 changeCardsBtnNormal.disabled = false;
                 changeCardsBtn.disabled = false;
                 
-                // 如果在競賽模式中切換課文，建議重設競賽狀態
                 if (isCompetitiveMode) {
                     resetCompetitiveMode(true);
                 } else {
@@ -430,8 +408,6 @@
             }
         }
 
-
-        // --- DOM 元素定義 ---
         const card1Element = document.getElementById('card1');
         const card2Element = document.getElementById('card2');
         const changeCardsBtn = document.getElementById('changeCardsBtn');
@@ -448,11 +424,9 @@
         const normalButtonsRow = document.getElementById('normalButtonsRow');
         const ruleTextDisplay = document.querySelector('.rule-text'); 
 
-        // --- 遊戲狀態變數 ---
         let gameLocked = false;
         let correctPair = {};
 
-        // --- 競賽模式狀態變數 ---
         let isCompetitiveMode = false;
         let leftScore = 0;
         let rightScore = 0;
@@ -468,8 +442,6 @@
         
         const competitiveRuleText = "規則：找出正確的配對得1分，6回合內先累積3分者獲勝，答錯扣分。每回合13秒。雙方各能求救1次。求救可以刪除1個干擾項，並延長4秒。";
         const normalRuleText = "規則：找出兩個表格中的唯一正確的配對";
-
-        // --- 核心工具函式 ---
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -500,8 +472,6 @@
                  gameStatusDisplay.textContent = ''; 
             }
         }
-
-        // --- 競賽模式專屬邏輯 ---
 
         function updateScoreDisplays() {
             scoreLeftDisplay.textContent = `左方分數: ${leftScore}`;
@@ -641,8 +611,6 @@
                 elementToDisable.dataset.hintRemoved = 'true';
             }
         }
-        
-        // --- 模式切換邏輯 ---
 
         function updateModeDisplay() {
             competitiveInfo.style.display = isCompetitiveMode ? 'flex' : 'none'; 
@@ -681,7 +649,6 @@
                 clearInterval(roundTimer);
                 gameLocked = false;
                 gameStatusDisplay.textContent = ''; 
-                // 確保切換回普通模式時不會一片空白
                 if (vocabularyEntries.length > 0) showRandomCards();
             }
             updateModeDisplay(); 
@@ -705,8 +672,6 @@
                 startTimer();
             }
         }
-
-        // --- 點擊處理 ---
 
         function handleElementClick(e) {
             const clickedElement = e.target.closest('.dobble-element');
@@ -776,8 +741,6 @@
             }
         }
 
-        // --- 卡片生成邏輯 ---
-        
         function hasInternalMatch(content) {
             const hanjiItems = content.filter(item => vocabulary[item]);
             const lomaItems = content.filter(item => lomaToHanji[item]);
@@ -788,7 +751,6 @@
         }
 
         function showRandomCards() {
-            // 防呆：如果詞庫還沒載入或是沒有資料，就不要執行
             if (!vocabularyEntries || vocabularyEntries.length === 0) return;
 
             clearFeedback(); 
@@ -807,7 +769,6 @@
                 const remainingHanji = shuffleArray(allHanji.filter(h => h !== correctPair.hanji));
                 const remainingLoma = shuffleArray(allLoma.filter(l => l !== correctPair.loma));
                 
-                // 需要確保詞庫至少有足夠的干擾項 (至少要4對詞彙才能玩)
                 if (remainingHanji.length < 3 || remainingLoma.length < 3) {
                     console.error("詞庫詞彙量不足，請確保至少有 4 組詞彙！");
                     return;
@@ -878,8 +839,6 @@
             });
         }
 
-        // --- 初始化和事件綁定 ---
-        
         modeToggleBtn.addEventListener('click', () => setMode(!isCompetitiveMode));
         
         changeCardsBtnNormal.addEventListener('click', () => {
@@ -890,7 +849,6 @@
         hintRightBtn.addEventListener('click', () => useHint('right'));
 
         window.onload = () => {
-            // 設定為普通模式，並在載入完成後預設載入 B2L1
             setMode(false); 
             loadLesson('B2L1');
         };
