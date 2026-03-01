@@ -205,7 +205,7 @@
         <button onclick="startGame(3)">3x3</button>
         <button onclick="startGame(4)">4x4</button>
         <button onclick="startGame(5)">5x5</button>
-        <button onclick="startFlashcardMode()" style="background-color: #e91e63;">全部 (Flashcard)</button>
+        <button onclick="startFlashcardMode()" style="background-color: #e91e63;">全部詞卡</button>
     </div>
 
     <div id="game-container" class="container"></div>
@@ -232,13 +232,11 @@
 
     <script>
         // 設定區
-        // 預設載入的 CSV 網址 (保留作為備用或初始載入)
         const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZ50ZUWgPbO5U_Cv6_Y4Qnff6c12Waa9F8KJuW_jyxjRu7v4PaqBGP8MZ0XTikl38HIos7q5IEaspX/pub?output=csv";
         
-        // ★★★ 更新後的 Google 試算表 ID ★★★
+        // Google 試算表 ID
         const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc"; 
         
-        // 課程列表 (對應試算表下方的工作表名稱)
         const lessons = ["B2L1", "B2L2", "B2L3", "B2L4", "B4L1", "B4L2", "B4L3", "B4L4"];
 
         // 狀態變數
@@ -270,6 +268,7 @@
             document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
 
+            // 建構 gviz 網址
             const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
             
             await fetchAndParse(queryUrl, `已載入課程：${sheetName}`);
@@ -279,16 +278,12 @@
         async function fetchAndParse(url, successMsg) {
             try {
                 const res = await fetch(url);
-                if (!res.ok) throw new Error("Network response was not ok");
-                
                 const text = await res.text();
                 
-                // 簡易 CSV 解析
                 const lines = text.split(/\r?\n/);
                 activeCards = lines.map(l => {
                     let cleanLine = l.replace(/"/g, ''); 
                     const p = cleanLine.replace(/，/g, ',').split(',');
-                    // p[0] 是 A欄, p[1] 是 B欄
                     return p.length >= 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
                 }).filter(c => c !== null && c.h !== "" && c.r !== "");
 
@@ -299,15 +294,15 @@
                         startGame(currentSize);
                     }
                 } else {
-                    alert("載入失敗：該工作表似乎沒有資料，或工作表名稱不符。");
+                    alert("載入失敗或無資料。");
                 }
             } catch (e) {
                 console.error(e);
-                alert("讀取失敗：\n1. 請確認試算表權限已設為「知道連結的人皆可檢視」。\n2. 請確認工作表名稱 (B2L1...) 是否正確。");
+                alert("讀取失敗：請檢查網路或 Spreadsheet ID 是否正確。");
             }
         }
 
-        // 預設載入
+        // 預設載入 (使用 2PACX 網址)
         async function loadDefault() {
             const firstLesson = lessons[0];
             const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${firstLesson}`;
@@ -326,7 +321,7 @@
             isFlashcard = false;
             currentSize = size;
             flashcardControls.style.display = 'none';
-            container.className = 'container';
+            container.className = 'container'; // 回復 Grid 布局
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
             
             if (activeCards.length < size*size) {
@@ -334,6 +329,7 @@
                 return;
             }
 
+            // 洗牌
             const deck = [...activeCards].sort(() => Math.random() - 0.5).slice(0, size*size);
             
             container.innerHTML = '';
@@ -357,7 +353,7 @@
             });
         }
 
-        // 啟動 Flashcard 模式 (全部)
+        // 啟動 Flashcard 模式 (全部詞卡)
         function startFlashcardMode() {
             if (activeCards.length === 0) {
                 alert("目前無詞彙，請先載入課程。");
@@ -380,7 +376,8 @@
             container.innerHTML = '';
             
             if (flashcardIndex >= flashcardDeck.length) {
-                container.innerHTML = '<h2 style="text-align:center; color: var(--btn-color);">完 (Tshuan-liáu)</h2>';
+                // ★★★ 修改處：結束顯示文字改為「煞(suah)」 ★★★
+                container.innerHTML = '<h2 style="text-align:center; color: var(--btn-color);">煞(suah)</h2>';
                 prevBtn.disabled = false;
                 nextBtn.disabled = true;
                 return;
@@ -390,9 +387,7 @@
             const card = document.createElement('div');
             card.className = 'card flashcard';
             
-            // ★★★ 修改處：現在正面顯示 data.r (B欄)，背面顯示 data.h (A欄) ★★★
-            // 同時移除了之前寫死的 style 顏色，讓它自動繼承 CSS 的設定
-            // 這樣顏色也會跟 Bingo 模式一致
+            // Flashcard 邏輯：正面顯示 B欄(r), 背面顯示 A欄(h)
             card.innerHTML = `
                 <div class="card-inner">
                     <div class="card-face card-front">${data.r}</div>
