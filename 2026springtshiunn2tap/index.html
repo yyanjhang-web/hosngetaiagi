@@ -44,6 +44,32 @@
             background-color: #ffdddd !important; 
         }
 
+        /* --- 標題與提示文字區塊 --- */
+        .header-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5vmin;
+            margin-bottom: 2vmin;
+        }
+        .title-main {
+            font-size: 5vmin;
+            font-weight: bold;
+            color: #333;
+        }
+        .title-sub {
+            font-size: 3vmin;
+            color: #555;
+        }
+        .title-hint {
+            font-size: 2vmin;
+            color: #777;
+            background-color: #fff3cd;
+            padding: 0.5vmin 1.5vmin;
+            border-radius: 15px;
+            border: 1px solid #ffeeba;
+        }
+
         /* --- 課文選擇按鈕區塊 (分為兩行) --- */
         .lesson-buttons {
             display: flex;
@@ -77,6 +103,7 @@
             background-color: #ffc107;
             color: #333;
             font-weight: bold;
+            box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
         }
         
         /* --- 競賽模式資訊區塊 --- */
@@ -280,18 +307,24 @@
     </style>
 </head>
 <body>
+    <div class="header-text">
+        <div class="title-main">搶答tshiúnn-tap</div>
+        <div class="title-sub">左右各由一人操作</div>
+        <div class="title-hint">💡 課程可複選</div>
+    </div>
+
     <div class="lesson-buttons" id="lessonButtons">
         <div class="lesson-row">
-            <button class="lesson-btn" onclick="loadLesson('B2L1', this)">B2L1</button>
-            <button class="lesson-btn" onclick="loadLesson('B2L2', this)">B2L2</button>
-            <button class="lesson-btn" onclick="loadLesson('B2L3', this)">B2L3</button>
-            <button class="lesson-btn" onclick="loadLesson('B2L4', this)">B2L4</button>
+            <button class="lesson-btn" onclick="toggleLesson('B2L1', this)">B2L1</button>
+            <button class="lesson-btn" onclick="toggleLesson('B2L2', this)">B2L2</button>
+            <button class="lesson-btn" onclick="toggleLesson('B2L3', this)">B2L3</button>
+            <button class="lesson-btn" onclick="toggleLesson('B2L4', this)">B2L4</button>
         </div>
         <div class="lesson-row">
-            <button class="lesson-btn" onclick="loadLesson('B4L1', this)">B4L1</button>
-            <button class="lesson-btn" onclick="loadLesson('B4L2', this)">B4L2</button>
-            <button class="lesson-btn" onclick="loadLesson('B4L3', this)">B4L3</button>
-            <button class="lesson-btn" onclick="loadLesson('B4L4', this)">B4L4</button>
+            <button class="lesson-btn" onclick="toggleLesson('B4L1', this)">B4L1</button>
+            <button class="lesson-btn" onclick="toggleLesson('B4L2', this)">B4L2</button>
+            <button class="lesson-btn" onclick="toggleLesson('B4L3', this)">B4L3</button>
+            <button class="lesson-btn" onclick="toggleLesson('B4L4', this)">B4L4</button>
         </div>
     </div>
 
@@ -341,49 +374,73 @@
         let lomaToHanji = {};
         let allHanji = [];
         let allLoma = [];
+        
+        // 紀錄選取的課程清單，預設選中 B2L1
+        let selectedLessons = new Set(['B2L1']);
 
-        async function loadLesson(sheetName, buttonElement) {
-            document.querySelectorAll('.lesson-btn').forEach(btn => btn.classList.remove('active'));
-            if (buttonElement) {
-                buttonElement.classList.add('active');
+        // 切換課程的函式（開關邏輯）
+        function toggleLesson(sheetName, buttonElement) {
+            if (selectedLessons.has(sheetName)) {
+                // 如果只剩一個課程，防呆不給取消，避免沒字可用
+                if (selectedLessons.size === 1) {
+                    alert("請至少選擇一個課程！");
+                    return;
+                }
+                selectedLessons.delete(sheetName);
+                buttonElement.classList.remove('active');
             } else {
-                const btns = document.querySelectorAll('.lesson-btn');
-                btns.forEach(btn => {
-                    if (btn.textContent === sheetName) btn.classList.add('active');
-                });
+                selectedLessons.add(sheetName);
+                buttonElement.classList.add('active');
             }
+            // 重新載入所有選取的工作表
+            loadSelectedLessons();
+        }
 
+        // 載入多個工作表的函式
+        async function loadSelectedLessons() {
             changeCardsBtnNormal.disabled = true;
             changeCardsBtn.disabled = true;
-            gameStatusDisplay.textContent = `正在載入 ${sheetName} 詞庫...`;
+            gameStatusDisplay.textContent = `正在載入合併詞庫...`;
             if (!isCompetitiveMode) gameStatusDisplay.style.display = 'block';
 
             const sheetId = '1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc';
-            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+            vocabulary = {}; // 清空並重新組合
 
             try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('網路回應錯誤');
-                const csvText = await response.text();
-                
-                vocabulary = {};
-                const lines = csvText.split('\n');
-                for (let i = 0; i < lines.length; i++) {
-                    let row = lines[i].split(',').map(item => item.replace(/^"(.*)"$/, '$1').trim());
-                    if (row.length >= 2) {
-                        let hanji = row[0];
-                        let loma = row[1];
-                        if (!hanji || !loma || hanji === '漢字' || loma.includes('羅馬')) continue;
-                        vocabulary[hanji] = loma;
+                // 將 Set 轉換成陣列，並為每一個課程建立 fetch 請求
+                const fetchPromises = Array.from(selectedLessons).map(async (sheetName) => {
+                    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`網路回應錯誤 (${sheetName})`);
+                    const csvText = await response.text();
+                    
+                    const lines = csvText.split('\n');
+                    for (let i = 0; i < lines.length; i++) {
+                        let row = lines[i].split(',').map(item => item.replace(/^"(.*)"$/, '$1').trim());
+                        if (row.length >= 2) {
+                            let hanji = row[0];
+                            let loma = row[1];
+                            if (!hanji || !loma || hanji === '漢字' || loma.includes('羅馬')) continue;
+                            vocabulary[hanji] = loma;
+                        }
                     }
-                }
+                });
+
+                // 等待所有工作表載入完畢
+                await Promise.all(fetchPromises);
 
                 vocabularyEntries = Object.entries(vocabulary);
                 lomaToHanji = Object.fromEntries(vocabularyEntries.map(([h, l]) => [l, h]));
                 allHanji = vocabularyEntries.map(p => p[0]);
                 allLoma = vocabularyEntries.map(p => p[1]);
 
-                gameStatusDisplay.textContent = `${sheetName} 載入成功！`;
+                // 若總詞彙量不足遊戲要求的最低數量 (至少 4 組詞彙)
+                if (vocabularyEntries.length < 4) {
+                    gameStatusDisplay.textContent = `請選擇更多課程（目前詞彙不足）。`;
+                    return;
+                }
+
+                gameStatusDisplay.textContent = `共載入 ${vocabularyEntries.length} 個詞彙！`;
                 setTimeout(() => {
                     if (!isCompetitiveMode) {
                         gameStatusDisplay.textContent = '';
@@ -666,7 +723,7 @@
             hintLeftBtn.textContent = '求救 (剩1次)'; 
             hintRightBtn.textContent = '求救 (剩1次)'; 
 
-            if (startNewGame && vocabularyEntries.length > 0) {
+            if (startNewGame && vocabularyEntries.length >= 4) {
                 updateScoreDisplays();
                 showRandomCards();
                 startTimer();
@@ -751,7 +808,7 @@
         }
 
         function showRandomCards() {
-            if (!vocabularyEntries || vocabularyEntries.length === 0) return;
+            if (!vocabularyEntries || vocabularyEntries.length < 4) return;
 
             clearFeedback(); 
             
@@ -770,7 +827,7 @@
                 const remainingLoma = shuffleArray(allLoma.filter(l => l !== correctPair.loma));
                 
                 if (remainingHanji.length < 3 || remainingLoma.length < 3) {
-                    console.error("詞庫詞彙量不足，請確保至少有 4 組詞彙！");
+                    console.error("詞庫詞彙量不足，無法生成卡片！");
                     return;
                 }
 
@@ -850,7 +907,18 @@
 
         window.onload = () => {
             setMode(false); 
-            loadLesson('B2L1');
+            
+            // 根據 selectedLessons (預設 B2L1) 來設定按鈕的 highlight
+            document.querySelectorAll('.lesson-btn').forEach(btn => {
+                if (selectedLessons.has(btn.textContent)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // 直接載入預設的合併詞庫
+            loadSelectedLessons();
         };
     </script>
 </body>
