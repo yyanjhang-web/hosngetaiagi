@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>共編賓果 & 字卡</title>
+    <title>共編賓果 & 閃示卡</title>
     <style>
         :root {
             --bg-color: #f0f9ff;
@@ -79,18 +79,24 @@
             }
         }
 
+        /* 調整選取按鈕的視覺效果，讓複選更明顯 */
         .lesson-btn {
-            background-color: var(--btn-color);
-            color: white;
+            background-color: #ccc; /* 預設未選取為灰色 */
+            color: #333;
             border: none;
             padding: 8px 5px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 0.9em;
-            transition: filter 0.2s;
+            transition: 0.3s;
         }
-        .lesson-btn:hover { filter: brightness(90%); }
-        .lesson-btn.active { border: 2px solid #fff; box-shadow: 0 0 0 2px var(--btn-hover-color); font-weight: bold; }
+        .lesson-btn:hover { filter: brightness(95%); }
+        .lesson-btn.active { 
+            background-color: var(--btn-color); /* 選取時變為主色 */
+            color: white;
+            font-weight: bold; 
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+        }
 
         .control-group {
             margin-bottom: 15px;
@@ -103,7 +109,7 @@
         .input-group {
             margin-top: 5px;
             margin-bottom: 15px;
-            display: none; /* 隱藏手動輸入框，除非需要 */
+            display: none;
         }
 
         button {
@@ -137,7 +143,6 @@
         .card.flipped .card-inner { transform: rotateY(180deg); }
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; border-radius: 10px; padding: 5px; text-align: center; font-weight: bold; box-sizing: border-box; font-size: clamp(1rem, 2.5vw, 1.5rem); overflow: hidden; word-break: break-word;}
         
-        /* Bingo 模式: Front = B欄 (r), Back = A欄 (h) */
         .card-front { background-color: var(--card-front-color); color: var(--card-front-text); }
         .card-back { background-color: var(--card-back-color); color: var(--card-back-text); transform: rotateY(180deg); }
         
@@ -151,12 +156,12 @@
         .flashcard {
             width: 100%;
             max-width: 400px;
-            height: 250px; /* 固定高度 */
+            height: 250px;
             padding-bottom: 0;
             margin-bottom: 20px;
         }
         .flashcard .card-face {
-            font-size: 2em; /* 字體加大 */
+            font-size: 2em;
             padding: 20px;
         }
 
@@ -188,7 +193,8 @@
 <body class="theme-style1">
 
     <div class="dictionary-input">
-        <h3 style="margin-top: 0;">做伙耍賓果 & 閃示卡<br><span style="font-size: 0.8em; font-weight: normal;">Tsò-hué sńg Bingo</span></h3>
+        <h3 style="margin-top: 0; margin-bottom: 5px;">做伙耍賓果 & 閃示卡<br><span style="font-size: 0.8em; font-weight: normal;">Tsò-hué sńg Bingo</span></h3>
+        <p style="font-size: 0.85em; margin-top: 0; opacity: 0.8;">💡 點擊下方按鈕可「複選」合併多課詞庫</p>
         
         <div class="lesson-btn-group" id="lesson-buttons">
             </div>
@@ -232,11 +238,7 @@
 
     <script>
         // 設定區
-        const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZ50ZUWgPbO5U_Cv6_Y4Qnff6c12Waa9F8KJuW_jyxjRu7v4PaqBGP8MZ0XTikl38HIos7q5IEaspX/pub?output=csv";
-        
-        // Google 試算表 ID
         const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc"; 
-        
         const lessons = ["B2L1", "B2L2", "B2L3", "B2L4", "B4L1", "B4L2", "B4L3", "B4L4"];
 
         // 狀態變數
@@ -245,6 +247,9 @@
         let isFlashcard = false;
         let flashcardDeck = [];
         let flashcardIndex = 0;
+        
+        // ★ 新增：用於追蹤目前選了哪些課程的陣列
+        let selectedLessons = [];
 
         const container = document.getElementById('game-container');
         const lessonContainer = document.getElementById('lesson-buttons');
@@ -258,62 +263,89 @@
                 const btn = document.createElement('button');
                 btn.className = 'lesson-btn';
                 btn.textContent = lesson;
-                btn.onclick = () => loadLesson(lesson, btn);
+                // ★ 點擊時觸發 toggle 函數
+                btn.onclick = () => toggleLesson(lesson, btn);
                 lessonContainer.appendChild(btn);
             });
         }
 
-        // 載入指定工作表 (使用 Visualization API)
-        async function loadLesson(sheetName, btnElement) {
-            document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
-            if(btnElement) btnElement.classList.add('active');
-
-            // 建構 gviz 網址
-            const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+        // ★ 新增：處理複選按鈕的邏輯
+        async function toggleLesson(lessonName, btnElement) {
+            const index = selectedLessons.indexOf(lessonName);
+            if (index > -1) {
+                // 如果已經在陣列中，代表要「取消選取」
+                selectedLessons.splice(index, 1);
+                btnElement.classList.remove('active');
+            } else {
+                // 如果不在陣列中，代表要「加入選取」
+                selectedLessons.push(lessonName);
+                btnElement.classList.add('active');
+            }
             
-            await fetchAndParse(queryUrl, `已載入課程：${sheetName}`);
+            // 每次改變選取狀態後，重新抓取並合併所有選到的詞庫
+            await fetchAndCombineLessons();
         }
 
-        // 核心讀取與解析函式
-        async function fetchAndParse(url, successMsg) {
+        // ★ 新增：合併抓取多個工作表的函數
+        async function fetchAndCombineLessons() {
+            // 如果全部都沒選
+            if (selectedLessons.length === 0) {
+                activeCards = [];
+                container.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding: 20px;">請至少選擇上方一個課程。</p>';
+                flashcardControls.style.display = 'none';
+                return;
+            }
+
             try {
-                const res = await fetch(url);
-                const text = await res.text();
+                // 同時發送多個工作表的請求
+                const fetchPromises = selectedLessons.map(sheetName => {
+                    const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+                    return fetch(queryUrl).then(res => res.text());
+                });
+
+                // 等待所有請求完成
+                const results = await Promise.all(fetchPromises);
                 
-                const lines = text.split(/\r?\n/);
-                activeCards = lines.map(l => {
-                    let cleanLine = l.replace(/"/g, ''); 
-                    const p = cleanLine.replace(/，/g, ',').split(',');
-                    return p.length >= 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
-                }).filter(c => c !== null && c.h !== "" && c.r !== "");
+                // 清空並重新組合詞庫
+                activeCards = [];
+                results.forEach(text => {
+                    const lines = text.split(/\r?\n/);
+                    const cards = lines.map(l => {
+                        let cleanLine = l.replace(/"/g, ''); 
+                        const p = cleanLine.replace(/，/g, ',').split(',');
+                        return p.length >= 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
+                    }).filter(c => c !== null && c.h !== "" && c.r !== "");
+                    
+                    activeCards = activeCards.concat(cards);
+                });
 
                 if (activeCards.length > 0) {
+                    // 如果目前在字卡模式，就重整字卡；否則重整賓果
                     if (isFlashcard) {
                         startFlashcardMode();
                     } else {
                         startGame(currentSize);
                     }
                 } else {
-                    alert("載入失敗或無資料。");
+                    container.innerHTML = '<p style="grid-column:1/-1; text-align:center;">所選課程無資料。</p>';
                 }
+
             } catch (e) {
                 console.error(e);
                 alert("讀取失敗：請檢查網路或 Spreadsheet ID 是否正確。");
             }
         }
 
-        // 預設載入 (使用 2PACX 網址)
+        // 預設載入第一課
         async function loadDefault() {
             const firstLesson = lessons[0];
-            const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${firstLesson}`;
+            selectedLessons.push(firstLesson);
             
-            try {
-                await fetchAndParse(queryUrl, "初始化");
-                const firstBtn = document.querySelector('.lesson-btn');
-                if(firstBtn) firstBtn.classList.add('active');
-            } catch(e) {
-                await fetchAndParse(DEFAULT_CSV_URL, "已載入預設題庫");
-            }
+            // 將第一個按鈕標示為 active
+            const firstBtn = lessonContainer.querySelector('.lesson-btn');
+            if(firstBtn) firstBtn.classList.add('active');
+            
+            await fetchAndCombineLessons();
         }
 
         // 啟動 Bingo 模式
@@ -321,22 +353,22 @@
             isFlashcard = false;
             currentSize = size;
             flashcardControls.style.display = 'none';
-            container.className = 'container'; // 回復 Grid 布局
+            container.className = 'container'; 
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
             
+            if (activeCards.length === 0) return; // 沒選課程時不動作
+
             if (activeCards.length < size*size) {
-                container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">詞彙不足 (${activeCards.length}/${size*size})，請選擇其他課程。</p>`;
+                container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">目前累積詞彙不足 (${activeCards.length}/${size*size})，請多選幾個課程。</p>`;
                 return;
             }
 
-            // 洗牌
             const deck = [...activeCards].sort(() => Math.random() - 0.5).slice(0, size*size);
             
             container.innerHTML = '';
             deck.forEach(data => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                // Bingo 邏輯：正面顯示 B欄(r), 背面顯示 A欄(h)
                 card.innerHTML = `
                     <div class="card-inner">
                         <div class="card-face card-front">${data.r}</div>
@@ -356,17 +388,16 @@
         // 啟動 Flashcard 模式 (全部詞卡)
         function startFlashcardMode() {
             if (activeCards.length === 0) {
-                alert("目前無詞彙，請先載入課程。");
+                alert("目前無詞彙，請先選擇上方課程。");
                 return;
             }
             isFlashcard = true;
             
-            // 隨機排列所有卡片
             flashcardDeck = [...activeCards].sort(() => Math.random() - 0.5);
             flashcardIndex = 0;
             
             container.className = 'container flashcard-container';
-            container.style.gridTemplateColumns = '1fr'; // 單欄
+            container.style.gridTemplateColumns = '1fr'; 
             flashcardControls.style.display = 'flex';
             
             renderFlashcard();
@@ -376,7 +407,6 @@
             container.innerHTML = '';
             
             if (flashcardIndex >= flashcardDeck.length) {
-                // ★★★ 修改處：結束顯示文字改為「煞(suah)」 ★★★
                 container.innerHTML = '<h2 style="text-align:center; color: var(--btn-color);">煞(suah)</h2>';
                 prevBtn.disabled = false;
                 nextBtn.disabled = true;
@@ -387,7 +417,6 @@
             const card = document.createElement('div');
             card.className = 'card flashcard';
             
-            // Flashcard 邏輯：正面顯示 B欄(r), 背面顯示 A欄(h)
             card.innerHTML = `
                 <div class="card-inner">
                     <div class="card-face card-front">${data.r}</div>
@@ -398,7 +427,6 @@
             card.onclick = () => card.classList.toggle('flipped');
             container.appendChild(card);
 
-            // 更新按鈕狀態
             prevBtn.disabled = (flashcardIndex === 0);
             nextBtn.disabled = false;
         }
@@ -411,12 +439,18 @@
 
         function applyStyle(s) { document.body.className = s; }
         
+        // 手動輸入詞庫的覆蓋邏輯（會暫時清空課程選取狀態）
         document.getElementById('apply-btn').onclick = () => {
             const lines = document.getElementById('custom-dictionary').value.trim().split('\n');
             activeCards = lines.map(l => {
                 const p = l.replace(/，/g, ',').split(',');
                 return p.length === 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
             }).filter(c => c !== null);
+            
+            // 清空上方的按鈕選取狀態，因為現在使用者在用手動詞庫
+            selectedLessons = [];
+            document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
+
             if(isFlashcard) startFlashcardMode(); else startGame(currentSize);
         };
 
