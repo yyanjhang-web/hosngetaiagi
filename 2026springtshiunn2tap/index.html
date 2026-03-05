@@ -235,6 +235,10 @@
             word-wrap: break-word;
             word-break: normal;
             hyphens: auto;
+            /* 👇 關鍵修正：確保格子絕對不會被字撐爆，強制遵守 1:1 比例 */
+            min-height: 0;
+            min-width: 0;
+            overflow: hidden;
         }
         .dobble-element.loma { font-size: 3vmin; }
         .dobble-element.highlight-blue { background-color: #add8e6; transform: scale(1.05); border: 2px solid #5a94a6; }
@@ -375,13 +379,10 @@
         let allHanji = [];
         let allLoma = [];
         
-        // 紀錄選取的課程清單，預設選中 B2L1
         let selectedLessons = new Set(['B2L1']);
 
-        // 切換課程的函式（開關邏輯）
         function toggleLesson(sheetName, buttonElement) {
             if (selectedLessons.has(sheetName)) {
-                // 如果只剩一個課程，防呆不給取消，避免沒字可用
                 if (selectedLessons.size === 1) {
                     alert("請至少選擇一個課程！");
                     return;
@@ -392,11 +393,9 @@
                 selectedLessons.add(sheetName);
                 buttonElement.classList.add('active');
             }
-            // 重新載入所有選取的工作表
             loadSelectedLessons();
         }
 
-        // 載入多個工作表的函式
         async function loadSelectedLessons() {
             changeCardsBtnNormal.disabled = true;
             changeCardsBtn.disabled = true;
@@ -404,10 +403,9 @@
             if (!isCompetitiveMode) gameStatusDisplay.style.display = 'block';
 
             const sheetId = '1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc';
-            vocabulary = {}; // 清空並重新組合
+            vocabulary = {}; 
 
             try {
-                // 將 Set 轉換成陣列，並為每一個課程建立 fetch 請求
                 const fetchPromises = Array.from(selectedLessons).map(async (sheetName) => {
                     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
                     const response = await fetch(url);
@@ -426,7 +424,6 @@
                     }
                 });
 
-                // 等待所有工作表載入完畢
                 await Promise.all(fetchPromises);
 
                 vocabularyEntries = Object.entries(vocabulary);
@@ -434,7 +431,6 @@
                 allHanji = vocabularyEntries.map(p => p[0]);
                 allLoma = vocabularyEntries.map(p => p[1]);
 
-                // 若總詞彙量不足遊戲要求的最低數量 (至少 4 組詞彙)
                 if (vocabularyEntries.length < 4) {
                     gameStatusDisplay.textContent = `請選擇更多課程（目前詞彙不足）。`;
                     return;
@@ -884,12 +880,33 @@
             }
         }
 
+        // 📝 新增了這段：動態判斷字串長度，自動縮小字體
         function updateCard(cardElement, content) {
             cardElement.innerHTML = '';
             content.forEach(text => {
                 const element = document.createElement('div');
                 element.className = 'dobble-element';
-                element.classList.add(vocabulary[text] ? 'hanji' : 'loma'); 
+                
+                if (vocabulary[text]) {
+                    element.classList.add('hanji');
+                    // 根據漢字的字數調整字體，避免太長超出方塊
+                    if (text.length >= 7) {
+                        element.style.fontSize = '2.5vmin';
+                    } else if (text.length >= 5) {
+                        element.style.fontSize = '3.5vmin';
+                    } else if (text.length >= 4) {
+                        element.style.fontSize = '4vmin';
+                    }
+                } else {
+                    element.classList.add('loma');
+                    // 根據羅馬拼音的長度稍微縮小字體
+                    if (text.length >= 15) {
+                        element.style.fontSize = '2.2vmin';
+                    } else if (text.length >= 10) {
+                        element.style.fontSize = '2.5vmin';
+                    }
+                }
+
                 element.textContent = text;
                 element.addEventListener('click', handleElementClick); 
                 cardElement.appendChild(element);
@@ -908,7 +925,6 @@
         window.onload = () => {
             setMode(false); 
             
-            // 根據 selectedLessons (預設 B2L1) 來設定按鈕的 highlight
             document.querySelectorAll('.lesson-btn').forEach(btn => {
                 if (selectedLessons.has(btn.textContent)) {
                     btn.classList.add('active');
@@ -917,7 +933,6 @@
                 }
             });
             
-            // 直接載入預設的合併詞庫
             loadSelectedLessons();
         };
     </script>
