@@ -79,9 +79,8 @@
             }
         }
 
-        /* 調整選取按鈕的視覺效果，讓複選更明顯 */
         .lesson-btn {
-            background-color: #ccc; /* 預設未選取為灰色 */
+            background-color: #ccc; 
             color: #333;
             border: none;
             padding: 8px 5px;
@@ -92,7 +91,7 @@
         }
         .lesson-btn:hover { filter: brightness(95%); }
         .lesson-btn.active { 
-            background-color: var(--btn-color); /* 選取時變為主色 */
+            background-color: var(--btn-color); 
             color: white;
             font-weight: bold; 
             box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
@@ -163,15 +162,14 @@
         .flashcard .card-face {
             font-size: 2em;
             padding: 20px;
-            position: relative; /* 讓計數器可以絕對定位在裡面 */
+            /* 修正處：移除破壞排版的 position: relative; */
         }
         
-        /* ★ 新增：字卡計數器樣式 ★ */
         .card-counter {
             position: absolute;
             top: 15px;
             right: 15px;
-            font-size: 16px; /* 固定字體大小 */
+            font-size: 16px; 
             font-weight: normal;
             opacity: 0.6;
         }
@@ -259,7 +257,6 @@
         let flashcardDeck = [];
         let flashcardIndex = 0;
         
-        // 用於追蹤目前選了哪些課程的陣列
         let selectedLessons = [];
 
         const container = document.getElementById('game-container');
@@ -268,7 +265,6 @@
         const prevBtn = document.getElementById('prev-card-btn');
         const nextBtn = document.getElementById('next-card-btn');
 
-        // 初始化課程按鈕
         function initLessonButtons() {
             lessons.forEach(lesson => {
                 const btn = document.createElement('button');
@@ -279,15 +275,12 @@
             });
         }
 
-        // 處理複選按鈕的邏輯
         async function toggleLesson(lessonName, btnElement) {
             const index = selectedLessons.indexOf(lessonName);
             if (index > -1) {
-                // 取消選取
                 selectedLessons.splice(index, 1);
                 btnElement.classList.remove('active');
             } else {
-                // 加入選取
                 selectedLessons.push(lessonName);
                 btnElement.classList.add('active');
             }
@@ -295,7 +288,6 @@
             await fetchAndCombineLessons();
         }
 
-        // 合併抓取多個工作表的函數
         async function fetchAndCombineLessons() {
             if (selectedLessons.length === 0) {
                 activeCards = [];
@@ -340,7 +332,6 @@
             }
         }
 
-        // 預設載入第一課
         async function loadDefault() {
             const firstLesson = lessons[0];
             selectedLessons.push(firstLesson);
@@ -351,7 +342,6 @@
             await fetchAndCombineLessons();
         }
 
-        // 啟動 Bingo 模式
         function startGame(size) {
             isFlashcard = false;
             currentSize = size;
@@ -388,7 +378,6 @@
             });
         }
 
-        // 啟動 Flashcard 模式 (全部詞卡)
         function startFlashcardMode() {
             if (activeCards.length === 0) {
                 alert("目前無詞彙，請先選擇上方課程。");
@@ -420,7 +409,6 @@
             const card = document.createElement('div');
             card.className = 'card flashcard';
             
-            // ★ 修改：在字卡正反面加入計數器 (目前張數 / 總張數) ★
             card.innerHTML = `
                 <div class="card-inner">
                     <div class="card-face card-front">
@@ -449,7 +437,6 @@
 
         function applyStyle(s) { document.body.className = s; }
         
-        // 手動輸入詞庫的覆蓋邏輯
         document.getElementById('apply-btn').onclick = () => {
             const lines = document.getElementById('custom-dictionary').value.trim().split('\n');
             activeCards = lines.map(l => {
