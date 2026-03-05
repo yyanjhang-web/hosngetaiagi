@@ -163,6 +163,17 @@
         .flashcard .card-face {
             font-size: 2em;
             padding: 20px;
+            position: relative; /* 讓計數器可以絕對定位在裡面 */
+        }
+        
+        /* ★ 新增：字卡計數器樣式 ★ */
+        .card-counter {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 16px; /* 固定字體大小 */
+            font-weight: normal;
+            opacity: 0.6;
         }
 
         .mark-btn { position: absolute; bottom: 5px; right: 5px; width: 18px; height: 18px; border-radius: 50%; background-color: rgba(255,255,255,0.4); border: 1px solid #ccc; z-index: 5; }
@@ -193,8 +204,8 @@
 <body class="theme-style1">
 
     <div class="dictionary-input">
-        <h3 style="margin-top: 0; margin-bottom: 5px;">做伙耍賓果 & 閃示卡<br><span style="font-size: 0.8em; font-weight: normal;">Tsò-hué sńg Bingo</span></h3>
-        <p style="font-size: 0.85em; margin-top: 0; opacity: 0.8;">💡 點擊下方按鈕可「複選」合併多課詞庫</p>
+        <h3 style="margin-top: 0; margin-bottom: 5px;">賓果佮字卡<br><span style="font-size: 0.8em; font-weight: normal;">Bingo kap jī-khah</span></h3>
+        <p style="font-size: 0.85em; margin-top: 0; opacity: 0.8;">💡 可複選課別</p>
         
         <div class="lesson-btn-group" id="lesson-buttons">
             </div>
@@ -248,7 +259,7 @@
         let flashcardDeck = [];
         let flashcardIndex = 0;
         
-        // ★ 新增：用於追蹤目前選了哪些課程的陣列
+        // 用於追蹤目前選了哪些課程的陣列
         let selectedLessons = [];
 
         const container = document.getElementById('game-container');
@@ -263,32 +274,29 @@
                 const btn = document.createElement('button');
                 btn.className = 'lesson-btn';
                 btn.textContent = lesson;
-                // ★ 點擊時觸發 toggle 函數
                 btn.onclick = () => toggleLesson(lesson, btn);
                 lessonContainer.appendChild(btn);
             });
         }
 
-        // ★ 新增：處理複選按鈕的邏輯
+        // 處理複選按鈕的邏輯
         async function toggleLesson(lessonName, btnElement) {
             const index = selectedLessons.indexOf(lessonName);
             if (index > -1) {
-                // 如果已經在陣列中，代表要「取消選取」
+                // 取消選取
                 selectedLessons.splice(index, 1);
                 btnElement.classList.remove('active');
             } else {
-                // 如果不在陣列中，代表要「加入選取」
+                // 加入選取
                 selectedLessons.push(lessonName);
                 btnElement.classList.add('active');
             }
             
-            // 每次改變選取狀態後，重新抓取並合併所有選到的詞庫
             await fetchAndCombineLessons();
         }
 
-        // ★ 新增：合併抓取多個工作表的函數
+        // 合併抓取多個工作表的函數
         async function fetchAndCombineLessons() {
-            // 如果全部都沒選
             if (selectedLessons.length === 0) {
                 activeCards = [];
                 container.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding: 20px;">請至少選擇上方一個課程。</p>';
@@ -297,16 +305,13 @@
             }
 
             try {
-                // 同時發送多個工作表的請求
                 const fetchPromises = selectedLessons.map(sheetName => {
                     const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
                     return fetch(queryUrl).then(res => res.text());
                 });
 
-                // 等待所有請求完成
                 const results = await Promise.all(fetchPromises);
                 
-                // 清空並重新組合詞庫
                 activeCards = [];
                 results.forEach(text => {
                     const lines = text.split(/\r?\n/);
@@ -320,7 +325,6 @@
                 });
 
                 if (activeCards.length > 0) {
-                    // 如果目前在字卡模式，就重整字卡；否則重整賓果
                     if (isFlashcard) {
                         startFlashcardMode();
                     } else {
@@ -341,7 +345,6 @@
             const firstLesson = lessons[0];
             selectedLessons.push(firstLesson);
             
-            // 將第一個按鈕標示為 active
             const firstBtn = lessonContainer.querySelector('.lesson-btn');
             if(firstBtn) firstBtn.classList.add('active');
             
@@ -356,7 +359,7 @@
             container.className = 'container'; 
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
             
-            if (activeCards.length === 0) return; // 沒選課程時不動作
+            if (activeCards.length === 0) return;
 
             if (activeCards.length < size*size) {
                 container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">目前累積詞彙不足 (${activeCards.length}/${size*size})，請多選幾個課程。</p>`;
@@ -417,10 +420,17 @@
             const card = document.createElement('div');
             card.className = 'card flashcard';
             
+            // ★ 修改：在字卡正反面加入計數器 (目前張數 / 總張數) ★
             card.innerHTML = `
                 <div class="card-inner">
-                    <div class="card-face card-front">${data.r}</div>
-                    <div class="card-face card-back">${data.h}</div>
+                    <div class="card-face card-front">
+                        <span class="card-counter">${flashcardIndex + 1} / ${flashcardDeck.length}</span>
+                        ${data.r}
+                    </div>
+                    <div class="card-face card-back">
+                        <span class="card-counter">${flashcardIndex + 1} / ${flashcardDeck.length}</span>
+                        ${data.h}
+                    </div>
                 </div>
             `;
             
@@ -439,7 +449,7 @@
 
         function applyStyle(s) { document.body.className = s; }
         
-        // 手動輸入詞庫的覆蓋邏輯（會暫時清空課程選取狀態）
+        // 手動輸入詞庫的覆蓋邏輯
         document.getElementById('apply-btn').onclick = () => {
             const lines = document.getElementById('custom-dictionary').value.trim().split('\n');
             activeCards = lines.map(l => {
@@ -447,7 +457,6 @@
                 return p.length === 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
             }).filter(c => c !== null);
             
-            // 清空上方的按鈕選取狀態，因為現在使用者在用手動詞庫
             selectedLessons = [];
             document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
 
