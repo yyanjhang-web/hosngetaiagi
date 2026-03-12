@@ -103,6 +103,7 @@
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .input-group {
@@ -162,7 +163,6 @@
         .flashcard .card-face {
             font-size: 2em;
             padding: 20px;
-            /* 修正處：移除破壞排版的 position: relative; */
         }
         
         .card-counter {
@@ -197,6 +197,26 @@
         .theme-style3 .dictionary-input summary { color: #cbd5e0; }
 
         .counter-container { margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        
+        /* 反向翻牌 Toggle 樣式 */
+        .toggle-container {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .toggle-label {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: var(--text-color);
+        }
+        .toggle-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="theme-style1">
@@ -214,6 +234,13 @@
                       placeholder="以逗號分隔正反面。逗號全形半形皆可&#10;蘋果, phông-kó&#10;弓蕉，king-tsio"></textarea>
             <button id="apply-btn" style="width:100%; margin-top:8px;">套用手動詞庫</button>
         </details>
+    </div>
+
+    <div class="toggle-container">
+        <label class="toggle-label">
+            <input type="checkbox" id="reverse-toggle" onchange="toggleReverse()">
+            反向翻牌
+        </label>
     </div>
 
     <div class="control-group">
@@ -256,8 +283,8 @@
         let isFlashcard = false;
         let flashcardDeck = [];
         let flashcardIndex = 0;
-        
         let selectedLessons = [];
+        let isReverse = false; // ★ 新增：追蹤是否開啟反向翻牌
 
         const container = document.getElementById('game-container');
         const lessonContainer = document.getElementById('lesson-buttons');
@@ -273,6 +300,19 @@
                 btn.onclick = () => toggleLesson(lesson, btn);
                 lessonContainer.appendChild(btn);
             });
+        }
+
+        // ★ 新增：切換反向翻牌功能 ★
+        function toggleReverse() {
+            isReverse = document.getElementById('reverse-toggle').checked;
+            // 若目前已有詞庫載入，則直接刷新畫面以套用新設定
+            if (activeCards.length > 0) {
+                if (isFlashcard) {
+                    renderFlashcard();
+                } else {
+                    startGame(currentSize);
+                }
+            }
         }
 
         async function toggleLesson(lessonName, btnElement) {
@@ -291,7 +331,8 @@
         async function fetchAndCombineLessons() {
             if (selectedLessons.length === 0) {
                 activeCards = [];
-                container.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding: 20px;">請至少選擇上方一個課程。</p>';
+                // ★ 修改：未選取時顯示台語提示 ★
+                container.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding: 20px; font-size: 1.2em;">上無愛選一个課</p>';
                 flashcardControls.style.display = 'none';
                 return;
             }
@@ -310,6 +351,7 @@
                     const cards = lines.map(l => {
                         let cleanLine = l.replace(/"/g, ''); 
                         const p = cleanLine.replace(/，/g, ',').split(',');
+                        // p[0] (h) 為 A 欄，p[1] (r) 為 B 欄
                         return p.length >= 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
                     }).filter(c => c !== null && c.h !== "" && c.r !== "");
                     
@@ -332,16 +374,6 @@
             }
         }
 
-        async function loadDefault() {
-            const firstLesson = lessons[0];
-            selectedLessons.push(firstLesson);
-            
-            const firstBtn = lessonContainer.querySelector('.lesson-btn');
-            if(firstBtn) firstBtn.classList.add('active');
-            
-            await fetchAndCombineLessons();
-        }
-
         function startGame(size) {
             isFlashcard = false;
             currentSize = size;
@@ -349,7 +381,11 @@
             container.className = 'container'; 
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
             
-            if (activeCards.length === 0) return;
+            if (activeCards.length === 0) {
+                // 若沒有卡片，執行一次檢查顯示提示
+                fetchAndCombineLessons();
+                return;
+            }
 
             if (activeCards.length < size*size) {
                 container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">目前累積詞彙不足 (${activeCards.length}/${size*size})，請多選幾個課程。</p>`;
@@ -362,10 +398,17 @@
             deck.forEach(data => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                
+                // ★ 根據反向開關決定正反面內容 ★
+                // 預設 (isReverse = false): Front = B欄 (r), Back = A欄 (h)
+                // 反向 (isReverse = true): Front = A欄 (h), Back = B欄 (r)
+                let frontText = isReverse ? data.h : data.r;
+                let backText = isReverse ? data.r : data.h;
+
                 card.innerHTML = `
                     <div class="card-inner">
-                        <div class="card-face card-front">${data.r}</div>
-                        <div class="card-face card-back">${data.h}</div>
+                        <div class="card-face card-front">${frontText}</div>
+                        <div class="card-face card-back">${backText}</div>
                     </div>
                     <div class="mark-btn"></div>
                 `;
@@ -409,15 +452,19 @@
             const card = document.createElement('div');
             card.className = 'card flashcard';
             
+            // ★ 根據反向開關決定正反面內容 ★
+            let frontText = isReverse ? data.h : data.r;
+            let backText = isReverse ? data.r : data.h;
+
             card.innerHTML = `
                 <div class="card-inner">
                     <div class="card-face card-front">
                         <span class="card-counter">${flashcardIndex + 1} / ${flashcardDeck.length}</span>
-                        ${data.r}
+                        ${frontText}
                     </div>
                     <div class="card-face card-back">
                         <span class="card-counter">${flashcardIndex + 1} / ${flashcardDeck.length}</span>
-                        ${data.h}
+                        ${backText}
                     </div>
                 </div>
             `;
@@ -452,7 +499,8 @@
 
         window.onload = () => { 
             initLessonButtons();
-            loadDefault();
+            // ★ 修改：移除了自動載入第一課的功能，現在一開始會觸發空白檢查，顯示「上無愛選一个課」
+            fetchAndCombineLessons();
         };
     </script>
 </body>
