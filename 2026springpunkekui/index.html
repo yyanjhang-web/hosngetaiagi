@@ -83,8 +83,10 @@
         .data-table th { background-color: #f8f9fa; padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #333; }
         .data-table td { padding: 8px; border: 1px solid #ddd; color: #555; }
         
-        .rules-list { padding-left: 20px; line-height: 1.6; font-size: 0.95rem; color: #444; margin-bottom: 0; }
+        .rules-list { padding-left: 20px; line-height: 1.6; font-size: 0.95rem; color: #444; margin-bottom: 10px; }
         .rules-list li { margin-bottom: 6px; }
+        
+        .rules-note { font-size: 0.95rem; font-weight: bold; color: #dc3545; background-color: #fdf5f6; padding: 10px; border-radius: 6px; border-left: 4px solid #dc3545; margin-top: 10px;}
 
         /* 頁尾版權與計數器 */
         .footer-text { font-size: 0.8rem; color: #999; text-align: center; margin-top: 30px; margin-bottom: 8px; letter-spacing: 0.5px; }
@@ -187,20 +189,22 @@
 
             <h3>📜 遊戲規則</h3>
             <ol class="rules-list">
-                <li><strong>喝牌：</strong>頭一組先喝某一个詞，全班攏總有幾張（例：5張蘋果）。</li>
-                <li><strong>紲落來：</strong>後一組有兩種選擇：
+                <li><strong>喝牌：</strong>頭一組先喝某一个詞，全班攏總有幾張（譬論：5張蘋果）。</li>
+                <li><strong>紲落來：</strong>後一組有三項選擇：
                     <ul>
-                        <li><strong>繼續喝：</strong>張數愛比上一組閣較濟（抑是換詞，張數增加）。</li>
-                        <li><strong>掠包：</strong>感覺全班無遐濟張，就大聲喝「掠包（抓包）」。</li>
+                        <li><strong>綴喝仝一个詞：</strong>張數愛較濟頂一組</li>
+                        <li><strong>喝別个詞：</strong>張數愛較濟頂一組</li>
+                        <li><strong>掠包：</strong>感覺全班無遐濟張，就大聲喝「我欲掠包」。</li>
                     </ul>
                 </li>
-                <li><strong>開牌算總數：</strong>喝「掠包」了後，全班掀牌算張數：
+                <li><strong>喝「掠包」了後：</strong>全班掀牌算總數：
                     <ul>
-                        <li>若<strong>【無】</strong>遐濟張：喝「掠包」的組得分。</li>
-                        <li>若<strong>【有影】</strong>遐濟張（抑是閣較濟）：上一組得分。</li>
+                        <li>若全班<strong>【無】</strong>遐濟張：喝「掠包」的組著分。</li>
+                        <li>若全班<strong>【有影】</strong>遐濟張（抑是閣較濟）：頂一組著分。</li>
                     </ul>
                 </li>
             </ol>
+            <div class="rules-note">※注意：仝一个詞有幾張是電腦隨機決定的，可能會較懸抑是較低平均張數</div>
         </div>
 
         <br>
