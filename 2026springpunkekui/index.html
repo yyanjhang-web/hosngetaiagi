@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台語詞語吹牛大賽</title>
+    <style>
+        :root { --primary: #007BFF; --bg: #F4F7F6; --text: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; max-width: 800px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { text-align: center; color: var(--primary); }
+        h2 { font-size: 1.2rem; border-bottom: 2px solid var(--bg); padding-bottom: 5px; margin-top: 0; }
+        
+        .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        .btn { padding: 12px 20px; border: 2px solid #ddd; background: white; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.2s; flex-grow: 1; text-align: center; }
+        .btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn:disabled { background: #eee; color: #aaa; cursor: not-allowed; border-color: #ddd; }
+        
+        input[type="text"] { width: 100%; padding: 12px; font-size: 1.1rem; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        
+        .action-btn { width: 100%; padding: 15px; background: #28A745; color: white; font-size: 1.3rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .action-btn:hover { background: #218838; }
+
+        #game-area { display: none; }
+        .hand-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 15px; }
+        .word-card { background: #FFF3CD; border: 2px solid #FFEEBA; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.2rem; }
+        .word-count { color: #856404; font-size: 1rem; margin-top: 5px; }
+        
+        .public-words { font-size: 0.9rem; color: #666; margin-top: 20px; padding: 10px; background: #e9ecef; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+    <h1>🃏 台語詞語吹牛大賽</h1>
+
+    <div id="setup-area" class="card">
+        <h2>(一) 輸入共同密碼 (同組需相同)</h2>
+        <input type="text" id="room-code" placeholder="例如：1234 或 蘋果">
+        <br><br>
+
+        <h2>(二) 選定課別 (可複選)</h2>
+        <div class="btn-group" id="lesson-group">
+            <button class="btn" onclick="toggleLesson(this, 'B2L1')">B2L1</button>
+            <button class="btn" onclick="toggleLesson(this, 'B2L2')">B2L2</button>
+            <button class="btn" onclick="toggleLesson(this, 'B2L3')">B2L3</button>
+            <button class="btn" onclick="toggleLesson(this, 'B3L1')">B3L1</button>
+            <button class="btn" onclick="toggleLesson(this, 'B3L2')">B3L2</button>
+            <button class="btn" onclick="toggleLesson(this, 'B4L1')">B4L1</button>
+            </div>
+
+        <h2>(三) 選定全班總組數</h2>
+        <div class="btn-group" id="total-groups">
+            <button class="btn" onclick="setTotalGroups(4)">共 4 組</button>
+            <button class="btn" onclick="setTotalGroups(5)">共 5 組</button>
+            <button class="btn" onclick="setTotalGroups(6)">共 6 組</button>
+        </div>
+
+        <h2>(四) 選定你們這台平板的組別</h2>
+        <div class="btn-group" id="my-group">
+            <button class="btn" onclick="setMyGroup(1)">第 1 組</button>
+            <button class="btn" onclick="setMyGroup(2)">第 2 組</button>
+            <button class="btn" onclick="setMyGroup(3)">第 3 組</button>
+            <button class="btn" onclick="setMyGroup(4)">第 4 組</button>
+            <button class="btn" onclick="setMyGroup(5)" id="btn-group-5" disabled>第 5 組</button>
+            <button class="btn" onclick="setMyGroup(6)" id="btn-group-6" disabled>第 6 組</button>
+        </div>
+
+        <button class="action-btn" onclick="dealCards()">🎲 立即派題</button>
+    </div>
+
+    <div id="game-area" class="card">
+        <h2>你的手牌 (第 <span id="display-my-group"></span> 組)</h2>
+        <div id="my-hand" class="hand-container"></div>
+        
+        <div class="public-words">
+            <strong>本局場上的所有詞語：</strong><br>
+            <span id="all-words-list"></span>
+        </div>
+        <br>
+        <button class="btn" onclick="location.reload()">重新設定</button>
+    </div>
+
+    <script>
+        // 狀態管理
+        let selectedLessons = [];
+        let totalGroups = 0;
+        let myGroup = 0;
+
+        // 模擬的詞庫 (之後可以替換成讀取 Google Sheets 的資料)
+        const wordDatabase = {
+            'B2L1': ['蘋果', '香蕉', '西瓜', '番茄', '芭樂', '葡萄', '草莓', '橘子', '鳳梨', '芒果', '木瓜', '蓮霧'],
+            'B2L2': ['火車', '汽車', '公車', '腳踏車', '飛機', '船', '機車', '捷運', '高鐵', '計程車', '卡車', '馬車'],
+            'B2L3': ['猴子', '大象', '獅子', '老虎', '長頸鹿', '斑馬', '河馬', '企鵝', '無尾熊', '袋鼠', '熊貓', '兔子'],
+            'B3L1': ['高興', '生氣', '難過', '害怕', '緊張', '放鬆', '驚訝', '害羞', '無聊', '期待', '疲勞', '興奮'],
+            'B3L2': ['紅色', '黃色', '綠色', '藍色', '黑色', '白色', '紫色', '橘色', '粉紅', '灰色', '咖啡色', '金色'],
+            'B4L1': ['醫生', '老師', '警察', '消防員', '司機', '廚師', '農夫', '工程師', '護理師', '歌手', '演員', '老闆']
+        };
+
+        // UI 互動函數
+        function toggleLesson(btn, lesson) {
+            btn.classList.toggle('active');
+            if (selectedLessons.includes(lesson)) {
+                selectedLessons = selectedLessons.filter(l => l !== lesson);
+            } else {
+                selectedLessons.push(lesson);
+            }
+        }
+
+        function setTotalGroups(num) {
+            totalGroups = num;
+            document.querySelectorAll('#total-groups .btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 重置並解鎖對應的「自己組別」按鈕
+            myGroup = 0;
+            document.querySelectorAll('#my-group .btn').forEach(b => {
+                b.classList.remove('active');
+                b.disabled = false;
+            });
+            if (num < 6) document.getElementById('btn-group-6').disabled = true;
+            if (num < 5) document.getElementById('btn-group-5').disabled = true;
+        }
+
+        function setMyGroup(num) {
+            myGroup = num;
+            document.querySelectorAll('#my-group .btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // 核心：利用密碼產生亂數種子
+        function mulberry32(a) {
+            return function() {
+                var t = a += 0x6D2B79F5;
+                t = Math.imul(t ^ t >>> 15, t | 1);
+                t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            }
+        }
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) hash = Math.imul(31, hash) + str.charCodeAt(i) | 0;
+            return hash;
+        }
+
+        // 派題邏輯
+        function dealCards() {
+            const password = document.getElementById('room-code').value.trim();
+            if (!password) return alert("請輸入共同密碼！");
+            if (selectedLessons.length === 0) return alert("請至少選擇一課！");
+            if (totalGroups === 0) return alert("請選擇全班總組數！");
+            if (myGroup === 0) return alert("請選擇你們這台平板的組別！");
+
+            // 1. 初始化相同的亂數產生器
+            const randomSource = password + selectedLessons.sort().join('') + totalGroups;
+            const seed = hashString(randomSource);
+            const random = mulberry32(seed);
+
+            // 2. 收集所有被選到的詞語
+            let pool = [];
+            selectedLessons.forEach(lesson => {
+                if(wordDatabase[lesson]) pool = pool.concat(wordDatabase[lesson]);
+            });
+
+            // 3. 隨機挑選 12 個不重複的詞作為這局的目標詞
+            let uniqueWords = [...new Set(pool)];
+            uniqueWords.sort(() => random() - 0.5); // 稍微打亂
+            let targetWords = uniqueWords.slice(0, 12); 
+            if(targetWords.length < 12) targetWords = uniqueWords; // 防呆：詞不夠就全上
+
+            // 4. 建立牌組 (每個詞 5 張，總共 60 張)
+            let deck = [];
+            targetWords.forEach(word => {
+                for(let i=0; i<5; i++) deck.push(word);
+            });
+
+            // 5. 洗牌
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+
+            // 6. 發牌 (平均分配給各組)
+            let hands = Array.from({ length: totalGroups }, () => []);
+            deck.forEach((card, index) => {
+                hands[index % totalGroups].push(card);
+            });
+
+            // 7. 顯示結果
+            document.getElementById('setup-area').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+            document.getElementById('display-my-group').innerText = myGroup;
+            document.getElementById('all-words-list').innerText = targetWords.join('、');
+
+            // 統計該組的手牌數量
+            let myCards = hands[myGroup - 1];
+            let cardCounts = {};
+            myCards.forEach(card => {
+                cardCounts[card] = (cardCounts[card] || 0) + 1;
+            });
+
+            // 渲染畫面
+            const handContainer = document.getElementById('my-hand');
+            handContainer.innerHTML = '';
+            for (const [word, count] of Object.entries(cardCounts)) {
+                handContainer.innerHTML += `
+                    <div class="word-card">
+                        <div>${word}</div>
+                        <div class="word-count">共 ${count} 張</div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
