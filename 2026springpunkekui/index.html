@@ -13,7 +13,7 @@
         
         .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
         .btn { padding: 12px 20px; border: 2px solid #ddd; background: white; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.2s; flex-grow: 1; text-align: center; }
-        .btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: bold; }
         .btn:disabled { background: #eee; color: #aaa; cursor: not-allowed; border-color: #ddd; }
         
         input[type="text"] { width: 100%; padding: 12px; font-size: 1.1rem; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; }
@@ -23,16 +23,16 @@
         .action-btn:disabled { background: #6c757d; cursor: wait; }
 
         #game-area { display: none; }
-        .hand-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 15px; }
+        .hand-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
         
         /* 詞語卡片設計 */
-        .word-card { background: #FFF3CD; border: 2px solid #FFEEBA; padding: 15px 10px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .roman-text { font-size: 0.95rem; color: #555; margin-bottom: 4px; font-family: 'Arial', sans-serif; }
-        .hanzi-text { font-size: 1.6rem; font-weight: bold; color: #000; margin-bottom: 8px; }
-        .word-count { background: #856404; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; }
+        .word-card { background: #FFF3CD; border: 2px solid #FFEEBA; padding: 15px 10px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .roman-text { font-size: 1rem; color: #555; margin-bottom: 6px; font-family: 'Arial', sans-serif; }
+        .hanzi-text { font-size: 1.8rem; font-weight: bold; color: #000; margin-bottom: 10px; }
+        .word-count { background: #856404; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.95rem; font-weight: bold; }
         
-        .public-words { font-size: 1rem; color: #444; margin-top: 25px; padding: 15px; background: #e9ecef; border-radius: 8px; line-height: 1.6; }
-        .public-word-item { display: inline-block; margin-right: 15px; margin-bottom: 5px; background: white; padding: 2px 8px; border-radius: 5px; border: 1px solid #ccc; }
+        .public-words { font-size: 1rem; color: #444; margin-top: 25px; padding: 15px; background: #e9ecef; border-radius: 8px; line-height: 2; }
+        .public-word-item { display: inline-block; margin-right: 12px; margin-bottom: 8px; background: white; padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; font-size: 1.1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -93,9 +93,9 @@
         let selectedLessons = [];
         let totalGroups = 0;
         let myGroup = 0;
-        let wordDatabase = {}; // 將用來動態儲存從 Google 試算表抓回來的資料
+        let wordDatabase = {}; 
         
-        const sheetID = '1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc'; // 你的 Google Sheet ID
+        const sheetID = '1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc';
 
         // UI 互動函數
         function toggleLesson(btn, lesson) {
@@ -142,39 +142,40 @@
             return hash;
         }
 
-        // 從 Google 試算表抓取特定工作表的資料 (轉換為 CSV 格式來讀取)
+        // 使用更穩定的 JSON 方式從 Google 試算表抓取資料
         async function fetchSheetData(lesson) {
-            if (wordDatabase[lesson]) return; // 如果已經抓過就不重複抓
+            if (wordDatabase[lesson]) return; 
             
-            const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&sheet=${lesson}`;
+            // headers=0 確保第一行不會被當作標題而漏抓
+            const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&headers=0&sheet=${lesson}`;
             try {
                 const response = await fetch(url);
-                const csvText = await response.text();
+                const text = await response.text();
                 
-                // 解析 CSV
-                const lines = csvText.split('\\n');
-                let words = [];
-                lines.forEach(line => {
-                    if (!line.trim()) return;
-                    // 清除 Google 匯出 CSV 自帶的雙引號
-                    const cleanLine = line.replace(/(^"|"$)/g, '');
-                    const parts = cleanLine.split('","'); // 以 "," 分割
+                // Google API 回傳的是一段包裹著 JSON 的 JS 程式碼，我們用正則表達式把 JSON 挖出來
+                const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/);
+                if (jsonMatch && jsonMatch[1]) {
+                    const data = JSON.parse(jsonMatch[1]);
+                    const rows = data.table.rows;
+                    let words = [];
                     
-                    if (parts.length >= 2) {
-                        words.push({
-                            hanzi: parts[0].trim(),
-                            roman: parts[1].trim()
-                        });
-                    }
-                });
-                wordDatabase[lesson] = words;
+                    rows.forEach(row => {
+                        // 確保 A 欄與 B 欄都有資料才收錄
+                        if (row.c && row.c[0] && row.c[0].v && row.c[1] && row.c[1].v) {
+                            let hanzi = String(row.c[0].v).trim();
+                            let roman = String(row.c[1].v).trim();
+                            words.push({ hanzi, roman });
+                        }
+                    });
+                    wordDatabase[lesson] = words;
+                }
             } catch (error) {
                 console.error(`讀取 ${lesson} 失敗:`, error);
-                alert(`讀取 ${lesson} 失敗，請確認網路連線或試算表權限。`);
+                alert(`讀取 ${lesson} 失敗，請確認網路連線或試算表設定。`);
             }
         }
 
-        // 開始派題流程 (包含非同步抓取資料)
+        // 開始派題流程
         async function startDeal() {
             const password = document.getElementById('room-code').value.trim();
             if (!password) return alert("請輸入共同密碼！");
@@ -184,71 +185,75 @@
 
             const dealBtn = document.getElementById('deal-btn');
             dealBtn.disabled = true;
-            dealBtn.innerText = "⏳ 正在從雲端讀取詞語...";
+            dealBtn.innerText = "⏳ 正在從雲端讀取並洗牌...";
 
-            // 確保所有被選中的課別都已抓取資料
             for (let lesson of selectedLessons) {
                 await fetchSheetData(lesson);
             }
 
-            // 資料就緒，執行派題計算
             calculateAndDealCards(password);
         }
 
         // 計算與發牌邏輯
         function calculateAndDealCards(password) {
-            // 1. 初始化亂數產生器 (確保各組結果一致)
             const randomSource = password + selectedLessons.sort().join('') + totalGroups;
             const seed = hashString(randomSource);
             const random = mulberry32(seed);
 
-            // 2. 收集所有被選到的詞語
             let pool = [];
             selectedLessons.forEach(lesson => {
                 if(wordDatabase[lesson]) pool = pool.concat(wordDatabase[lesson]);
             });
 
-            // 3. 過濾重複並打亂，選出 12 個詞作為這局的目標
-            // 用 Map 來確保漢字不重複
+            // 如果選到的課沒資料，擋下錯誤
+            if(pool.length === 0) {
+                alert("抓取不到詞語資料，請確認試算表內容！");
+                document.getElementById('deal-btn').disabled = false;
+                document.getElementById('deal-btn').innerText = "🎲 立即派題";
+                return;
+            }
+
+            // 過濾重複詞彙
             let uniqueMap = new Map();
             pool.forEach(item => uniqueMap.set(item.hanzi, item));
             let uniqueWords = Array.from(uniqueMap.values());
             
+            // 隨機選出 12 個目標詞 (若總詞數不足12，則全取)
             uniqueWords.sort(() => random() - 0.5); 
             let targetWords = uniqueWords.slice(0, 12); 
-            if(targetWords.length < 12) targetWords = uniqueWords;
 
-            // 4. 建立牌組 (每個詞 5 張)
+            // 建立牌組 (每個詞固定 5 張，12個詞 = 60張)
             let deck = [];
             targetWords.forEach(wordObj => {
                 for(let i=0; i<5; i++) deck.push(wordObj);
             });
 
-            // 5. 洗牌
+            // 洗牌
             for (let i = deck.length - 1; i > 0; i--) {
                 const j = Math.floor(random() * (i + 1));
                 [deck[i], deck[j]] = [deck[j], deck[i]];
             }
 
-            // 6. 發牌 (依序發給各組)
+            // 發牌
             let hands = Array.from({ length: totalGroups }, () => []);
             deck.forEach((card, index) => {
                 hands[index % totalGroups].push(card);
             });
 
-            // 7. 切換畫面與顯示場上詞語
+            // 切換畫面
             document.getElementById('setup-area').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
             document.getElementById('display-my-group').innerText = myGroup;
             
+            // 顯示場上的純漢字詞彙 (移除羅馬字)
             const publicWordsContainer = document.getElementById('all-words-list');
             publicWordsContainer.innerHTML = targetWords.map(w => 
-                `<span class="public-word-item">${w.hanzi} (${w.roman})</span>`
+                `<span class="public-word-item">${w.hanzi}</span>`
             ).join('');
 
-            // 8. 統計並渲染該組的手牌
+            // 整理手牌並顯示
             let myCards = hands[myGroup - 1];
-            let cardCounts = {}; // 用漢字當 key
+            let cardCounts = {}; 
             
             myCards.forEach(card => {
                 if (!cardCounts[card.hanzi]) {
