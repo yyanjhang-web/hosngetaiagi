@@ -75,6 +75,17 @@
         .public-words { font-size: 1rem; color: #444; margin-top: 25px; padding: 15px; background: #e9ecef; border-radius: 8px; }
         .public-word-item { display: inline-block; margin-right: 10px; margin-bottom: 6px; background: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; font-size: 1rem; }
 
+        /* 規則與表格樣式 */
+        .rules-section { margin-top: 20px; background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+        .rules-section h3 { margin-top: 0; color: #007BFF; font-size: 1.1rem; border-bottom: 1px dashed #ccc; padding-bottom: 8px; }
+        
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; font-size: 0.95rem; text-align: center; }
+        .data-table th { background-color: #f8f9fa; padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #333; }
+        .data-table td { padding: 8px; border: 1px solid #ddd; color: #555; }
+        
+        .rules-list { padding-left: 20px; line-height: 1.6; font-size: 0.95rem; color: #444; margin-bottom: 0; }
+        .rules-list li { margin-bottom: 6px; }
+
         /* 頁尾版權與計數器 */
         .footer-text { font-size: 0.8rem; color: #999; text-align: center; margin-top: 30px; margin-bottom: 8px; letter-spacing: 0.5px; }
         .counter-container { text-align: center; margin-bottom: 20px; opacity: 0.8; transition: opacity 0.3s; }
@@ -119,7 +130,7 @@
             <button class="btn" onclick="setMyGroup(6)" id="btn-group-6" disabled>第 6 組</button>
         </div>
 
-        <button class="action-btn" id="deal-btn" onclick="startDeal()">🎲 發牌</button>
+        <button class="action-btn" id="deal-btn" onclick="startDeal()">🎲 分牌仔</button>
     </div>
 
     <div id="game-area" class="card-container">
@@ -136,6 +147,62 @@
             <strong>📢 這局的牌仔：</strong><br>
             <div id="all-words-list" style="margin-top: 10px;"></div>
         </div>
+
+        <div class="rules-section">
+            <h3>📊 分牌仔的方式</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>組數</th>
+                        <th>總牌數</th>
+                        <th>一組提幾張</th>
+                        <th>詞彙數</th>
+                        <th>某个詞平均有幾張(全班)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>4 組</td>
+                        <td>60</td>
+                        <td>15</td>
+                        <td>8</td>
+                        <td>7.5 張</td>
+                    </tr>
+                    <tr>
+                        <td>5 組</td>
+                        <td>75</td>
+                        <td>15</td>
+                        <td>8</td>
+                        <td>9.4 張</td>
+                    </tr>
+                    <tr>
+                        <td>6 組</td>
+                        <td>90</td>
+                        <td>15</td>
+                        <td>8</td>
+                        <td>11.3 張</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📜 遊戲規則</h3>
+            <ol class="rules-list">
+                <li><strong>喝牌：</strong>頭一組先喝某一个詞，全班攏總有幾張（例：5張蘋果）。</li>
+                <li><strong>紲落來：</strong>後一組有兩種選擇：
+                    <ul>
+                        <li><strong>繼續喝：</strong>張數愛比上一組閣較濟（抑是換詞，張數增加）。</li>
+                        <li><strong>掠包：</strong>感覺全班無遐濟張，就大聲喝「掠包（抓包）」。</li>
+                    </ul>
+                </li>
+                <li><strong>開牌算總數：</strong>喝「掠包」了後，全班掀牌算張數：
+                    <ul>
+                        <li>若<strong>【無】</strong>遐濟張：喝「掠包」的組得分。</li>
+                        <li>若<strong>【有影】</strong>遐濟張（抑是閣較濟）：上一組得分。</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
         <br>
         <button class="btn" style="width: 100%; background: #6c757d; color: white;" onclick="location.reload()">🔄 後一局</button>
     </div>
@@ -235,7 +302,7 @@
 
             const dealBtn = document.getElementById('deal-btn');
             dealBtn.disabled = true;
-            dealBtn.innerText = "⏳ 發牌中...";
+            dealBtn.innerText = "⏳ 分牌中...";
 
             for (let lesson of selectedLessons) {
                 await fetchSheetData(lesson);
@@ -256,7 +323,7 @@
             if(pool.length === 0) {
                 alert("掠無詞語資料！");
                 document.getElementById('deal-btn').disabled = false;
-                document.getElementById('deal-btn').innerText = "🎲 發牌";
+                document.getElementById('deal-btn').innerText = "🎲 分牌仔";
                 return;
             }
 
@@ -264,29 +331,24 @@
             pool.forEach(item => uniqueMap.set(item.hanzi, item));
             let uniqueWords = Array.from(uniqueMap.values());
             
-            // 隨機選出 8 個詞語作為戰場目標 (從 12 降到 8，提高單詞重複率)
             uniqueWords.sort(() => random() - 0.5); 
             let targetWords = uniqueWords.slice(0, 8); 
             if(targetWords.length < 8) targetWords = uniqueWords;
 
-            // 每組固定拿 15 張牌
             let cardsPerGroup = 15;
             let totalCards = totalGroups * cardsPerGroup;
             let deck = [];
 
-            // 完全隨機生成牌組：像擲骰子一樣，隨機從 8 個詞裡面抽一張放進全班牌堆
             for (let i = 0; i < totalCards; i++) {
                 let randomIndex = Math.floor(random() * targetWords.length);
                 deck.push(targetWords[randomIndex]);
             }
 
-            // 洗牌 (其實已經隨機了，但為了嚴謹再洗一次)
             for (let i = deck.length - 1; i > 0; i--) {
                 const j = Math.floor(random() * (i + 1));
                 [deck[i], deck[j]] = [deck[j], deck[i]];
             }
 
-            // 發牌 (每組精準拿到 15 張)
             let hands = Array.from({ length: totalGroups }, () => []);
             deck.forEach((card, index) => {
                 hands[index % totalGroups].push(card);
@@ -298,7 +360,6 @@
             document.getElementById('setup-area').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
             
-            // 顯示場上的 8 個詞語
             document.getElementById('all-words-list').innerHTML = targetWords.map(w => 
                 `<span class="public-word-item">${w.hanzi}</span>`
             ).join('');
