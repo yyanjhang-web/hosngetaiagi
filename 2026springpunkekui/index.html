@@ -25,6 +25,9 @@
 
         #game-area { display: none; }
         
+        /* 設定資訊橫幅 */
+        .settings-summary { background: #e2e8f0; color: #334155; padding: 12px 15px; border-radius: 8px; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; border-left: 5px solid var(--primary); display: flex; align-items: center; gap: 10px; }
+        
         /* 網格設定縮小卡片，讓畫面能塞下更多獨立卡牌 */
         .hand-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 15px; min-height: 200px;}
         
@@ -50,7 +53,7 @@
         
         /* 疊合後的樣式與徽章 */
         .card-stacked {
-            box-shadow: 4px 4px 0px -1px #e6d39a, 8px 8px 0px -2px #cfbd88; /* 製造疊牌視覺效果 */
+            box-shadow: 4px 4px 0px -1px #e6d39a, 8px 8px 0px -2px #cfbd88;
             border: 2px solid #c9b16b;
         }
         .badge-count {
@@ -71,6 +74,11 @@
         
         .public-words { font-size: 1rem; color: #444; margin-top: 25px; padding: 15px; background: #e9ecef; border-radius: 8px; }
         .public-word-item { display: inline-block; margin-right: 10px; margin-bottom: 6px; background: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; font-size: 1rem; }
+
+        /* 頁尾版權與計數器 */
+        .footer-text { font-size: 0.8rem; color: #999; text-align: center; margin-top: 30px; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .counter-container { text-align: center; margin-bottom: 20px; opacity: 0.8; transition: opacity 0.3s; }
+        .counter-container:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -115,8 +123,10 @@
     </div>
 
     <div id="game-area" class="card-container">
+        <div id="settings-summary" class="settings-summary"></div>
+
         <div class="tool-bar">
-            <h2>你的手牌 (第 <span id="display-my-group"></span> 組)</h2>
+            <h2>🖐️ 你的手牌</h2>
             <button class="btn" style="background:#ffc107; font-weight:bold;" onclick="organizeHand()">✨ 一鍵理牌</button>
         </div>
         
@@ -130,13 +140,22 @@
         <button class="btn" style="width: 100%; background: #6c757d; color: white;" onclick="location.reload()">🔄 重新設定 (下一局)</button>
     </div>
 
+    <div class="footer-text">
+        設計者：Iônn, Àn-tsiong | 技術支援：Gemini
+    </div>
+    <div class="counter-container">
+        <a href="https://www.hitwebcounter.com/" target="_blank">
+            <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+        </a>
+    </div>
+
     <script>
         let selectedLessons = [];
         let totalGroups = 0;
         let myGroup = 0;
         let wordDatabase = {}; 
-        let myCurrentCards = []; // 儲存當前手牌資料
-        let isOrganized = false; // 記錄是否已經一鍵理牌
+        let myCurrentCards = []; 
+        let isOrganized = false; 
         
         const sheetID = '1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc';
 
@@ -236,6 +255,8 @@
 
             if(pool.length === 0) {
                 alert("抓不到詞語資料！");
+                document.getElementById('deal-btn').disabled = false;
+                document.getElementById('deal-btn').innerText = "🎲 立即發牌";
                 return;
             }
 
@@ -261,26 +282,26 @@
                 hands[index % totalGroups].push(card);
             });
 
+            // 更新設定資訊橫幅
+            const lessonsStr = selectedLessons.join('、');
+            document.getElementById('settings-summary').innerHTML = `📌 <b>設定：</b> ${lessonsStr}，共 ${totalGroups} 組，你是第 ${myGroup} 組`;
+
             document.getElementById('setup-area').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
-            document.getElementById('display-my-group').innerText = myGroup;
             
             document.getElementById('all-words-list').innerHTML = targetWords.map(w => 
                 `<span class="public-word-item">${w.hanzi}</span>`
             ).join('');
 
-            // 保存手牌資料供切換使用
             myCurrentCards = hands[myGroup - 1];
             renderIndividualCards();
             
-            // 啟動拖曳排序功能
             new Sortable(document.getElementById('my-hand'), {
                 animation: 150,
                 ghostClass: 'sortable-ghost'
             });
         }
 
-        // 渲染散牌模式 (一張張顯示)
         function renderIndividualCards() {
             const handContainer = document.getElementById('my-hand');
             handContainer.innerHTML = '';
@@ -295,10 +316,8 @@
             isOrganized = false;
         }
 
-        // 點擊「一鍵理牌」後合併顯示
         function organizeHand() {
             if (isOrganized) {
-                // 如果已經理好牌，可以允許他們切換回散牌模式 (視需求而定，這裡設為可切換)
                 renderIndividualCards();
                 return;
             }
@@ -315,7 +334,6 @@
             handContainer.innerHTML = '';
             
             for (const [hanzi, data] of Object.entries(cardCounts)) {
-                // 如果數量大於1，加上疊牌效果和數字徽章
                 let extraClass = data.count > 1 ? 'card-stacked' : '';
                 let badgeHtml = data.count > 1 ? `<div class="badge-count">${data.count}</div>` : '';
                 
