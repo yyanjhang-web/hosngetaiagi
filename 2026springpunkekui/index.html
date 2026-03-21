@@ -264,31 +264,41 @@
             pool.forEach(item => uniqueMap.set(item.hanzi, item));
             let uniqueWords = Array.from(uniqueMap.values());
             
+            // 隨機選出 8 個詞語作為戰場目標 (從 12 降到 8，提高單詞重複率)
             uniqueWords.sort(() => random() - 0.5); 
-            let targetWords = uniqueWords.slice(0, 12); 
+            let targetWords = uniqueWords.slice(0, 8); 
+            if(targetWords.length < 8) targetWords = uniqueWords;
 
+            // 每組固定拿 15 張牌
+            let cardsPerGroup = 15;
+            let totalCards = totalGroups * cardsPerGroup;
             let deck = [];
-            targetWords.forEach(wordObj => {
-                for(let i=0; i<5; i++) deck.push(wordObj);
-            });
 
+            // 完全隨機生成牌組：像擲骰子一樣，隨機從 8 個詞裡面抽一張放進全班牌堆
+            for (let i = 0; i < totalCards; i++) {
+                let randomIndex = Math.floor(random() * targetWords.length);
+                deck.push(targetWords[randomIndex]);
+            }
+
+            // 洗牌 (其實已經隨機了，但為了嚴謹再洗一次)
             for (let i = deck.length - 1; i > 0; i--) {
                 const j = Math.floor(random() * (i + 1));
                 [deck[i], deck[j]] = [deck[j], deck[i]];
             }
 
+            // 發牌 (每組精準拿到 15 張)
             let hands = Array.from({ length: totalGroups }, () => []);
             deck.forEach((card, index) => {
                 hands[index % totalGroups].push(card);
             });
 
-            // 更新設定資訊橫幅，依照你的格式要求
             const lessonsStr = selectedLessons.join('、');
-            document.getElementById('settings-summary').innerHTML = `📌 <b>號碼${password}</b>，${lessonsStr}，共${totalGroups}組，恁是第${myGroup}組`;
+            document.getElementById('settings-summary').innerHTML = `📌 <b>號碼：${password}</b>，${lessonsStr}，共 ${totalGroups} 組，恁是第 ${myGroup} 組`;
 
             document.getElementById('setup-area').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
             
+            // 顯示場上的 8 個詞語
             document.getElementById('all-words-list').innerHTML = targetWords.map(w => 
                 `<span class="public-word-item">${w.hanzi}</span>`
             ).join('');
