@@ -4,44 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>台語詞語吹牛大賽</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         :root { --primary: #007BFF; --bg: #F4F7F6; --text: #333; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; max-width: 800px; margin: 0 auto; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h1 { text-align: center; color: var(--primary); }
-        h2 { font-size: 1.2rem; border-bottom: 2px solid var(--bg); padding-bottom: 5px; margin-top: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); padding: 15px; max-width: 800px; margin: 0 auto; }
+        .card-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { text-align: center; color: var(--primary); font-size: 1.5rem; }
+        h2 { font-size: 1.1rem; border-bottom: 2px solid var(--bg); padding-bottom: 5px; margin-top: 0; }
         
-        .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
-        .btn { padding: 12px 20px; border: 2px solid #ddd; background: white; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.2s; flex-grow: 1; text-align: center; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .btn { padding: 10px 15px; border: 2px solid #ddd; background: white; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.2s; flex-grow: 1; text-align: center; }
         .btn.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: bold; }
         .btn:disabled { background: #eee; color: #aaa; cursor: not-allowed; border-color: #ddd; }
         
         input[type="text"] { width: 100%; padding: 12px; font-size: 1.1rem; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         
-        .action-btn { width: 100%; padding: 15px; background: #28A745; color: white; font-size: 1.3rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: background 0.2s; }
+        .action-btn { width: 100%; padding: 15px; background: #28A745; color: white; font-size: 1.2rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: background 0.2s; }
         .action-btn:hover { background: #218838; }
         .action-btn:disabled { background: #6c757d; cursor: wait; }
 
         #game-area { display: none; }
-        .hand-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
         
-        /* 詞語卡片設計 */
-        .word-card { background: #FFF3CD; border: 2px solid #FFEEBA; padding: 15px 10px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .roman-text { font-size: 1rem; color: #555; margin-bottom: 6px; font-family: 'Arial', sans-serif; }
-        .hanzi-text { font-size: 1.8rem; font-weight: bold; color: #000; margin-bottom: 10px; }
-        .word-count { background: #856404; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.95rem; font-weight: bold; }
+        /* 網格設定縮小卡片，讓畫面能塞下更多獨立卡牌 */
+        .hand-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 15px; min-height: 200px;}
         
-        .public-words { font-size: 1rem; color: #444; margin-top: 25px; padding: 15px; background: #e9ecef; border-radius: 8px; line-height: 2; }
-        .public-word-item { display: inline-block; margin-right: 12px; margin-bottom: 8px; background: white; padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; font-size: 1.1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        /* 單張小卡片設計 (實體感) */
+        .word-card { 
+            background: #FFF3CD; 
+            border: 1px solid #d4c28d; 
+            padding: 10px 5px; 
+            border-radius: 8px; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1); 
+            cursor: grab;
+            position: relative;
+            background-image: linear-gradient(to bottom right, #fffdf8, #FFF3CD);
+        }
+        .word-card:active { cursor: grabbing; }
+        .roman-text { font-size: 0.8rem; color: #666; margin-bottom: 4px; font-family: 'Arial', sans-serif; }
+        .hanzi-text { font-size: 1.4rem; font-weight: bold; color: #000; }
+        
+        /* 疊合後的樣式與徽章 */
+        .card-stacked {
+            box-shadow: 4px 4px 0px -1px #e6d39a, 8px 8px 0px -2px #cfbd88; /* 製造疊牌視覺效果 */
+            border: 2px solid #c9b16b;
+        }
+        .badge-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .tool-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        
+        .public-words { font-size: 1rem; color: #444; margin-top: 25px; padding: 15px; background: #e9ecef; border-radius: 8px; }
+        .public-word-item { display: inline-block; margin-right: 10px; margin-bottom: 6px; background: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; font-size: 1rem; }
     </style>
 </head>
 <body>
 
-    <h1>🃏 台語詞語吹牛大賽</h1>
+    <h1>🃏 台語吹牛大賽</h1>
 
-    <div id="setup-area" class="card">
+    <div id="setup-area" class="card-container">
         <h2>(一) 輸入共同密碼 <span style="color:red;">(全班需相同)</span></h2>
-        <input type="text" id="room-code" placeholder="例如：今天日期 1125 或 蘋果">
+        <input type="text" id="room-code" placeholder="例如：1125">
         <br><br>
 
         <h2>(二) 選定課別 (可複選)</h2>
@@ -63,7 +101,7 @@
             <button class="btn" onclick="setTotalGroups(6)">共 6 組</button>
         </div>
 
-        <h2>(四) 選定你們這台平板的組別</h2>
+        <h2>(四) 選定這台平板的組別</h2>
         <div class="btn-group" id="my-group">
             <button class="btn" onclick="setMyGroup(1)">第 1 組</button>
             <button class="btn" onclick="setMyGroup(2)">第 2 組</button>
@@ -73,15 +111,19 @@
             <button class="btn" onclick="setMyGroup(6)" id="btn-group-6" disabled>第 6 組</button>
         </div>
 
-        <button class="action-btn" id="deal-btn" onclick="startDeal()">🎲 立即派題</button>
+        <button class="action-btn" id="deal-btn" onclick="startDeal()">🎲 立即發牌</button>
     </div>
 
-    <div id="game-area" class="card">
-        <h2>你的手牌 (第 <span id="display-my-group"></span> 組)</h2>
+    <div id="game-area" class="card-container">
+        <div class="tool-bar">
+            <h2>你的手牌 (第 <span id="display-my-group"></span> 組)</h2>
+            <button class="btn" style="background:#ffc107; font-weight:bold;" onclick="organizeHand()">✨ 一鍵理牌</button>
+        </div>
+        
         <div id="my-hand" class="hand-container"></div>
         
         <div class="public-words">
-            <strong>📢 本局場上的所有詞語：</strong><br>
+            <strong>📢 場上使用的詞語：</strong><br>
             <div id="all-words-list" style="margin-top: 10px;"></div>
         </div>
         <br>
@@ -89,15 +131,15 @@
     </div>
 
     <script>
-        // 狀態與資料管理
         let selectedLessons = [];
         let totalGroups = 0;
         let myGroup = 0;
         let wordDatabase = {}; 
+        let myCurrentCards = []; // 儲存當前手牌資料
+        let isOrganized = false; // 記錄是否已經一鍵理牌
         
         const sheetID = '1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc';
 
-        // UI 互動函數
         function toggleLesson(btn, lesson) {
             btn.classList.toggle('active');
             if (selectedLessons.includes(lesson)) {
@@ -127,7 +169,6 @@
             event.target.classList.add('active');
         }
 
-        // 核心：利用密碼產生亂數種子
         function mulberry32(a) {
             return function() {
                 var t = a += 0x6D2B79F5;
@@ -142,59 +183,47 @@
             return hash;
         }
 
-        // 使用更穩定的 JSON 方式從 Google 試算表抓取資料
         async function fetchSheetData(lesson) {
             if (wordDatabase[lesson]) return; 
-            
-            // headers=0 確保第一行不會被當作標題而漏抓
             const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&headers=0&sheet=${lesson}`;
             try {
                 const response = await fetch(url);
                 const text = await response.text();
-                
-                // Google API 回傳的是一段包裹著 JSON 的 JS 程式碼，我們用正則表達式把 JSON 挖出來
                 const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S\w]+)\);/);
                 if (jsonMatch && jsonMatch[1]) {
                     const data = JSON.parse(jsonMatch[1]);
                     const rows = data.table.rows;
                     let words = [];
-                    
                     rows.forEach(row => {
-                        // 確保 A 欄與 B 欄都有資料才收錄
                         if (row.c && row.c[0] && row.c[0].v && row.c[1] && row.c[1].v) {
-                            let hanzi = String(row.c[0].v).trim();
-                            let roman = String(row.c[1].v).trim();
-                            words.push({ hanzi, roman });
+                            words.push({ hanzi: String(row.c[0].v).trim(), roman: String(row.c[1].v).trim() });
                         }
                     });
                     wordDatabase[lesson] = words;
                 }
             } catch (error) {
                 console.error(`讀取 ${lesson} 失敗:`, error);
-                alert(`讀取 ${lesson} 失敗，請確認網路連線或試算表設定。`);
+                alert(`讀取 ${lesson} 失敗，請確認網路連線。`);
             }
         }
 
-        // 開始派題流程
         async function startDeal() {
             const password = document.getElementById('room-code').value.trim();
             if (!password) return alert("請輸入共同密碼！");
             if (selectedLessons.length === 0) return alert("請至少選擇一課！");
             if (totalGroups === 0) return alert("請選擇全班總組數！");
-            if (myGroup === 0) return alert("請選擇你們這台平板的組別！");
+            if (myGroup === 0) return alert("請選擇這台平板的組別！");
 
             const dealBtn = document.getElementById('deal-btn');
             dealBtn.disabled = true;
-            dealBtn.innerText = "⏳ 正在從雲端讀取並洗牌...";
+            dealBtn.innerText = "⏳ 發牌中...";
 
             for (let lesson of selectedLessons) {
                 await fetchSheetData(lesson);
             }
-
             calculateAndDealCards(password);
         }
 
-        // 計算與發牌邏輯
         function calculateAndDealCards(password) {
             const randomSource = password + selectedLessons.sort().join('') + totalGroups;
             const seed = hashString(randomSource);
@@ -205,57 +234,77 @@
                 if(wordDatabase[lesson]) pool = pool.concat(wordDatabase[lesson]);
             });
 
-            // 如果選到的課沒資料，擋下錯誤
             if(pool.length === 0) {
-                alert("抓取不到詞語資料，請確認試算表內容！");
-                document.getElementById('deal-btn').disabled = false;
-                document.getElementById('deal-btn').innerText = "🎲 立即派題";
+                alert("抓不到詞語資料！");
                 return;
             }
 
-            // 過濾重複詞彙
             let uniqueMap = new Map();
             pool.forEach(item => uniqueMap.set(item.hanzi, item));
             let uniqueWords = Array.from(uniqueMap.values());
             
-            // 隨機選出 12 個目標詞 (若總詞數不足12，則全取)
             uniqueWords.sort(() => random() - 0.5); 
             let targetWords = uniqueWords.slice(0, 12); 
 
-            // 建立牌組 (每個詞固定 5 張，12個詞 = 60張)
             let deck = [];
             targetWords.forEach(wordObj => {
                 for(let i=0; i<5; i++) deck.push(wordObj);
             });
 
-            // 洗牌
             for (let i = deck.length - 1; i > 0; i--) {
                 const j = Math.floor(random() * (i + 1));
                 [deck[i], deck[j]] = [deck[j], deck[i]];
             }
 
-            // 發牌
             let hands = Array.from({ length: totalGroups }, () => []);
             deck.forEach((card, index) => {
                 hands[index % totalGroups].push(card);
             });
 
-            // 切換畫面
             document.getElementById('setup-area').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
             document.getElementById('display-my-group').innerText = myGroup;
             
-            // 顯示場上的純漢字詞彙 (移除羅馬字)
-            const publicWordsContainer = document.getElementById('all-words-list');
-            publicWordsContainer.innerHTML = targetWords.map(w => 
+            document.getElementById('all-words-list').innerHTML = targetWords.map(w => 
                 `<span class="public-word-item">${w.hanzi}</span>`
             ).join('');
 
-            // 整理手牌並顯示
-            let myCards = hands[myGroup - 1];
-            let cardCounts = {}; 
+            // 保存手牌資料供切換使用
+            myCurrentCards = hands[myGroup - 1];
+            renderIndividualCards();
             
-            myCards.forEach(card => {
+            // 啟動拖曳排序功能
+            new Sortable(document.getElementById('my-hand'), {
+                animation: 150,
+                ghostClass: 'sortable-ghost'
+            });
+        }
+
+        // 渲染散牌模式 (一張張顯示)
+        function renderIndividualCards() {
+            const handContainer = document.getElementById('my-hand');
+            handContainer.innerHTML = '';
+            myCurrentCards.forEach(card => {
+                handContainer.innerHTML += `
+                    <div class="word-card">
+                        <div class="roman-text">${card.roman}</div>
+                        <div class="hanzi-text">${card.hanzi}</div>
+                    </div>
+                `;
+            });
+            isOrganized = false;
+        }
+
+        // 點擊「一鍵理牌」後合併顯示
+        function organizeHand() {
+            if (isOrganized) {
+                // 如果已經理好牌，可以允許他們切換回散牌模式 (視需求而定，這裡設為可切換)
+                renderIndividualCards();
+                return;
+            }
+
+            let cardCounts = {}; 
+            myCurrentCards.forEach(card => {
                 if (!cardCounts[card.hanzi]) {
                     cardCounts[card.hanzi] = { roman: card.roman, count: 0 };
                 }
@@ -264,15 +313,21 @@
 
             const handContainer = document.getElementById('my-hand');
             handContainer.innerHTML = '';
+            
             for (const [hanzi, data] of Object.entries(cardCounts)) {
+                // 如果數量大於1，加上疊牌效果和數字徽章
+                let extraClass = data.count > 1 ? 'card-stacked' : '';
+                let badgeHtml = data.count > 1 ? `<div class="badge-count">${data.count}</div>` : '';
+                
                 handContainer.innerHTML += `
-                    <div class="word-card">
+                    <div class="word-card ${extraClass}">
+                        ${badgeHtml}
                         <div class="roman-text">${data.roman}</div>
                         <div class="hanzi-text">${hanzi}</div>
-                        <div class="word-count">共 ${data.count} 張</div>
                     </div>
                 `;
             }
+            isOrganized = true;
         }
     </script>
 </body>
