@@ -282,9 +282,9 @@
                 hands[index % totalGroups].push(card);
             });
 
-            // 更新設定資訊橫幅
+            // 更新設定資訊橫幅，加入密碼顯示
             const lessonsStr = selectedLessons.join('、');
-            document.getElementById('settings-summary').innerHTML = `📌 <b>設定：</b> ${lessonsStr}，共 ${totalGroups} 組，你是第 ${myGroup} 組`;
+            document.getElementById('settings-summary').innerHTML = `📌 <b>密碼：</b>${password}，${lessonsStr}，共 ${totalGroups} 組，你是第 ${myGroup} 組`;
 
             document.getElementById('setup-area').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
