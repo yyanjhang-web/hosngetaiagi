@@ -108,10 +108,15 @@
         
         #teacher-view { display: none; margin-top: 20px; }
         .teacher-group-block { margin-bottom: 15px; padding: 15px; background: #2a2a2a; border-radius: 8px; border-left: 5px solid #f39c12; }
+        /* 總數專用樣式 */
+        .teacher-group-block.total-block { border-left-color: #e74c3c; background: #302020; }
+        .teacher-group-block.total-block .teacher-group-title { color: #e74c3c; }
+        
         .teacher-group-title { font-weight: bold; font-size: 1.15rem; color: #f39c12; margin-bottom: 12px; }
         .teacher-cards { display: flex; flex-wrap: wrap; gap: 8px; }
         .teacher-card-item { background: #333; padding: 6px 12px; border-radius: 6px; border: 1px solid #555; font-size: 1rem; color: #ddd; display: flex; align-items: center; gap: 8px; }
         .teacher-card-item span.count { color: #fff; font-weight: bold; background: #d35400; padding: 2px 8px; border-radius: 12px; font-size: 0.9rem; }
+        .teacher-group-block.total-block .teacher-card-item span.count { background: #c0392b; }
     </style>
 </head>
 <body>
@@ -414,8 +419,30 @@
                 
                 const teacherView = document.getElementById('teacher-view');
                 teacherView.style.display = 'block';
-                teacherView.innerHTML = '<h2 style="border-bottom: none;">📊 各組手牌統計</h2>';
                 
+                // --- 新增：全班總牌數統計 ---
+                let totalCounts = {};
+                deck.forEach(card => {
+                    totalCounts[card.hanzi] = (totalCounts[card.hanzi] || 0) + 1;
+                });
+
+                let totalBlockHtml = `<div class="teacher-group-block total-block">
+                    <div class="teacher-group-title">🎯 全班總數 (共 ${deck.length} 張)</div>
+                    <div class="teacher-cards">`;
+                
+                // 依照總數排序
+                let sortedTotalEntries = Object.entries(totalCounts).sort((a,b) => b[1] - a[1]);
+                sortedTotalEntries.forEach(([hanzi, count]) => {
+                    totalBlockHtml += `<div class="teacher-card-item">${hanzi} <span class="count">${count} 張</span></div>`;
+                });
+                totalBlockHtml += `</div></div>`;
+                
+                teacherView.innerHTML = totalBlockHtml;
+                // ----------------------------
+
+                // --- 顯示各組手牌統計 ---
+                teacherView.innerHTML += '<h2 style="border-bottom: none; margin-top: 25px; margin-bottom: 10px;">📊 各組手牌統計</h2>';
+
                 hands.forEach((hand, index) => {
                     let counts = {};
                     hand.forEach(card => {
@@ -426,7 +453,6 @@
                         <div class="teacher-group-title">第 ${index + 1} 組 (共 ${hand.length} 張)</div>
                         <div class="teacher-cards">`;
                     
-                    // 依照詞彙的出現數量排序，較好閱讀
                     let sortedEntries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
                     
                     sortedEntries.forEach(([hanzi, count]) => {
