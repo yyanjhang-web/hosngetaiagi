@@ -80,6 +80,8 @@
         .rules-section { margin-top: 20px; background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; transition: all 0.3s; }
         .rules-section h3 { margin-top: 0; color: #007BFF; font-size: 1.1rem; border-bottom: 1px dashed #ccc; padding-bottom: 8px; transition: all 0.3s; }
         
+        .rules-desc { font-size: 0.95rem; color: #444; margin-bottom: 10px; font-weight: bold; line-height: 1.5;}
+
         .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; font-size: 0.95rem; text-align: center; }
         .data-table th { background-color: #f8f9fa; padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #333; transition: all 0.3s;}
         .data-table td { padding: 8px; border: 1px solid #ddd; color: #555; transition: all 0.3s;}
@@ -179,44 +181,45 @@
 
         <div class="rules-section">
             <h3>📊 分牌仔的方式</h3>
+            <div class="rules-desc">每一組會提著15張牌，每一局會出現8个無仝的詞。</div>
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>組數</th>
                         <th>總牌數</th>
-                        <th>一組提幾張</th>
-                        <th>詞彙數</th>
-                        <th>某个詞平均有幾張(全班)</th>
+                        <th>某个詞全班平均張數</th>
+                        <th>±1標準差</th>
+                        <th>68%實際出現張數</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>3 組</td>
                         <td>45</td>
-                        <td>15</td>
-                        <td>8</td>
                         <td>5.6 張</td>
+                        <td>±2.22 張</td>
+                        <td>大約 3 到 8 張</td>
                     </tr>
                     <tr>
                         <td>4 組</td>
                         <td>60</td>
-                        <td>15</td>
-                        <td>8</td>
                         <td>7.5 張</td>
+                        <td>±2.56 張</td>
+                        <td>大約 5 到 10 張</td>
                     </tr>
                     <tr>
                         <td>5 組</td>
                         <td>75</td>
-                        <td>15</td>
-                        <td>8</td>
                         <td>9.4 張</td>
+                        <td>±2.86 張</td>
+                        <td>大約 7 到 12 張</td>
                     </tr>
                     <tr>
                         <td>6 組</td>
                         <td>90</td>
-                        <td>15</td>
-                        <td>8</td>
                         <td>11.3 張</td>
+                        <td>±3.14 張</td>
+                        <td>大約 8 到 14 張</td>
                     </tr>
                 </tbody>
             </table>
