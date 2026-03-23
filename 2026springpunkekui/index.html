@@ -133,14 +133,15 @@
         .rules-section { margin-top: 20px; background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
         .rules-section h3 { margin-top: 0; color: #007BFF; font-size: 1.1rem; border-bottom: 1px dashed #ccc; padding-bottom: 8px; }
         
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; font-size: 0.95rem; text-align: center; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; font-size: 0.95rem; text-align: center; }
         .data-table th { background-color: #f8f9fa; padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #333; }
         .data-table td { padding: 8px; border: 1px solid #ddd; color: #555; }
         
         .rules-list { padding-left: 20px; line-height: 1.6; font-size: 0.95rem; color: #444; margin-bottom: 10px; }
         .rules-list li { margin-bottom: 6px; }
         
-        .rules-note { font-size: 0.95rem; font-weight: bold; color: #dc3545; background-color: #fdf5f6; padding: 10px; border-radius: 6px; border-left: 4px solid #dc3545; margin-top: 10px;}
+        /* 微調注意事項的邊距，讓它跟下方的標題保持距離 */
+        .rules-note { font-size: 0.95rem; font-weight: bold; color: #dc3545; background-color: #fdf5f6; padding: 10px; border-radius: 6px; border-left: 4px solid #dc3545; margin-top: 0px; margin-bottom: 20px;}
 
         /* 頁尾版權與計數器 */
         .footer-text { font-size: 0.8rem; color: #999; text-align: center; margin-top: 30px; margin-bottom: 8px; letter-spacing: 0.5px; }
@@ -240,6 +241,8 @@
                     </tr>
                 </tbody>
             </table>
+            
+            <div class="rules-note">※注意：仝一个詞有幾張是電腦隨機決定的，可能會較懸抑是較低平均張數</div>
 
             <h3>📜 遊戲規則</h3>
             <ol class="rules-list">
@@ -258,7 +261,6 @@
                     </ul>
                 </li>
             </ol>
-            <div class="rules-note">※注意：仝一个詞有幾張是電腦隨機決定的，可能會較懸抑是較低平均張數</div>
         </div>
 
         <button class="action-btn btn-restart" onclick="location.reload()">🔄 後一局</button>
