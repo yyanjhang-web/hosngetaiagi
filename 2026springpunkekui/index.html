@@ -96,27 +96,25 @@
         body.teacher-mode { background-color: #121212; color: #e0e0e0; }
         body.teacher-mode .card-container { background: #1e1e1e; box-shadow: 0 4px 10px rgba(0,0,0,0.8); border: 1px solid #333; }
         body.teacher-mode h1 { color: #f39c12; }
-        body.teacher-mode h2, body.teacher-mode h3 { color: #f39c12; border-bottom-color: #333; }
-        body.teacher-mode .public-words { background: #2c3e50; color: #ecf0f1; border: 1px solid #34495e; }
-        body.teacher-mode .public-word-item { background: #34495e; color: #fff; border-color: #7f8c8d; }
-        body.teacher-mode .rules-section { background: #1a1a1a; border-color: #333; }
-        body.teacher-mode .data-table th { background-color: #2c3e50; color: #fff; border-color: #444; }
-        body.teacher-mode .data-table td { border-color: #444; color: #bbb; }
-        body.teacher-mode .rules-note { background-color: #4a2322; color: #ff6b6b; border-left-color: #ff6b6b; }
-        body.teacher-mode .rules-list { color: #bbb; }
         body.teacher-mode .settings-summary { background: #2c3e50; color: #f39c12; border-left-color: #f39c12; }
         
-        #teacher-view { display: none; margin-top: 20px; }
-        .teacher-group-block { margin-bottom: 15px; padding: 15px; background: #2a2a2a; border-radius: 8px; border-left: 5px solid #f39c12; }
-        /* 總數專用樣式 */
-        .teacher-group-block.total-block { border-left-color: #e74c3c; background: #302020; }
-        .teacher-group-block.total-block .teacher-group-title { color: #e74c3c; }
+        /* 教師模式隱藏不必要的元素 */
+        body.teacher-mode .public-words { display: none; }
+        body.teacher-mode .rules-section { display: none; }
         
-        .teacher-group-title { font-weight: bold; font-size: 1.15rem; color: #f39c12; margin-bottom: 12px; }
-        .teacher-cards { display: flex; flex-wrap: wrap; gap: 8px; }
-        .teacher-card-item { background: #333; padding: 6px 12px; border-radius: 6px; border: 1px solid #555; font-size: 1rem; color: #ddd; display: flex; align-items: center; gap: 8px; }
-        .teacher-card-item span.count { color: #fff; font-weight: bold; background: #d35400; padding: 2px 8px; border-radius: 12px; font-size: 0.9rem; }
-        .teacher-group-block.total-block .teacher-card-item span.count { background: #c0392b; }
+        #teacher-view { display: none; margin-top: 15px; }
+
+        /* 教師專用二維表格樣式 */
+        .teacher-table-wrapper { overflow-x: auto; margin-top: 15px; }
+        .teacher-table { width: 100%; border-collapse: collapse; font-size: 1.05rem; text-align: center; background: #2a2a2a; color: #ddd; border-radius: 8px; overflow: hidden; min-width: 600px; }
+        .teacher-table th, .teacher-table td { border: 1px solid #444; padding: 10px 8px; }
+        .teacher-table thead th { background-color: #f39c12; color: #121212; font-weight: bold; }
+        .teacher-table tbody tr:nth-child(even) { background-color: #222; }
+        .teacher-table tbody tr:hover { background-color: #333; }
+        .teacher-table td { font-weight: bold; }
+        .teacher-table tfoot th { background-color: #c0392b; color: white; font-weight: bold; border-top: 2px solid #e74c3c; }
+        .zero-count { color: #666; font-weight: normal; } /* 若數量為0則變暗 */
+
     </style>
 </head>
 <body>
@@ -402,125 +400,4 @@
             const lessonsStr = selectedLessons.join('、');
             
             document.getElementById('setup-area').style.display = 'none';
-            document.getElementById('game-area').style.display = 'block';
-            
-            // 顯示這局用的詞彙
-            document.getElementById('all-words-list').innerHTML = targetWords.map(w => 
-                `<span class="public-word-item">${w.hanzi}</span>`
-            ).join('');
-
-            // 判斷是否為教師模式
-            if (isTeacherMode) {
-                document.body.classList.add('teacher-mode');
-                document.querySelector('.tool-bar').style.display = 'none'; // 隱藏自動整理
-                document.getElementById('my-hand').style.display = 'none';  // 隱藏一般手牌區
-                
-                document.getElementById('settings-summary').innerHTML = `👁️ <b>【上帝視角】號碼：${password}</b>，${lessonsStr}，共 ${totalGroups} 組`;
-                
-                const teacherView = document.getElementById('teacher-view');
-                teacherView.style.display = 'block';
-                
-                // --- 新增：全班總牌數統計 ---
-                let totalCounts = {};
-                deck.forEach(card => {
-                    totalCounts[card.hanzi] = (totalCounts[card.hanzi] || 0) + 1;
-                });
-
-                let totalBlockHtml = `<div class="teacher-group-block total-block">
-                    <div class="teacher-group-title">🎯 全班總數 (共 ${deck.length} 張)</div>
-                    <div class="teacher-cards">`;
-                
-                // 依照總數排序
-                let sortedTotalEntries = Object.entries(totalCounts).sort((a,b) => b[1] - a[1]);
-                sortedTotalEntries.forEach(([hanzi, count]) => {
-                    totalBlockHtml += `<div class="teacher-card-item">${hanzi} <span class="count">${count} 張</span></div>`;
-                });
-                totalBlockHtml += `</div></div>`;
-                
-                teacherView.innerHTML = totalBlockHtml;
-                // ----------------------------
-
-                // --- 顯示各組手牌統計 ---
-                teacherView.innerHTML += '<h2 style="border-bottom: none; margin-top: 25px; margin-bottom: 10px;">📊 各組手牌統計</h2>';
-
-                hands.forEach((hand, index) => {
-                    let counts = {};
-                    hand.forEach(card => {
-                        counts[card.hanzi] = (counts[card.hanzi] || 0) + 1;
-                    });
-                    
-                    let blockHtml = `<div class="teacher-group-block">
-                        <div class="teacher-group-title">第 ${index + 1} 組 (共 ${hand.length} 張)</div>
-                        <div class="teacher-cards">`;
-                    
-                    let sortedEntries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
-                    
-                    sortedEntries.forEach(([hanzi, count]) => {
-                        blockHtml += `<div class="teacher-card-item">${hanzi} <span class="count">${count} 張</span></div>`;
-                    });
-                    
-                    blockHtml += `</div></div>`;
-                    teacherView.innerHTML += blockHtml;
-                });
-                
-            } else {
-                // 一般學生模式
-                document.getElementById('settings-summary').innerHTML = `📌 <b>號碼：${password}</b>，${lessonsStr}，共 ${totalGroups} 組，恁是第 ${myGroup} 組`;
-                myCurrentCards = hands[myGroup - 1];
-                renderIndividualCards();
-                
-                new Sortable(document.getElementById('my-hand'), {
-                    animation: 150,
-                    ghostClass: 'sortable-ghost'
-                });
-            }
-        }
-
-        function renderIndividualCards() {
-            const handContainer = document.getElementById('my-hand');
-            handContainer.innerHTML = '';
-            myCurrentCards.forEach(card => {
-                handContainer.innerHTML += `
-                    <div class="word-card">
-                        <div class="roman-text">${card.roman}</div>
-                        <div class="hanzi-text">${card.hanzi}</div>
-                    </div>
-                `;
-            });
-            isOrganized = false;
-        }
-
-        function organizeHand() {
-            if (isOrganized) {
-                renderIndividualCards();
-                return;
-            }
-
-            let cardCounts = {}; 
-            myCurrentCards.forEach(card => {
-                if (!cardCounts[card.hanzi]) {
-                    cardCounts[card.hanzi] = { roman: card.roman, count: 0 };
-                }
-                cardCounts[card.hanzi].count += 1;
-            });
-
-            const handContainer = document.getElementById('my-hand');
-            handContainer.innerHTML = '';
-            
-            for (const [hanzi, data] of Object.entries(cardCounts)) {
-                let extraClass = data.count > 1 ? 'card-stacked' : '';
-                let badgeHtml = data.count > 1 ? `<div class="badge-count">${data.count}</div>` : '';
-                
-                handContainer.innerHTML += `
-                    <div class="word-card ${extraClass}">
-                        ${badgeHtml}
-                        <div class="roman-text">${data.roman}</div>
-                        <div class="hanzi-text">${hanzi}</div>
-                    </div>
-                `;
-            }
-            isOrganized = true;
-        }
-    </script>
-</body>
-</html>
+            document.getElementByI
