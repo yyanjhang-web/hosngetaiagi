@@ -400,4 +400,128 @@
             const lessonsStr = selectedLessons.join('、');
             
             document.getElementById('setup-area').style.display = 'none';
-            document.getElementByI
+            document.getElementById('game-area').style.display = 'block';
+            
+            // 顯示這局用的詞彙（學生模式才會看到，教師模式被 CSS 隱藏）
+            document.getElementById('all-words-list').innerHTML = targetWords.map(w => 
+                `<span class="public-word-item">${w.hanzi}</span>`
+            ).join('');
+
+            // 判斷是否為教師模式
+            if (isTeacherMode) {
+                document.body.classList.add('teacher-mode');
+                document.querySelector('.tool-bar').style.display = 'none'; // 隱藏自動整理
+                document.getElementById('my-hand').style.display = 'none';  // 隱藏一般手牌區
+                
+                document.getElementById('settings-summary').innerHTML = `👁️ <b>【上帝視角】號碼：${password}</b>，${lessonsStr}，共 ${totalGroups} 組`;
+                
+                const teacherView = document.getElementById('teacher-view');
+                teacherView.style.display = 'block';
+                
+                // --- 產生 2D 表格 ---
+                let tableHtml = `
+                <h2 style="border-bottom: none; margin-bottom: 5px;">📊 各組牌仔統計表</h2>
+                <div class="teacher-table-wrapper">
+                    <table class="teacher-table">
+                        <thead>
+                            <tr>
+                                <th>組別</th>`;
+                
+                // 表頭：放入 8 個詞彙
+                targetWords.forEach(word => {
+                    tableHtml += `<th>${word.hanzi}</th>`;
+                });
+                tableHtml += `</tr></thead><tbody>`;
+
+                // 準備計算總和的陣列
+                let grandTotals = new Array(targetWords.length).fill(0);
+
+                // 表身：各組數量
+                hands.forEach((hand, index) => {
+                    tableHtml += `<tr><td>第 ${index + 1} 組</td>`;
+                    
+                    targetWords.forEach((wordObj, wIndex) => {
+                        // 計算該組這個詞有幾張
+                        let count = hand.filter(card => card.hanzi === wordObj.hanzi).length;
+                        grandTotals[wIndex] += count; // 累加至總和
+                        
+                        // 若為 0 給個淡色樣式方便閱讀
+                        let countClass = count === 0 ? 'zero-count' : '';
+                        tableHtml += `<td class="${countClass}">${count}</td>`;
+                    });
+                    
+                    tableHtml += `</tr>`;
+                });
+                
+                tableHtml += `</tbody><tfoot><tr><th>合計</th>`;
+                
+                // 表尾：合計數字
+                grandTotals.forEach(total => {
+                    tableHtml += `<th>${total}</th>`;
+                });
+                
+                tableHtml += `</tr></tfoot></table></div>`;
+                
+                teacherView.innerHTML = tableHtml;
+                
+            } else {
+                // 一般學生模式
+                document.getElementById('settings-summary').innerHTML = `📌 <b>號碼：${password}</b>，${lessonsStr}，共 ${totalGroups} 組，恁是第 ${myGroup} 組`;
+                myCurrentCards = hands[myGroup - 1];
+                renderIndividualCards();
+                
+                new Sortable(document.getElementById('my-hand'), {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost'
+                });
+            }
+        }
+
+        function renderIndividualCards() {
+            const handContainer = document.getElementById('my-hand');
+            handContainer.innerHTML = '';
+            myCurrentCards.forEach(card => {
+                handContainer.innerHTML += `
+                    <div class="word-card">
+                        <div class="roman-text">${card.roman}</div>
+                        <div class="hanzi-text">${card.hanzi}</div>
+                    </div>
+                `;
+            });
+            isOrganized = false;
+        }
+
+        function organizeHand() {
+            if (isOrganized) {
+                renderIndividualCards();
+                return;
+            }
+
+            let cardCounts = {}; 
+            myCurrentCards.forEach(card => {
+                if (!cardCounts[card.hanzi]) {
+                    cardCounts[card.hanzi] = { roman: card.roman, count: 0 };
+                }
+                cardCounts[card.hanzi].count += 1;
+            });
+
+            const handContainer = document.getElementById('my-hand');
+            handContainer.innerHTML = '';
+            
+            for (const [hanzi, data] of Object.entries(cardCounts)) {
+                let extraClass = data.count > 1 ? 'card-stacked' : '';
+                let badgeHtml = data.count > 1 ? `<div class="badge-count">${data.count}</div>` : '';
+                
+                handContainer.innerHTML += `
+                    <div class="word-card ${extraClass}">
+                        ${badgeHtml}
+                        <div class="roman-text">${data.roman}</div>
+                        <div class="hanzi-text">${hanzi}</div>
+                    </div>
+                `;
+            }
+            isOrganized = true;
+        }
+    </script>
+</body>
+</html>
