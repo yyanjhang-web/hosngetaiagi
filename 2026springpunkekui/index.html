@@ -20,10 +20,40 @@
         
         input[type="text"] { width: 100%; padding: 12px; font-size: 1.1rem; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         
-        /* 分牌仔主按鈕 */
-        .action-btn { width: 100%; padding: 15px; background: #28A745; color: white; font-size: 1.2rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: background 0.2s; }
-        .action-btn:hover { background: #218838; }
-        .action-btn:disabled { background: #6c757d; cursor: wait; }
+        /* ✨ 重新設計的主要動作按鈕 (分牌仔 / 後一局) ✨ */
+        .action-btn { 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            min-width: 220px;
+            margin: 25px auto 10px auto; /* 置中顯示 */
+            padding: 14px 30px; 
+            color: white; 
+            font-size: 1.25rem; 
+            border: none; 
+            border-radius: 50px; /* 橢圓形 */
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: all 0.2s ease-in-out; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .action-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        .action-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* 分牌仔 - 綠色漸層 */
+        .btn-deal { background: linear-gradient(135deg, #28A745, #218838); }
+        .btn-deal:disabled { background: #6c757d; cursor: wait; transform: none; box-shadow: none; }
+        
+        /* 後一局 - 灰色漸層 */
+        .btn-restart { background: linear-gradient(135deg, #6c757d, #5a6268); }
 
         #game-area { display: none; }
         
@@ -34,13 +64,13 @@
         .tool-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid #f0f0f0;}
         .tool-bar h2 { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
 
-        /* ✨ 特別設計的「自動整理」按鈕 ✨ */
+        /* ✨ 自動整理按鈕 ✨ */
         .organize-btn {
             padding: 8px 18px;
             background-color: var(--yellow-btn);
             color: #333;
             border: 2px solid var(--yellow-btn-border);
-            border-radius: 20px; /* 橢圓形 */
+            border-radius: 20px;
             font-weight: bold;
             font-size: 0.9rem;
             cursor: pointer;
@@ -49,17 +79,10 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            outline: none; /* 拿掉預設外框 */
+            outline: none;
         }
-        .organize-btn:hover {
-            background-color: var(--yellow-btn-hover);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-            transform: translateY(-1px); /* 微微浮起 */
-        }
-        .organize-btn:active {
-            transform: translateY(1px); /* 按下去沉下去 */
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
+        .organize-btn:hover { background-color: var(--yellow-btn-hover); box-shadow: 0 3px 6px rgba(0,0,0,0.15); transform: translateY(-1px); }
+        .organize-btn:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
         /* 網格設定縮小卡片 */
         .hand-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 15px; min-height: 200px;}
@@ -163,7 +186,7 @@
             <button class="btn" onclick="setMyGroup(6)" id="btn-group-6" disabled>第 6 組</button>
         </div>
 
-        <button class="action-btn" id="deal-btn" onclick="startDeal()">🎲 分牌仔</button>
+        <button class="action-btn btn-deal" id="deal-btn" onclick="startDeal()">🎲 分牌仔</button>
     </div>
 
     <div id="game-area" class="card-container">
@@ -238,8 +261,7 @@
             <div class="rules-note">※注意：仝一个詞有幾張是電腦隨機決定的，可能會較懸抑是較低平均張數</div>
         </div>
 
-        <br>
-        <button class="btn" style="width: 100%; background: #6c757d; color: white; flex-grow: 0;" onclick="location.reload()">🔄 後一局</button>
+        <button class="action-btn btn-restart" onclick="location.reload()">🔄 後一局</button>
     </div>
 
     <div class="footer-text">
@@ -252,7 +274,6 @@
     </div>
 
     <script>
-        // 程式邏輯完全維持原樣
         let selectedLessons = [];
         let totalGroups = 0;
         let myGroup = 0;
