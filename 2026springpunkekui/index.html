@@ -140,6 +140,7 @@
 
         <h2>(三) 全班攏總幾組？ <span style="color:red;">(全班相仝)</span></h2>
         <div class="btn-group" id="total-groups">
+            <button class="btn" onclick="setTotalGroups(3)">共 3 組</button>
             <button class="btn" onclick="setTotalGroups(4)">共 4 組</button>
             <button class="btn" onclick="setTotalGroups(5)">共 5 組</button>
             <button class="btn" onclick="setTotalGroups(6)">共 6 組</button>
@@ -150,7 +151,7 @@
             <button class="btn" onclick="setMyGroup(1)">第 1 組</button>
             <button class="btn" onclick="setMyGroup(2)">第 2 組</button>
             <button class="btn" onclick="setMyGroup(3)">第 3 組</button>
-            <button class="btn" onclick="setMyGroup(4)">第 4 組</button>
+            <button class="btn" onclick="setMyGroup(4)" id="btn-group-4">第 4 組</button>
             <button class="btn" onclick="setMyGroup(5)" id="btn-group-5" disabled>第 5 組</button>
             <button class="btn" onclick="setMyGroup(6)" id="btn-group-6" disabled>第 6 組</button>
         </div>
@@ -189,6 +190,13 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <tr>
+                        <td>3 組</td>
+                        <td>45</td>
+                        <td>15</td>
+                        <td>8</td>
+                        <td>5.6 張</td>
+                    </tr>
                     <tr>
                         <td>4 組</td>
                         <td>60</td>
@@ -277,6 +285,7 @@
             });
             if (num < 6) document.getElementById('btn-group-6').disabled = true;
             if (num < 5) document.getElementById('btn-group-5').disabled = true;
+            if (num < 4) document.getElementById('btn-group-4').disabled = true;
         }
 
         function setMyGroup(num) {
