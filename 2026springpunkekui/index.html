@@ -142,20 +142,20 @@
 
         <h2>(三) 全班攏總幾組？ <span style="color:red;">(全班相仝)</span></h2>
         <div class="btn-group" id="total-groups">
-            <button class="btn" onclick="setTotalGroups(3)">共 3 組</button>
-            <button class="btn" onclick="setTotalGroups(4)">共 4 組</button>
-            <button class="btn" onclick="setTotalGroups(5)">共 5 組</button>
-            <button class="btn" onclick="setTotalGroups(6)">共 6 組</button>
+            <button class="btn" onclick="setTotalGroups(this, 3)">共 3 組</button>
+            <button class="btn" onclick="setTotalGroups(this, 4)">共 4 組</button>
+            <button class="btn" onclick="setTotalGroups(this, 5)">共 5 組</button>
+            <button class="btn" onclick="setTotalGroups(this, 6)">共 6 組</button>
         </div>
 
         <h2>(四) 恁是第幾組？</h2>
         <div class="btn-group" id="my-group">
-            <button class="btn" onclick="setMyGroup(1)">第 1 組</button>
-            <button class="btn" onclick="setMyGroup(2)">第 2 組</button>
-            <button class="btn" onclick="setMyGroup(3)">第 3 組</button>
-            <button class="btn" onclick="setMyGroup(4)" id="btn-group-4">第 4 組</button>
-            <button class="btn" onclick="setMyGroup(5)" id="btn-group-5" disabled>第 5 組</button>
-            <button class="btn" onclick="setMyGroup(6)" id="btn-group-6" disabled>第 6 組</button>
+            <button class="btn" onclick="setMyGroup(this, 1)">第 1 組</button>
+            <button class="btn" onclick="setMyGroup(this, 2)">第 2 組</button>
+            <button class="btn" onclick="setMyGroup(this, 3)">第 3 組</button>
+            <button class="btn" onclick="setMyGroup(this, 4)" id="btn-group-4">第 4 組</button>
+            <button class="btn" onclick="setMyGroup(this, 5)" id="btn-group-5" disabled>第 5 組</button>
+            <button class="btn" onclick="setMyGroup(this, 6)" id="btn-group-6" disabled>第 6 組</button>
         </div>
 
         <div class="warning-text">※設定錯誤會造成提毋著牌仔，檢查好勢了後才揤「分牌仔」</div>
@@ -276,10 +276,11 @@
             }
         }
 
-        function setTotalGroups(num) {
+        // 修正：加入 btn 參數，取代原本的 event.target
+        function setTotalGroups(btn, num) {
             totalGroups = num;
             document.querySelectorAll('#total-groups .btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            btn.classList.add('active'); // 跨平台安全的寫法
             
             myGroup = 0;
             document.querySelectorAll('#my-group .btn').forEach(b => {
@@ -291,10 +292,11 @@
             if (num < 4) document.getElementById('btn-group-4').disabled = true;
         }
 
-        function setMyGroup(num) {
+        // 修正：加入 btn 參數，取代原本的 event.target
+        function setMyGroup(btn, num) {
             myGroup = num;
             document.querySelectorAll('#my-group .btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            btn.classList.add('active'); // 跨平台安全的寫法
         }
 
         function mulberry32(a) {
@@ -332,11 +334,11 @@
             } catch (error) {
                 console.error(`讀取 ${lesson} 失敗:`, error);
                 alert(`讀取 ${lesson} 失敗，請確認網路連線。`);
+                throw error; // 將錯誤往上拋，讓按鈕可以恢復
             }
         }
 
         async function startDeal() {
-            // 強制將輸入的共同號碼轉換為小寫，避免跨平台或鍵盤自動大寫造成的差異
             let passwordInput = document.getElementById('room-code').value.trim().toLowerCase();
             let isTeacherMode = false;
             let finalPassword = passwordInput;
@@ -361,10 +363,16 @@
             dealBtn.disabled = true;
             dealBtn.innerText = "⏳ 分牌中...";
 
-            for (let lesson of selectedLessons) {
-                await fetchSheetData(lesson);
+            try {
+                for (let lesson of selectedLessons) {
+                    await fetchSheetData(lesson);
+                }
+                calculateAndDealCards(finalPassword, isTeacherMode);
+            } catch (error) {
+                // 如果遇到錯誤，解除按鈕封印讓使用者重試
+                dealBtn.disabled = false;
+                dealBtn.innerText = "🎲 分牌仔";
             }
-            calculateAndDealCards(finalPassword, isTeacherMode);
         }
 
         function calculateAndDealCards(password, isTeacherMode) {
@@ -391,4 +399,148 @@
             // 使用 Fisher-Yates Shuffle 取代 sort，確保跨平台(iOS/Android)亂數完全一致
             for (let i = uniqueWords.length - 1; i > 0; i--) {
                 const j = Math.floor(random() * (i + 1));
-                [uniqueWords[i], uniqueWords[j]] = [uniqueWords[j], un
+                [uniqueWords[i], uniqueWords[j]] = [uniqueWords[j], uniqueWords[i]];
+            }
+
+            let targetWords = uniqueWords.slice(0, 8); 
+            if(targetWords.length < 8) targetWords = uniqueWords;
+
+            let cardsPerGroup = 15;
+            let totalCards = totalGroups * cardsPerGroup;
+            let deck = [];
+
+            for (let i = 0; i < totalCards; i++) {
+                let randomIndex = Math.floor(random() * targetWords.length);
+                deck.push(targetWords[randomIndex]);
+            }
+
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+
+            let hands = Array.from({ length: totalGroups }, () => []);
+            deck.forEach((card, index) => {
+                hands[index % totalGroups].push(card);
+            });
+
+            const lessonsStr = selectedLessons.join('、');
+            
+            document.getElementById('setup-area').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+            
+            document.getElementById('all-words-list').innerHTML = targetWords.map(w => 
+                `<span class="public-word-item">${w.hanzi}</span>`
+            ).join('');
+
+            // 判斷是否為教師模式
+            if (isTeacherMode) {
+                document.body.classList.add('teacher-mode');
+                document.querySelector('.tool-bar').style.display = 'none'; 
+                document.getElementById('my-hand').style.display = 'none';  
+                
+                document.getElementById('settings-summary').innerHTML = `👁️ <b>【上帝視角】號碼：${password}</b>，${lessonsStr}，共 ${totalGroups} 組`;
+                
+                const teacherView = document.getElementById('teacher-view');
+                teacherView.style.display = 'block';
+                
+                let tableHtml = `
+                <h2 style="border-bottom: none; margin-bottom: 5px;">📊 各組牌仔統計表</h2>
+                <div class="teacher-table-wrapper">
+                    <table class="teacher-table">
+                        <thead>
+                            <tr>
+                                <th>組別</th>`;
+                
+                targetWords.forEach(word => {
+                    tableHtml += `<th>${word.hanzi}</th>`;
+                });
+                tableHtml += `</tr></thead><tbody>`;
+
+                let grandTotals = new Array(targetWords.length).fill(0);
+
+                hands.forEach((hand, index) => {
+                    tableHtml += `<tr><td>第 ${index + 1} 組</td>`;
+                    
+                    targetWords.forEach((wordObj, wIndex) => {
+                        let count = hand.filter(card => card.hanzi === wordObj.hanzi).length;
+                        grandTotals[wIndex] += count; 
+                        
+                        let countClass = count === 0 ? 'zero-count' : '';
+                        tableHtml += `<td class="${countClass}">${count}</td>`;
+                    });
+                    
+                    tableHtml += `</tr>`;
+                });
+                
+                tableHtml += `</tbody><tfoot><tr><th>合計</th>`;
+                
+                grandTotals.forEach(total => {
+                    tableHtml += `<th>${total}</th>`;
+                });
+                
+                tableHtml += `</tr></tfoot></table></div>`;
+                
+                teacherView.innerHTML = tableHtml;
+                
+            } else {
+                // 一般學生模式
+                document.getElementById('settings-summary').innerHTML = `📌 <b>號碼：${password}</b>，${lessonsStr}，共 ${totalGroups} 組，恁是第 ${myGroup} 組`;
+                myCurrentCards = hands[myGroup - 1];
+                renderIndividualCards();
+                
+                new Sortable(document.getElementById('my-hand'), {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost'
+                });
+            }
+        }
+
+        function renderIndividualCards() {
+            const handContainer = document.getElementById('my-hand');
+            handContainer.innerHTML = '';
+            myCurrentCards.forEach(card => {
+                handContainer.innerHTML += `
+                    <div class="word-card">
+                        <div class="roman-text">${card.roman}</div>
+                        <div class="hanzi-text">${card.hanzi}</div>
+                    </div>
+                `;
+            });
+            isOrganized = false;
+        }
+
+        function organizeHand() {
+            if (isOrganized) {
+                renderIndividualCards();
+                return;
+            }
+
+            let cardCounts = {}; 
+            myCurrentCards.forEach(card => {
+                if (!cardCounts[card.hanzi]) {
+                    cardCounts[card.hanzi] = { roman: card.roman, count: 0 };
+                }
+                cardCounts[card.hanzi].count += 1;
+            });
+
+            const handContainer = document.getElementById('my-hand');
+            handContainer.innerHTML = '';
+            
+            for (const [hanzi, data] of Object.entries(cardCounts)) {
+                let extraClass = data.count > 1 ? 'card-stacked' : '';
+                let badgeHtml = data.count > 1 ? `<div class="badge-count">${data.count}</div>` : '';
+                
+                handContainer.innerHTML += `
+                    <div class="word-card ${extraClass}">
+                        ${badgeHtml}
+                        <div class="roman-text">${data.roman}</div>
+                        <div class="hanzi-text">${hanzi}</div>
+                    </div>
+                `;
+            }
+            isOrganized = true;
+        }
+    </script>
+</body>
+</html>
