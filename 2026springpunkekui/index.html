@@ -18,12 +18,24 @@
         .btn.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: bold; }
         .btn:disabled { background: #eee; color: #aaa; cursor: not-allowed; border-color: #ddd; }
         
+        /* ✨ 新增：第(四)步驟「恁是第幾組」的專屬按鈕外觀 ✨ */
+        #my-group .btn { border: 2px dashed #adb5bd; border-radius: 20px; }
+        #my-group .btn.active { 
+            background: #e83e8c; /* 醒目桃紅色 */
+            color: white; 
+            border: 2px solid #e83e8c; 
+            font-weight: bold; 
+            transform: scale(1.03); 
+            box-shadow: 0 3px 6px rgba(232, 62, 140, 0.3); 
+        }
+        #my-group .btn:disabled { background: #eee; border: 2px dashed #ddd; transform: none; box-shadow: none; }
+
         input[type="text"] { width: 100%; padding: 12px; font-size: 1.1rem; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         
         /* 警告標語 */
         .warning-text { color: #d9534f; font-size: 0.95rem; font-weight: bold; text-align: center; margin-top: 25px; margin-bottom: -15px; }
 
-        /* ✨ 重新設計的主要動作按鈕 (分牌仔 / 後一局) ✨ */
+        /* 主要動作按鈕 (分牌仔 / 後一局) */
         .action-btn { 
             display: flex;
             justify-content: center;
@@ -88,6 +100,18 @@
         .rules-list { padding-left: 20px; line-height: 1.6; font-size: 0.95rem; color: #444; margin-bottom: 10px; transition: all 0.3s;}
         .rules-list li { margin-bottom: 6px; }
         .rules-note { font-size: 0.95rem; font-weight: bold; color: #dc3545; background-color: #fdf5f6; padding: 10px; border-radius: 6px; border-left: 4px solid #dc3545; margin-top: 0px; margin-bottom: 20px; transition: all 0.3s;}
+
+        /* ✨ 新增：全班關鍵字螢光強調樣式 ✨ */
+        .highlight-all { 
+            color: #d9534f; 
+            font-weight: bold; 
+            font-size: 1.1rem; 
+            background-color: #fff3cd; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            border: 1px solid #ffecb5; 
+            margin: 0 2px;
+        }
 
         /* 頁尾 */
         .footer-text { font-size: 0.8rem; color: #999; text-align: center; margin-top: 30px; margin-bottom: 8px; letter-spacing: 0.5px; }
@@ -236,10 +260,10 @@
                         <li><strong>掠包：</strong>感覺全班無遐濟張，就大聲喝「我欲掠包」。</li>
                     </ul>
                 </li>
-                <li><strong>喝「掠包」了後：</strong>全班掀牌算總數：
+                <li><strong>喝「掠包」了後：</strong><span class="highlight-all">全班</span>掀牌算總數：
                     <ul>
-                        <li><strong>掠包成功：</strong>若全班<strong>【無影】</strong>遐濟張：「予人掠包」彼組以外，攏著1分。</li>
-                        <li><strong>掠包失敗：</strong>若全班<strong>【有影】</strong>遐濟張（抑是閣較濟）：「喝掠包」的彼組以外，攏著1分。</li>
+                        <li><strong>掠包成功：</strong>若<span class="highlight-all">全班</span><strong>【無影】</strong>遐濟張：「予人掠包」彼組以外，攏著1分。</li>
+                        <li><strong>掠包失敗：</strong>若<span class="highlight-all">全班</span><strong>【有影】</strong>遐濟張（抑是閣較濟）：「喝掠包」的彼組以外，攏著1分。</li>
                     </ul>
                 </li>
             </ol>
@@ -276,11 +300,10 @@
             }
         }
 
-        // 修正：加入 btn 參數，取代原本的 event.target
         function setTotalGroups(btn, num) {
             totalGroups = num;
             document.querySelectorAll('#total-groups .btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active'); // 跨平台安全的寫法
+            btn.classList.add('active'); 
             
             myGroup = 0;
             document.querySelectorAll('#my-group .btn').forEach(b => {
@@ -292,11 +315,10 @@
             if (num < 4) document.getElementById('btn-group-4').disabled = true;
         }
 
-        // 修正：加入 btn 參數，取代原本的 event.target
         function setMyGroup(btn, num) {
             myGroup = num;
             document.querySelectorAll('#my-group .btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active'); // 跨平台安全的寫法
+            btn.classList.add('active'); 
         }
 
         function mulberry32(a) {
@@ -334,7 +356,7 @@
             } catch (error) {
                 console.error(`讀取 ${lesson} 失敗:`, error);
                 alert(`讀取 ${lesson} 失敗，請確認網路連線。`);
-                throw error; // 將錯誤往上拋，讓按鈕可以恢復
+                throw error; 
             }
         }
 
@@ -369,7 +391,6 @@
                 }
                 calculateAndDealCards(finalPassword, isTeacherMode);
             } catch (error) {
-                // 如果遇到錯誤，解除按鈕封印讓使用者重試
                 dealBtn.disabled = false;
                 dealBtn.innerText = "🎲 分牌仔";
             }
@@ -396,7 +417,6 @@
             pool.forEach(item => uniqueMap.set(item.hanzi, item));
             let uniqueWords = Array.from(uniqueMap.values());
             
-            // 使用 Fisher-Yates Shuffle 取代 sort，確保跨平台(iOS/Android)亂數完全一致
             for (let i = uniqueWords.length - 1; i > 0; i--) {
                 const j = Math.floor(random() * (i + 1));
                 [uniqueWords[i], uniqueWords[j]] = [uniqueWords[j], uniqueWords[i]];
@@ -433,7 +453,6 @@
                 `<span class="public-word-item">${w.hanzi}</span>`
             ).join('');
 
-            // 判斷是否為教師模式
             if (isTeacherMode) {
                 document.body.classList.add('teacher-mode');
                 document.querySelector('.tool-bar').style.display = 'none'; 
@@ -484,7 +503,6 @@
                 teacherView.innerHTML = tableHtml;
                 
             } else {
-                // 一般學生模式
                 document.getElementById('settings-summary').innerHTML = `📌 <b>號碼：${password}</b>，${lessonsStr}，共 ${totalGroups} 組，恁是第 ${myGroup} 組`;
                 myCurrentCards = hands[myGroup - 1];
                 renderIndividualCards();
