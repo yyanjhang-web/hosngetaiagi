@@ -18,7 +18,7 @@
         .btn.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: bold; }
         .btn:disabled { background: #eee; color: #aaa; cursor: not-allowed; border-color: #ddd; }
         
-        /* ✨ 新增：第(四)步驟「恁是第幾組」的專屬按鈕外觀 ✨ */
+        /* ✨ 第(四)步驟「恁是第幾組」的專屬按鈕外觀 ✨ */
         #my-group .btn { border: 2px dashed #adb5bd; border-radius: 20px; }
         #my-group .btn.active { 
             background: #e83e8c; /* 醒目桃紅色 */
@@ -101,7 +101,7 @@
         .rules-list li { margin-bottom: 6px; }
         .rules-note { font-size: 0.95rem; font-weight: bold; color: #dc3545; background-color: #fdf5f6; padding: 10px; border-radius: 6px; border-left: 4px solid #dc3545; margin-top: 0px; margin-bottom: 20px; transition: all 0.3s;}
 
-        /* ✨ 新增：全班關鍵字螢光強調樣式 ✨ */
+        /* ✨ 全班關鍵字螢光強調樣式 ✨ */
         .highlight-all { 
             color: #d9534f; 
             font-weight: bold; 
@@ -170,6 +170,12 @@
             <button class="btn" onclick="setTotalGroups(this, 4)">共 4 組</button>
             <button class="btn" onclick="setTotalGroups(this, 5)">共 5 組</button>
             <button class="btn" onclick="setTotalGroups(this, 6)">共 6 組</button>
+            <button class="btn" onclick="setTotalGroups(this, 7)">共 7 組</button>
+            <button class="btn" onclick="setTotalGroups(this, 8)">共 8 組</button>
+            <button class="btn" onclick="setTotalGroups(this, 9)">共 9 組</button>
+            <button class="btn" onclick="setTotalGroups(this, 10)">共 10 組</button>
+            <button class="btn" onclick="setTotalGroups(this, 11)">共 11 組</button>
+            <button class="btn" onclick="setTotalGroups(this, 12)">共 12 組</button>
         </div>
 
         <h2>(四) 恁是第幾組？</h2>
@@ -180,6 +186,12 @@
             <button class="btn" onclick="setMyGroup(this, 4)" id="btn-group-4">第 4 組</button>
             <button class="btn" onclick="setMyGroup(this, 5)" id="btn-group-5" disabled>第 5 組</button>
             <button class="btn" onclick="setMyGroup(this, 6)" id="btn-group-6" disabled>第 6 組</button>
+            <button class="btn" onclick="setMyGroup(this, 7)" id="btn-group-7" disabled>第 7 組</button>
+            <button class="btn" onclick="setMyGroup(this, 8)" id="btn-group-8" disabled>第 8 組</button>
+            <button class="btn" onclick="setMyGroup(this, 9)" id="btn-group-9" disabled>第 9 組</button>
+            <button class="btn" onclick="setMyGroup(this, 10)" id="btn-group-10" disabled>第 10 組</button>
+            <button class="btn" onclick="setMyGroup(this, 11)" id="btn-group-11" disabled>第 11 組</button>
+            <button class="btn" onclick="setMyGroup(this, 12)" id="btn-group-12" disabled>第 12 組</button>
         </div>
 
         <div class="warning-text">※設定錯誤會造成提毋著牌仔，檢查好勢了後才揤「分牌仔」</div>
@@ -244,6 +256,48 @@
                         <td>11.3 張</td>
                         <td>±3.14 張</td>
                         <td>大約 8 到 14 張</td>
+                    </tr>
+                    <tr>
+                        <td>7 組</td>
+                        <td>105</td>
+                        <td>13.1 張</td>
+                        <td>±3.39 張</td>
+                        <td>大約 10 到 16 張</td>
+                    </tr>
+                    <tr>
+                        <td>8 組</td>
+                        <td>120</td>
+                        <td>15.0 張</td>
+                        <td>±3.62 張</td>
+                        <td>大約 11 到 19 張</td>
+                    </tr>
+                    <tr>
+                        <td>9 組</td>
+                        <td>135</td>
+                        <td>16.9 張</td>
+                        <td>±3.84 張</td>
+                        <td>大約 13 到 21 張</td>
+                    </tr>
+                    <tr>
+                        <td>10 組</td>
+                        <td>150</td>
+                        <td>18.8 張</td>
+                        <td>±4.05 張</td>
+                        <td>大約 15 到 23 張</td>
+                    </tr>
+                    <tr>
+                        <td>11 組</td>
+                        <td>165</td>
+                        <td>20.6 張</td>
+                        <td>±4.25 張</td>
+                        <td>大約 16 到 25 張</td>
+                    </tr>
+                    <tr>
+                        <td>12 組</td>
+                        <td>180</td>
+                        <td>22.5 張</td>
+                        <td>±4.44 張</td>
+                        <td>大約 18 到 27 張</td>
                     </tr>
                 </tbody>
             </table>
@@ -310,9 +364,11 @@
                 b.classList.remove('active');
                 b.disabled = false;
             });
-            if (num < 6) document.getElementById('btn-group-6').disabled = true;
-            if (num < 5) document.getElementById('btn-group-5').disabled = true;
-            if (num < 4) document.getElementById('btn-group-4').disabled = true;
+            // 讓超過所選組數的按鈕反灰
+            for (let i = num + 1; i <= 12; i++) {
+                let gBtn = document.getElementById('btn-group-' + i);
+                if (gBtn) gBtn.disabled = true;
+            }
         }
 
         function setMyGroup(btn, num) {
