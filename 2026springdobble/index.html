@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>台語單字配對遊戲</title>
+    <title>台語單字配短遊戲</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'LiHei Pro', sans-serif;
@@ -27,13 +27,6 @@
             text-align: center;
             box-sizing: border-box;
             position: relative;
-        }
-        /* 設計者版權小字 (最上方、不顯眼) */
-        .credits {
-            font-size: 0.75rem;
-            color: #bdc3c7;
-            text-align: right;
-            margin-bottom: 10px;
         }
         
         h1 { color: #2c3e50; font-size: 2rem; margin-top: 0; margin-bottom: 5px; }
@@ -147,18 +140,24 @@
             font-size: 1.1rem;
         }
 
-        /* 網頁計數器 */
-        .counter-container {
-            margin-top: 20px;
+        /* 頁尾區塊：設計者與計數器 */
+        .footer-container {
+            margin-top: 30px;
             text-align: center;
+        }
+        .credits {
+            font-size: 0.8rem;
+            color: #95a5a6;
+            margin-bottom: 8px;
+        }
+        .counter-container {
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div class="credits">設計者：Iônn, Àn-tsiong | 技術支援：Gemini</div>
-
     <div id="loading-screen" style="display: block;">
         <h1>⏳ 載入資料中...</h1>
         <p>正在從試算表讀取語詞，請稍候...</p>
@@ -212,10 +211,13 @@
     </div>
 </div>
 
-<div class="counter-container">
-    <a href="https://www.hitwebcounter.com/" target="_blank">
-        <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
-    </a>
+<div class="footer-container">
+    <div class="credits">設計者：Iônn, Àn-tsiong | 技術支援：Gemini</div>
+    <div class="counter-container">
+        <a href="https://www.hitwebcounter.com/" target="_blank">
+            <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+        </a>
+    </div>
 </div>
 
 <script>
@@ -269,13 +271,11 @@
     function initDropdowns() {
         const maxSeat = document.getElementById('max-seat');
         maxSeat.innerHTML = '';
-        // 尾號範圍設定為 15~30
         for(let i=15; i<=30; i++) maxSeat.add(new Option(i + ' 號', i));
         maxSeat.value = '30';
         updateYourSeatOptions();
     }
 
-    // 動態更新「你是幾號」的選項
     function updateYourSeatOptions() {
         const maxSeatVal = parseInt(document.getElementById('max-seat').value);
         const yourSeat = document.getElementById('your-seat');
@@ -286,7 +286,6 @@
             yourSeat.add(new Option(i + ' 號', i));
         }
         
-        // 如果原本選的號碼還在範圍內，就保留；否則跳回 1 號
         if (currentSelected <= maxSeatVal) {
             yourSeat.value = currentSelected;
         } else {
@@ -402,7 +401,6 @@
         document.getElementById('setup-screen').style.display = 'none';
         document.getElementById('game-screen').style.display = 'block';
 
-        // 更新狀態列文字
         document.getElementById('game-status').innerText = `共同碼號：${sharedCode}。班裡尾號：${maxSeat}。你是 ${yourSeat} 號，「牌仔的範圍：${selectedDeck}」`;
 
         const board = document.getElementById('card-board');
