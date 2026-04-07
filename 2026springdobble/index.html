@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>台語單字配對遊戲</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'LiHei Pro', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #app {
+            background: white;
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            box-sizing: border-box;
+        }
+        h1 { color: #2c3e50; font-size: 2rem; margin-bottom: 5px; }
+        .subtitle { color: #7f8c8d; margin-bottom: 25px; }
+        
+        .input-group {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        label { font-size: 1.2rem; font-weight: bold; color: #34495e; }
+        input, select {
+            padding: 12px;
+            font-size: 18px;
+            width: 250px;
+            text-align: center;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            background-color: white;
+        }
+        
+        /* 牌仔範圍按鈕群 */
+        .deck-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .deck-btn {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .deck-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary {
+            padding: 15px 50px;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            width: 100%;
+        }
+        .btn-primary:active { background-color: #2ecc71; transform: translateY(2px); box-shadow: none; }
+        .btn-secondary { background-color: #e74c3c; margin-top: 30px;}
+
+        /* 遊戲畫面 */
+        #game-screen, #loading-screen { display: none; }
+        .status-bar {
+            background: #f39c12;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        /* 卡牌排版 */
+        .card-board {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 15px;
+            border: 4px dashed #bdc3c7;
+        }
+        .word-tile {
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 90px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 2px solid #dcdde1;
+            padding: 10px;
+        }
+        .hanzi-text { color: #2c3e50; font-size: 2rem; font-weight: bold; }
+        .romaji-text { color: #c0392b; font-size: 1.4rem; font-weight: bold; }
+
+        /* 上三下二 (5詞) */
+        .layout-5 { display: flex; flex-direction: column; gap: 15px; }
+        .layout-5 .row-top { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .layout-5 .row-bottom { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 66%; margin: 0 auto; }
+
+        /* 上三下三 (6詞) */
+        .layout-6 { display: flex; flex-direction: column; gap: 15px; }
+        .layout-6 .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+
+        .warning-text {
+            color: #c0392b;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div id="loading-screen" style="display: block;">
+        <h1>⏳ 載入資料中...</h1>
+        <p>正在從試算表讀取語詞，請稍候...</p>
+    </div>
+
+    <div id="setup-screen">
+        <h1>🔍 台語配對找找看</h1>
+        <div class="subtitle">A=B 語詞聯想大挑戰</div>
+
+        <div class="input-group">
+            <label for="shared-code">請輸入共同號碼</label>
+            <input type="text" id="shared-code" placeholder="例如：1234 或 密碼">
+        </div>
+
+        <div class="input-group">
+            <label for="max-seat">咱班上尾號是幾號？</label>
+            <select id="max-seat"></select>
+        </div>
+
+        <div class="input-group">
+            <label for="your-seat">你是幾號？</label>
+            <select id="your-seat"></select>
+        </div>
+
+        <div class="input-group">
+            <label>牌仔的範圍</label>
+            <div class="deck-group" id="deck-buttons">
+                <button class="deck-btn active" onclick="selectDeck('B2L1')">B2L1</button>
+                <button class="deck-btn" onclick="selectDeck('B2L2')">B2L2</button>
+                <button class="deck-btn" onclick="selectDeck('B2L3')">B2L3</button>
+                <button class="deck-btn" onclick="selectDeck('B2L4')">B2L4</button>
+                <button class="deck-btn" onclick="selectDeck('B4L1')">B4L1</button>
+                <button class="deck-btn" onclick="selectDeck('B4L2')">B4L2</button>
+                <button class="deck-btn" onclick="selectDeck('B4L3')">B4L3</button>
+                <button class="deck-btn" onclick="selectDeck('B4L4')">B4L4</button>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="dealCards()">分牌仔</button>
+    </div>
+
+    <div id="game-screen">
+        <div class="status-bar" id="game-status"></div>
+        
+        <div class="card-board" id="card-board">
+            </div>
+
+        <div id="warning-msg" class="warning-text"></div>
+
+        <button class="btn-primary btn-secondary" onclick="nextRound()">後一局</button>
+    </div>
+</div>
+
+<script>
+    // 試算表設定
+    const SHEET_ID = '1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc';
+    const SHEET_NAMES = ['B2L1', 'B2L2', 'B2L3', 'B2L4', 'B4L1', 'B4L2', 'B4L3', 'B4L4'];
+    let vocabData = {};
+    let selectedDeck = 'B2L1';
+
+    // PG(2,4) 的 21 組數學配對公式 (用於 21 人以下的 5詞模式)
+    const blocks_n4 = [
+        [0,1,2,3,4], [0,5,6,7,8], [0,9,10,11,12], [0,13,14,15,16], [0,17,18,19,20],
+        [1,5,9,13,17], [1,6,10,14,18], [1,7,11,15,19], [1,8,12,16,20],
+        [2,5,10,15,20], [2,6,9,16,19], [2,7,12,13,18], [2,8,11,14,17],
+        [3,5,11,16,18], [3,6,12,15,17], [3,7,9,14,20], [3,8,10,13,19],
+        [4,5,12,14,19], [4,6,11,13,20], [4,7,10,16,17], [4,8,9,15,18]
+    ];
+
+    // 網頁載入時立刻去抓取資料
+    window.onload = async () => {
+        initDropdowns();
+        try {
+            const fetchPromises = SHEET_NAMES.map(sheet => {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}`;
+                return fetch(url)
+                    .then(res => res.text())
+                    .then(csv => {
+                        vocabData[sheet] = parseCSV(csv);
+                    });
+            });
+            await Promise.all(fetchPromises);
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('setup-screen').style.display = 'block';
+        } catch(e) {
+            alert("載入資料失敗，請確認網路連線。");
+        }
+    };
+
+    function parseCSV(csv) {
+        let lines = csv.split('\n');
+        let result = [];
+        for(let line of lines) {
+            if(!line.trim()) continue;
+            let row = line.split(',').map(s => s.replace(/^"|"$/g, '').trim());
+            if(row.length >= 2 && row[0] && row[1]) {
+                if (row[0] === '漢字' || row[0].includes('詞彙')) continue;
+                result.push({ hanzi: row[0], romaji: row[1] });
+            }
+        }
+        return result;
+    }
+
+    function initDropdowns() {
+        const maxSeat = document.getElementById('max-seat');
+        const yourSeat = document.getElementById('your-seat');
+        for(let i=10; i<=30; i++) maxSeat.add(new Option(i + ' 號', i));
+        maxSeat.value = '30';
+        for(let i=1; i<=30; i++) yourSeat.add(new Option(i + ' 號', i));
+    }
+
+    function selectDeck(deckName) {
+        selectedDeck = deckName;
+        document.querySelectorAll('.deck-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    // 將字串轉為數字種子
+    function hashCode(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash |= 0; 
+        }
+        return hash;
+    }
+
+    function mulberry32(a) {
+        return function() {
+          var t = a += 0x6D2B79F5;
+          t = Math.imul(t ^ t >>> 15, t | 1);
+          t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+    }
+
+    function shuffle(array, rng) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(rng() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    function dealCards() {
+        const sharedCode = document.getElementById('shared-code').value.trim();
+        const maxSeat = parseInt(document.getElementById('max-seat').value);
+        const yourSeat = parseInt(document.getElementById('your-seat').value);
+
+        if(!sharedCode) return alert("請輸入共同號碼！");
+        if(yourSeat > maxSeat) return alert("你的座號不能大於班上尾號喔！");
+
+        // 產生這局唯一的隨機引擎
+        const seedStr = `${sharedCode}-${selectedDeck}-${maxSeat}`;
+        const rng = mulberry32(hashCode(seedStr));
+
+        let is5WordsMode = maxSeat <= 21;
+        let requiredWords = is5WordsMode ? 21 : 31;
+        
+        let pool = [...vocabData[selectedDeck]];
+        let borrowedDeck = "";
+
+        // 智慧補字系統 (A方案)
+        if (pool.length < requiredWords) {
+            let nextDeckMap = { 'B2L1':'B2L2', 'B2L2':'B2L3', 'B2L3':'B2L4', 'B2L4':'B2L1' };
+            borrowedDeck = nextDeckMap[selectedDeck] || 'B4L1';
+            let borrowPool = shuffle([...vocabData[borrowedDeck]], rng);
+            let needed = requiredWords - pool.length;
+            pool = pool.concat(borrowPool.slice(0, needed));
+        }
+
+        // 打亂單字庫
+        let gameVocab = shuffle(pool, rng).slice(0, requiredWords);
+
+        // 產生卡牌配對陣列
+        let cards = [];
+        if(is5WordsMode) {
+            blocks_n4.forEach(block => {
+                cards.push(block.map(idx => gameVocab[idx]));
+            });
+        } else {
+            // PG(2,5) 31張卡 6個詞
+            let n = 5;
+            let card1 = [];
+            for (let i = 0; i <= n; i++) card1.push(gameVocab[i]);
+            cards.push(card1);
+            for (let j = 0; j < n; j++) {
+                let card = [gameVocab[0]];
+                for (let k = 0; k < n; k++) card.push(gameVocab[n + 1 + n * j + k]);
+                cards.push(card);
+            }
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    let card = [gameVocab[i + 1]];
+                    for (let k = 0; k < n; k++) {
+                        let val = n + 1 + n * k + (i * k + j) % n;
+                        card.push(gameVocab[val]);
+                    }
+                    cards.push(card);
+                }
+            }
+        }
+
+        // 全班洗牌順序一致，然後抽出學生的那張
+        cards = shuffle(cards, rng);
+        let myCard = cards[yourSeat - 1];
+        
+        // 將 A/B (漢字/羅馬字) 分配寫入 (由全班共同 RNG 決定，保證公平轉換)
+        let displayData = myCard.map(word => {
+            return {
+                text: rng() > 0.5 ? word.hanzi : word.romaji,
+                type: rng() > 0.5 ? 'hanzi' : 'romaji'
+            };
+        });
+        
+        // 在自己的畫面上再隨機打亂這 5/6 個字的位置
+        let myScreenRng = mulberry32(Date.now());
+        displayData = shuffle(displayData, myScreenRng);
+
+        renderBoard(displayData, is5WordsMode, sharedCode, maxSeat, yourSeat, borrowedDeck);
+    }
+
+    function renderBoard(displayData, is5WordsMode, sharedCode, maxSeat, yourSeat, borrowedDeck) {
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+
+        document.getElementById('game-status').innerText = `共同碼號：${sharedCode}。班裡尾號：${maxSeat}。你是 ${yourSeat} 號。`;
+
+        const board = document.getElementById('card-board');
+        board.innerHTML = '';
+        board.className = is5WordsMode ? 'card-board layout-5' : 'card-board layout-6';
+
+        if (is5WordsMode) {
+            let rowTop = document.createElement('div'); rowTop.className = 'row-top';
+            let rowBot = document.createElement('div'); rowBot.className = 'row-bottom';
+            displayData.forEach((item, index) => {
+                let tile = `<div class="word-tile"><span class="${item.type}-text">${item.text}</span></div>`;
+                if(index < 3) rowTop.innerHTML += tile;
+                else rowBot.innerHTML += tile;
+            });
+            board.appendChild(rowTop);
+            board.appendChild(rowBot);
+        } else {
+            let row1 = document.createElement('div'); row1.className = 'row';
+            let row2 = document.createElement('div'); row2.className = 'row';
+            displayData.forEach((item, index) => {
+                let tile = `<div class="word-tile"><span class="${item.type}-text">${item.text}</span></div>`;
+                if(index < 3) row1.innerHTML += tile;
+                else row2.innerHTML += tile;
+            });
+            board.appendChild(row1);
+            board.appendChild(row2);
+        }
+
+        const warningMsg = document.getElementById('warning-msg');
+        if (borrowedDeck) {
+            warningMsg.innerText = `⚠️ 這局有摻寡 ${borrowedDeck} 的語詞`;
+        } else {
+            warningMsg.innerText = '';
+        }
+    }
+
+    function nextRound() {
+        document.getElementById('setup-screen').style.display = 'block';
+        document.getElementById('game-screen').style.display = 'none';
+        
+        let codeInput = document.getElementById('shared-code');
+        codeInput.value = '';
+        codeInput.focus();
+    }
+</script>
+</body>
+</html>
