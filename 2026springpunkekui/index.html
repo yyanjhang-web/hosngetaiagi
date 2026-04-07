@@ -323,7 +323,7 @@
             </ol>
         </div>
 
-        <button class="action-btn btn-restart" onclick="location.reload()">🔄 後一局</button>
+        <button class="action-btn btn-restart" onclick="resetForNextRound()">🔄 後一局</button>
     </div>
 
     <div class="footer-text">
@@ -614,6 +614,31 @@
                 `;
             }
             isOrganized = true;
+        }
+
+        // ✨ 新增：不重新整理網頁，只清空號碼與畫面 ✨
+        function resetForNextRound() {
+            // 1. 清空密碼框
+            document.getElementById('room-code').value = '';
+            
+            // 2. 恢復「分牌仔」按鈕的狀態
+            const dealBtn = document.getElementById('deal-btn');
+            dealBtn.disabled = false;
+            dealBtn.innerText = "🎲 分牌仔";
+
+            // 3. 解除教師模式的黑色背景與隱藏樣式
+            document.body.classList.remove('teacher-mode');
+            document.querySelector('.tool-bar').style.display = ''; 
+            document.getElementById('my-hand').style.display = '';  
+            document.getElementById('teacher-view').style.display = 'none';
+            document.getElementById('teacher-view').innerHTML = '';
+
+            // 4. 切換回設定畫面
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('setup-area').style.display = 'block';
+            
+            // 5. 滾動回最上方，讓體驗更好
+            window.scrollTo(0, 0);
         }
     </script>
 </body>
