@@ -9,13 +9,14 @@
             font-family: 'Helvetica Neue', Arial, 'LiHei Pro', sans-serif;
             background-color: #f4f7f6;
             margin: 0;
-            padding: 20px 0;
+            padding: 40px 0; /* 稍微增加上下邊距，讓滾動時有呼吸空間 */
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            /* justify-content: center; ⬅️ 移除了這個強制置中，避免橫向螢幕被切斷 */
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
+            overflow-y: auto; /* ⬅️ 確保螢幕高度不夠時可以上下滾動 */
         }
         #app {
             background: white;
@@ -27,6 +28,7 @@
             text-align: center;
             box-sizing: border-box;
             position: relative;
+            margin: auto; /* ⬅️ 新增這行：在螢幕大時自動置中，螢幕小時允許自然排版滾動 */
         }
         
         h1 { color: #2c3e50; font-size: 2rem; margin-top: 0; margin-bottom: 5px; }
