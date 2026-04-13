@@ -8,16 +8,20 @@
         body {
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            /* 👇 修正 1：改為靠上對齊，避免螢幕太小時頂部被裁切 */
+            justify-content: flex-start; 
             align-items: center;
             min-height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
             font-family: '微軟正黑體', 'Arial', sans-serif;
             text-align: center;
-            padding: 1vmin 2vmin; 
+            /* 👇 修正 2：增加上下留白 (padding)，確保上下都有空間 */
+            padding: 5vh 2vmin 8vh 2vmin; 
             box-sizing: border-box;
-            overflow: hidden;
+            /* 👇 修正 3：允許垂直滑動，隱藏水平滑動 */
+            overflow-x: hidden;
+            overflow-y: auto; 
             transition: background-color 0.1s;
         }
         /* 倒數3秒閃爍效果 */
@@ -51,6 +55,8 @@
             align-items: center;
             gap: 0.5vmin;
             margin-bottom: 2vmin;
+            /* 👇 讓整體區塊在螢幕夠大時自動推至中間 */
+            margin-top: auto; 
         }
         .title-main {
             font-size: 5vmin;
@@ -73,7 +79,7 @@
         /* --- 課文選擇按鈕區塊 (分為兩行) --- */
         .lesson-buttons {
             display: flex;
-            flex-direction: column; /* 讓兩行上下排列 */
+            flex-direction: column; 
             align-items: center;
             gap: 1vmin;
             margin-bottom: 2vmin;
@@ -235,7 +241,6 @@
             word-wrap: break-word;
             word-break: normal;
             hyphens: auto;
-            /* 👇 關鍵修正：確保格子絕對不會被字撐爆，強制遵守 1:1 比例 */
             min-height: 0;
             min-width: 0;
             overflow: hidden;
@@ -270,7 +275,9 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-            margin-top: 1vmin; 
+            margin-top: 2vmin; 
+            /* 👇 讓整體區塊在螢幕夠大時自動推至中間 */
+            margin-bottom: auto; 
         }
 
         .counter-container {
@@ -306,7 +313,7 @@
         button:hover:not(:disabled) { background-color: #0056b3; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
         
-        .rule-text { margin-top: 0.5vmin; font-size: 2vmin; }
+        .rule-text { margin-top: 1.5vmin; font-size: 2vmin; }
         .designer-info { margin-top: 0.5vmin; margin-bottom: 0.5vmin; font-size: 1.5vmin; color: #6c757d; }
     </style>
 </head>
@@ -880,7 +887,6 @@
             }
         }
 
-        // 📝 新增了這段：動態判斷字串長度，自動縮小字體
         function updateCard(cardElement, content) {
             cardElement.innerHTML = '';
             content.forEach(text => {
@@ -889,7 +895,6 @@
                 
                 if (vocabulary[text]) {
                     element.classList.add('hanji');
-                    // 根據漢字的字數調整字體，避免太長超出方塊
                     if (text.length >= 7) {
                         element.style.fontSize = '2.5vmin';
                     } else if (text.length >= 5) {
@@ -899,7 +904,6 @@
                     }
                 } else {
                     element.classList.add('loma');
-                    // 根據羅馬拼音的長度稍微縮小字體
                     if (text.length >= 15) {
                         element.style.fontSize = '2.2vmin';
                     } else if (text.length >= 10) {
