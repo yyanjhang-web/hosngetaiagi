@@ -675,7 +675,7 @@
             }
         }
 
-        function updateModeDisplay() {
+       function updateModeDisplay() {
             competitiveInfo.style.display = isCompetitiveMode ? 'flex' : 'none'; 
             competitiveButtonsRow.style.display = isCompetitiveMode ? 'flex' : 'none';
             normalButtonsRow.style.display = isCompetitiveMode ? 'none' : 'flex';
@@ -696,6 +696,13 @@
 
             changeCardsBtn.style.display = isCompetitiveMode ? 'block' : 'none'; 
             modeToggleBtn.textContent = isCompetitiveMode ? '回到普通模式' : '進入競賽模式';
+            
+            if (isCompetitiveMode) {
+                competitiveButtonsRow.insertBefore(modeToggleBtn, changeCardsBtn);
+            } else {
+                normalButtonsRow.insertBefore(modeToggleBtn, changeCardsBtnNormal);
+            }
+
             ruleTextDisplay.textContent = isCompetitiveMode ? competitiveRuleText : normalRuleText;
         }
 
