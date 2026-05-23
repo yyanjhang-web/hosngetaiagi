@@ -314,7 +314,14 @@
         button:disabled { background-color: #ccc; cursor: not-allowed; }
         
         .rule-text { margin-top: 1.5vmin; font-size: 2vmin; }
-        .designer-info { margin-top: 0.5vmin; margin-bottom: 0.5vmin; font-size: 1.5vmin; color: #6c757d; }
+        .designer-info { 
+            margin-top: 1vmin; 
+            margin-bottom: 1vmin; 
+            font-size: 1.8vmin; /* 稍微調大一點點，在手機上比較清楚 */
+            color: #6c757d; 
+            max-width: 90vw; /* 限制最大寬度為螢幕的 90%，強迫過長的文字自動換行 */
+            line-height: 1.5; /* 增加行高，讓換行後的文字不會擠在一起 */
+        }
     </style>
 </head>
 <body>
