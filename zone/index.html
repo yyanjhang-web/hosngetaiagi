@@ -1,104 +1,93 @@
 <!DOCTYPE html>
-<html lang="zh-Hant-TW">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台語學習小遊戲入口網頁</title>
+    <title>台語學習小遊戲</title>
     <style>
+        /* 基礎排版與背景設定 */
         body {
-            font-family: "Helvetica Neue", Helvetica, Arial, "PingFang TC", "Headline Chieu", "Microsoft JhengHei", sans-serif;
-            background-color: #f9f9f9;
-            color: #333;
+            font-family: "Helvetica Neue", Helvetica, Arial, "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif;
+            background-color: #f7faf7; /* 柔和的淺草綠/灰白背景 */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            color: #555;
         }
 
+        /* 標題設計 */
         h1 {
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-size: 1.8em;
-            text-align: center;
+            color: #7b9e63; /* 清新的抹茶綠色 */
+            margin-bottom: 40px;
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.05);
         }
 
-        .game-container {
+        /* 按鈕容器 */
+        .button-container {
             display: flex;
             flex-direction: column;
             gap: 20px;
-            width: 100%;
+            width: 90%;
             max-width: 400px;
         }
 
-        .game-item {
-            background: #ffffff;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .game-title {
-            font-size: 1.05em;
-            font-weight: bold;
-            color: #4a4a4a;
-        }
-
-        /* 喜愛的按鈕 A1 格式 */
-        .btn-a1 {
-            display: inline-block;
+        /* 按鈕通用樣式 */
+        .game-btn {
+            display: block;
+            text-align: center;
             text-decoration: none;
-            background-color: #e0e0e0;
-            color: #333;
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            font-weight: 500;
-            transition: background-color 0.2s ease;
-            border: none;
-            cursor: pointer;
-            white-space: nowrap;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #666;
+            padding: 18px 20px;
+            border-radius: 50px; /* 圓角設計 */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
 
-        .btn-a1:hover {
-            background-color: #c0c0c0;
+        /* 5個按鈕的個別清新色彩 */
+        .btn-1 { background-color: #ffebeb; } /* 柔和櫻花粉 */
+        .btn-2 { background-color: #fffbea; } /* 柔和奶油黃 */
+        .btn-3 { background-color: #e8f7f7; } /* 柔和冰川青 */
+        .btn-4 { background-color: #eff5ff; } /* 柔和晴空藍 */
+        .btn-5 { background-color: #edfced; } /* 柔和薄荷綠 */
+
+        /* 游標移上去的互動效果 (Hover) */
+        .game-btn:hover {
+            transform: translateY(-4px); /* 輕微上浮 */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08); /* 加深陰影 */
+            color: #444;
         }
+
+        /* 移上去時的邊框顏色變化 */
+        .btn-1:hover { border-color: #ffc4c4; }
+        .btn-2:hover { border-color: #fceb9c; }
+        .btn-3:hover { border-color: #bce8e8; }
+        .btn-4:hover { border-color: #c4daff; }
+        .btn-5:hover { border-color: #b8eab8; }
+
     </style>
 </head>
 <body>
 
-    <h1>台語學習小遊戲入口</h1>
+    <h1>台語學習小遊戲</h1>
 
-    <div class="game-container">
-        <div class="game-item">
-            <span class="game-title">1. 賓果佮字卡</span>
-            <a href="https://yyanjhang-web.github.io/hosngetaiagi/2026springbingo/" class="btn-a1" target="_blank" rel="noopener noreferrer">前往自訂</a>
-        </div>
-
-        <div class="game-item">
-            <span class="game-title">2. dobble式搶答</span>
-            <a href="https://yyanjhang-web.github.io/hosngetaiagi/2026springtshiunn2tap/" class="btn-a1" target="_blank" rel="noopener noreferrer">前往自訂</a>
-        </div>
-
-        <div class="game-item">
-            <span class="game-title">3. 咱來歕雞胿</span>
-            <a href="https://yyanjhang-web.github.io/hosngetaiagi/2026springpunkekui/" class="btn-a1" target="_blank" rel="noopener noreferrer">前往自訂</a>
-        </div>
-
-        <div class="game-item">
-            <span class="game-title">4. 啥人講白賊</span>
-            <a href="https://yyanjhang-web.github.io/hosngetaiagi/siannkongpehtshat/" class="btn-a1" target="_blank" rel="noopener noreferrer">前往自訂</a>
-        </div>
-
-        <div class="game-item">
-            <span class="game-title">5. 卡拉OK</span>
-            <a href="https://yyanjhang-web.github.io/hosngetaiagi/taigikua/" class="btn-a1" target="_blank" rel="noopener noreferrer">前往自訂</a>
-        </div>
+    <div class="button-container">
+        <a href="https://yyanjhang-web.github.io/hosngetaiagi/2026springbingo/" class="game-btn btn-1" target="_blank">1. 賓果佮字卡</a>
+        
+        <a href="https://yyanjhang-web.github.io/hosngetaiagi/2026springtshiunn2tap/" class="game-btn btn-2" target="_blank">2. dobble式搶答</a>
+        
+        <a href="https://yyanjhang-web.github.io/hosngetaiagi/2026springpunkekui/" class="game-btn btn-3" target="_blank">3. 咱來歕雞胿</a>
+        
+        <a href="https://yyanjhang-web.github.io/hosngetaiagi/siannkongpehtshat/" class="game-btn btn-4" target="_blank">4. 啥人講白賊</a>
+        
+        <a href="https://yyanjhang-web.github.io/hosngetaiagi/taigikua/" class="game-btn btn-5" target="_blank">5. 卡拉OK</a>
     </div>
 
 </body>
