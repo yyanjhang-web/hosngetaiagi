@@ -32,7 +32,8 @@
         
         .obstacle { position: absolute; z-index: 1; display: flex; align-items: center; justify-content: center; }
         
-        .text-card { width: 250px; height: 15vh; background: white; border-radius: 10px; font-weight: bold; font-size: clamp(16px, 3vw, 24px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); color: #333; }
+        /* 修正：選項卡片高度設為 33.34vh，填滿螢幕，並加入內邊框區隔 */
+        .text-card { width: 250px; height: 33.34vh; background: white; font-weight: bold; font-size: clamp(16px, 3vw, 24px); box-shadow: inset 0 0 0 2px #ccc; color: #333; box-sizing: border-box; margin: 0; }
         
         .bonus, .rocket { height: 100px; width: 100px; font-size: 70px; }
         
@@ -148,7 +149,6 @@
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
         currentQuestionType = 'normal'; 
 
-        // 每答完 3 題觸發一次「火箭+星星」綜合考驗
         if (questionCount > 0 && questionCount % 3 === 0) currentQuestionType = 'special';
 
         const screenWidth = window.innerWidth;
@@ -156,13 +156,11 @@
 
         if (currentQuestionType === 'special') {
             document.getElementById('question-display').innerText = "躲避火箭！抓星星加秒數！";
-            // 產生 3 波
             for (let col = 0; col < 3; col++) {
-                // 每波有 3 支火箭、1 顆星星，打亂順序
                 let items = ['rocket', 'rocket', 'rocket', 'star'].sort(() => Math.random() - 0.5);
-                // 將畫面分成 4 個高度來放這 4 個物件
                 for (let l = 0; l < 4; l++) {
-                    createEntity(items[l], '', false, screenWidth + (col * 400), (screenHeight / 4) * l + (screenHeight / 8) - 50);
+                    // 修正：將原本的 400 縮短為 250，讓波次之間更緊湊
+                    createEntity(items[l], '', false, screenWidth + (col * 250), (screenHeight / 4) * l + (screenHeight / 8) - 50);
                 }
             }
             return;
@@ -178,7 +176,8 @@
         options.forEach((opt, index) => {
             const isCorrect = (opt === target);
             const text = currentMode === 'hanzi' ? opt.r : opt.h;
-            createEntity('text', text, isCorrect, screenWidth, (screenHeight / 3) * index + (screenHeight/6) - (window.innerHeight * 0.075));
+            // 修正：因為卡片高度已經是 33.34vh，只要從 Y=0 開始疊加即可完美填滿畫面無縫隙
+            createEntity('text', text, isCorrect, screenWidth, (screenHeight / 3) * index);
         });
     }
 
@@ -256,7 +255,7 @@
                 obs.dataset.resolved = 'true';
                 
                 if (obs.dataset.type === 'star') { 
-                    time += 2; score += 10; // 吃到星星加 2 秒
+                    time += 2; score += 10; 
                     obs.style.display = 'none'; 
                     triggerCorrectEffect();
                 }
@@ -266,6 +265,9 @@
                     triggerWrongEffect();
                 }
                 else if (obs.dataset.type === 'text') {
+                    // 修正：當碰到一個選項時，將畫面上「所有的」選項都標記為已判定，防止踩在縫隙上引發雙重判定
+                    document.querySelectorAll('.text-card').forEach(c => c.dataset.resolved = 'true');
+
                     if (obs.dataset.correct === 'true') { 
                         time += 3; score += 10; 
                         triggerCorrectEffect();
@@ -288,12 +290,10 @@
             }
         });
 
-        // 換題判定：普通題目只要吃到任一選項就換題；特殊關卡必須等所有物件都消失
         if (questionResolved && currentQuestionType === 'normal') {
             questionCount++;
             spawnQuestion();
         } else if (currentQuestionType === 'special') {
-            // 確認畫面上已經沒有任何障礙物 (.obstacle) 才換下一題
             if (document.querySelectorAll('.obstacle').length === 0) {
                 questionCount++;
                 spawnQuestion();
