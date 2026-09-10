@@ -4,25 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
     <title>台語跑酷</title>
+    <!-- 引入彩帶特效函式庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; overflow: hidden; background-color: #f0f9ff; touch-action: none; }
         #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; padding: 20px; box-sizing: border-box; }
         .lesson-btn { padding: 10px; margin: 5px; background: #ccc; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
         .lesson-btn.active { background: #20b2aa; color: white; }
         
-        #game-board { display: none; width: 100vw; height: 100vh; position: relative; background: #333; overflow: hidden; }
+        #game-board { display: none; width: 100vw; height: 100vh; position: relative; background: #333; overflow: hidden; box-sizing: border-box; }
+        
+        /* 錯誤閃爍特效 */
+        @keyframes flashRed {
+            0% { box-shadow: inset 0 0 0 0 red; }
+            25% { box-shadow: inset 0 0 40px 20px red; }
+            50% { box-shadow: inset 0 0 0 0 red; }
+            75% { box-shadow: inset 0 0 40px 20px red; }
+            100% { box-shadow: inset 0 0 0 0 red; }
+        }
+        .flash-error { animation: flashRed 0.5s; pointer-events: none; }
         
         #hud { position: absolute; top: 10px; left: 20px; right: 20px; color: white; font-size: 20px; display: flex; justify-content: space-between; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
         #question-display { position: absolute; top: 10px; width: 100%; text-align: center; color: yellow; font-size: 32px; font-weight: bold; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
         
-        /* 加入 transform: scaleX(-1); 讓人物圖示水平鏡像翻轉，面朝右 */
-        #player { position: absolute; left: 80px; width: 60px; height: 60px; top: calc(50vh - 30px); transition: top 0.1s; z-index: 2; text-align: center; line-height: 60px; font-size: 55px; transform: scaleX(-1); }
+        /* 玩家圖示 */
+        #player { position: absolute; width: 60px; height: 60px; z-index: 2; text-align: center; line-height: 60px; font-size: 55px; transform: scaleX(-1); pointer-events: none; }
         
-        .obstacle { position: absolute; z-index: 1; }
+        .obstacle { position: absolute; z-index: 1; display: flex; align-items: center; justify-content: center; }
         
-        .text-card { width: 250px; height: 15vh; background: white; border-radius: 10px; text-align: center; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: clamp(16px, 3vw, 24px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); color: #333; margin-top: 9vh; }
+        .text-card { width: 250px; height: 15vh; background: white; border-radius: 10px; font-weight: bold; font-size: clamp(16px, 3vw, 24px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); color: #333; }
         
-        .bonus, .rocket { height: 33.33vh; width: 100px; display: flex; align-items: center; justify-content: center; font-size: 70px; margin: 0; }
+        .bonus, .rocket { height: 100px; width: 100px; font-size: 70px; }
         
         .star-icon { display: inline-block; animation: pulse 1s infinite; }
         @keyframes pulse {
@@ -30,10 +42,6 @@
             50% { transform: scale(1.3); }
             100% { transform: scale(1); }
         }
-        
-        #touch-up, #touch-down { position: absolute; right: 0; width: 50vw; z-index: 5; opacity: 0; }
-        #touch-up { top: 0; height: 50vh; }
-        #touch-down { bottom: 0; height: 50vh; }
         
         button.start-btn { padding: 15px 30px; font-size: 20px; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer; }
     </style>
@@ -58,13 +66,11 @@
 
 <div id="game-board">
     <div id="hud">
-        <span id="time-display">時間: 40</span>
+        <span id="time-display">時間: 50</span>
         <span id="score-display">分數: 0</span>
     </div>
     <div id="question-display">題目</div>
     <div id="player">🏃</div>
-    <div id="touch-up"></div>
-    <div id="touch-down"></div>
 </div>
 
 <script>
@@ -73,11 +79,17 @@
     let selectedLessons = [];
     let activeCards = [];
     
-    let time = 40, score = 0, speed = 3.0, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
-    let lane = 1; // 0: Top, 1: Middle, 2: Bottom
+    // 遊戲時間調為 50 秒
+    let time = 50, score = 0, speed = 3.5, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
     let gameLoop, itemInterval;
     let currentMode = 'hanzi';
     let currentQuestionType = 'normal';
+
+    // 自由移動變數
+    let playerX = 80;
+    let playerY = 0;
+    let playerSpeed = 7;
+    let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, s: false, a: false, d: false };
 
     const lessonsDiv = document.getElementById('lessons');
     lessons.forEach(l => {
@@ -100,6 +112,11 @@
         document.getElementById('question-display').innerText = "載入中...";
         document.getElementById('game-board').style.display = 'block';
         
+        // 初始角色位置 (畫面垂直置中)
+        playerY = window.innerHeight / 2 - 30;
+        document.getElementById('player').style.left = playerX + 'px';
+        document.getElementById('player').style.top = playerY + 'px';
+
         const fetchPromises = selectedLessons.map(sheet => 
             fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}`).then(res => res.text())
         );
@@ -126,19 +143,19 @@
         if(elapsedTime > 0 && elapsedTime % 20 === 0) {
             speed = Math.min(speed + 0.5, maxSpeed); 
         }
-        
         document.getElementById('time-display').innerText = `時間: ${time}`;
         if(time <= 0) endGame();
     }
 
     function spawnQuestion() {
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
-        currentQuestionType = 'normal'; // 確保狀態重置為 'normal'
+        currentQuestionType = 'normal'; 
 
         if (questionCount > 0 && questionCount % 4 === 0) currentQuestionType = 'rocket';
         else if (questionCount > 0 && questionCount % 2 === 0) currentQuestionType = 'star';
 
         const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
 
         if (currentQuestionType === 'rocket') {
             document.getElementById('question-display').innerText = "躲避火箭！被撞會加速！";
@@ -146,7 +163,7 @@
                 let emptyLane = Math.floor(Math.random() * 3);
                 for (let l = 0; l < 3; l++) {
                     if (l !== emptyLane) {
-                        createEntity('rocket', l, '', false, screenWidth + (col * 400));
+                        createEntity('rocket', '', false, screenWidth + (col * 400), (screenHeight / 3) * l + (screenHeight/6) - 50);
                     }
                 }
             }
@@ -157,7 +174,7 @@
             document.getElementById('question-display').innerText = "抓星星！每顆 +1 秒！";
             for (let col = 0; col < 3; col++) {
                 let starLane = Math.floor(Math.random() * 3);
-                createEntity('star', starLane, '', false, screenWidth + (col * 400));
+                createEntity('star', '', false, screenWidth + (col * 400), (screenHeight / 3) * starLane + (screenHeight/6) - 50);
             }
             return;
         }
@@ -172,11 +189,12 @@
         options.forEach((opt, index) => {
             const isCorrect = (opt === target);
             const text = currentMode === 'hanzi' ? opt.r : opt.h;
-            createEntity('text', index, text, isCorrect, screenWidth);
+            // 讓選項均勻分布在三等分的車道中間
+            createEntity('text', text, isCorrect, screenWidth, (screenHeight / 3) * index + (screenHeight/6) - (window.innerHeight * 0.075));
         });
     }
 
-    function createEntity(type, laneIndex, text = '', isCorrect = false, startX) {
+    function createEntity(type, text = '', isCorrect = false, startX, startY) {
         const el = document.createElement('div');
         el.className = 'obstacle';
         
@@ -191,65 +209,102 @@
             el.innerText = text;
         }
         
-        el.dataset.actualLane = laneIndex; 
         el.dataset.correct = isCorrect;
         el.dataset.type = type;
         el.dataset.x = startX; 
         el.dataset.resolved = 'false'; 
         
-        el.style.top = `${laneIndex * 33.33}vh`;
+        el.style.top = `${startY}px`;
         el.style.left = `${startX}px`;
         
         document.getElementById('game-board').appendChild(el);
     }
 
+    function triggerCorrectEffect() {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    }
+
+    function triggerWrongEffect() {
+        const board = document.getElementById('game-board');
+        board.classList.remove('flash-error');
+        void board.offsetWidth; // 強制重繪以重啟動畫
+        board.classList.add('flash-error');
+    }
+
     function update() {
         if(time <= 0) return;
+
+        // 處理玩家四向移動
+        if (keys.ArrowUp || keys.w || keys.W) playerY -= playerSpeed;
+        if (keys.ArrowDown || keys.s || keys.S) playerY += playerSpeed;
+        if (keys.ArrowLeft || keys.a || keys.A) playerX -= playerSpeed;
+        if (keys.ArrowRight || keys.d || keys.D) playerX += playerSpeed;
+
+        // 限制玩家在畫面範圍內
+        playerX = Math.max(0, Math.min(playerX, window.innerWidth - 60));
+        playerY = Math.max(0, Math.min(playerY, window.innerHeight - 60));
+
+        const playerEl = document.getElementById('player');
+        playerEl.style.left = playerX + 'px';
+        playerEl.style.top = playerY + 'px';
+
+        const pRect = playerEl.getBoundingClientRect();
         const obstacles = document.querySelectorAll('.obstacle');
         let questionResolved = false;
 
         obstacles.forEach(obs => {
             let x = parseFloat(obs.dataset.x) - speed; 
-            let currentLane = parseFloat(obs.dataset.actualLane);
-            
             obs.dataset.x = x;
             obs.style.left = `${x}px`;
+            
+            const oRect = obs.getBoundingClientRect();
 
-            if (x < 140 && x > 50 && obs.dataset.resolved === 'false') {
-                if (Math.round(currentLane) === lane) {
-                    obs.dataset.resolved = 'true';
-                    
-                    if (obs.dataset.type === 'star') { 
-                        time += 1; score += 10; 
-                        obs.style.display = 'none'; 
-                        questionResolved = true;
+            // 精確的邊框碰撞偵測 (AABB) 增加了一點容錯率 (內縮10px)
+            const tolerance = 10;
+            if (
+                pRect.left + tolerance < oRect.right &&
+                pRect.right - tolerance > oRect.left &&
+                pRect.top + tolerance < oRect.bottom &&
+                pRect.bottom - tolerance > oRect.top &&
+                obs.dataset.resolved === 'false'
+            ) {
+                obs.dataset.resolved = 'true';
+                
+                if (obs.dataset.type === 'star') { 
+                    time += 1; score += 10; 
+                    obs.style.display = 'none'; 
+                    triggerCorrectEffect();
+                }
+                else if (obs.dataset.type === 'rocket') { 
+                    speed = Math.min(speed + 0.3, maxSpeed); 
+                    obs.style.opacity = '0.2'; 
+                    triggerWrongEffect();
+                }
+                else if (obs.dataset.type === 'text') {
+                    if (obs.dataset.correct === 'true') { 
+                        time += 3; score += 10; 
+                        triggerCorrectEffect();
+                    } else { 
+                        time -= 2; 
+                        triggerWrongEffect();
                     }
-                    else if (obs.dataset.type === 'rocket') { 
-                        speed = Math.min(speed + 0.3, maxSpeed); 
-                        obs.style.opacity = '0.2'; 
-                    }
-                    else if (obs.dataset.type === 'text') {
-                        if (obs.dataset.correct === 'true') { time += 3; score += 10; }
-                        else { time -= 2; }
-                        questionResolved = true;
-                    }
+                    questionResolved = true;
                 }
             } else if (x < -300) { 
+                // 物件移出畫面
                 if (obs.dataset.resolved === 'false') {
                     obs.dataset.resolved = 'true';
                     if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
-                        time -= 2; 
+                        time -= 2; // 漏接正確答案扣秒
+                        triggerWrongEffect();
                         questionResolved = true;
-                    }
-                    if (obs.dataset.type === 'star') {
-                        questionResolved = true; 
                     }
                 }
                 obs.remove(); 
             }
         });
 
-        // 修正停擺問題：確保這裡比對的變數名稱與 spawnQuestion 中設定的一致 ('normal')
+        // 確保星星與火箭徹底移出或被判定後才進入下一題
         if (questionResolved && currentQuestionType === 'normal') {
             questionCount++;
             spawnQuestion();
@@ -273,19 +328,35 @@
         document.getElementById('final-score').innerText = score;
     }
 
-    function movePlayer(dir) {
-        if (dir === 'up' && lane > 0) lane--;
-        if (dir === 'down' && lane < 2) lane++;
-        document.getElementById('player').style.top = `calc(${lane * 33.33 + 16.66}vh - 30px)`;
-    }
+    // 鍵盤操控綁定
+    window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+    window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
-    window.addEventListener('keydown', e => {
-        if(e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') movePlayer('up');
-        if(e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') movePlayer('down');
-    });
+    // 觸控螢幕拖曳控制 (指尖到哪，人就跟到哪，絕對直覺)
+    const board = document.getElementById('game-board');
+    let isTouching = false;
+    let touchStartX, touchStartY, playerStartX, playerStartY;
 
-    document.getElementById('touch-up').addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer('up'); });
-    document.getElementById('touch-down').addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer('down'); });
+    board.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        isTouching = true;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        playerStartX = playerX;
+        playerStartY = playerY;
+    }, {passive: false});
+
+    board.addEventListener('touchmove', (e) => {
+        if (!isTouching) return;
+        e.preventDefault();
+        let dx = e.touches[0].clientX - touchStartX;
+        let dy = e.touches[0].clientY - touchStartY;
+        // 靈敏度可調，這裡設定為1:1跟隨手指滑動距離
+        playerX = playerStartX + dx * 1.5; 
+        playerY = playerStartY + dy * 1.5;
+    }, {passive: false});
+
+    board.addEventListener('touchend', () => { isTouching = false; });
 </script>
 </body>
 </html>
