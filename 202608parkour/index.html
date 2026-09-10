@@ -79,13 +79,11 @@
     let selectedLessons = [];
     let activeCards = [];
     
-    // 遊戲時間調為 50 秒
     let time = 50, score = 0, speed = 3.5, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
     let gameLoop, itemInterval;
     let currentMode = 'hanzi';
     let currentQuestionType = 'normal';
 
-    // 自由移動變數
     let playerX = 80;
     let playerY = 0;
     let playerSpeed = 7;
@@ -112,7 +110,6 @@
         document.getElementById('question-display').innerText = "載入中...";
         document.getElementById('game-board').style.display = 'block';
         
-        // 初始角色位置 (畫面垂直置中)
         playerY = window.innerHeight / 2 - 30;
         document.getElementById('player').style.left = playerX + 'px';
         document.getElementById('player').style.top = playerY + 'px';
@@ -151,30 +148,22 @@
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
         currentQuestionType = 'normal'; 
 
-        if (questionCount > 0 && questionCount % 4 === 0) currentQuestionType = 'rocket';
-        else if (questionCount > 0 && questionCount % 2 === 0) currentQuestionType = 'star';
+        // 每答完 3 題觸發一次「火箭+星星」綜合考驗
+        if (questionCount > 0 && questionCount % 3 === 0) currentQuestionType = 'special';
 
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
 
-        if (currentQuestionType === 'rocket') {
-            document.getElementById('question-display').innerText = "躲避火箭！被撞會加速！";
+        if (currentQuestionType === 'special') {
+            document.getElementById('question-display').innerText = "躲避火箭！抓星星加秒數！";
+            // 產生 3 波
             for (let col = 0; col < 3; col++) {
-                let emptyLane = Math.floor(Math.random() * 3);
-                for (let l = 0; l < 3; l++) {
-                    if (l !== emptyLane) {
-                        createEntity('rocket', '', false, screenWidth + (col * 400), (screenHeight / 3) * l + (screenHeight/6) - 50);
-                    }
+                // 每波有 3 支火箭、1 顆星星，打亂順序
+                let items = ['rocket', 'rocket', 'rocket', 'star'].sort(() => Math.random() - 0.5);
+                // 將畫面分成 4 個高度來放這 4 個物件
+                for (let l = 0; l < 4; l++) {
+                    createEntity(items[l], '', false, screenWidth + (col * 400), (screenHeight / 4) * l + (screenHeight / 8) - 50);
                 }
-            }
-            return;
-        }
-
-        if (currentQuestionType === 'star') {
-            document.getElementById('question-display').innerText = "抓星星！每顆 +1 秒！";
-            for (let col = 0; col < 3; col++) {
-                let starLane = Math.floor(Math.random() * 3);
-                createEntity('star', '', false, screenWidth + (col * 400), (screenHeight / 3) * starLane + (screenHeight/6) - 50);
             }
             return;
         }
@@ -189,7 +178,6 @@
         options.forEach((opt, index) => {
             const isCorrect = (opt === target);
             const text = currentMode === 'hanzi' ? opt.r : opt.h;
-            // 讓選項均勻分布在三等分的車道中間
             createEntity('text', text, isCorrect, screenWidth, (screenHeight / 3) * index + (screenHeight/6) - (window.innerHeight * 0.075));
         });
     }
@@ -227,20 +215,18 @@
     function triggerWrongEffect() {
         const board = document.getElementById('game-board');
         board.classList.remove('flash-error');
-        void board.offsetWidth; // 強制重繪以重啟動畫
+        void board.offsetWidth; 
         board.classList.add('flash-error');
     }
 
     function update() {
         if(time <= 0) return;
 
-        // 處理玩家四向移動
         if (keys.ArrowUp || keys.w || keys.W) playerY -= playerSpeed;
         if (keys.ArrowDown || keys.s || keys.S) playerY += playerSpeed;
         if (keys.ArrowLeft || keys.a || keys.A) playerX -= playerSpeed;
         if (keys.ArrowRight || keys.d || keys.D) playerX += playerSpeed;
 
-        // 限制玩家在畫面範圍內
         playerX = Math.max(0, Math.min(playerX, window.innerWidth - 60));
         playerY = Math.max(0, Math.min(playerY, window.innerHeight - 60));
 
@@ -258,9 +244,8 @@
             obs.style.left = `${x}px`;
             
             const oRect = obs.getBoundingClientRect();
-
-            // 精確的邊框碰撞偵測 (AABB) 增加了一點容錯率 (內縮10px)
             const tolerance = 10;
+            
             if (
                 pRect.left + tolerance < oRect.right &&
                 pRect.right - tolerance > oRect.left &&
@@ -271,7 +256,7 @@
                 obs.dataset.resolved = 'true';
                 
                 if (obs.dataset.type === 'star') { 
-                    time += 1; score += 10; 
+                    time += 2; score += 10; // 吃到星星加 2 秒
                     obs.style.display = 'none'; 
                     triggerCorrectEffect();
                 }
@@ -291,11 +276,10 @@
                     questionResolved = true;
                 }
             } else if (x < -300) { 
-                // 物件移出畫面
                 if (obs.dataset.resolved === 'false') {
                     obs.dataset.resolved = 'true';
                     if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
-                        time -= 2; // 漏接正確答案扣秒
+                        time -= 2; 
                         triggerWrongEffect();
                         questionResolved = true;
                     }
@@ -304,12 +288,13 @@
             }
         });
 
-        // 確保星星與火箭徹底移出或被判定後才進入下一題
+        // 換題判定：普通題目只要吃到任一選項就換題；特殊關卡必須等所有物件都消失
         if (questionResolved && currentQuestionType === 'normal') {
             questionCount++;
             spawnQuestion();
-        } else if (currentQuestionType === 'rocket' || currentQuestionType === 'star') {
-            if (document.querySelectorAll(`.${currentQuestionType}`).length === 0) {
+        } else if (currentQuestionType === 'special') {
+            // 確認畫面上已經沒有任何障礙物 (.obstacle) 才換下一題
+            if (document.querySelectorAll('.obstacle').length === 0) {
                 questionCount++;
                 spawnQuestion();
             }
@@ -328,11 +313,9 @@
         document.getElementById('final-score').innerText = score;
     }
 
-    // 鍵盤操控綁定
     window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
     window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
-    // 觸控螢幕拖曳控制 (指尖到哪，人就跟到哪，絕對直覺)
     const board = document.getElementById('game-board');
     let isTouching = false;
     let touchStartX, touchStartY, playerStartX, playerStartY;
@@ -351,7 +334,6 @@
         e.preventDefault();
         let dx = e.touches[0].clientX - touchStartX;
         let dy = e.touches[0].clientY - touchStartY;
-        // 靈敏度可調，這裡設定為1:1跟隨手指滑動距離
         playerX = playerStartX + dx * 1.5; 
         playerY = playerStartY + dy * 1.5;
     }, {passive: false});
