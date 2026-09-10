@@ -12,17 +12,14 @@
         
         #game-board { display: none; width: 100vw; height: 100vh; position: relative; background: #333; overflow: hidden; }
         
-        /* 介面文字與題目位置調整 */
         #hud { position: absolute; top: 10px; left: 20px; right: 20px; color: white; font-size: 20px; display: flex; justify-content: space-between; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
         #question-display { position: absolute; top: 10px; width: 100%; text-align: center; color: yellow; font-size: 32px; font-weight: bold; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
         
-        /* 玩家固定在左側 */
-        #player { position: absolute; left: 80px; width: 60px; height: 60px; top: calc(50vh - 30px); transition: top 0.1s; z-index: 2; text-align: center; line-height: 60px; font-size: 55px; }
+        /* 加入 transform: scaleX(-1); 讓人物圖示水平鏡像翻轉，面朝右 */
+        #player { position: absolute; left: 80px; width: 60px; height: 60px; top: calc(50vh - 30px); transition: top 0.1s; z-index: 2; text-align: center; line-height: 60px; font-size: 55px; transform: scaleX(-1); }
         
-        /* 障礙物改由右向左移動 */
         .obstacle { position: absolute; z-index: 1; }
         
-        /* 橫向模式的卡片尺寸微調 */
         .text-card { width: 250px; height: 15vh; background: white; border-radius: 10px; text-align: center; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: clamp(16px, 3vw, 24px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); color: #333; margin-top: 9vh; }
         
         .bonus, .rocket { height: 33.33vh; width: 100px; display: flex; align-items: center; justify-content: center; font-size: 70px; margin: 0; }
@@ -34,7 +31,6 @@
             100% { transform: scale(1); }
         }
         
-        /* 虛擬按鍵移至畫面右半部的上下方 */
         #touch-up, #touch-down { position: absolute; right: 0; width: 50vw; z-index: 5; opacity: 0; }
         #touch-up { top: 0; height: 50vh; }
         #touch-down { bottom: 0; height: 50vh; }
@@ -67,7 +63,6 @@
     </div>
     <div id="question-display">題目</div>
     <div id="player">🏃</div>
-    <!-- 右側上下半部的觸控區 -->
     <div id="touch-up"></div>
     <div id="touch-down"></div>
 </div>
@@ -78,7 +73,6 @@
     let selectedLessons = [];
     let activeCards = [];
     
-    // 橫向畫面通常較寬，基礎速度稍微調高至 3.0，最高速限 8.0
     let time = 40, score = 0, speed = 3.0, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
     let lane = 1; // 0: Top, 1: Middle, 2: Bottom
     let gameLoop, itemInterval;
@@ -139,7 +133,7 @@
 
     function spawnQuestion() {
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
-        currentQuestionType = 'normal';
+        currentQuestionType = 'normal'; // 確保狀態重置為 'normal'
 
         if (questionCount > 0 && questionCount % 4 === 0) currentQuestionType = 'rocket';
         else if (questionCount > 0 && questionCount % 2 === 0) currentQuestionType = 'star';
@@ -161,7 +155,6 @@
 
         if (currentQuestionType === 'star') {
             document.getElementById('question-display').innerText = "抓星星！每顆 +1 秒！";
-            // 星星改成三波，每波隨機出現在一個車道
             for (let col = 0; col < 3; col++) {
                 let starLane = Math.floor(Math.random() * 3);
                 createEntity('star', starLane, '', false, screenWidth + (col * 400));
@@ -204,7 +197,6 @@
         el.dataset.x = startX; 
         el.dataset.resolved = 'false'; 
         
-        // 設定 Y 軸位置 (車道)，並初始化 X 軸位置
         el.style.top = `${laneIndex * 33.33}vh`;
         el.style.left = `${startX}px`;
         
@@ -217,13 +209,12 @@
         let questionResolved = false;
 
         obstacles.forEach(obs => {
-            let x = parseFloat(obs.dataset.x) - speed; // 改為向左扣減
+            let x = parseFloat(obs.dataset.x) - speed; 
             let currentLane = parseFloat(obs.dataset.actualLane);
             
             obs.dataset.x = x;
             obs.style.left = `${x}px`;
 
-            // 橫向碰撞判定區間 (玩家在 left: 80px，寬度 60px)
             if (x < 140 && x > 50 && obs.dataset.resolved === 'false') {
                 if (Math.round(currentLane) === lane) {
                     obs.dataset.resolved = 'true';
@@ -243,7 +234,7 @@
                         questionResolved = true;
                     }
                 }
-            } else if (x < -300) { // 移出畫面左側
+            } else if (x < -300) { 
                 if (obs.dataset.resolved === 'false') {
                     obs.dataset.resolved = 'true';
                     if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
@@ -258,8 +249,8 @@
             }
         });
 
-        // 確保火箭與星星這類「多波次」物件全數移出或判定後，才進入下一題
-        if (questionResolved && currentQuestionType === 'text') {
+        // 修正停擺問題：確保這裡比對的變數名稱與 spawnQuestion 中設定的一致 ('normal')
+        if (questionResolved && currentQuestionType === 'normal') {
             questionCount++;
             spawnQuestion();
         } else if (currentQuestionType === 'rocket' || currentQuestionType === 'star') {
@@ -288,13 +279,11 @@
         document.getElementById('player').style.top = `calc(${lane * 33.33 + 16.66}vh - 30px)`;
     }
 
-    // 支援方向鍵與 W/S 鍵
     window.addEventListener('keydown', e => {
         if(e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') movePlayer('up');
         if(e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') movePlayer('down');
     });
 
-    // 右側螢幕觸控
     document.getElementById('touch-up').addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer('up'); });
     document.getElementById('touch-down').addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer('down'); });
 </script>
