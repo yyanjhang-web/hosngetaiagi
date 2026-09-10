@@ -2,28 +2,31 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
     <title>台語跑酷</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; overflow: hidden; background-color: #f0f9ff; touch-action: none; }
         #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; padding: 20px; box-sizing: border-box; }
         .lesson-btn { padding: 10px; margin: 5px; background: #ccc; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
         .lesson-btn.active { background: #20b2aa; color: white; }
+        
         #game-board { display: none; width: 100vw; height: 100vh; position: relative; background: #333; overflow: hidden; }
-        #hud { position: absolute; top: 10px; left: 10px; right: 10px; color: white; font-size: 20px; display: flex; justify-content: space-between; z-index: 2; text-shadow: 2px 2px 4px #000; }
-        #question-display { position: absolute; top: 50px; width: 100%; text-align: center; color: yellow; font-size: 32px; font-weight: bold; z-index: 2; text-shadow: 2px 2px 4px #000; }
         
-        #player { position: absolute; bottom: 80px; width: 60px; height: 60px; left: calc(50vw - 30px); transition: left 0.1s; z-index: 2; text-align: center; line-height: 60px; font-size: 55px; }
+        /* 介面文字與題目位置調整 */
+        #hud { position: absolute; top: 10px; left: 20px; right: 20px; color: white; font-size: 20px; display: flex; justify-content: space-between; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
+        #question-display { position: absolute; top: 10px; width: 100%; text-align: center; color: yellow; font-size: 32px; font-weight: bold; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
         
+        /* 玩家固定在左側 */
+        #player { position: absolute; left: 80px; width: 60px; height: 60px; top: calc(50vh - 30px); transition: top 0.1s; z-index: 2; text-align: center; line-height: 60px; font-size: 55px; }
+        
+        /* 障礙物改由右向左移動 */
         .obstacle { position: absolute; z-index: 1; }
         
-        /* 一般題目卡片 */
-        .text-card { width: 30vw; height: 60px; background: white; border-radius: 10px; text-align: center; line-height: 60px; font-weight: bold; font-size: clamp(16px, 4vw, 24px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-left: 1.66vw; color: #333; }
+        /* 橫向模式的卡片尺寸微調 */
+        .text-card { width: 250px; height: 15vh; background: white; border-radius: 10px; text-align: center; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: clamp(16px, 3vw, 24px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); color: #333; margin-top: 9vh; }
         
-        /* 星星與火箭容器，滿版寬度以確保置中 */
-        .bonus, .rocket { width: 33.33vw; text-align: center; font-size: 70px; line-height: 80px; margin: 0; }
+        .bonus, .rocket { height: 33.33vh; width: 100px; display: flex; align-items: center; justify-content: center; font-size: 70px; margin: 0; }
         
-        /* 星星跳動特效 */
         .star-icon { display: inline-block; animation: pulse 1s infinite; }
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -31,8 +34,11 @@
             100% { transform: scale(1); }
         }
         
-        #touch-left, #touch-right { position: absolute; bottom: 0; width: 50%; height: 100vh; z-index: 5; }
-        #touch-left { left: 0; } #touch-right { right: 0; }
+        /* 虛擬按鍵移至畫面右半部的上下方 */
+        #touch-up, #touch-down { position: absolute; right: 0; width: 50vw; z-index: 5; opacity: 0; }
+        #touch-up { top: 0; height: 50vh; }
+        #touch-down { bottom: 0; height: 50vh; }
+        
         button.start-btn { padding: 15px 30px; font-size: 20px; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
@@ -61,19 +67,20 @@
     </div>
     <div id="question-display">題目</div>
     <div id="player">🏃</div>
-    <div id="touch-left"></div>
-    <div id="touch-right"></div>
+    <!-- 右側上下半部的觸控區 -->
+    <div id="touch-up"></div>
+    <div id="touch-down"></div>
 </div>
 
 <script>
-    const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc"; //[cite: 1]
-    const lessons = ["B2L1", "B2L2", "B2L3", "B2L4", "B4L1", "B4L2", "B4L3", "B4L4"]; //[cite: 1]
+    const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
+    const lessons = ["B2L1", "B2L2", "B2L3", "B2L4", "B4L1", "B4L2", "B4L3", "B4L4"];
     let selectedLessons = [];
-    let activeCards = []; //[cite: 1]
+    let activeCards = [];
     
-    // 修正：初始速度更慢(2.0)，並加入最高速限(6.0)防止無法遊玩
-    let time = 40, score = 0, speed = 2.0, maxSpeed = 6.0, elapsedTime = 0, questionCount = 0;
-    let lane = 1; // 0: Left, 1: Center, 2: Right
+    // 橫向畫面通常較寬，基礎速度稍微調高至 3.0，最高速限 8.0
+    let time = 40, score = 0, speed = 3.0, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
+    let lane = 1; // 0: Top, 1: Middle, 2: Bottom
     let gameLoop, itemInterval;
     let currentMode = 'hanzi';
     let currentQuestionType = 'normal';
@@ -122,9 +129,8 @@
     function timerTick() {
         time--;
         elapsedTime++;
-        // 修正：改為漸進式微幅加速，且不超過最高速限
         if(elapsedTime > 0 && elapsedTime % 20 === 0) {
-            speed = Math.min(speed + 0.3, maxSpeed); 
+            speed = Math.min(speed + 0.5, maxSpeed); 
         }
         
         document.getElementById('time-display').innerText = `時間: ${time}`;
@@ -138,14 +144,15 @@
         if (questionCount > 0 && questionCount % 4 === 0) currentQuestionType = 'rocket';
         else if (questionCount > 0 && questionCount % 2 === 0) currentQuestionType = 'star';
 
+        const screenWidth = window.innerWidth;
+
         if (currentQuestionType === 'rocket') {
             document.getElementById('question-display').innerText = "躲避火箭！被撞會加速！";
-            // 修正：一次產生 3 排火箭，每一排隨機留 1 個空位讓玩家躲
-            for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 3; col++) {
                 let emptyLane = Math.floor(Math.random() * 3);
                 for (let l = 0; l < 3; l++) {
                     if (l !== emptyLane) {
-                        createEntity('rocket', l, '', false, -100 - (row * 350)); // 350px 垂直間距
+                        createEntity('rocket', l, '', false, screenWidth + (col * 400));
                     }
                 }
             }
@@ -153,12 +160,15 @@
         }
 
         if (currentQuestionType === 'star') {
-            document.getElementById('question-display').innerText = "抓星星加 3 秒！";
-            createEntity('star', Math.floor(Math.random() * 3), '', false, -100);
+            document.getElementById('question-display').innerText = "抓星星！每顆 +1 秒！";
+            // 星星改成三波，每波隨機出現在一個車道
+            for (let col = 0; col < 3; col++) {
+                let starLane = Math.floor(Math.random() * 3);
+                createEntity('star', starLane, '', false, screenWidth + (col * 400));
+            }
             return;
         }
 
-        // 一般題目
         const deck = [...activeCards].sort(() => Math.random() - 0.5);
         const target = deck[0];
         const wrongs = deck.slice(1, 3);
@@ -169,18 +179,17 @@
         options.forEach((opt, index) => {
             const isCorrect = (opt === target);
             const text = currentMode === 'hanzi' ? opt.r : opt.h;
-            createEntity('text', index, text, isCorrect, -100);
+            createEntity('text', index, text, isCorrect, screenWidth);
         });
     }
 
-    // 新增 startY 參數控制初始高度
-    function createEntity(type, laneIndex, text = '', isCorrect = false, startY = -100) {
+    function createEntity(type, laneIndex, text = '', isCorrect = false, startX) {
         const el = document.createElement('div');
         el.className = 'obstacle';
         
         if(type === 'star') { 
             el.classList.add('bonus'); 
-            el.innerHTML = '<span class="star-icon">⭐</span>'; // 套用跳動特效
+            el.innerHTML = '<span class="star-icon">⭐</span>';
         } else if(type === 'rocket') { 
             el.classList.add('rocket'); 
             el.innerText = "🚀"; 
@@ -192,11 +201,12 @@
         el.dataset.actualLane = laneIndex; 
         el.dataset.correct = isCorrect;
         el.dataset.type = type;
-        el.dataset.y = startY; // 設定初始高度
-        el.dataset.resolved = 'false'; // 追蹤是否已經判定過
+        el.dataset.x = startX; 
+        el.dataset.resolved = 'false'; 
         
-        el.style.left = `${laneIndex * 33.33}vw`;
-        el.style.top = `${startY}px`;
+        // 設定 Y 軸位置 (車道)，並初始化 X 軸位置
+        el.style.top = `${laneIndex * 33.33}vh`;
+        el.style.left = `${startX}px`;
         
         document.getElementById('game-board').appendChild(el);
     }
@@ -204,29 +214,28 @@
     function update() {
         if(time <= 0) return;
         const obstacles = document.querySelectorAll('.obstacle');
-        const boardHeight = window.innerHeight;
         let questionResolved = false;
 
         obstacles.forEach(obs => {
-            let y = parseFloat(obs.dataset.y) + speed;
+            let x = parseFloat(obs.dataset.x) - speed; // 改為向左扣減
             let currentLane = parseFloat(obs.dataset.actualLane);
             
-            obs.dataset.y = y;
-            obs.style.top = `${y}px`;
+            obs.dataset.x = x;
+            obs.style.left = `${x}px`;
 
-            // 碰撞判定區間
-            if (y > boardHeight - 140 && y < boardHeight - 80 && obs.dataset.resolved === 'false') {
+            // 橫向碰撞判定區間 (玩家在 left: 80px，寬度 60px)
+            if (x < 140 && x > 50 && obs.dataset.resolved === 'false') {
                 if (Math.round(currentLane) === lane) {
                     obs.dataset.resolved = 'true';
                     
                     if (obs.dataset.type === 'star') { 
-                        time += 3; score += 10; 
-                        obs.style.display = 'none'; // 吃到星星消失
+                        time += 1; score += 10; 
+                        obs.style.display = 'none'; 
                         questionResolved = true;
                     }
                     else if (obs.dataset.type === 'rocket') { 
-                        speed = Math.min(speed + 0.3, maxSpeed); // 撞到火箭加速
-                        obs.style.opacity = '0.2'; // 半透明表示撞毀
+                        speed = Math.min(speed + 0.3, maxSpeed); 
+                        obs.style.opacity = '0.2'; 
                     }
                     else if (obs.dataset.type === 'text') {
                         if (obs.dataset.correct === 'true') { time += 3; score += 10; }
@@ -234,31 +243,27 @@
                         questionResolved = true;
                     }
                 }
-            } else if (y > boardHeight) {
-                // 掉出畫面外
+            } else if (x < -300) { // 移出畫面左側
                 if (obs.dataset.resolved === 'false') {
                     obs.dataset.resolved = 'true';
-                    // 漏接正確答案扣秒
                     if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
                         time -= 2; 
                         questionResolved = true;
                     }
-                    // 漏接星星直接換題
                     if (obs.dataset.type === 'star') {
                         questionResolved = true; 
                     }
                 }
-                obs.remove(); // 移出 DOM 節省資源
+                obs.remove(); 
             }
         });
 
-        // 決定是否進入下一題
-        if (questionResolved && currentQuestionType !== 'rocket') {
+        // 確保火箭與星星這類「多波次」物件全數移出或判定後，才進入下一題
+        if (questionResolved && currentQuestionType === 'text') {
             questionCount++;
             spawnQuestion();
-        } else if (currentQuestionType === 'rocket') {
-            // 火箭模式下，必須等「所有火箭」都移出畫面才算結束
-            if (document.querySelectorAll('.rocket').length === 0) {
+        } else if (currentQuestionType === 'rocket' || currentQuestionType === 'star') {
+            if (document.querySelectorAll(`.${currentQuestionType}`).length === 0) {
                 questionCount++;
                 spawnQuestion();
             }
@@ -278,18 +283,20 @@
     }
 
     function movePlayer(dir) {
-        if (dir === 'left' && lane > 0) lane--;
-        if (dir === 'right' && lane < 2) lane++;
-        document.getElementById('player').style.left = `calc(${lane * 33.33 + 16.66}vw - 30px)`;
+        if (dir === 'up' && lane > 0) lane--;
+        if (dir === 'down' && lane < 2) lane++;
+        document.getElementById('player').style.top = `calc(${lane * 33.33 + 16.66}vh - 30px)`;
     }
 
+    // 支援方向鍵與 W/S 鍵
     window.addEventListener('keydown', e => {
-        if(e.key === 'ArrowLeft') movePlayer('left');
-        if(e.key === 'ArrowRight') movePlayer('right');
+        if(e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') movePlayer('up');
+        if(e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') movePlayer('down');
     });
 
-    document.getElementById('touch-left').addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer('left'); });
-    document.getElementById('touch-right').addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer('right'); });
+    // 右側螢幕觸控
+    document.getElementById('touch-up').addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer('up'); });
+    document.getElementById('touch-down').addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer('down'); });
 </script>
 </body>
 </html>
