@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>台語跑酷</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; overflow: hidden; background-color: #f0f9ff; touch-action: none; }
+        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; padding: 20px; box-sizing: border-box; }
+        .lesson-btn { padding: 10px; margin: 5px; background: #ccc; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        .lesson-btn.active { background: #20b2aa; color: white; }
+        #game-board { display: none; width: 100vw; height: 100vh; position: relative; background: #333; overflow: hidden; }
+        #hud { position: absolute; top: 10px; left: 10px; right: 10px; color: white; font-size: 20px; display: flex; justify-content: space-between; z-index: 2; text-shadow: 2px 2px 4px #000; }
+        #question-display { position: absolute; top: 50px; width: 100%; text-align: center; color: yellow; font-size: 32px; font-weight: bold; z-index: 2; text-shadow: 2px 2px 4px #000; }
+        #player { position: absolute; bottom: 80px; width: 60px; height: 60px; background: #4caf50; border-radius: 50%; left: calc(50% - 30px); transition: left 0.1s; z-index: 2; text-align: center; line-height: 60px; color: white; font-weight: bold;}
+        .obstacle { position: absolute; width: 30%; height: 50px; background: white; border-radius: 10px; text-align: center; line-height: 50px; font-weight: bold; font-size: 18px; top: -50px; z-index: 1; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .bonus { background: gold; color: black; border-radius: 50%; width: 50px; }
+        .rocket { background: #ff5252; color: white; border-radius: 25px; }
+        #touch-left, #touch-right { position: absolute; bottom: 0; width: 50%; height: 100vh; z-index: 5; }
+        #touch-left { left: 0; } #touch-right { right: 0; }
+        button.start-btn { padding: 15px 30px; font-size: 20px; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div id="menu">
+    <h2>台語跑酷</h2>
+    <div id="lessons"></div>
+    <div style="margin: 20px 0;">
+        <label><input type="radio" name="mode" value="hanzi" checked> 看漢字選發音</label>
+        <label><input type="radio" name="mode" value="roma"> 看發音選漢字</label>
+    </div>
+    <button class="start-btn" onclick="startGame()">開始遊戲</button>
+</div>
+
+<div id="game-over" style="display: none;">
+    <h2>時間到！</h2>
+    <p>總分：<span id="final-score">0</span></p>
+    <button class="start-btn" onclick="location.reload()">回主選單</button>
+</div>
+
+<div id="game-board">
+    <div id="hud">
+        <span id="time-display">時間: 40</span>
+        <span id="score-display">分數: 0</span>
+    </div>
+    <div id="question-display">題目</div>
+    <div id="player">我</div>
+    <div id="touch-left"></div>
+    <div id="touch-right"></div>
+</div>
+
+<script>
+    const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc"; //[cite: 1]
+    const lessons = ["B2L2", "B2L3", "B2L4", "B4L1", "B4L2"]; //[cite: 1]
+    let selectedLessons = [];
+    let activeCards = []; //[cite: 1]
+    
+    let time = 40, score = 0, speed = 4, elapsedTime = 0, questionCount = 0;
+    let lane = 1; // 0: Left, 1: Center, 2: Right
+    let gameLoop, itemInterval;
+    let currentMode = 'hanzi';
+    let currentItem = null; 
+    let isBonusRound = false;
+
+    // 選單初始化
+    const lessonsDiv = document.getElementById('lessons');
+    lessons.forEach(l => {
+        const btn = document.createElement('button');
+        btn.className = 'lesson-btn';
+        btn.innerText = l;
+        btn.onclick = () => {
+            btn.classList.toggle('active');
+            if(selectedLessons.includes(l)) selectedLessons = selectedLessons.filter(x => x !== l);
+            else selectedLessons.push(l);
+        };
+        lessonsDiv.appendChild(btn);
+    });
+
+    async function startGame() {
+        if(selectedLessons.length === 0) return alert("請至少選擇一課！");
+        currentMode = document.querySelector('input[name="mode"]:checked').value;
+        document.getElementById('menu').style.display = 'none';
+        
+        // 讀取資料[cite: 1]
+        document.getElementById('question-display').innerText = "載入中...";
+        document.getElementById('game-board').style.display = 'block';
+        
+        const fetchPromises = selectedLessons.map(sheet => 
+            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}`).then(res => res.text())
+        ); //[cite: 1]
+
+        const results = await Promise.all(fetchPromises);
+        activeCards = []; //[cite: 1]
+        results.forEach(text => {
+            text.split(/\r?\n/).forEach(l => {
+                const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
+                if(p.length >= 2) activeCards.push({ h: p[0].trim(), r: p[1].trim() }); //[cite: 1]
+            });
+        });
+
+        if(activeCards.length < 3) return alert("詞庫不足，請多選幾課！");
+        
+        spawnQuestion();
+        gameLoop = requestAnimationFrame(update);
+        itemInterval = setInterval(timerTick, 1000);
+    }
+
+    function timerTick() {
+        time--;
+        elapsedTime++;
+        if(elapsedTime === 40) speed *= 1.5;
+        if(elapsedTime > 40 && (elapsedTime - 40) % 20 === 0) speed *= 1.2;
+        
+        document.getElementById('time-display').innerText = `時間: ${time}`;
+        if(time <= 0) endGame();
+    }
+
+    function spawnQuestion() {
+        document.querySelectorAll('.obstacle').forEach(e => e.remove());
+        isBonusRound = false;
+        let type = 'normal';
+
+        if (questionCount > 0 && questionCount % 4 === 0) type = 'rocket';
+        else if (questionCount > 0 && questionCount % 2 === 0) type = 'star';
+
+        if (type !== 'normal') {
+            isBonusRound = true;
+            document.getElementById('question-display').innerText = type === 'rocket' ? "吃火箭加速！" : "抓星星加秒！";
+            createEntity(type, Math.floor(Math.random() * 3));
+            return;
+        }
+
+        // 一般題目
+        const deck = [...activeCards].sort(() => Math.random() - 0.5); //[cite: 1]
+        const target = deck[0];
+        const wrongs = deck.slice(1, 3);
+        
+        document.getElementById('question-display').innerText = currentMode === 'hanzi' ? target.h : target.r;
+        
+        let options = [target, wrongs[0], wrongs[1]].sort(() => Math.random() - 0.5);
+        options.forEach((opt, index) => {
+            const isCorrect = (opt === target);
+            const text = currentMode === 'hanzi' ? opt.r : opt.h;
+            createEntity('text', index, text, isCorrect);
+        });
+    }
+
+    function createEntity(type, laneIndex, text = '', isCorrect = false) {
+        const el = document.createElement('div');
+        el.className = 'obstacle';
+        if(type === 'star') { el.classList.add('bonus'); el.innerText = "⭐"; }
+        if(type === 'rocket') { el.classList.add('rocket'); el.innerText = "🚀"; }
+        if(type === 'text') el.innerText = text;
+        
+        el.dataset.lane = laneIndex;
+        el.dataset.correct = isCorrect;
+        el.dataset.type = type;
+        el.dataset.y = -50;
+        
+        const laneWidth = window.innerWidth / 3;
+        el.style.left = `${laneIndex * laneWidth + (laneWidth * 0.1)}px`;
+        
+        document.getElementById('game-board').appendChild(el);
+    }
+
+    function update() {
+        if(time <= 0) return;
+        const obstacles = document.querySelectorAll('.obstacle');
+        const boardHeight = window.innerHeight;
+        let questionResolved = false;
+
+        obstacles.forEach(obs => {
+            let y = parseFloat(obs.dataset.y) + speed;
+            
+            // 星星左右飄移特效
+            if(obs.dataset.type === 'star') {
+                let currentLane = parseFloat(obs.dataset.lane);
+                currentLane += Math.sin(y / 50) * 0.05; 
+                const laneWidth = window.innerWidth / 3;
+                obs.style.left = `${Math.min(2, Math.max(0, currentLane)) * laneWidth + (laneWidth * 0.1)}px`;
+            }
+
+            obs.dataset.y = y;
+            obs.style.top = `${y}px`;
+
+            // 碰撞判定 (假人高度大約在 boardHeight - 140 到 boardHeight - 80)
+            if (y > boardHeight - 140 && y < boardHeight - 80) {
+                if (Math.round(parseFloat(obs.dataset.lane)) === lane) {
+                    if (obs.dataset.type === 'star') { time += 3; score += 10; }
+                    else if (obs.dataset.type === 'rocket') { speed *= 1.2; score += 20; }
+                    else if (obs.dataset.correct === 'true') { time += 3; score += 10; }
+                    else { time -= 2; }
+                    
+                    questionCount++;
+                    questionResolved = true;
+                }
+            } else if (y > boardHeight) {
+                if(!isBonusRound && obs.dataset.correct === 'true') {
+                    time -= 2; // 漏接正確答案扣分
+                }
+                if (obs.dataset.correct === 'true' || isBonusRound) {
+                    questionCount++;
+                    questionResolved = true;
+                }
+            }
+        });
+
+        if(questionResolved) spawnQuestion();
+        
+        document.getElementById('score-display').innerText = `分數: ${score}`;
+        document.getElementById('time-display').innerText = `時間: ${time}`;
+        gameLoop = requestAnimationFrame(update);
+    }
+
+    function endGame() {
+        cancelAnimationFrame(gameLoop);
+        clearInterval(itemInterval);
+        document.getElementById('game-board').style.display = 'none';
+        document.getElementById('game-over').style.display = 'flex';
+        document.getElementById('final-score').innerText = score;
+    }
+
+    // 控制操作
+    function movePlayer(dir) {
+        if (dir === 'left' && lane > 0) lane--;
+        if (dir === 'right' && lane < 2) lane++;
+        const laneWidth = window.innerWidth / 3;
+        document.getElementById('player').style.left = `${lane * laneWidth + (laneWidth / 2) - 30}px`;
+    }
+
+    window.addEventListener('keydown', e => {
+        if(e.key === 'ArrowLeft') movePlayer('left');
+        if(e.key === 'ArrowRight') movePlayer('right');
+    });
+
+    document.getElementById('touch-left').addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer('left'); });
+    document.getElementById('touch-right').addEventListener('touchstart', (e) => { e.preventDefault(); movePlayer('right'); });
+</script>
+</body>
+</html>
