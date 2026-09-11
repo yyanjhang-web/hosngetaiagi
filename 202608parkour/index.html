@@ -62,7 +62,8 @@
 
 <div id="game-over" style="display: none;">
     <h2>時間到！</h2>
-    <p>總分：<span id="final-score">0</span></p>
+    <p style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">總分：<span id="final-score">0</span></p>
+    <h3 id="score-comment" style="color: #d97706; font-size: 32px; margin-top: 0; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);"></h3>
     <button class="start-btn" onclick="location.reload()">回主選單</button>
 </div>
 
@@ -331,7 +332,20 @@
         clearInterval(itemInterval);
         document.getElementById('game-board').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
+        
+        // 結算分數與評語
         document.getElementById('final-score').innerText = score;
+        let comment = "";
+        if (score >= 280) {
+            comment = "真gâu";
+        } else if (score >= 200) {
+            comment = "袂bái";
+        } else if (score >= 120) {
+            comment = "有讀冊--ooh";
+        } else {
+            comment = "繼續phah piànn";
+        }
+        document.getElementById('score-comment').innerText = comment;
     }
 
     window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
