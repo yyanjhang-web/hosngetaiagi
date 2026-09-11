@@ -163,8 +163,9 @@
     }
 
     function spawnQuestion() {
+        // 關鍵修正：只刪除「尚未被判定」的選項。已經被判定(變暗/黃框)的卡片留著讓它們自然飄出畫面
         document.querySelectorAll('.obstacle').forEach(e => {
-            if (e.dataset.type === 'text' || e.dataset.resolved === 'false') {
+            if (e.dataset.resolved === 'false') {
                 e.remove(); 
             }
         });
@@ -286,7 +287,6 @@
                 let gId = obs.dataset.groupId;
                 let groupItems = document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`);
                 
-                // 將同組物件全標為已解決
                 groupItems.forEach(c => c.dataset.resolved = 'true');
                 
                 if (obs.dataset.type === 'star') { 
@@ -309,30 +309,32 @@
                     if (obs.dataset.correct === 'true') { 
                         time += 1; score += 10; 
                         triggerCorrectEffect();
-                        // 答對：正確選項變暗，其餘選項消失
                         groupItems.forEach(c => {
                             if (c === obs) {
+                                // 答對：正確選項變暗
                                 c.style.opacity = '0.4';
                             } else {
-                                c.remove();
+                                c.remove(); // 其餘選項消失
                             }
                         });
                     } else { 
                         time -= 2; 
                         speed = Math.min(speed + 0.3, maxSpeed); 
                         triggerWrongEffect();
-                        // 答錯：保留正確選項並加黃框，其餘選項消失
                         groupItems.forEach(c => {
                             if (c.dataset.correct === 'true') {
-                                c.style.boxShadow = 'inset 0 0 0 10px #ffeb3b';
+                                // 答錯：保留正確選項並加顯眼的黃框
+                                c.style.boxShadow = 'inset 0 0 0 10px #ffc107, 0 4px 8px rgba(0,0,0,0.3)';
+                                c.style.zIndex = '10'; // 確保正確答案不會被擋住
                             } else {
-                                c.remove();
+                                c.remove(); // 其餘選項消失 (包含選錯的那個)
                             }
                         });
                     }
                     questionResolved = true;
                 }
-            } else if (x < -150) { 
+            } else if (x < -250) { 
+                // 修改邊界：讓選項確實離開畫面左側(-250為卡片寬度)再回收
                 if (obs.dataset.resolved === 'false') {
                     let gId = obs.dataset.groupId;
                     let groupItems = document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`);
