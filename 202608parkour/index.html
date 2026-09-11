@@ -36,7 +36,7 @@
         .text-card { width: 250px; height: 33.34vh; background: white; font-weight: bold; font-size: clamp(16px, 3vw, 24px); box-shadow: inset 0 0 0 2px #ccc; color: #333; box-sizing: border-box; margin: 0; }
         
         /* 火箭與星星 */
-        .bonus, .rocket { height: 16.67vh; width: 120px; font-size: min(10vh, 70px); box-sizing: border-box; margin: 0; }
+        .bonus, .rocket { height: 16.67vh; width: 120px; font-size: min(10vh, 70px); box-sizing: border-box; margin: 0; transition: opacity 0.2s; }
         
         .star-icon { display: inline-block; animation: pulse 1s infinite; }
         @keyframes pulse {
@@ -74,11 +74,13 @@
     </div>
     <div id="question-display">題目</div>
     <div id="player">🛸</div>
+    
+    <!-- 閃電加速特效的覆蓋層 -->
+    <div id="lightning-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center; font-size: 200px; z-index: 99; pointer-events: none; background: rgba(255, 255, 200, 0.7);">⚡</div>
 </div>
 
 <script>
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
-    // 更新為新的工作表名稱與按鈕
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一"];
     let selectedLessons = [];
     let activeCards = [];
@@ -93,7 +95,6 @@
     let playerSpeed = 7;
     let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, s: false, a: false, d: false };
 
-    // 洗牌演算法
     function shuffleArray(array) {
         let currentIndex = array.length, randomIndex;
         while (currentIndex !== 0) {
@@ -162,9 +163,14 @@
     }
 
     function spawnQuestion() {
-        document.querySelectorAll('.obstacle').forEach(e => e.remove());
+        // 為了達到無縫銜接：遇到換題時，只刪除舊的文字選項，保留變暗漂移的星星火箭
+        document.querySelectorAll('.obstacle').forEach(e => {
+            if (e.dataset.type === 'text' || e.dataset.resolved === 'false') {
+                e.remove(); 
+            }
+        });
+        
         currentQuestionType = 'normal'; 
-
         if (questionCount > 0 && questionCount % 3 === 0) currentQuestionType = 'special';
 
         const screenWidth = window.innerWidth;
@@ -238,6 +244,13 @@
         board.classList.add('flash-error');
     }
 
+    // 新增閃電加速特效
+    function triggerLightningEffect() {
+        const overlay = document.getElementById('lightning-overlay');
+        overlay.style.display = 'flex';
+        setTimeout(() => { overlay.style.display = 'none'; }, 150);
+    }
+
     function update() {
         if(time <= 0) return;
 
@@ -273,17 +286,25 @@
                 obs.dataset.resolved === 'false'
             ) {
                 let gId = obs.dataset.groupId;
-                document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`).forEach(c => c.dataset.resolved = 'true');
+                
+                // 將同組(同一波)的物件全標為已解決
+                document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`).forEach(c => {
+                    c.dataset.resolved = 'true';
+                    // 除了吃到的那一個變暗保留之外，該波其餘的全部刪除
+                    if (c !== obs && (c.dataset.type === 'star' || c.dataset.type === 'rocket')) {
+                        c.remove();
+                    }
+                });
                 
                 if (obs.dataset.type === 'star') { 
                     time += 2; score += 10; 
-                    obs.style.display = 'none'; 
+                    obs.style.opacity = '0.2'; // 吃到的星星變暗不消失
                     triggerCorrectEffect();
                 }
                 else if (obs.dataset.type === 'rocket') { 
                     speed = Math.min(speed + 0.3, maxSpeed); 
-                    obs.style.opacity = '0.2'; 
-                    triggerWrongEffect();
+                    obs.style.opacity = '0.2'; // 吃到的火箭變暗
+                    triggerLightningEffect(); // 取代紅光，改放閃電特效
                 }
                 else if (obs.dataset.type === 'text') {
                     if (obs.dataset.correct === 'true') { 
@@ -296,7 +317,8 @@
                     }
                     questionResolved = true;
                 }
-            } else if (x < -300) { 
+            } else if (x < -150) { 
+                // 移出畫面的距離從 -300 改為 -150，加速換題效率
                 if (obs.dataset.resolved === 'false') {
                     let gId = obs.dataset.groupId;
                     let groupItems = document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`);
@@ -313,13 +335,14 @@
             }
         });
 
+        // 緊湊的換題判斷：只要畫面上沒有「尚未判定(resolved='false')」的物件，就立刻生下一題
         if (questionResolved && currentQuestionType === 'normal') {
             questionCount++;
             spawnQuestion();
         } else if (currentQuestionType === 'special') {
-            if (document.querySelectorAll('.obstacle').length === 0) {
+            if (document.querySelectorAll('.obstacle[data-resolved="false"]').length === 0) {
                 questionCount++;
-                spawnQuestion();
+                spawnQuestion(); // 無縫銜接！
             }
         }
         
@@ -334,7 +357,6 @@
         document.getElementById('game-board').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
         
-        // 結算分數與評語
         document.getElementById('final-score').innerText = score;
         let comment = "";
         if (score >= 280) {
