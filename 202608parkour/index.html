@@ -27,7 +27,7 @@
         #hud { position: absolute; top: 10px; left: 20px; right: 20px; color: white; font-size: 20px; display: flex; justify-content: space-between; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
         #question-display { position: absolute; top: 10px; width: 100%; text-align: center; color: yellow; font-size: 32px; font-weight: bold; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
         
-        /* 玩家圖示 (UFO) - 已加回 scaleX(-1) 讓飛碟面朝右 */
+        /* 玩家圖示 (UFO) */
         #player { position: absolute; width: 60px; height: 60px; z-index: 2; text-align: center; line-height: 60px; font-size: 55px; pointer-events: none; transform: scaleX(-1); }
         
         .obstacle { position: absolute; z-index: 1; display: flex; align-items: center; justify-content: center; }
@@ -68,7 +68,7 @@
 
 <div id="game-board">
     <div id="hud">
-        <span id="time-display">時間: 50</span>
+        <span id="time-display">時間: 45</span>
         <span id="score-display">分數: 0</span>
     </div>
     <div id="question-display">題目</div>
@@ -81,7 +81,7 @@
     let selectedLessons = [];
     let activeCards = [];
     
-    let time = 50, score = 0, speed = 3.5, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
+    let time = 45, score = 0, speed = 3.5, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
     let gameLoop, itemInterval;
     let currentMode = 'hanzi';
     let currentQuestionType = 'normal';
@@ -285,7 +285,7 @@
                 }
                 else if (obs.dataset.type === 'text') {
                     if (obs.dataset.correct === 'true') { 
-                        time += 1; score += 10; // 答對加秒改為 +1 秒
+                        time += 1; score += 10; 
                         triggerCorrectEffect();
                     } else { 
                         time -= 2; 
