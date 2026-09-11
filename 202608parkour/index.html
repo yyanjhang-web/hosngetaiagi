@@ -14,7 +14,7 @@
         
         #game-board { display: none; width: 100vw; height: 100vh; position: relative; background: #333; overflow: hidden; box-sizing: border-box; }
         
-        /* 錯誤閃爍特效 */
+        /* 錯誤閃爍特效 (已移除 pointer-events: none，解決手機無法觸控問題) */
         @keyframes flashRed {
             0% { box-shadow: inset 0 0 0 0 red; }
             25% { box-shadow: inset 0 0 40px 20px red; }
@@ -22,20 +22,21 @@
             75% { box-shadow: inset 0 0 40px 20px red; }
             100% { box-shadow: inset 0 0 0 0 red; }
         }
-        .flash-error { animation: flashRed 0.5s; pointer-events: none; }
+        .flash-error { animation: flashRed 0.5s; }
         
         #hud { position: absolute; top: 10px; left: 20px; right: 20px; color: white; font-size: 20px; display: flex; justify-content: space-between; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
         #question-display { position: absolute; top: 10px; width: 100%; text-align: center; color: yellow; font-size: 32px; font-weight: bold; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
         
-        /* 玩家圖示 */
-        #player { position: absolute; width: 60px; height: 60px; z-index: 2; text-align: center; line-height: 60px; font-size: 55px; transform: scaleX(-1); pointer-events: none; }
+        /* 玩家圖示 (UFO) */
+        #player { position: absolute; width: 60px; height: 60px; z-index: 2; text-align: center; line-height: 60px; font-size: 55px; pointer-events: none; }
         
         .obstacle { position: absolute; z-index: 1; display: flex; align-items: center; justify-content: center; }
         
-        /* 修正：選項卡片高度設為 33.34vh，填滿螢幕，並加入內邊框區隔 */
+        /* 一般選項卡片 (填滿 1/3 螢幕高度) */
         .text-card { width: 250px; height: 33.34vh; background: white; font-weight: bold; font-size: clamp(16px, 3vw, 24px); box-shadow: inset 0 0 0 2px #ccc; color: #333; box-sizing: border-box; margin: 0; }
         
-        .bonus, .rocket { height: 100px; width: 100px; font-size: 70px; }
+        /* 火箭與星星 (填滿 1/6 螢幕高度，確保無縫隙) */
+        .bonus, .rocket { height: 16.67vh; width: 120px; font-size: min(10vh, 70px); box-sizing: border-box; margin: 0; }
         
         .star-icon { display: inline-block; animation: pulse 1s infinite; }
         @keyframes pulse {
@@ -71,7 +72,7 @@
         <span id="score-display">分數: 0</span>
     </div>
     <div id="question-display">題目</div>
-    <div id="player">🏃</div>
+    <div id="player">🛸</div>
 </div>
 
 <script>
@@ -89,6 +90,17 @@
     let playerY = 0;
     let playerSpeed = 7;
     let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, s: false, a: false, d: false };
+
+    // 嚴謹的洗牌演算法 (解決隨機性不足導致沒有正確答案的問題)
+    function shuffleArray(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
 
     const lessonsDiv = document.getElementById('lessons');
     lessons.forEach(l => {
@@ -124,7 +136,10 @@
         results.forEach(text => {
             text.split(/\r?\n/).forEach(l => {
                 const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
-                if(p.length >= 2) activeCards.push({ h: p[0].trim(), r: p[1].trim() });
+                // 過濾掉空白資料，避免沒有正確答案的卡牌出現
+                if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
+                    activeCards.push({ h: p[0].trim(), r: p[1].trim() });
+                }
             });
         });
 
@@ -157,31 +172,36 @@
         if (currentQuestionType === 'special') {
             document.getElementById('question-display').innerText = "躲避火箭！抓星星加秒數！";
             for (let col = 0; col < 3; col++) {
-                let items = ['rocket', 'rocket', 'rocket', 'star'].sort(() => Math.random() - 0.5);
-                for (let l = 0; l < 4; l++) {
-                    // 修正：將原本的 400 縮短為 250，讓波次之間更緊湊
-                    createEntity(items[l], '', false, screenWidth + (col * 250), (screenHeight / 4) * l + (screenHeight / 8) - 50);
+                // 每波 5 個火箭、1 個星星，保證填滿 6 個高度等分
+                let items = ['rocket', 'rocket', 'rocket', 'rocket', 'rocket', 'star'];
+                shuffleArray(items);
+                let waveId = 'special_' + Date.now() + '_' + col;
+                
+                for (let l = 0; l < 6; l++) {
+                    createEntity(items[l], '', false, screenWidth + (col * 250), (screenHeight / 6) * l, waveId);
                 }
             }
             return;
         }
 
-        const deck = [...activeCards].sort(() => Math.random() - 0.5);
+        let deck = shuffleArray([...activeCards]);
         const target = deck[0];
         const wrongs = deck.slice(1, 3);
         
         document.getElementById('question-display').innerText = currentMode === 'hanzi' ? target.h : target.r;
         
-        let options = [target, wrongs[0], wrongs[1]].sort(() => Math.random() - 0.5);
+        let options = shuffleArray([target, wrongs[0], wrongs[1]]);
+        let waveId = 'text_' + Date.now();
+        
         options.forEach((opt, index) => {
             const isCorrect = (opt === target);
             const text = currentMode === 'hanzi' ? opt.r : opt.h;
-            // 修正：因為卡片高度已經是 33.34vh，只要從 Y=0 開始疊加即可完美填滿畫面無縫隙
-            createEntity('text', text, isCorrect, screenWidth, (screenHeight / 3) * index);
+            createEntity('text', text, isCorrect, screenWidth, (screenHeight / 3) * index, waveId);
         });
     }
 
-    function createEntity(type, text = '', isCorrect = false, startX, startY) {
+    // 加入 groupId 以處理整排連動判定，防止踩在縫隙時重複扣分
+    function createEntity(type, text = '', isCorrect = false, startX, startY, groupId = '0') {
         const el = document.createElement('div');
         el.className = 'obstacle';
         
@@ -200,6 +220,7 @@
         el.dataset.type = type;
         el.dataset.x = startX; 
         el.dataset.resolved = 'false'; 
+        el.dataset.groupId = groupId;
         
         el.style.top = `${startY}px`;
         el.style.left = `${startX}px`;
@@ -252,7 +273,9 @@
                 pRect.bottom - tolerance > oRect.top &&
                 obs.dataset.resolved === 'false'
             ) {
-                obs.dataset.resolved = 'true';
+                // 將同一排的所有物件標記為已判定，防止雙重碰撞
+                let gId = obs.dataset.groupId;
+                document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`).forEach(c => c.dataset.resolved = 'true');
                 
                 if (obs.dataset.type === 'star') { 
                     time += 2; score += 10; 
@@ -260,28 +283,30 @@
                     triggerCorrectEffect();
                 }
                 else if (obs.dataset.type === 'rocket') { 
-                    speed = Math.min(speed + 0.3, maxSpeed); 
+                    speed = Math.min(speed + 0.3, maxSpeed); // 撞擊火箭加速
                     obs.style.opacity = '0.2'; 
                     triggerWrongEffect();
                 }
                 else if (obs.dataset.type === 'text') {
-                    // 修正：當碰到一個選項時，將畫面上「所有的」選項都標記為已判定，防止踩在縫隙上引發雙重判定
-                    document.querySelectorAll('.text-card').forEach(c => c.dataset.resolved = 'true');
-
                     if (obs.dataset.correct === 'true') { 
                         time += 3; score += 10; 
                         triggerCorrectEffect();
                     } else { 
                         time -= 2; 
+                        speed = Math.min(speed + 0.3, maxSpeed); // 答錯不僅扣秒，還會加速
                         triggerWrongEffect();
                     }
                     questionResolved = true;
                 }
             } else if (x < -300) { 
                 if (obs.dataset.resolved === 'false') {
-                    obs.dataset.resolved = 'true';
-                    if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
+                    let gId = obs.dataset.groupId;
+                    let groupItems = document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`);
+                    groupItems.forEach(c => c.dataset.resolved = 'true');
+
+                    if (obs.dataset.type === 'text') {
                         time -= 2; 
+                        speed = Math.min(speed + 0.3, maxSpeed); // 漏接題目視同答錯，並加速
                         triggerWrongEffect();
                         questionResolved = true;
                     }
