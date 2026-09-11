@@ -68,7 +68,7 @@
 
 <div id="game-board">
     <div id="hud">
-        <span id="time-display">時間: 45</span>
+        <span id="time-display">時間: 50</span>
         <span id="score-display">分數: 0</span>
     </div>
     <div id="question-display">題目</div>
@@ -81,7 +81,7 @@
     let selectedLessons = [];
     let activeCards = [];
     
-    let time = 45, score = 0, speed = 3.5, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
+    let time = 50, score = 0, speed = 3.5, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
     let gameLoop, itemInterval;
     let currentMode = 'hanzi';
     let currentQuestionType = 'normal';
@@ -169,7 +169,7 @@
         const screenHeight = window.innerHeight;
 
         if (currentQuestionType === 'special') {
-            document.getElementById('question-display').innerText = "躲避火箭！抓星星加秒數！";
+            document.getElementById('question-display').innerText = "火箭加速  星星加秒"; // 更新為您要求的文字
             for (let col = 0; col < 3; col++) {
                 let items = ['rocket', 'rocket', 'rocket', 'rocket', 'rocket', 'star'];
                 shuffleArray(items);
