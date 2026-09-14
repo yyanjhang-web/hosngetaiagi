@@ -280,7 +280,8 @@
     <script>
         // 設定區
         const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc"; 
-        const lessons = ["B2L1", "B2L2", "B2L3", "B2L4", "B4L1", "B4L2", "B4L3", "B4L4"];
+        // ★ 修改：更新為新的 8 個工作表名稱按鈕
+        const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一"];
 
         // 狀態變數
         let activeCards = [];
@@ -289,7 +290,7 @@
         let flashcardDeck = [];
         let flashcardIndex = 0;
         let selectedLessons = [];
-        let isReverse = false; // ★ 新增：追蹤是否開啟反向翻牌
+        let isReverse = false;
 
         const container = document.getElementById('game-container');
         const lessonContainer = document.getElementById('lesson-buttons');
@@ -307,10 +308,8 @@
             });
         }
 
-        // ★ 新增：切換反向翻牌功能 ★
         function toggleReverse() {
             isReverse = document.getElementById('reverse-toggle').checked;
-            // 若目前已有詞庫載入，則直接刷新畫面以套用新設定
             if (activeCards.length > 0) {
                 if (isFlashcard) {
                     renderFlashcard();
@@ -336,7 +335,6 @@
         async function fetchAndCombineLessons() {
             if (selectedLessons.length === 0) {
                 activeCards = [];
-                // ★ 修改：未選取時顯示台語提示 ★
                 container.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding: 20px; font-size: 1.2em;">上無愛選一个課</p>';
                 flashcardControls.style.display = 'none';
                 return;
@@ -344,7 +342,8 @@
 
             try {
                 const fetchPromises = selectedLessons.map(sheetName => {
-                    const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+                    // 對工作表名稱進行 encodeURI 處理，確保中文名稱（如「防災素一」）讀取正常
+                    const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
                     return fetch(queryUrl).then(res => res.text());
                 });
 
@@ -356,7 +355,6 @@
                     const cards = lines.map(l => {
                         let cleanLine = l.replace(/"/g, ''); 
                         const p = cleanLine.replace(/，/g, ',').split(',');
-                        // p[0] (h) 為 A 欄，p[1] (r) 為 B 欄
                         return p.length >= 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
                     }).filter(c => c !== null && c.h !== "" && c.r !== "");
                     
@@ -387,7 +385,6 @@
             container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
             
             if (activeCards.length === 0) {
-                // 若沒有卡片，執行一次檢查顯示提示
                 fetchAndCombineLessons();
                 return;
             }
@@ -404,9 +401,6 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 
-                // ★ 根據反向開關決定正反面內容 ★
-                // 預設 (isReverse = false): Front = B欄 (r), Back = A欄 (h)
-                // 反向 (isReverse = true): Front = A欄 (h), Back = B欄 (r)
                 let frontText = isReverse ? data.h : data.r;
                 let backText = isReverse ? data.r : data.h;
 
@@ -457,7 +451,6 @@
             const card = document.createElement('div');
             card.className = 'card flashcard';
             
-            // ★ 根據反向開關決定正反面內容 ★
             let frontText = isReverse ? data.h : data.r;
             let backText = isReverse ? data.r : data.h;
 
@@ -504,7 +497,6 @@
 
         window.onload = () => { 
             initLessonButtons();
-            // ★ 修改：移除了自動載入第一課的功能，現在一開始會觸發空白檢查，顯示「上無愛選一个課」
             fetchAndCombineLessons();
         };
     </script>
