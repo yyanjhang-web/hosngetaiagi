@@ -14,7 +14,7 @@
         
         #game-board { display: none; width: 100vw; height: 100vh; position: relative; background: #333; overflow: hidden; box-sizing: border-box; }
         
-        /* 錯誤閃爍特效 */
+        /* 錯誤閃爍特效 (紅) */
         @keyframes flashRed {
             0% { box-shadow: inset 0 0 0 0 red; }
             25% { box-shadow: inset 0 0 40px 20px red; }
@@ -23,6 +23,16 @@
             100% { box-shadow: inset 0 0 0 0 red; }
         }
         .flash-error { animation: flashRed 0.5s; }
+
+        /* 加速閃爍特效 (藍/青色) */
+        @keyframes flashSpeed {
+            0% { box-shadow: inset 0 0 0 0 #00e5ff; }
+            25% { box-shadow: inset 0 0 40px 20px #00e5ff; }
+            50% { box-shadow: inset 0 0 0 0 #00e5ff; }
+            75% { box-shadow: inset 0 0 40px 20px #00e5ff; }
+            100% { box-shadow: inset 0 0 0 0 #00e5ff; }
+        }
+        .flash-speed-up { animation: flashSpeed 0.5s; }
         
         #hud { position: absolute; top: 10px; left: 20px; right: 20px; color: white; font-size: 20px; display: flex; justify-content: space-between; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
         #question-display { position: absolute; top: 10px; width: 100%; text-align: center; color: yellow; font-size: 32px; font-weight: bold; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
@@ -69,7 +79,7 @@
 
 <div id="game-board">
     <div id="hud">
-        <span id="time-display">時間: 40</span>
+        <span id="time-display">時間: 30</span>
         <span id="score-display">分數: 0</span>
     </div>
     <div id="question-display">題目</div>
@@ -82,7 +92,8 @@
     let selectedLessons = [];
     let activeCards = [];
     
-    let time = 40, score = 0, speed = 3.5, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
+    // 初始時間更改為 30 秒
+    let time = 30, score = 0, speed = 3.5, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
     let gameLoop, itemInterval;
     let currentMode = 'hanzi';
     let currentQuestionType = 'normal';
@@ -152,8 +163,10 @@
     function timerTick() {
         time--;
         elapsedTime++;
-        if(elapsedTime > 0 && elapsedTime % 20 === 0) {
+        // 每 10 秒自然加速一次，並觸發加速閃爍特效
+        if(elapsedTime > 0 && elapsedTime % 10 === 0) {
             speed = Math.min(speed + 0.5, maxSpeed); 
+            triggerSpeedUpEffect();
         }
         document.getElementById('time-display').innerText = `時間: ${time}`;
         if(time <= 0) endGame();
@@ -236,8 +249,17 @@
     function triggerWrongEffect() {
         const board = document.getElementById('game-board');
         board.classList.remove('flash-error');
+        board.classList.remove('flash-speed-up'); // 清除其他特效避免衝突
         void board.offsetWidth; 
         board.classList.add('flash-error');
+    }
+
+    function triggerSpeedUpEffect() {
+        const board = document.getElementById('game-board');
+        board.classList.remove('flash-speed-up');
+        board.classList.remove('flash-error'); // 清除其他特效避免衝突
+        void board.offsetWidth; 
+        board.classList.add('flash-speed-up');
     }
 
     function update() {
@@ -290,6 +312,7 @@
                 else if (obs.dataset.type === 'rocket') { 
                     speed = Math.min(speed + 0.3, maxSpeed); 
                     obs.style.opacity = '0.2'; 
+                    triggerSpeedUpEffect(); // 吃到火箭觸發加速閃爍邊框
                     groupItems.forEach(c => {
                         if (c !== obs && (c.dataset.type === 'star' || c.dataset.type === 'rocket')) c.remove();
                     });
