@@ -74,9 +74,6 @@
     </div>
     <div id="question-display">題目</div>
     <div id="player">🛸</div>
-    
-    <!-- 閃電加速特效的覆蓋層 -->
-    <div id="lightning-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center; font-size: 200px; z-index: 99; pointer-events: none; background: rgba(255, 255, 200, 0.7);">⚡</div>
 </div>
 
 <script>
@@ -163,7 +160,6 @@
     }
 
     function spawnQuestion() {
-        // 關鍵修正：只刪除「尚未被判定」的選項。已經被判定(變暗/黃框)的卡片留著讓它們自然飄出畫面
         document.querySelectorAll('.obstacle').forEach(e => {
             if (e.dataset.resolved === 'false') {
                 e.remove(); 
@@ -244,12 +240,6 @@
         board.classList.add('flash-error');
     }
 
-    function triggerLightningEffect() {
-        const overlay = document.getElementById('lightning-overlay');
-        overlay.style.display = 'flex';
-        setTimeout(() => { overlay.style.display = 'none'; }, 150);
-    }
-
     function update() {
         if(time <= 0) return;
 
@@ -300,7 +290,6 @@
                 else if (obs.dataset.type === 'rocket') { 
                     speed = Math.min(speed + 0.3, maxSpeed); 
                     obs.style.opacity = '0.2'; 
-                    triggerLightningEffect();
                     groupItems.forEach(c => {
                         if (c !== obs && (c.dataset.type === 'star' || c.dataset.type === 'rocket')) c.remove();
                     });
@@ -311,10 +300,9 @@
                         triggerCorrectEffect();
                         groupItems.forEach(c => {
                             if (c === obs) {
-                                // 答對：正確選項變暗
                                 c.style.opacity = '0.4';
                             } else {
-                                c.remove(); // 其餘選項消失
+                                c.remove(); 
                             }
                         });
                     } else { 
@@ -323,18 +311,17 @@
                         triggerWrongEffect();
                         groupItems.forEach(c => {
                             if (c.dataset.correct === 'true') {
-                                // 答錯：保留正確選項並加顯眼的黃框
                                 c.style.boxShadow = 'inset 0 0 0 10px #ffc107, 0 4px 8px rgba(0,0,0,0.3)';
-                                c.style.zIndex = '10'; // 確保正確答案不會被擋住
+                                c.style.opacity = '0.4';
+                                c.style.zIndex = '10'; 
                             } else {
-                                c.remove(); // 其餘選項消失 (包含選錯的那個)
+                                c.remove(); 
                             }
                         });
                     }
                     questionResolved = true;
                 }
             } else if (x < -250) { 
-                // 修改邊界：讓選項確實離開畫面左側(-250為卡片寬度)再回收
                 if (obs.dataset.resolved === 'false') {
                     let gId = obs.dataset.groupId;
                     let groupItems = document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`);
