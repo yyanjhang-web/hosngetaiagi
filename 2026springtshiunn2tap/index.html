@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>下學期各課搶答</title>
+    <title>上學期各課搶答</title>
     <style>
         body {
             display: flex;
             flex-direction: column;
-            /* 👇 修正 1：改為靠上對齊，避免螢幕太小時頂部被裁切 */
             justify-content: flex-start; 
             align-items: center;
             min-height: 100vh;
@@ -16,10 +15,8 @@
             background-color: #f0f0f0;
             font-family: '微軟正黑體', 'Arial', sans-serif;
             text-align: center;
-            /* 👇 修正 2：增加上下留白 (padding)，確保上下都有空間 */
             padding: 5vh 2vmin 8vh 2vmin; 
             box-sizing: border-box;
-            /* 👇 修正 3：允許垂直滑動，隱藏水平滑動 */
             overflow-x: hidden;
             overflow-y: auto; 
             transition: background-color 0.1s;
@@ -55,7 +52,6 @@
             align-items: center;
             gap: 0.5vmin;
             margin-bottom: 2vmin;
-            /* 👇 讓整體區塊在螢幕夠大時自動推至中間 */
             margin-top: auto; 
         }
         .title-main {
@@ -276,7 +272,6 @@
             justify-content: center;
             width: 100%;
             margin-top: 2vmin; 
-            /* 👇 讓整體區塊在螢幕夠大時自動推至中間 */
             margin-bottom: auto; 
         }
 
@@ -317,10 +312,10 @@
         .designer-info { 
             margin-top: 1vmin; 
             margin-bottom: 1vmin; 
-            font-size: 1.8vmin; /* 稍微調大一點點，在手機上比較清楚 */
+            font-size: 1.8vmin; 
             color: #6c757d; 
-            max-width: 90vw; /* 限制最大寬度為螢幕的 90%，強迫過長的文字自動換行 */
-            line-height: 1.5; /* 增加行高，讓換行後的文字不會擠在一起 */
+            max-width: 90vw; 
+            line-height: 1.5; 
         }
     </style>
 </head>
@@ -331,18 +326,19 @@
         <div class="title-hint">💡 課程可複選</div>
     </div>
 
+    <!-- 👇 已經將按鈕更新為 B1L1~B1L4, B3L1~B3L3, 防災素一 -->
     <div class="lesson-buttons" id="lessonButtons">
         <div class="lesson-row">
-            <button class="lesson-btn" onclick="toggleLesson('B2L1', this)">B2L1</button>
-            <button class="lesson-btn" onclick="toggleLesson('B2L2', this)">B2L2</button>
-            <button class="lesson-btn" onclick="toggleLesson('B2L3', this)">B2L3</button>
-            <button class="lesson-btn" onclick="toggleLesson('B2L4', this)">B2L4</button>
+            <button class="lesson-btn" onclick="toggleLesson('B1L1', this)">B1L1</button>
+            <button class="lesson-btn" onclick="toggleLesson('B1L2', this)">B1L2</button>
+            <button class="lesson-btn" onclick="toggleLesson('B1L3', this)">B1L3</button>
+            <button class="lesson-btn" onclick="toggleLesson('B1L4', this)">B1L4</button>
         </div>
         <div class="lesson-row">
-            <button class="lesson-btn" onclick="toggleLesson('B4L1', this)">B4L1</button>
-            <button class="lesson-btn" onclick="toggleLesson('B4L2', this)">B4L2</button>
-            <button class="lesson-btn" onclick="toggleLesson('B4L3', this)">B4L3</button>
-            <button class="lesson-btn" onclick="toggleLesson('B4L4', this)">B4L4</button>
+            <button class="lesson-btn" onclick="toggleLesson('B3L1', this)">B3L1</button>
+            <button class="lesson-btn" onclick="toggleLesson('B3L2', this)">B3L2</button>
+            <button class="lesson-btn" onclick="toggleLesson('B3L3', this)">B3L3</button>
+            <button class="lesson-btn" onclick="toggleLesson('防災素一', this)">防災素一</button>
         </div>
     </div>
 
@@ -396,7 +392,8 @@
         let allHanji = [];
         let allLoma = [];
         
-        let selectedLessons = new Set(['B2L1']);
+        // 👇 預設載入已更改為 B1L1
+        let selectedLessons = new Set(['B1L1']);
 
         function toggleLesson(sheetName, buttonElement) {
             if (selectedLessons.has(sheetName)) {
