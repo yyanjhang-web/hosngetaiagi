@@ -9,10 +9,8 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 0; overflow: hidden; background-color: #f0f9ff; touch-action: none; }
         
-        /* 加入 overflow-y: auto 確保手機橫向時若畫面不夠高，可以上下滑動看到版權與計數器 */
         #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         
-        /* 調整選單內容區域置中，並留出版權區的空間 */
         .menu-content { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; margin-bottom: 20px; }
         
         .lesson-btn { padding: 10px; margin: 5px; background: #ccc; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
@@ -82,7 +80,6 @@
         <button class="start-btn" onclick="startGame()">開始遊戲</button>
     </div>
     
-    <!-- 頁尾版權聲明與計數器 (主選單) -->
     <div class="footer">
         <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
         <p style="font-size: 0.85em; color: #777; margin-top: 5px;">
@@ -106,7 +103,6 @@
         <button class="start-btn" onclick="location.reload()">回主選單</button>
     </div>
     
-    <!-- 頁尾版權聲明與計數器 (結算畫面) -->
     <div class="footer">
         <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
         <p style="font-size: 0.85em; color: #777; margin-top: 5px;">
@@ -305,8 +301,33 @@
         board.classList.add('flash-speed-up');
     }
 
+    function handleGamepad() {
+        const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+        if (!gamepads) return;
+        const gp = gamepads[0];
+        if (!gp) return;
+
+        const deadzone = 0.2; 
+        
+        if (gp.axes[0] < -deadzone || (gp.buttons[14] && gp.buttons[14].pressed)) {
+            playerX -= playerSpeed;
+        }
+        if (gp.axes[0] > deadzone || (gp.buttons[15] && gp.buttons[15].pressed)) {
+            playerX += playerSpeed;
+        }
+        
+        if (gp.axes[1] < -deadzone || (gp.buttons[12] && gp.buttons[12].pressed)) {
+            playerY -= playerSpeed;
+        }
+        if (gp.axes[1] > deadzone || (gp.buttons[13] && gp.buttons[13].pressed)) {
+            playerY += playerSpeed;
+        }
+    }
+
     function update() {
         if(time <= 0) return;
+
+        handleGamepad();
 
         if (keys.ArrowUp || keys.w || keys.W) playerY -= playerSpeed;
         if (keys.ArrowDown || keys.s || keys.S) playerY += playerSpeed;
@@ -427,7 +448,6 @@
         
         document.getElementById('final-score').innerText = score;
         
-        // 更新評語級距
         let comment = "";
         if (score >= 400) {
             comment = "真gâu";
