@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         /* 背景全黑，作為橫向螢幕時左右的填縫色 */
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; user-select: none; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
         
         /* 遊戲核心容器 */
         #app-container { position: relative; width: 100vw; height: 100vh; background-color: #222; overflow: hidden; display: flex; flex-direction: column; }
@@ -26,9 +26,9 @@
         .lesson-btn.active { background: #20b2aa; color: white; }
         
         /* 遊戲畫布完全貼合容器 */
-        #game-canvas { display: none; width: 100%; height: 100%; background: #222; }
+        #game-canvas { display: none; width: 100%; height: 100%; background: #222; touch-action: none; }
         
-        button.start-btn { padding: 15px 30px; font-size: 20px; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer; }
+        button.start-btn { padding: 15px 30px; font-size: 20px; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 15px; cursor: pointer; }
         
         /* 頁尾版權與計數器樣式設定 */
         .footer { text-align: center; padding-top: 15px; border-top: 1px solid #ccc; width: 100%; max-width: 600px; color: #444; }
@@ -37,6 +37,14 @@
 
         /* 受傷紅屏特效覆蓋層 */
         #damage-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 60px 30px red; pointer-events: none; z-index: 5; }
+
+        /* 觸控虛擬按鍵 UI */
+        #touch-controls { display: none; position: absolute; bottom: 20px; left: 0; width: 100%; justify-content: space-between; padding: 0 15px; box-sizing: border-box; z-index: 8; pointer-events: none; }
+        .touch-group { display: flex; gap: 10px; }
+        .touch-btn { pointer-events: auto; background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.5); color: white; font-size: 24px; font-weight: bold; width: 65px; height: 65px; border-radius: 50%; display: flex; justify-content: center; align-items: center; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+        .touch-btn:active { background: rgba(255, 255, 255, 0.5); }
+        #btn-shoot { width: 80px; border-radius: 20px; font-size: 20px; background: rgba(255, 87, 34, 0.4); border-color: rgba(255, 87, 34, 0.8); }
+        #btn-shoot:active { background: rgba(255, 87, 34, 0.8); }
     </style>
 </head>
 <body>
@@ -46,15 +54,19 @@
         <div class="menu-content">
             <h2 style="margin-top: 0;">台語狙擊手</h2>
             <div id="lessons"></div>
-            <div style="margin: 15px 0;">
+            
+            <div style="margin: 10px 0; padding: 10px; background: #d0e8f2; border-radius: 10px;">
+                <p style="margin: 0 0 5px 0; font-weight: bold;">出題模式</p>
                 <label><input type="radio" name="mode" value="hanzi" checked> 看漢字選發音</label>
-                <label><input type="radio" name="mode" value="roma"> 看發音選漢字</label>
+                <label style="margin-left: 10px;"><input type="radio" name="mode" value="roma"> 看發音選漢字</label>
             </div>
-            <p style="color:#666; font-size:14px; line-height: 1.6;">
-                <b>操作方式：</b><br>
-                🎮 手把：左搖桿移動 / 右搖桿瞄準 / A 鍵射擊<br>
-                ⌨️ 鍵盤：A、D 或 方向鍵 移動 / 滑鼠瞄準與左鍵射擊
-            </p>
+
+            <div style="margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 10px;">
+                <p style="margin: 0 0 5px 0; font-weight: bold;">操作裝置</p>
+                <label><input type="radio" name="ctrl" value="keyboard" checked> ⌨️ 鍵盤 / 🎮 手把</label>
+                <label style="margin-left: 10px;"><input type="radio" name="ctrl" value="touch"> 📱 平板 / 觸控螢幕</label>
+            </div>
+            
             <button class="start-btn" onclick="startGame()">開始遊戲</button>
         </div>
         
@@ -97,6 +109,18 @@
     </div>
 
     <canvas id="game-canvas"></canvas>
+    
+    <!-- 虛擬按鍵 UI (僅觸控模式顯示) -->
+    <div id="touch-controls">
+        <div class="touch-group">
+            <div class="touch-btn" id="btn-left">◀</div>
+            <div class="touch-btn" id="btn-right">▶</div>
+        </div>
+        <div class="touch-group">
+            <div class="touch-btn" id="btn-shoot">射擊</div>
+        </div>
+    </div>
+
     <div id="damage-overlay"></div>
 </div>
 
@@ -114,6 +138,7 @@
     let elapsedTime = 0;
     let gameLoop, secondInterval;
     let currentMode = 'hanzi';
+    let controlMode = 'keyboard';
     let isSpawning = false;
     
     let player = { x: 0, y: 0, speed: 8, angle: -Math.PI / 2, cooldown: 0 };
@@ -123,16 +148,9 @@
     let streakCount = 0;
     let currentQuestionText = "";
     
-    let waveData = {
-        spawnTime: 0,
-        maxDelay: 0,
-        comboDuration: 3000,
-        comboActive: false,
-        comboTimeLeft: 0
-    };
+    let waveData = { spawnTime: 0, maxDelay: 0, comboDuration: 3000, comboActive: false, comboTimeLeft: 0 };
 
     let keys = { a: false, A: false, d: false, D: false, ArrowLeft: false, ArrowRight: false };
-    let mouseX = 0, mouseY = 0;
 
     function resizeCanvas() {
         const container = document.getElementById('app-container');
@@ -172,8 +190,15 @@
     async function startGame() {
         if(selectedLessons.length === 0) return alert("請至少選擇一課！");
         currentMode = document.querySelector('input[name="mode"]:checked').value;
+        controlMode = document.querySelector('input[name="ctrl"]:checked').value;
+        
         document.getElementById('menu').style.display = 'none';
         canvas.style.display = 'block';
+        
+        if (controlMode === 'touch') {
+            document.getElementById('touch-controls').style.display = 'flex';
+        }
+        
         resizeCanvas();
         
         ctx.fillStyle = "white";
@@ -376,7 +401,7 @@
                         else score += 10;
 
                         if(waveData.comboActive && waveData.comboTimeLeft > 0) {
-                            score += 15; // ★ 上調 Combo 獎勵至 15 分
+                            score += 15; 
                         }
 
                         streakCount++;
@@ -499,6 +524,7 @@
         cancelAnimationFrame(gameLoop);
         clearInterval(secondInterval);
         canvas.style.display = 'none';
+        document.getElementById('touch-controls').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
         
         document.getElementById('final-score').innerText = score;
@@ -516,6 +542,7 @@
         document.getElementById('score-comment').innerText = comment;
     }
 
+    // 鍵盤與滑鼠事件
     window.addEventListener('keydown', e => { 
         if(keys.hasOwnProperty(e.key)) keys[e.key] = true; 
         if(e.code === "Space" && document.getElementById('game-canvas').style.display === 'block') {
@@ -525,21 +552,41 @@
     });
     window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
     
-    canvas.addEventListener('mousemove', e => {
+    // Canvas 上的游標/觸控瞄準
+    function updateAim(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        mouseX = (e.clientX - rect.left) * scaleX;
-        mouseY = (e.clientY - rect.top) * scaleY;
-        
+        mouseX = (clientX - rect.left) * scaleX;
+        mouseY = (clientY - rect.top) * scaleY;
         let dx = mouseX - player.x;
         let dy = mouseY - (player.y - 30);
         let a = Math.atan2(dy, dx);
         if(a < 0) player.angle = a;
-    });
-    canvas.addEventListener('mousedown', e => {
-        if(e.button === 0) shoot(); 
-    });
+    }
+    canvas.addEventListener('mousemove', e => updateAim(e.clientX, e.clientY));
+    canvas.addEventListener('mousedown', e => { if(e.button === 0) shoot(); });
+    
+    // 觸控畫布瞄準 (不阻擋虛擬按鍵)
+    canvas.addEventListener('touchmove', e => {
+        if(controlMode === 'touch') { e.preventDefault(); updateAim(e.touches[0].clientX, e.touches[0].clientY); }
+    }, {passive: false});
+    canvas.addEventListener('touchstart', e => {
+        if(controlMode === 'touch') { updateAim(e.touches[0].clientX, e.touches[0].clientY); }
+    }, {passive: false});
+
+    // 虛擬按鍵事件綁定
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
+    const btnShoot = document.getElementById('btn-shoot');
+    
+    btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); keys.a = true; });
+    btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); keys.a = false; });
+    
+    btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); keys.d = true; });
+    btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keys.d = false; });
+    
+    btnShoot.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
 
 </script>
 </body>
