@@ -53,7 +53,7 @@
             <p style="color:#666; font-size:14px; line-height: 1.6;">
                 <b>操作方式：</b><br>
                 🎮 手把：左搖桿移動 / 右搖桿瞄準 / A 鍵射擊<br>
-                ⌨️ 鍵盤：A、D 移動 / 滑鼠瞄準與左鍵射擊
+                ⌨️ 鍵盤：A、D 或 方向鍵 移動 / 滑鼠瞄準與左鍵射擊
             </p>
             <button class="start-btn" onclick="startGame()">開始遊戲</button>
         </div>
@@ -130,10 +130,10 @@
         comboTimeLeft: 0
     };
 
-    let keys = { a: false, d: false, ArrowLeft: false, ArrowRight: false };
+    // 加入 a, A, d, D 解決大小寫與 WASD 操作問題
+    let keys = { a: false, A: false, d: false, D: false, ArrowLeft: false, ArrowRight: false };
     let mouseX = 0, mouseY = 0;
 
-    // 將畫布的內部解析度設定為與外層容器尺寸一致
     function resizeCanvas() {
         const container = document.getElementById('app-container');
         canvas.width = container.clientWidth;
@@ -229,11 +229,11 @@
         
         let deck = shuffleArray([...activeCards]);
         const target = deck[0];
-        const wrongs = deck.slice(1, 4); // 提取 3 個錯誤選項，總計 4 個選項
+        const wrongs = deck.slice(1, 4); 
         currentQuestionText = currentMode === 'hanzi' ? target.h : target.r;
         
         let options = shuffleArray([target, ...wrongs]);
-        let colWidth = canvas.width / 4; // 將畫面切成 4 等分
+        let colWidth = canvas.width / 4; 
         let maxDly = 0;
 
         options.forEach((opt, index) => {
@@ -249,7 +249,7 @@
                 isCorrect: isCorrect,
                 x: colWidth * index + colWidth / 2,
                 y: -60,
-                width: Math.min(colWidth * 0.9, 140), // 配合直向畫面縮小卡片寬度
+                width: Math.min(colWidth * 0.9, 140), 
                 height: 50,
                 delay: delay,
                 speed: baseSpeed,
@@ -283,8 +283,9 @@
     }
 
     function handleInput() {
-        if (keys.a || keys.ArrowLeft) player.x -= player.speed;
-        if (keys.d || keys.ArrowRight) player.x += player.speed;
+        // 鍵盤移動 (支援 a, A, d, D 與 方向鍵)
+        if (keys.a || keys.A || keys.ArrowLeft) player.x -= player.speed;
+        if (keys.d || keys.D || keys.ArrowRight) player.x += player.speed;
 
         const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
         if (gamepads[0]) {
@@ -381,7 +382,6 @@
                             time += 2;
                         }
 
-                        // 彩帶特效定位需換算回整個視窗比例
                         const rect = canvas.getBoundingClientRect();
                         const confettiX = (rect.left + opt.x) / window.innerWidth;
                         const confettiY = (rect.top + opt.y) / window.innerHeight;
@@ -407,7 +407,6 @@
         ctx.fillStyle = "#222";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 題目與資訊 (因為直向縮小，調整字體大小適應畫面)
         ctx.fillStyle = "yellow";
         ctx.font = "bold 28px Arial";
         ctx.textAlign = "center";
@@ -461,7 +460,6 @@
             ctx.fillText(opt.text, opt.x, opt.y);
         });
 
-        // 畫虛線瞄準輔助線
         ctx.beginPath();
         ctx.setLineDash([10, 8]);
         ctx.moveTo(player.x, player.y - 30);
@@ -471,7 +469,6 @@
         ctx.stroke();
         ctx.setLineDash([]); 
 
-        // 畫箭矢
         arrows.forEach(arrow => {
             if(!arrow.active) return;
             ctx.save();
@@ -523,10 +520,8 @@
     });
     window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
     
-    // 滑鼠瞄準需換算容器內部座標
     canvas.addEventListener('mousemove', e => {
         const rect = canvas.getBoundingClientRect();
-        // 將滑鼠在螢幕上的位置，轉換為 Canvas 內部的像素位置
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
         mouseX = (e.clientX - rect.left) * scaleX;
