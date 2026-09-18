@@ -7,15 +7,12 @@
     <!-- 引入彩帶特效函式庫 -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* 背景全黑，作為橫向螢幕時左右的填縫色 */
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
         
-        /* 遊戲核心容器 */
         #app-container { position: relative; width: 100vw; height: 100vh; background-color: #222; overflow: hidden; display: flex; flex-direction: column; }
         
-        /* 當螢幕寬度大於高度 (橫向螢幕如筆電/桌機) 時，限制容器寬度呈現直向比例 */
         @media (min-aspect-ratio: 1/1) {
-            #app-container { width: 56.25vh; /* 9:16 比例 */ max-width: 600px; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+            #app-container { width: 56.25vh; max-width: 600px; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
         }
 
         #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 20px; box-sizing: border-box; overflow-y: auto; }
@@ -25,26 +22,23 @@
         .lesson-btn { padding: 10px; margin: 5px; background: #ccc; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
         .lesson-btn.active { background: #20b2aa; color: white; }
         
-        /* 遊戲畫布完全貼合容器 */
         #game-canvas { display: none; width: 100%; height: 100%; background: #222; touch-action: none; }
         
         button.start-btn { padding: 15px 30px; font-size: 20px; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 15px; cursor: pointer; }
         
-        /* 頁尾版權與計數器樣式設定 */
         .footer { text-align: center; padding-top: 15px; border-top: 1px solid #ccc; width: 100%; max-width: 600px; color: #444; }
         .footer p { margin: 3px 0; font-size: 0.9em; }
         .counter-container { margin-top: 8px; display: flex; justify-content: center; align-items: center; }
 
-        /* 受傷紅屏特效覆蓋層 */
         #damage-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 60px 30px red; pointer-events: none; z-index: 5; }
 
-        /* 觸控虛擬按鍵 UI */
-        #touch-controls { display: none; position: absolute; bottom: 20px; left: 0; width: 100%; justify-content: space-between; padding: 0 15px; box-sizing: border-box; z-index: 8; pointer-events: none; }
-        .touch-group { display: flex; gap: 10px; }
-        .touch-btn { pointer-events: auto; background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.5); color: white; font-size: 24px; font-weight: bold; width: 65px; height: 65px; border-radius: 50%; display: flex; justify-content: center; align-items: center; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
-        .touch-btn:active { background: rgba(255, 255, 255, 0.5); }
-        #btn-shoot { width: 80px; border-radius: 20px; font-size: 20px; background: rgba(255, 87, 34, 0.4); border-color: rgba(255, 87, 34, 0.8); }
-        #btn-shoot:active { background: rgba(255, 87, 34, 0.8); }
+        /* 觸控虛擬按鍵 UI - 調整了 bottom 高度與 z-index 確保不被擋住 */
+        #touch-controls { display: none; position: absolute; bottom: 50px; left: 0; width: 100%; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 99; pointer-events: none; }
+        .touch-group { display: flex; gap: 15px; }
+        .touch-btn { pointer-events: auto; background: rgba(255, 255, 255, 0.25); border: 2px solid rgba(255, 255, 255, 0.6); color: white; font-size: 24px; font-weight: bold; width: 65px; height: 65px; border-radius: 50%; display: flex; justify-content: center; align-items: center; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+        .touch-btn:active { background: rgba(255, 255, 255, 0.6); }
+        #btn-shoot { width: 85px; border-radius: 20px; font-size: 20px; background: rgba(255, 87, 34, 0.6); border-color: rgba(255, 87, 34, 0.9); }
+        #btn-shoot:active { background: rgba(255, 87, 34, 1); }
     </style>
 </head>
 <body>
@@ -63,8 +57,8 @@
 
             <div style="margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 10px;">
                 <p style="margin: 0 0 5px 0; font-weight: bold;">操作裝置</p>
-                <label><input type="radio" name="ctrl" value="keyboard" checked> ⌨️ 鍵盤 / 🎮 手把</label>
-                <label style="margin-left: 10px;"><input type="radio" name="ctrl" value="touch"> 📱 平板 / 觸控螢幕</label>
+                <label><input type="radio" name="ctrl" value="keyboard" id="ctrl-keyboard" checked> ⌨️ 鍵盤 / 🎮 手把</label>
+                <label style="margin-left: 10px;"><input type="radio" name="ctrl" value="touch" id="ctrl-touch"> 📱 平板 / 觸控螢幕</label>
             </div>
             
             <button class="start-btn" onclick="startGame()">開始遊戲</button>
@@ -130,6 +124,11 @@
     let selectedLessons = [];
     let activeCards = [];
     
+    // 自動偵測觸控裝置，若為手機平板則自動選取觸控模式
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        document.getElementById('ctrl-touch').checked = true;
+    }
+
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
     
@@ -151,6 +150,7 @@
     let waveData = { spawnTime: 0, maxDelay: 0, comboDuration: 3000, comboActive: false, comboTimeLeft: 0 };
 
     let keys = { a: false, A: false, d: false, D: false, ArrowLeft: false, ArrowRight: false };
+    let mouseX = 0, mouseY = 0;
 
     function resizeCanvas() {
         const container = document.getElementById('app-container');
