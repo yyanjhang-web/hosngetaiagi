@@ -114,6 +114,7 @@
     let elapsedTime = 0;
     let gameLoop, secondInterval;
     let currentMode = 'hanzi';
+    let isSpawning = false; // ★ 新增保護機制，防止重複呼叫下一題
     
     let player = { x: 0, y: 0, speed: 8, angle: -Math.PI / 2, cooldown: 0 };
     let arrows = [];
@@ -201,6 +202,7 @@
         player.x = canvas.width / 2;
         arrows = [];
         fallingOptions = [];
+        isSpawning = false; // ★ 初始化
         
         spawnWave();
         gameLoop = requestAnimationFrame(update);
@@ -213,7 +215,6 @@
         elapsedTime++;
         
         if(elapsedTime > 0 && elapsedTime % 6 === 0) {
-            // 原本 +0.5，下調為 +0.3 讓加速幅度變平緩
             globalSpeedBonus += 0.3;
             canvas.style.boxShadow = "inset 0 0 40px 20px #00e5ff";
             setTimeout(() => { canvas.style.boxShadow = "none"; }, 300);
@@ -222,6 +223,7 @@
     }
 
     function spawnWave() {
+        isSpawning = false; // ★ 解除鎖定，允許下一題產生
         fallingOptions = [];
         arrows = []; 
         waveData.spawnTime = Date.now();
@@ -242,7 +244,6 @@
             let delay = Math.random() * 2000;
             if(delay > maxDly) maxDly = delay;
             
-            // 基礎速度從 1.0 ~ 2.0 下調為 0.5 ~ 1.2，讓初期掉落更緩慢
             let baseSpeed = 0.5 + Math.random() * 0.7; 
             
             fallingOptions.push({
@@ -284,7 +285,6 @@
     }
 
     function handleInput() {
-        // 鍵盤移動 (支援 a, A, d, D 與 方向鍵)
         if (keys.a || keys.A || keys.ArrowLeft) player.x -= player.speed;
         if (keys.d || keys.D || keys.ArrowRight) player.x += player.speed;
 
@@ -293,17 +293,14 @@
             const gp = gamepads[0];
             const deadzone = 0.2;
             
-            // 左搖桿或十字鍵移動
             if (gp.axes[0] < -deadzone || (gp.buttons[14] && gp.buttons[14].pressed)) player.x -= player.speed;
             if (gp.axes[0] > deadzone || (gp.buttons[15] && gp.buttons[15].pressed)) player.x += player.speed;
             
-            // 右搖桿瞄準 (axes[2] X軸, axes[3] Y軸)
             if (Math.abs(gp.axes[2]) > deadzone || Math.abs(gp.axes[3]) > deadzone) {
                 let a = Math.atan2(gp.axes[3], gp.axes[2]);
                 if(a < 0) player.angle = a; 
             }
             
-            // A鍵射擊
             if (gp.buttons[0] && gp.buttons[0].pressed) shoot();
         }
 
@@ -339,12 +336,18 @@
                 opt.active = false;
                 if(opt.isCorrect) {
                     takeDamage(); 
-                    setTimeout(spawnWave, 500); 
+                    // ★ 增加保護判斷，如果沒有在生成中，才倒數換題
+                    if(!isSpawning) {
+                        isSpawning = true;
+                        setTimeout(spawnWave, 500); 
+                    }
                 }
             }
         });
 
-        if(allOptionsMissed && fallingOptions.length > 0) {
+        // ★ 增加保護判斷：如果場上全空且沒有正在倒數換題，才立刻換題
+        if(allOptionsMissed && fallingOptions.length > 0 && !isSpawning) {
+            isSpawning = true;
             spawnWave();
         }
 
@@ -389,7 +392,11 @@
                         confetti({ particleCount: 100, spread: 70, origin: { x: confettiX, y: confettiY } });
                         
                         fallingOptions.forEach(o => o.active = false); 
-                        setTimeout(spawnWave, 500);
+                        // ★ 增加保護判斷，射中後立刻上鎖，倒數 0.5 秒後才准許生成下一題
+                        if(!isSpawning) {
+                            isSpawning = true;
+                            setTimeout(spawnWave, 500);
+                        }
                         
                     } else {
                         opt.active = false; 
