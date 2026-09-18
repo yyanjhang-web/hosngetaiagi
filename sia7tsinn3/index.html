@@ -109,12 +109,13 @@
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
     
-    let time = 40, score = 0, hearts = 4;
+    // 初始時間提升至 50 秒
+    let time = 50, score = 0, hearts = 4;
     let globalSpeedBonus = 0;
     let elapsedTime = 0;
     let gameLoop, secondInterval;
     let currentMode = 'hanzi';
-    let isSpawning = false; // ★ 新增保護機制，防止重複呼叫下一題
+    let isSpawning = false;
     
     let player = { x: 0, y: 0, speed: 8, angle: -Math.PI / 2, cooldown: 0 };
     let arrows = [];
@@ -198,11 +199,12 @@
 
         if(activeCards.length < 4) return alert("詞庫不足，每題需要 4 個選項，請多選幾課！");
         
-        time = 40; score = 0; hearts = 4; globalSpeedBonus = 0; elapsedTime = 0; streakCount = 0;
+        // 初始時間提升至 50 秒
+        time = 50; score = 0; hearts = 4; globalSpeedBonus = 0; elapsedTime = 0; streakCount = 0;
         player.x = canvas.width / 2;
         arrows = [];
         fallingOptions = [];
-        isSpawning = false; // ★ 初始化
+        isSpawning = false;
         
         spawnWave();
         gameLoop = requestAnimationFrame(update);
@@ -223,7 +225,7 @@
     }
 
     function spawnWave() {
-        isSpawning = false; // ★ 解除鎖定，允許下一題產生
+        isSpawning = false;
         fallingOptions = [];
         arrows = []; 
         waveData.spawnTime = Date.now();
@@ -336,7 +338,6 @@
                 opt.active = false;
                 if(opt.isCorrect) {
                     takeDamage(); 
-                    // ★ 增加保護判斷，如果沒有在生成中，才倒數換題
                     if(!isSpawning) {
                         isSpawning = true;
                         setTimeout(spawnWave, 500); 
@@ -345,7 +346,6 @@
             }
         });
 
-        // ★ 增加保護判斷：如果場上全空且沒有正在倒數換題，才立刻換題
         if(allOptionsMissed && fallingOptions.length > 0 && !isSpawning) {
             isSpawning = true;
             spawnWave();
@@ -392,7 +392,6 @@
                         confetti({ particleCount: 100, spread: 70, origin: { x: confettiX, y: confettiY } });
                         
                         fallingOptions.forEach(o => o.active = false); 
-                        // ★ 增加保護判斷，射中後立刻上鎖，倒數 0.5 秒後才准許生成下一題
                         if(!isSpawning) {
                             isSpawning = true;
                             setTimeout(spawnWave, 500);
@@ -420,6 +419,7 @@
         ctx.textAlign = "center";
         ctx.fillText(currentQuestionText, canvas.width / 2, 50);
 
+        // 為了避免和 HUD 介面疊合，直接用 Canvas 畫出時間即可
         ctx.fillStyle = "white";
         ctx.font = "18px Arial";
         ctx.textAlign = "left";
