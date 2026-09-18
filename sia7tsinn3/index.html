@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
+    <title>台語狙擊手</title>
+    <!-- 引入彩帶特效函式庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; overflow: hidden; background-color: #f0f9ff; touch-action: none; user-select: none; }
+        
+        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        
+        .menu-content { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; margin-bottom: 20px; }
+        
+        .lesson-btn { padding: 10px; margin: 5px; background: #ccc; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        .lesson-btn.active { background: #20b2aa; color: white; }
+        
+        /* 遊戲畫布 */
+        #game-canvas { display: none; width: 100vw; height: 100vh; background: #222; }
+        
+        button.start-btn { padding: 15px 30px; font-size: 20px; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer; }
+        
+        /* 頁尾版權與計數器樣式設定 */
+        .footer { text-align: center; padding-top: 15px; border-top: 1px solid #ccc; width: 100%; max-width: 600px; color: #444; }
+        .footer p { margin: 3px 0; font-size: 0.9em; }
+        .counter-container { margin-top: 8px; display: flex; justify-content: center; align-items: center; }
+
+        /* 受傷紅屏特效覆蓋層 */
+        #damage-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 60px 30px red; pointer-events: none; z-index: 5; }
+    </style>
+</head>
+<body>
+
+<div id="menu">
+    <div class="menu-content">
+        <h2 style="margin-top: 0;">台語狙擊手</h2>
+        <div id="lessons"></div>
+        <div style="margin: 15px 0;">
+            <label><input type="radio" name="mode" value="hanzi" checked> 看漢字選發音</label>
+            <label><input type="radio" name="mode" value="roma"> 看發音選漢字</label>
+        </div>
+        <p style="color:#666; font-size:14px;">支援 Xbox 手把：十字鍵移動，左搖桿瞄準，A 鍵射擊<br>或使用鍵盤 A/D 移動，滑鼠瞄準與左鍵射擊</p>
+        <button class="start-btn" onclick="startGame()">開始遊戲</button>
+    </div>
+    
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        <p style="font-size: 0.85em; color: #777; margin-top: 5px;">
+            Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
+            本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
+            未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
+        </p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+    </div>
+</div>
+
+<div id="game-over" style="display: none;">
+    <div class="menu-content">
+        <h2 style="margin-top: 0;">遊戲結束！</h2>
+        <p style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">總分：<span id="final-score">0</span></p>
+        <h3 id="score-comment" style="color: #d97706; font-size: 32px; margin-top: 0; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);"></h3>
+        <button class="start-btn" onclick="location.reload()">回主選單</button>
+    </div>
+    
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        <p style="font-size: 0.85em; color: #777; margin-top: 5px;">
+            Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
+            本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
+            未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
+        </p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+    </div>
+</div>
+
+<canvas id="game-canvas"></canvas>
+<div id="damage-overlay"></div>
+
+<script>
+    const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
+    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一"];
+    let selectedLessons = [];
+    let activeCards = [];
+    
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // 遊戲狀態與變數
+    let time = 40, score = 0, hearts = 4;
+    let globalSpeedBonus = 0;
+    let elapsedTime = 0;
+    let gameLoop, secondInterval;
+    let currentMode = 'hanzi';
+    
+    // 玩家屬性
+    let player = { x: 0, y: 0, speed: 8, angle: -Math.PI / 2, cooldown: 0 };
+    // 陣列容器
+    let arrows = [];
+    let fallingOptions = [];
+    
+    // 連續答對與 Combo 系統
+    let streakCount = 0;
+    let currentQuestionText = "";
+    
+    let waveData = {
+        spawnTime: 0,
+        maxDelay: 0,
+        comboDuration: 3000, // Combo 條給予 3 秒作答時間
+        comboActive: false,
+        comboTimeLeft: 0
+    };
+
+    // 鍵盤與滑鼠狀態
+    let keys = { a: false, d: false, ArrowLeft: false, ArrowRight: false };
+    let mouseX = 0, mouseY = 0;
+
+    // 畫面尺寸調整
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        player.y = canvas.height - 50;
+        if(player.x === 0) player.x = canvas.width / 2;
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // 選單初始化
+    const lessonsDiv = document.getElementById('lessons');
+    lessons.forEach(l => {
+        const btn = document.createElement('button');
+        btn.className = 'lesson-btn';
+        btn.innerText = l;
+        btn.onclick = () => {
+            btn.classList.toggle('active');
+            if(selectedLessons.includes(l)) selectedLessons = selectedLessons.filter(x => x !== l);
+            else selectedLessons.push(l);
+        };
+        lessonsDiv.appendChild(btn);
+    });
+
+    // 隨機洗牌
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    async function startGame() {
+        if(selectedLessons.length === 0) return alert("請至少選擇一課！");
+        currentMode = document.querySelector('input[name="mode"]:checked').value;
+        document.getElementById('menu').style.display = 'none';
+        canvas.style.display = 'block';
+        resizeCanvas();
+        
+        ctx.fillStyle = "white";
+        ctx.font = "30px Arial";
+        ctx.fillText("載入題庫中...", canvas.width/2 - 100, canvas.height/2);
+
+        const fetchPromises = selectedLessons.map(sheet => 
+            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}`).then(res => res.text())
+        );
+
+        const results = await Promise.all(fetchPromises);
+        activeCards = [];
+        results.forEach(text => {
+            text.split(/\r?\n/).forEach(l => {
+                const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
+                if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
+                    activeCards.push({ h: p[0].trim(), r: p[1].trim() });
+                }
+            });
+        });
+
+        if(activeCards.length < 6) return alert("詞庫不足，每題需要6個選項，請多選幾課！");
+        
+        time = 40; score = 0; hearts = 4; globalSpeedBonus = 0; elapsedTime = 0; streakCount = 0;
+        player.x = canvas.width / 2;
+        arrows = [];
+        fallingOptions = [];
+        
+        spawnWave();
+        gameLoop = requestAnimationFrame(update);
+        secondInterval = setInterval(timerTick, 1000);
+    }
+
+    function timerTick() {
+        if(hearts <= 0) return;
+        time--;
+        elapsedTime++;
+        
+        // 每 6 秒整體加速
+        if(elapsedTime > 0 && elapsedTime % 6 === 0) {
+            globalSpeedBonus += 0.5;
+            // 加速時閃爍藍光
+            canvas.style.boxShadow = "inset 0 0 40px 20px #00e5ff";
+            setTimeout(() => { canvas.style.boxShadow = "none"; }, 300);
+        }
+        if(time <= 0 && hearts > 0) endGame();
+    }
+
+    function spawnWave() {
+        fallingOptions = [];
+        arrows = []; // 清空上一局殘留的箭矢
+        waveData.spawnTime = Date.now();
+        waveData.comboActive = false;
+        
+        let deck = shuffleArray([...activeCards]);
+        const target = deck[0];
+        const wrongs = deck.slice(1, 6);
+        currentQuestionText = currentMode === 'hanzi' ? target.h : target.r;
+        
+        let options = shuffleArray([target, ...wrongs]);
+        let colWidth = canvas.width / 6;
+        let maxDly = 0;
+
+        options.forEach((opt, index) => {
+            const isCorrect = (opt === target);
+            const text = currentMode === 'hanzi' ? opt.r : opt.h;
+            // 隨機延遲 0 ~ 2 秒掉落
+            let delay = Math.random() * 2000;
+            if(delay > maxDly) maxDly = delay;
+            
+            // 基礎速度介於 1.0 ~ 2.0，加上全域加速
+            let baseSpeed = 1.0 + Math.random() * 1.0; 
+            
+            fallingOptions.push({
+                text: text,
+                isCorrect: isCorrect,
+                x: colWidth * index + colWidth / 2,
+                y: -60, // 初始位置在畫面外
+                width: Math.min(colWidth * 0.9, 180),
+                height: 50,
+                delay: delay,
+                speed: baseSpeed,
+                active: true,
+                hasStartedFalling: false
+            });
+        });
+        
+        waveData.maxDelay = maxDly;
+    }
+
+    function takeDamage() {
+        hearts--;
+        streakCount = 0; // 受傷斷連續
+        const overlay = document.getElementById('damage-overlay');
+        overlay.style.display = 'block';
+        setTimeout(() => { overlay.style.display = 'none'; }, 200);
+        if(hearts <= 0) endGame();
+    }
+
+    function shoot() {
+        if(player.cooldown > 0 || hearts <= 0) return;
+        arrows.push({
+            x: player.x,
+            y: player.y,
+            angle: player.angle,
+            speed: 15,
+            active: true
+        });
+        player.cooldown = 500; // 基礎裝填 0.5 秒
+    }
+
+    // 處理手把與鍵盤輸入
+    function handleInput() {
+        // 鍵盤移動
+        if (keys.a || keys.ArrowLeft) player.x -= player.speed;
+        if (keys.d || keys.ArrowRight) player.x += player.speed;
+
+        const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+        if (gamepads[0]) {
+            const gp = gamepads[0];
+            const deadzone = 0.2;
+            
+            // 十字鍵或左搖桿移動
+            if (gp.axes[0] < -deadzone || (gp.buttons[14] && gp.buttons[14].pressed)) player.x -= player.speed;
+            if (gp.axes[0] > deadzone || (gp.buttons[15] && gp.buttons[15].pressed)) player.x += player.speed;
+            
+            // 左搖桿瞄準 (Y為負數代表指向上方)
+            if (Math.abs(gp.axes[0]) > deadzone || Math.abs(gp.axes[1]) > deadzone) {
+                let a = Math.atan2(gp.axes[1], gp.axes[0]);
+                if(a < 0) player.angle = a; // 限制只能朝上瞄準 (-180度 到 0度)
+            }
+            
+            // A鍵射擊
+            if (gp.buttons[0] && gp.buttons[0].pressed) shoot();
+        }
+
+        player.x = Math.max(30, Math.min(player.x, canvas.width - 30));
+    }
+
+    function update() {
+        if(hearts <= 0) return;
+        
+        const now = Date.now();
+        if(player.cooldown > 0) player.cooldown -= 16; // 約 1 幀 16ms
+
+        handleInput();
+
+        // 處理 Combo 計時邏輯 (最後一個選項出現後的 1 秒啟動倒數)
+        let comboStartTime = waveData.spawnTime + waveData.maxDelay + 1000;
+        if(now > comboStartTime) {
+            waveData.comboActive = true;
+            waveData.comboTimeLeft = waveData.comboDuration - (now - comboStartTime);
+            if(waveData.comboTimeLeft < 0) waveData.comboTimeLeft = 0;
+        }
+
+        // 更新選項掉落
+        let allOptionsMissed = true; // 檢查場上是否還有活著的選項
+        fallingOptions.forEach(opt => {
+            if(!opt.active) return;
+            allOptionsMissed = false;
+            
+            if(now - waveData.spawnTime > opt.delay) {
+                opt.hasStartedFalling = true;
+                opt.y += (opt.speed + globalSpeedBonus);
+            }
+
+            // 落地判定
+            if(opt.y > canvas.height) {
+                opt.active = false;
+                if(opt.isCorrect) {
+                    takeDamage(); // 正解落地扣心
+                    setTimeout(spawnWave, 500); // 失敗後延遲 0.5 秒出下一題
+                }
+            }
+        });
+
+        // 若場上沒有選項了(都掉光但都沒被射到)，自動換題
+        if(allOptionsMissed && fallingOptions.length > 0) {
+            spawnWave();
+        }
+
+        // 更新箭矢與碰撞判定
+        arrows.forEach(arrow => {
+            if(!arrow.active) return;
+            arrow.x += Math.cos(arrow.angle) * arrow.speed;
+            arrow.y += Math.sin(arrow.angle) * arrow.speed;
+
+            // 飛出畫面外
+            if(arrow.x < 0 || arrow.x > canvas.width || arrow.y < 0 || arrow.y > canvas.height) {
+                arrow.active = false;
+            }
+
+            // 碰撞檢查 (使用簡單的 AABB)
+            fallingOptions.forEach(opt => {
+                if(!opt.active || !opt.hasStartedFalling || !arrow.active) return;
+                
+                // 選項的矩形邊界
+                let left = opt.x - opt.width/2;
+                let right = opt.x + opt.width/2;
+                let top = opt.y - opt.height/2;
+                let bottom = opt.y + opt.height/2;
+
+                if(arrow.x > left && arrow.x < right && arrow.y > top && arrow.y < bottom) {
+                    arrow.active = false;
+                    
+                    if(opt.isCorrect) {
+                        // 答對了！
+                        // 1. 分區給分 (上段+30, 中段+20, 下段+10)
+                        let yRatio = opt.y / canvas.height;
+                        if(yRatio < 0.33) score += 30;
+                        else if(yRatio < 0.66) score += 20;
+                        else score += 10;
+
+                        // 2. 結算 Combo
+                        if(waveData.comboActive && waveData.comboTimeLeft > 0) {
+                            score += 10;
+                        }
+
+                        // 3. 連對加秒 (連對3題+2秒)
+                        streakCount++;
+                        if(streakCount > 0 && streakCount % 3 === 0) {
+                            time += 2;
+                        }
+
+                        confetti({ particleCount: 100, spread: 70, origin: { y: opt.y / canvas.height, x: opt.x / canvas.width } });
+                        
+                        // 清空當前題目，0.5秒後下一題
+                        fallingOptions.forEach(o => o.active = false); 
+                        setTimeout(spawnWave, 500);
+                        
+                    } else {
+                        // 答錯懲罰
+                        opt.active = false; // 該誘答項消失
+                        takeDamage();
+                        player.cooldown = 1000; // 射錯硬直 1 秒
+                    }
+                }
+            });
+        });
+
+        draw();
+        gameLoop = requestAnimationFrame(update);
+    }
+
+    function draw() {
+        // 清空畫布
+        ctx.fillStyle = "#222";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 畫頂部 UI (題目、時間、分數、血量)
+        ctx.fillStyle = "yellow";
+        ctx.font = "bold 36px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(currentQuestionText, canvas.width / 2, 50);
+
+        ctx.fillStyle = "white";
+        ctx.font = "24px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText(`時間: ${time}`, 20, 40);
+        
+        ctx.textAlign = "right";
+        ctx.fillText(`分數: ${score}`, canvas.width - 20, 40);
+        
+        // 畫血量(愛心)
+        let heartStr = "";
+        for(let i=0; i<4; i++) {
+            heartStr += (i < hearts) ? "❤️" : "🖤";
+        }
+        ctx.fillText(heartStr, canvas.width - 20, 75);
+
+        // 畫 Combo 條
+        if(waveData.comboActive) {
+            let barWidth = 300;
+            let ratio = waveData.comboTimeLeft / waveData.comboDuration;
+            ctx.fillStyle = "#555";
+            ctx.fillRect(canvas.width/2 - barWidth/2, 70, barWidth, 10);
+            ctx.fillStyle = ratio > 0.5 ? "#4caf50" : (ratio > 0.2 ? "#ff9800" : "#f44336");
+            ctx.fillRect(canvas.width/2 - barWidth/2, 70, barWidth * ratio, 10);
+            ctx.fillStyle = "white";
+            ctx.font = "14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("Combo 倒數", canvas.width/2, 95);
+        }
+
+        // 畫選項
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        fallingOptions.forEach(opt => {
+            if(!opt.active || !opt.hasStartedFalling) return;
+            
+            ctx.fillStyle = "white";
+            ctx.fillRect(opt.x - opt.width/2, opt.y - opt.height/2, opt.width, opt.height);
+            ctx.strokeStyle = "#ccc";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(opt.x - opt.width/2, opt.y - opt.height/2, opt.width, opt.height);
+            
+            ctx.fillStyle = "black";
+            // 動態調整字體大小避免超出格子
+            let fontSize = 24;
+            ctx.font = `bold ${fontSize}px Arial`;
+            while(ctx.measureText(opt.text).width > opt.width - 10 && fontSize > 12) {
+                fontSize--;
+                ctx.font = `bold ${fontSize}px Arial`;
+            }
+            ctx.fillText(opt.text, opt.x, opt.y);
+        });
+
+        // 畫虛線瞄準輔助線
+        ctx.beginPath();
+        ctx.setLineDash([15, 10]);
+        ctx.moveTo(player.x, player.y - 30);
+        // 線長 800
+        ctx.lineTo(player.x + Math.cos(player.angle) * 800, player.y - 30 + Math.sin(player.angle) * 800);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.setLineDash([]); // 恢復實線
+
+        // 畫箭矢
+        arrows.forEach(arrow => {
+            if(!arrow.active) return;
+            ctx.save();
+            ctx.translate(arrow.x, arrow.y);
+            ctx.rotate(arrow.angle);
+            ctx.fillStyle = "#00e5ff"; // 青色雷射箭矢
+            ctx.fillRect(0, -3, 30, 6);
+            ctx.restore();
+        });
+
+        // 畫玩家 (弩/UFO基座)
+        ctx.font = "60px Arial";
+        ctx.fillText("🛸", player.x, player.y);
+        
+        // 裝填冷卻提示 (玩家身上半透明遮罩)
+        if(player.cooldown > 0) {
+            ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+            ctx.beginPath();
+            ctx.arc(player.x, player.y - 10, 30, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function endGame() {
+        cancelAnimationFrame(gameLoop);
+        clearInterval(secondInterval);
+        canvas.style.display = 'none';
+        document.getElementById('game-over').style.display = 'flex';
+        
+        document.getElementById('final-score').innerText = score;
+        
+        let comment = "";
+        if (score >= 400) {
+            comment = "真gâu";
+        } else if (score >= 300) {
+            comment = "袂bái";
+        } else if (score >= 200) {
+            comment = "Beh出師矣";
+        } else {
+            comment = "繼續phah piànn";
+        }
+        document.getElementById('score-comment').innerText = comment;
+    }
+
+    // 鍵盤與滑鼠事件監聽
+    window.addEventListener('keydown', e => { 
+        if(keys.hasOwnProperty(e.key)) keys[e.key] = true; 
+        if(e.code === "Space" && document.getElementById('game-canvas').style.display === 'block') {
+            shoot();
+            e.preventDefault();
+        }
+    });
+    window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+    
+    // 滑鼠瞄準與射擊
+    canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+        
+        let dx = mouseX - player.x;
+        let dy = mouseY - (player.y - 30);
+        let a = Math.atan2(dy, dx);
+        if(a < 0) player.angle = a;
+    });
+    canvas.addEventListener('mousedown', e => {
+        if(e.button === 0) shoot(); // 左鍵射擊
+    });
+
+</script>
+</body>
+</html>
