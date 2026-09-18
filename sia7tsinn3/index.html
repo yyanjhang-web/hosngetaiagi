@@ -109,7 +109,6 @@
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
     
-    // 初始時間提升至 50 秒
     let time = 50, score = 0, hearts = 4;
     let globalSpeedBonus = 0;
     let elapsedTime = 0;
@@ -199,7 +198,6 @@
 
         if(activeCards.length < 4) return alert("詞庫不足，每題需要 4 個選項，請多選幾課！");
         
-        // 初始時間提升至 50 秒
         time = 50; score = 0; hearts = 4; globalSpeedBonus = 0; elapsedTime = 0; streakCount = 0;
         player.x = canvas.width / 2;
         arrows = [];
@@ -378,7 +376,7 @@
                         else score += 10;
 
                         if(waveData.comboActive && waveData.comboTimeLeft > 0) {
-                            score += 10;
+                            score += 15; // ★ 上調 Combo 獎勵至 15 分
                         }
 
                         streakCount++;
@@ -419,7 +417,6 @@
         ctx.textAlign = "center";
         ctx.fillText(currentQuestionText, canvas.width / 2, 50);
 
-        // 為了避免和 HUD 介面疊合，直接用 Canvas 畫出時間即可
         ctx.fillStyle = "white";
         ctx.font = "18px Arial";
         ctx.textAlign = "left";
