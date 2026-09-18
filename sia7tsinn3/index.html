@@ -130,7 +130,6 @@
         comboTimeLeft: 0
     };
 
-    // 加入 a, A, d, D 解決大小寫與 WASD 操作問題
     let keys = { a: false, A: false, d: false, D: false, ArrowLeft: false, ArrowRight: false };
     let mouseX = 0, mouseY = 0;
 
@@ -214,7 +213,8 @@
         elapsedTime++;
         
         if(elapsedTime > 0 && elapsedTime % 6 === 0) {
-            globalSpeedBonus += 0.5;
+            // 原本 +0.5，下調為 +0.3 讓加速幅度變平緩
+            globalSpeedBonus += 0.3;
             canvas.style.boxShadow = "inset 0 0 40px 20px #00e5ff";
             setTimeout(() => { canvas.style.boxShadow = "none"; }, 300);
         }
@@ -242,7 +242,8 @@
             let delay = Math.random() * 2000;
             if(delay > maxDly) maxDly = delay;
             
-            let baseSpeed = 1.0 + Math.random() * 1.0; 
+            // 基礎速度從 1.0 ~ 2.0 下調為 0.5 ~ 1.2，讓初期掉落更緩慢
+            let baseSpeed = 0.5 + Math.random() * 0.7; 
             
             fallingOptions.push({
                 text: text,
