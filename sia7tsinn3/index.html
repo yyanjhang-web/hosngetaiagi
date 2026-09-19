@@ -309,14 +309,20 @@
             const gp = gamepads[0];
             const deadzone = 0.2;
             
+            // 左搖桿或十字鍵移動
             if (gp.axes[0] < -deadzone || (gp.buttons[14] && gp.buttons[14].pressed)) player.x -= player.speed;
             if (gp.axes[0] > deadzone || (gp.buttons[15] && gp.buttons[15].pressed)) player.x += player.speed;
             
-            if (Math.abs(gp.axes[2]) > deadzone || Math.abs(gp.axes[3]) > deadzone) {
-                let a = Math.atan2(gp.axes[3], gp.axes[2]);
-                if(a < 0) player.angle = a; 
+            // 右搖桿左右推動進行相對旋轉 (axes[2] 為 X 軸)
+            if (Math.abs(gp.axes[2]) > deadzone) {
+                // 根據搖桿推動的角度逐漸改變旋轉角度，0.08 為靈敏度，數字越大轉越快
+                player.angle += gp.axes[2] * 0.08; 
+                // 限制在 -180 度到 0 度之間（只允許朝上瞄準）
+                if (player.angle > 0) player.angle = 0;
+                if (player.angle < -Math.PI) player.angle = -Math.PI;
             }
             
+            // A鍵射擊
             if (gp.buttons[0] && gp.buttons[0].pressed) shoot();
         }
 
