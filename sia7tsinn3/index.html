@@ -32,7 +32,7 @@
 
         #damage-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 60px 30px red; pointer-events: none; z-index: 5; }
 
-        /* 觸控虛擬按鍵 UI：高度調升至 100px，按鈕加大至 75px，增加兩側邊距避免邊緣誤觸 */
+        /* 觸控虛擬按鍵 UI：左鍵在左下，右鍵在右下 */
         #touch-controls { display: none; position: absolute; bottom: 100px; left: 0; width: 100%; justify-content: space-between; padding: 0 30px; box-sizing: border-box; z-index: 99; pointer-events: none; }
         .touch-btn { pointer-events: auto; background: rgba(255, 255, 255, 0.25); border: 2px solid rgba(255, 255, 255, 0.6); color: white; font-size: 28px; font-weight: bold; width: 75px; height: 75px; border-radius: 50%; display: flex; justify-content: center; align-items: center; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
         .touch-btn:active { background: rgba(255, 255, 255, 0.6); transform: scale(0.95); }
@@ -313,10 +313,9 @@
             if (gp.axes[0] < -deadzone || (gp.buttons[14] && gp.buttons[14].pressed)) player.x -= player.speed;
             if (gp.axes[0] > deadzone || (gp.buttons[15] && gp.buttons[15].pressed)) player.x += player.speed;
             
-            // 右搖桿左右推動進行相對旋轉 (axes[2] 為 X 軸)
+            // 右搖桿左右推動進行相對旋轉 (調降靈敏度 0.08 -> 0.035)
             if (Math.abs(gp.axes[2]) > deadzone) {
-                // 根據搖桿推動的角度逐漸改變旋轉角度，0.08 為靈敏度，數字越大轉越快
-                player.angle += gp.axes[2] * 0.08; 
+                player.angle += gp.axes[2] * 0.035; 
                 // 限制在 -180 度到 0 度之間（只允許朝上瞄準）
                 if (player.angle > 0) player.angle = 0;
                 if (player.angle < -Math.PI) player.angle = -Math.PI;
