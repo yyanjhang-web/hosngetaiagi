@@ -290,9 +290,11 @@
 
     function shoot() {
         if(player.cooldown > 0 || hearts <= 0) return;
+        const pivotY = player.y - 20; // 砲台旋轉中心
         arrows.push({
-            x: player.x,
-            y: player.y,
+            // 箭矢直接從砲口位置產生，精準出擊
+            x: player.x + Math.cos(player.angle) * 45,
+            y: pivotY + Math.sin(player.angle) * 45,
             angle: player.angle,
             speed: 15,
             active: true
@@ -313,10 +315,9 @@
             if (gp.axes[0] < -deadzone || (gp.buttons[14] && gp.buttons[14].pressed)) player.x -= player.speed;
             if (gp.axes[0] > deadzone || (gp.buttons[15] && gp.buttons[15].pressed)) player.x += player.speed;
             
-            // 右搖桿左右推動進行相對旋轉 (調降靈敏度 0.08 -> 0.035)
+            // 右搖桿左右推動進行相對旋轉
             if (Math.abs(gp.axes[2]) > deadzone) {
                 player.angle += gp.axes[2] * 0.035; 
-                // 限制在 -180 度到 0 度之間（只允許朝上瞄準）
                 if (player.angle > 0) player.angle = 0;
                 if (player.angle < -Math.PI) player.angle = -Math.PI;
             }
@@ -486,15 +487,20 @@
             ctx.fillText(opt.text, opt.x, opt.y);
         });
 
+        // 定義砲台旋轉的 Y 軸中心點
+        const pivotY = player.y - 20;
+
+        // 畫虛線瞄準輔助線 (從砲管尖端出發)
         ctx.beginPath();
         ctx.setLineDash([10, 8]);
-        ctx.moveTo(player.x, player.y - 30);
-        ctx.lineTo(player.x + Math.cos(player.angle) * 800, player.y - 30 + Math.sin(player.angle) * 800);
+        ctx.moveTo(player.x + Math.cos(player.angle) * 45, pivotY + Math.sin(player.angle) * 45);
+        ctx.lineTo(player.x + Math.cos(player.angle) * 800, pivotY + Math.sin(player.angle) * 800);
         ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.setLineDash([]); 
 
+        // 畫發射出的雷射箭矢
         arrows.forEach(arrow => {
             if(!arrow.active) return;
             ctx.save();
@@ -505,15 +511,58 @@
             ctx.restore();
         });
 
-        ctx.font = "50px Arial";
-        ctx.fillText("🛸", player.x, player.y);
+        // ==========================================
+        // 畫玩家：全新動態科技砲台
+        // ==========================================
+        ctx.save();
+        ctx.translate(player.x, pivotY);
+
+        // 1. 畫砲管 (跟著角度旋轉)
+        ctx.save();
+        ctx.rotate(player.angle);
         
-        if(player.cooldown > 0) {
-            ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
-            ctx.beginPath();
-            ctx.arc(player.x, player.y - 10, 25, 0, Math.PI * 2);
-            ctx.fill();
-        }
+        // 砲管主體
+        ctx.fillStyle = (player.cooldown > 0) ? "#ef5350" : "#78909c"; // 過熱時燒紅
+        ctx.fillRect(0, -10, 45, 20); 
+        
+        // 砲口端 (加粗裝飾)
+        ctx.fillStyle = (player.cooldown > 0) ? "#b71c1c" : "#29b6f6";
+        ctx.fillRect(35, -13, 12, 26);
+        ctx.restore();
+
+        // 2. 畫砲台基座 (固定不動)
+        ctx.beginPath();
+        ctx.arc(0, 20, 35, Math.PI, 0); // 上半圓基座
+        ctx.lineTo(35, 40); // 往下延伸貼地
+        ctx.lineTo(-35, 40);
+        ctx.closePath();
+        ctx.fillStyle = "#37474f";
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#263238";
+        ctx.stroke();
+
+        // 3. 轉軸中心
+        ctx.beginPath();
+        ctx.arc(0, 0, 16, 0, Math.PI * 2);
+        ctx.fillStyle = "#cfd8dc";
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#455a64";
+        ctx.stroke();
+
+        // 4. 轉軸發光指示燈 (冷卻狀態回饋)
+        ctx.beginPath();
+        ctx.arc(0, 0, 6, 0, Math.PI * 2);
+        ctx.fillStyle = (player.cooldown > 0) ? "#ff5252" : "#00e5ff";
+        
+        // 加上光暈特效
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = (player.cooldown > 0) ? "#ff5252" : "#00e5ff";
+        ctx.fill();
+
+        ctx.restore();
+        // ==========================================
     }
 
     function endGame() {
@@ -556,7 +605,8 @@
         mouseX = (clientX - rect.left) * scaleX;
         mouseY = (clientY - rect.top) * scaleY;
         let dx = mouseX - player.x;
-        let dy = mouseY - (player.y - 30);
+        // 將瞄準圓心校準到砲台的樞紐 (pivotY)
+        let dy = mouseY - (player.y - 20);
         let a = Math.atan2(dy, dx);
         if(a < 0) player.angle = a;
     }
@@ -573,13 +623,12 @@
     canvas.addEventListener('touchstart', e => {
         if(controlMode === 'touch') { 
             e.preventDefault(); 
-            // 使用 changedTouches 取出最新點擊的位置，避開按住移動鍵的干擾
             updateAim(e.changedTouches[0].clientX, e.changedTouches[0].clientY); 
             shoot();
         }
     }, {passive: false});
 
-    // 虛擬方向鍵事件 (加入 stopPropagation 阻止事件穿透到畫布觸發射擊)
+    // 虛擬方向鍵事件
     const btnLeft = document.getElementById('btn-left');
     const btnRight = document.getElementById('btn-right');
     
