@@ -280,8 +280,8 @@
     <script>
         // 設定區
         const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc"; 
-        // ★ 修改：更新為新的 8 個工作表名稱按鈕
-        const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一"];
+        // ★ 修改：增加「拼音練習」至課程陣列中
+        const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
 
         // 狀態變數
         let activeCards = [];
@@ -342,7 +342,7 @@
 
             try {
                 const fetchPromises = selectedLessons.map(sheetName => {
-                    // 對工作表名稱進行 encodeURI 處理，確保中文名稱（如「防災素一」）讀取正常
+                    // 對工作表名稱進行 encodeURI 處理，確保中文名稱讀取正常
                     const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
                     return fetch(queryUrl).then(res => res.text());
                 });
