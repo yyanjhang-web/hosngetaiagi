@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>台語聽寫特訓 - RPG特效版</title>
+    <!-- 引入 Google Fonts 思源黑體 (Noto Sans TC) 以解決台語罕見字缺字問題 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; user-select: none; -webkit-user-select: none; }
+        /* 全域字體改為 Noto Sans TC 優先 */
+        body { font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; user-select: none; -webkit-user-select: none; }
         
         #app-container { position: relative; width: 100vw; height: 100vh; height: 100dvh; max-width: 800px; background-color: #16213e; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         
@@ -33,7 +38,7 @@
         .question-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
         .audio-icon { font-size: 36px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; margin: 0; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
-        #hanzi-hint { font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; }
+        #hanzi-hint { font-family: 'Noto Sans TC', sans-serif; font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; }
         
         /* ==== RPG 戰鬥舞台 ==== */
         #rpg-arena { position: relative; width: 100%; height: 90px; background: rgba(0,0,0,0.3); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; box-sizing: border-box; margin-bottom: 5px; overflow: hidden; flex-shrink: 0;}
@@ -66,7 +71,7 @@
 
         /* 輸入框 */
         #syllable-boxes-container { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 5px; width: 100%; }
-        .syllable-box { min-width: 50px; height: 50px; padding: 0 10px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 8px; font-size: 26px; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: monospace; transition: 0.2s; }
+        .syllable-box { min-width: 50px; height: 50px; padding: 0 10px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 8px; font-size: 26px; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: 'Courier New', Courier, monospace; transition: 0.2s; }
         .syllable-box.active-box { border-color: #00e5ff; box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3); color: #00e5ff; }
         .cursor { display: inline-block; width: 3px; height: 26px; background: #e94560; margin-left: 2px; animation: blink 1s step-end infinite; }
         @keyframes blink { 50% { opacity: 0; } }
@@ -482,7 +487,7 @@
         else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g');
         else if (res.includes('m')) res = res.replace('m', 'm' + m);
         
-        return res.normalize('NFC'); // 將組合字元轉換為標準獨立字元，避免輸入框破圖
+        return res.normalize('NFC'); 
     }
 
     function loadQuestion() {
@@ -733,7 +738,6 @@
         }
     }
 
-    // 實體鍵盤綁定：增加 Ctrl 長按偵測
     window.addEventListener('keydown', e => {
         if(document.getElementById('game-screen').style.display === 'flex') {
             if (e.key === 'Control') {
