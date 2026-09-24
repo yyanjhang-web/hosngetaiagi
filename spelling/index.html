@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>台語聽寫特訓 - 鍵盤測試版</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; user-select: none; -webkit-user-select: none; }
+        
+        #app-container { position: relative; width: 100vw; height: 100vh; max-width: 800px; background-color: #16213e; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        
+        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f3460; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 30px 20px; box-sizing: border-box; overflow-y: auto; }
+        
+        h2 { color: #e94560; font-size: 28px; margin-bottom: 20px; text-shadow: 0 0 10px rgba(233, 69, 96, 0.5); }
+        
+        .lesson-btn { padding: 10px 15px; margin: 5px; background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .lesson-btn.active { background: #e94560; border-color: #ff6b81; box-shadow: 0 0 10px #e94560; }
+        
+        .toggle-container { margin: 20px 0; padding: 15px; background: #1a1a2e; border-radius: 10px; border: 1px solid #e94560; width: 80%; max-width: 400px; text-align: center; }
+        
+        button.start-btn { padding: 15px 40px; font-size: 22px; font-weight: bold; background: #0f3460; color: #00e5ff; border: 2px solid #00e5ff; border-radius: 10px; margin-top: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transition: 0.2s; }
+        button.start-btn:active { transform: scale(0.95); }
+
+        /* 遊戲畫面 UI */
+        #game-screen { display: none; flex-direction: column; height: 100%; padding: 20px; box-sizing: border-box; }
+        
+        .header-info { display: flex; justify-content: space-between; font-size: 18px; color: #00e5ff; margin-bottom: 20px; font-weight: bold; }
+        
+        .question-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        
+        /* 聽力播放圖示 (目前為視覺佔位) */
+        .audio-icon { font-size: 50px; margin-bottom: 10px; animation: pulse 1.5s infinite; color: #e94560; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
+        
+        /* 漢字提示 */
+        #hanzi-hint { font-size: 36px; color: #f9a826; font-weight: bold; margin-bottom: 20px; min-height: 50px; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); }
+        
+        /* 輸入顯示框 */
+        #input-display { width: 90%; height: 60px; background: rgba(0, 0, 0, 0.4); border: 2px solid #00e5ff; border-radius: 10px; font-size: 32px; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 2px; box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.2); margin-bottom: 30px; font-family: monospace; }
+        
+        .cursor { display: inline-block; width: 4px; height: 32px; background: #e94560; margin-left: 5px; animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* 虛擬鍵盤 */
+        #keyboard { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 10px; }
+        .kb-row { display: flex; justify-content: center; gap: 6px; }
+        
+        .key { background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; height: 50px; min-width: 35px; flex: 1; max-width: 60px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; }
+        
+        .key.active-key { background: #0f3460; border-color: #00e5ff; box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); color: #00e5ff; }
+        .key.active-key:active { background: #00e5ff; color: #000; transform: scale(0.92); }
+        
+        .key.disabled-key { background: #1a1a2e; border-color: #222; color: #444; pointer-events: none; }
+        
+        .key-action { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; box-shadow: 0 0 10px rgba(233, 69, 96, 0.5) !important; flex: 2; max-width: 100px; font-size: 16px;}
+        .key-action:active { background: #ff6b81 !important; transform: scale(0.92); }
+
+        .tone-sub { font-size: 14px; color: #aaa; margin-top: 2px; }
+        .key.active-key .tone-sub { color: #00e5ff; }
+
+        /* 答錯時的震動特效 */
+        .shake { animation: shake 0.4s; border-color: red !important; box-shadow: inset 0 0 15px red !important; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
+
+        /* 專門給入聲 (ptkh) 直式排列的 CSS */
+        .checked-tone-group { display: flex; align-items: center; justify-content: center; }
+        .checked-tone-letters { display: flex; flex-direction: column; font-size: 8px; line-height: 0.85; margin-left: 3px; text-align: left; color: #00e5ff; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="menu">
+        <h2>🔊 台羅聽寫特訓 (鍵盤測試)</h2>
+        <div id="lessons" style="display:flex; flex-wrap:wrap; justify-content:center; max-width: 600px;"></div>
+        
+        <div class="toggle-container">
+            <p style="margin: 0 0 10px 0; font-size: 18px; color: #f9a826;">💡 漢字提示模式</p>
+            <label style="font-size: 16px;">
+                <input type="checkbox" id="hint-toggle" checked style="transform: scale(1.5); margin-right: 10px;">
+                開啟提示 (得分減半)
+            </label>
+        </div>
+        
+        <p style="color:#aaa; font-size:14px; line-height: 1.6; text-align: center;">
+            請聽語音後，使用虛擬鍵盤或實體鍵盤輸入台羅拼音。<br>
+            ※ 非台羅字母之按鍵將無效化。
+        </p>
+        <button class="start-btn" onclick="startGame()">開始測驗</button>
+    </div>
+
+    <div id="game-over" style="display: none;">
+        <h2>特訓結束！</h2>
+        <p style="font-size: 24px; margin-bottom: 5px;">總得分：<span id="final-score" style="color:#00e5ff; font-weight:bold; font-size: 36px;">0</span></p>
+        <button class="start-btn" onclick="location.reload()">回主選單</button>
+    </div>
+
+    <div id="game-screen">
+        <div class="header-info">
+            <span id="score-display">分數: 0</span>
+            <span id="progress-display">進度: 0 / 0</span>
+        </div>
+        
+        <div class="question-area">
+            <!-- 未來串接音檔時，這會是播放按鈕 -->
+            <div class="audio-icon">🔊</div>
+            <!-- 漢字提示區塊 -->
+            <div id="hanzi-hint"></div>
+            <!-- 玩家輸入顯示 -->
+            <div id="input-display">
+                <span id="current-input"></span><span class="cursor"></span>
+            </div>
+        </div>
+
+        <div id="keyboard">
+            <!-- 將由 JS 動態生成鍵盤 -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
+    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一"];
+    let selectedLessons = [];
+    let questionBank = [];
+    let currentQuestionIndex = 0;
+    
+    let score = 0;
+    let typedString = "";
+    let isHintEnabled = true;
+
+    const validLetters = ['a','b','c','e','g','h','i','j','k','l','m','n','o','p','s','t','u','-'];
+    
+    // 定義入聲字 ptkh 的垂直 HTML 結構
+    const verticalPtkhHtml = `
+        <div class="checked-tone-letters">
+            <span>p</span><span>t</span><span>k</span><span>h</span>
+        </div>`;
+    
+    // 定義第 4 聲與第 8 聲的組合 HTML
+    const subTone4 = `<div class="checked-tone-group"><span>◌</span>${verticalPtkhHtml}</div>`;
+    const subTone8 = `<div class="checked-tone-group"><span>◌̍</span>${verticalPtkhHtml}</div>`;
+
+    // 鍵盤配置定義
+    const keyboardLayout = [
+        // 數字/聲調列：利用 Unicode 組合字元 (Combining marks) 來加上聲調符號
+        [
+            {val: '1', display: '1', sub: '◌'},
+            {val: '2', display: '2', sub: '◌́'},
+            {val: '3', display: '3', sub: '◌̀'},
+            {val: '4', display: '4', sub: subTone4}, // 包含 ptkh 直排
+            {val: '5', display: '5', sub: '◌̂'},
+            {val: '6', display: '6', sub: '✘', disabled: true}, // 第6聲停用
+            {val: '7', display: '7', sub: '◌̄'},
+            {val: '8', display: '8', sub: subTone8}, // 包含 ptkh 直排
+            {val: '9', display: '9', sub: '◌̋'},
+            {val: '-', display: '-', sub: '連字'}
+        ],
+        // QWERTY 列
+        ['q','w','e','r','t','y','u','i','o','p'],
+        ['a','s','d','f','g','h','j','k','l'],
+        ['z','x','c','v','b','n','m']
+    ];
+
+    const lessonsDiv = document.getElementById('lessons');
+    lessons.forEach(l => {
+        const btn = document.createElement('button');
+        btn.className = 'lesson-btn';
+        btn.innerText = l;
+        btn.onclick = () => {
+            btn.classList.toggle('active');
+            if(selectedLessons.includes(l)) selectedLessons = selectedLessons.filter(x => x !== l);
+            else selectedLessons.push(l);
+        };
+        lessonsDiv.appendChild(btn);
+    });
+
+    function buildKeyboard() {
+        const kbContainer = document.getElementById('keyboard');
+        kbContainer.innerHTML = '';
+
+        keyboardLayout.forEach((row, rowIndex) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'kb-row';
+
+            row.forEach(keyObj => {
+                let val = typeof keyObj === 'string' ? keyObj : keyObj.val;
+                let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display;
+                let subText = typeof keyObj === 'object' ? keyObj.sub : null;
+                let forceDisabled = typeof keyObj === 'object' && keyObj.disabled;
+
+                const btn = document.createElement('div');
+                btn.className = 'key';
+                btn.dataset.key = val;
+                
+                let html = `<div>${display}</div>`;
+                if(subText) html += `<div class="tone-sub">${subText}</div>`;
+                btn.innerHTML = html;
+
+                if (!forceDisabled && (validLetters.includes(val) || val === '1' || val === '2' || val === '3' || val === '4' || val === '5' || val === '7' || val === '8' || val === '9')) {
+                    btn.classList.add('active-key');
+                    btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
+                    btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
+                } else {
+                    btn.classList.add('disabled-key');
+                }
+                
+                rowDiv.appendChild(btn);
+            });
+
+            if (rowIndex === 3) {
+                const delBtn = document.createElement('div');
+                delBtn.className = 'key active-key key-action';
+                delBtn.innerText = '刪除';
+                delBtn.dataset.key = 'Backspace';
+                delBtn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput('Backspace'); });
+                delBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput('Backspace'); }, {passive: false});
+                rowDiv.appendChild(delBtn);
+
+                const enterBtn = document.createElement('div');
+                enterBtn.className = 'key active-key key-action';
+                enterBtn.innerText = '送出';
+                enterBtn.style.background = '#00e5ff';
+                enterBtn.style.color = '#000';
+                enterBtn.dataset.key = 'Enter';
+                enterBtn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput('Enter'); });
+                enterBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput('Enter'); }, {passive: false});
+                rowDiv.appendChild(enterBtn);
+            }
+
+            kbContainer.appendChild(rowDiv);
+        });
+    }
+
+    async function startGame() {
+        if(selectedLessons.length === 0) return alert("請至少選擇一課！");
+        isHintEnabled = document.getElementById('hint-toggle').checked;
+        
+        document.getElementById('menu').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+        
+        buildKeyboard();
+        document.getElementById('hanzi-hint').innerText = "載入中...";
+
+        const fetchPromises = selectedLessons.map(sheet => 
+            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}`).then(res => res.text())
+        );
+
+        const results = await Promise.all(fetchPromises);
+        questionBank = [];
+        results.forEach(text => {
+            text.split(/\r?\n/).forEach(l => {
+                const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
+                if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
+                    questionBank.push({ h: p[0].trim(), r: p[1].trim().toLowerCase() });
+                }
+            });
+        });
+
+        questionBank.sort(() => Math.random() - 0.5);
+        
+        score = 0;
+        currentQuestionIndex = 0;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (currentQuestionIndex >= questionBank.length) {
+            endGame();
+            return;
+        }
+        
+        typedString = "";
+        updateDisplay();
+        
+        const currentQ = questionBank[currentQuestionIndex];
+        document.getElementById('hanzi-hint').innerText = isHintEnabled ? currentQ.h : "???";
+        document.getElementById('progress-display').innerText = `進度: ${currentQuestionIndex + 1} / ${questionBank.length}`;
+        
+        console.log("現在播放:", currentQ.h);
+    }
+
+    function handleInput(key) {
+        const validSet = validLetters.concat(['1','2','3','4','5','7','8','9']);
+        
+        if (key === 'Backspace') {
+            typedString = typedString.slice(0, -1);
+        } else if (key === 'Enter') {
+            checkAnswer();
+            return;
+        } else if (validSet.includes(key)) {
+            typedString += key;
+        }
+        
+        updateDisplay();
+        triggerVisualFeedback(key);
+    }
+
+    function updateDisplay() {
+        document.getElementById('current-input').innerText = typedString;
+        document.getElementById('score-display').innerText = `分數: ${score}`;
+    }
+
+    function checkAnswer() {
+        if(typedString === "") return;
+
+        const correctAns = questionBank[currentQuestionIndex].r;
+        
+        if (typedString === correctAns) {
+            score += isHintEnabled ? 10 : 20; 
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+            
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 500);
+            
+        } else {
+            const inputBox = document.getElementById('input-display');
+            inputBox.classList.add('shake');
+            setTimeout(() => { inputBox.classList.remove('shake'); }, 400);
+            typedString = ""; 
+            updateDisplay();
+        }
+    }
+
+    function triggerVisualFeedback(key) {
+        const btn = document.querySelector(`.key[data-key="${key}"]`);
+        if(btn && !btn.classList.contains('disabled-key')) {
+            btn.style.background = '#00e5ff';
+            btn.style.color = '#000';
+            setTimeout(() => {
+                btn.style.background = '';
+                btn.style.color = '';
+            }, 100);
+        }
+    }
+
+    window.addEventListener('keydown', e => {
+        if(document.getElementById('game-screen').style.display === 'flex') {
+            const k = e.key.toLowerCase();
+            if (k === 'enter') {
+                handleInput('Enter');
+            } else if (k === 'backspace') {
+                handleInput('Backspace');
+            } else {
+                handleInput(k);
+            }
+        }
+    });
+
+    function endGame() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('game-over').style.display = 'flex';
+        document.getElementById('final-score').innerText = score;
+    }
+</script>
+</body>
+</html>
