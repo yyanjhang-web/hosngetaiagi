@@ -53,6 +53,8 @@
         .combat-effect { position: absolute; font-size: 40px; z-index: 3; opacity: 0; pointer-events: none; }
         @keyframes swordSlash { 0% { transform: translate(0, 0) rotate(-45deg) scale(0.5); opacity: 1; } 50% { transform: translate(120px, -20px) rotate(45deg) scale(1.5); opacity: 1; } 100% { transform: translate(180px, 20px) rotate(90deg) scale(1); opacity: 0; } }
         @keyframes fireBlast { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(-120px, -15px) scale(2); opacity: 1; } 100% { transform: translate(-220px, 0px) scale(1); opacity: 0; } }
+        @keyframes boneThrow { 0% { transform: translate(0, 0) rotate(0deg) scale(0.5); opacity: 1; } 50% { transform: translate(-120px, -30px) rotate(-180deg) scale(1.5); opacity: 1; } 100% { transform: translate(-220px, 0px) rotate(-360deg) scale(1); opacity: 0; } }
+
         .coin { position: absolute; font-size: 30px; animation: coinFly 1s ease-out forwards; opacity: 0; }
         @keyframes coinFly { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(0, -60px) scale(1.2); opacity: 1; } 100% { transform: translate(0, -20px) scale(1); opacity: 0; } }
 
@@ -463,14 +465,19 @@
         const arena = document.getElementById('rpg-arena');
         const effect = document.createElement('div');
         effect.className = 'combat-effect';
-        effect.innerText = type === 'sword' ? '🗡️' : '🔥';
         
         if (type === 'sword') {
+            effect.innerText = '🗡️';
             effect.style.left = '70px'; effect.style.bottom = '10px';
             effect.style.animation = 'swordSlash 0.3s ease-out forwards';
-        } else {
+        } else if (type === 'fire') {
+            effect.innerText = '🔥';
             effect.style.right = '70px'; effect.style.bottom = '10px';
             effect.style.animation = 'fireBlast 0.4s ease-in forwards';
+        } else if (type === 'bone') {
+            effect.innerText = '🦴';
+            effect.style.right = '70px'; effect.style.bottom = '10px';
+            effect.style.animation = 'boneThrow 0.5s ease-out forwards';
         }
         
         arena.appendChild(effect);
@@ -522,10 +529,14 @@
         const enemy = document.getElementById('enemy-sprite');
 
         if (attempt === 1 || attempt === 2) {
-            if(enemyHitCount < 10) { 
+            // 第 1, 2 次錯：怪物發動攻擊，勇者跳躍閃躲
+            if (enemyHitCount < 10) { 
                 enemy.classList.add('enemy-attack');
                 spawnEffect('fire');
                 setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
+            } else {
+                // 如果怪物已死，噴骨頭取代火焰，且敵人本體不衝撞
+                spawnEffect('bone');
             }
             
             setTimeout(() => { player.classList.add('player-dodge'); }, 150); 
@@ -556,10 +567,13 @@
         const player = document.getElementById('player-sprite');
         const enemy = document.getElementById('enemy-sprite');
         
-        if(enemyHitCount < 10) {
+        if (enemyHitCount < 10) {
             enemy.classList.add('enemy-attack');
             spawnEffect('fire');
             setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
+        } else {
+            // 如果怪物已死，噴骨頭取代火焰，且敵人本體不衝撞
+            spawnEffect('bone');
         }
         
         setTimeout(() => { player.classList.add('player-hit'); }, 200); 
