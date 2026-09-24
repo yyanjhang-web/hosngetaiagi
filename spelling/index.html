@@ -53,7 +53,7 @@
         
         .combat-effect { position: absolute; font-size: 40px; z-index: 3; opacity: 0; pointer-events: none; }
         @keyframes swordSlash { 0% { transform: translate(0, 0) rotate(-45deg) scale(0.5); opacity: 1; } 50% { transform: translate(120px, -20px) rotate(45deg) scale(1.5); opacity: 1; } 100% { transform: translate(180px, 20px) rotate(90deg) scale(1); opacity: 0; } }
-        /* 通用投擲物軌跡 (火、針、水、網、骨頭) */
+        /* 通用投擲物軌跡 */
         @keyframes projFly { 0% { transform: translate(0, 0) rotate(0deg) scale(0.8); opacity: 1; } 50% { transform: translate(-100px, -20px) rotate(-180deg) scale(1.5); opacity: 1; } 100% { transform: translate(-220px, 0px) rotate(-360deg) scale(1.2); opacity: 0; } }
 
         .coin { position: absolute; font-size: 30px; animation: coinFly 1s ease-out forwards; opacity: 0; }
@@ -72,7 +72,7 @@
         @keyframes blink { 50% { opacity: 0; } }
 
         /* ================================================= */
-        /* 虛擬鍵盤全區與聲調專屬設計 */
+        /* 虛擬鍵盤與「自製 SVG 聲調系統」 */
         /* ================================================= */
         #keyboard { display: flex; flex-direction: column; gap: 5px; width: 100%; flex-shrink: 0; padding-bottom: 5px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; }
@@ -82,28 +82,25 @@
         .key.active-key:active { background: #00e5ff; color: #000; transform: scale(0.92); }
         .key.disabled-key { background: #1a1a2e; border-color: #222; color: #444; pointer-events: none; }
         
-        /* 聲調按鍵專屬：角標數字 + 中央大符號 */
-        .tone-num { position: absolute; top: 3px; left: 5px; font-size: 13px; color: #78909c; font-weight: bold; line-height: 1; }
+        /* 聲調按鍵專屬佈局 */
+        .tone-num { position: absolute; top: 3px; left: 5px; font-size: 11px; color: #78909c; font-weight: bold; line-height: 1; }
         .key.active-key .tone-num { color: #00b8d4; }
         .tone-symbol { font-size: 26px; line-height: 1; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding-top: 5px;}
-        .key.active-key .tone-symbol { text-shadow: 0 0 5px rgba(0,229,255,0.5); }
         
-        /* 針對第6聲按鍵微調 */
-        .key[data-key="6"] { flex: 0.6; opacity: 0.5; pointer-events: none; }
-        .key[data-key="6"] .tone-symbol { font-size: 18px; }
+        /* 純手工繪製的無破綻聲調系統 */
+        .custom-tone { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 26px; }
+        .c-mark { height: 12px; font-size: 16px; line-height: 12px; font-family: Arial, sans-serif; font-weight: bold; display: flex; align-items: flex-end; justify-content: center; }
+        .tone-svg { width: 14px; height: 14px; margin-top: 2px; overflow: visible;}
+        .mark-8 { width: 2.5px; height: 8px; background-color: currentColor; border-radius: 1px; margin-bottom: 2px;}
 
         /* 入聲 (ptkh) 的 2x2 方塊排列 */
         .checked-tone-group { display: flex; align-items: center; justify-content: center; line-height: 1;}
-        .checked-tone-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 1px; 
-            font-size: 10px; 
-            margin-left: 3px; 
-            text-align: center; 
-            line-height: 0.9;
-            font-family: Arial, sans-serif;
-        }
+        .checked-tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; font-size: 9px; margin-left: 4px; text-align: center; line-height: 0.9; font-family: Arial, sans-serif; color: #aaa;}
+        .key.active-key .checked-tone-grid { color: #00e5ff; }
+
+        /* 針對第6聲按鍵微調 */
+        .key[data-key="6"] { flex: 0.6; opacity: 0.5; pointer-events: none; }
+        .key[data-key="6"] .c-mark { font-size: 14px; color: #666; }
 
         .key-delete { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; flex: 1.4; font-size: 20px;}
         .key-delete:active { background: #ff6b81 !important; transform: scale(0.92); }
@@ -152,9 +149,11 @@
             .key-enter, .key-delete { font-size: 16px; }
             
             /* 壓縮模式下的聲調符號微調 */
-            .tone-num { font-size: 10px; top: 1px; left: 3px; }
-            .tone-symbol { font-size: 20px; padding-top: 3px; }
-            .checked-tone-grid { font-size: 8px; gap: 0; margin-left: 2px; }
+            .tone-num { font-size: 9px; top: 1px; left: 3px; }
+            .c-mark { font-size: 13px; height: 10px; line-height: 10px; }
+            .tone-svg { width: 12px; height: 12px; margin-top: 1px; }
+            .mark-8 { height: 6px; margin-bottom: 1px;}
+            .checked-tone-grid { font-size: 7px; gap: 0; margin-left: 2px; }
         }
     </style>
 </head>
@@ -247,14 +246,22 @@
     const validLetters = ['a','b','c','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
     const toneDigits = ['1','2','3','4','5','7','8','9'];
     
-    // 將垂直排列改為 2x2 的網格排列
+    // ==== 手工繪製的 SVG + CSS 無破綻聲調系統 ====
+    const svgCircle = `<svg class="tone-svg" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2.5,2" /></svg>`;
+    
+    function getToneHtml(markStr, isTone8 = false) {
+        let markHtml = isTone8 ? `<div class="mark-8"></div>` : markStr;
+        return `<div class="custom-tone"><div class="c-mark">${markHtml}</div>${svgCircle}</div>`;
+    }
+
+    // 將入聲改為 2x2 的網格排列
     const ptkhGridHtml = `
         <div class="checked-tone-grid">
             <span>p</span><span>t</span>
             <span>k</span><span>h</span>
         </div>`;
-    const subTone4 = `<div class="checked-tone-group"><span>◌</span>${ptkhGridHtml}</div>`;
-    const subTone8 = `<div class="checked-tone-group"><span>◌̍</span>${ptkhGridHtml}</div>`;
+    const subTone4 = `<div class="checked-tone-group">${getToneHtml('')}${ptkhGridHtml}</div>`;
+    const subTone8 = `<div class="checked-tone-group">${getToneHtml('', true)}${ptkhGridHtml}</div>`;
 
     const lessonsDiv = document.getElementById('lessons');
     lessons.forEach(l => {
@@ -308,7 +315,7 @@
         
         let html = '';
         if (toneDigits.includes(val)) {
-            // 聲調按鍵：角標數字 + 中央大符號
+            // 聲調按鍵：角標數字 + 中央大符號 (採用自製 HTML)
             html += `<div class="tone-num">${display}</div>`;
             html += `<div class="tone-symbol">${subText}</div>`;
         } else {
@@ -343,10 +350,17 @@
 
         const row0 = document.createElement('div');
         row0.className = 'kb-row';
+        // 使用安全、跨平台支援極佳的基礎符號來代替結合字元
         const numKeys = [
-            {val: '1', display: '1', sub: '◌'}, {val: '2', display: '2', sub: '◌́'}, {val: '3', display: '3', sub: '◌̀'},
-            {val: '4', display: '4', sub: subTone4}, {val: '5', display: '5', sub: '◌̂'}, {val: '6', display: '6', sub: '✘', disabled: true}, 
-            {val: '7', display: '7', sub: '◌̄'}, {val: '8', display: '8', sub: subTone8}, {val: '9', display: '9', sub: '◌̋'},
+            {val: '1', display: '1', sub: getToneHtml('')}, 
+            {val: '2', display: '2', sub: getToneHtml('´')}, 
+            {val: '3', display: '3', sub: getToneHtml('ˋ')},
+            {val: '4', display: '4', sub: subTone4}, 
+            {val: '5', display: '5', sub: getToneHtml('ˆ')}, 
+            {val: '6', display: '6', sub: getToneHtml('✘'), disabled: true}, 
+            {val: '7', display: '7', sub: getToneHtml('¯')}, 
+            {val: '8', display: '8', sub: subTone8}, 
+            {val: '9', display: '9', sub: getToneHtml('˝')},
             {val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'}
         ];
         numKeys.forEach(k => row0.appendChild(createKeyDiv(k)));
@@ -406,9 +420,11 @@
 
         questionBank.sort(() => Math.random() - 0.5);
         
+        // 重置狀態
         score = 0; hearts = 3; currentQuestionIndex = 0; maxQuestions = 14; 
         streakCount = 0; 
         
+        // 重置敵人
         currentEnemyIdx = 0;
         currentEnemyHp = enemyConfig[0].maxHp;
         allEnemiesCleared = false;
@@ -454,17 +470,19 @@
         const m = marks[toneDigit];
         if (!m) return syllable;
 
-        if (syllable.includes('a')) return syllable.replace('a', 'a' + m);
-        if (syllable.includes('oo')) return syllable.replace('oo', 'o' + m + 'o');
-        if (syllable.includes('o') && !syllable.includes('oa') && !syllable.includes('oe')) return syllable.replace('o', 'o' + m);
-        if (syllable.includes('e')) return syllable.replace('e', 'e' + m);
-        if (syllable.includes('iu')) return syllable.replace('iu', 'i' + 'u' + m);
-        if (syllable.includes('ui')) return syllable.replace('ui', 'u' + 'i' + m);
-        if (syllable.includes('i')) return syllable.replace('i', 'i' + m);
-        if (syllable.includes('u')) return syllable.replace('u', 'u' + m);
-        if (syllable.includes('ng')) return syllable.replace('ng', 'n' + m + 'g');
-        if (syllable.includes('m')) return syllable.replace('m', 'm' + m);
-        return syllable;
+        let res = syllable;
+        if (res.includes('a')) res = res.replace('a', 'a' + m);
+        else if (res.includes('oo')) res = res.replace('oo', 'o' + m + 'o');
+        else if (res.includes('o') && !res.includes('oa') && !res.includes('oe')) res = res.replace('o', 'o' + m);
+        else if (res.includes('e')) res = res.replace('e', 'e' + m);
+        else if (res.includes('iu')) res = res.replace('iu', 'i' + 'u' + m);
+        else if (res.includes('ui')) res = res.replace('ui', 'u' + 'i' + m);
+        else if (res.includes('i')) res = res.replace('i', 'i' + m);
+        else if (res.includes('u')) res = res.replace('u', 'u' + m);
+        else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g');
+        else if (res.includes('m')) res = res.replace('m', 'm' + m);
+        
+        return res.normalize('NFC'); // 將組合字元轉換為標準獨立字元，避免輸入框破圖
     }
 
     function loadQuestion() {
@@ -715,6 +733,7 @@
         }
     }
 
+    // 實體鍵盤綁定：增加 Ctrl 長按偵測
     window.addEventListener('keydown', e => {
         if(document.getElementById('game-screen').style.display === 'flex') {
             if (e.key === 'Control') {
