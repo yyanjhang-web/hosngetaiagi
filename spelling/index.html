@@ -41,7 +41,7 @@
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
         #hanzi-hint { font-family: 'Noto Sans TC', sans-serif; font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; }
         
-        /* ==== RPG 戰鬥舞台与魔法詠唱特效 ==== */
+        /* ==== RPG 戰鬥舞台與魔法詠唱特效 ==== */
         #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; box-sizing: border-box; margin-bottom: 5px; overflow: hidden; flex-shrink: 0;}
         
         #player-wrapper { position: relative; display: flex; align-items: flex-end; justify-content: center; z-index: 2; }
@@ -74,7 +74,7 @@
         .enemy-hit-flash { transform: translateX(12px) rotate(12deg) !important; filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 25px #00e5ff) !important; }
         .enemy-dead { transform: rotate(90deg) translateY(30px) !important; filter: grayscale(1) opacity(0.7) drop-shadow(0 0 0 transparent) !important; }
         
-        /* 除魔聖光束特效 (取代原本的飛劍) */
+        /* 除魔聖光束特效 */
         .light-beam-effect { position: absolute; left: 85px; bottom: 28px; height: 14px; background: linear-gradient(90deg, #ffffff, #00e5ff, #e040fb, transparent); border-radius: 10px; box-shadow: 0 0 20px #00e5ff, 0 0 35px #ffffff; z-index: 3; transform-origin: left center; pointer-events: none; animation: shootLightBeam 0.4s ease-out forwards; }
         .light-beam-effect::after { content: '✨'; position: absolute; right: 0; top: -14px; font-size: 28px; filter: drop-shadow(0 0 10px #fff); }
         @keyframes shootLightBeam {
@@ -85,13 +85,12 @@
         }
 
         .combat-effect { position: absolute; font-size: 40px; z-index: 3; opacity: 0; pointer-events: none; }
-        /* 通用投擲物軌跡 */
         @keyframes projFly { 0% { transform: translate(0, 0) rotate(0deg) scale(0.8); opacity: 1; } 50% { transform: translate(-100px, -20px) rotate(-180deg) scale(1.5); opacity: 1; } 100% { transform: translate(-220px, 0px) rotate(-360deg) scale(1.2); opacity: 0; } }
 
         .coin { position: absolute; font-size: 30px; animation: coinFly 1s ease-out forwards; opacity: 0; }
         @keyframes coinFly { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(0, -60px) scale(1.2); opacity: 1; } 100% { transform: translate(0, -20px) scale(1); opacity: 0; } }
 
-        /* 倒數計時條 (支援平滑毫秒縮減) */
+        /* 倒數計時條 */
         #timer-container { width: 100%; height: 8px; background: #2a3654; border-radius: 5px; overflow: hidden; margin-bottom: 10px; position: relative; display: none; flex-shrink: 0;}
         #timer-bar { height: 100%; width: 100%; background: #00e5ff; transition: width 0.1s linear, background 0.3s; }
         #timer-text { position: absolute; right: 5px; top: -16px; font-size: 12px; color: #fff; font-weight: bold; }
@@ -156,10 +155,15 @@
         /* ========================================================= */
         /* 戰後掉落寶物（魔咒秘訣）與錯題檢視區 */
         /* ========================================================= */
-        #treasure-box { background: rgba(26, 26, 46, 0.9); border: 2px solid #f9a826; border-radius: 12px; padding: 18px 20px; text-align: center; max-width: 450px; width: 90%; margin-top: 10px; box-shadow: 0 0 20px rgba(249, 168, 38, 0.35); animation: dropTreasure 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #treasure-box { background: rgba(26, 26, 46, 0.9); border: 2px solid #f9a826; border-radius: 12px; padding: 22px 20px; text-align: center; max-width: 450px; width: 90%; margin-top: 10px; box-shadow: 0 0 20px rgba(249, 168, 38, 0.35); animation: dropTreasure 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes dropTreasure { 0% { transform: translateY(-40px) scale(0.8); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-        .treasure-icon { font-size: 52px; margin-bottom: 8px; display: inline-block; animation: float Scroll 2s ease-in-out infinite alternate; filter: drop-shadow(0 0 10px #f9a826); }
-        .choice-btn { padding: 10px 28px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; transition: 0.2s; font-family: inherit; margin: 0 8px; }
+        .treasure-icon { font-size: 56px; margin-bottom: 12px; display: inline-block; filter: drop-shadow(0 0 12px #f9a826); }
+        
+        /* 金黃色閃耀問題樣式 */
+        .golden-question { color: #ffd700; font-size: 20px; margin: 0 0 22px 0; font-weight: bold; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); letter-spacing: 1px; }
+        
+        .choice-btn-group { display: flex; justify-content: center; gap: 15px; }
+        .choice-btn { padding: 12px 36px; font-size: 20px; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; transition: 0.2s; font-family: inherit; }
         .btn-yes { background: #f9a826; color: #000; box-shadow: 0 0 12px rgba(249, 168, 38, 0.5); }
         .btn-yes:active { transform: scale(0.95); }
         .btn-no { background: #2a3654; color: #ccc; border: 1px solid #4a5c88; }
@@ -242,11 +246,10 @@
         <!-- 掉落寶物：魔咒秘訣互動區 -->
         <div id="treasure-box" style="display: none;">
             <div class="treasure-icon">📜</div>
-            <p style="color: #ffd700; font-size: 18px; margin: 0 0 5px 0; font-weight: bold;">✨ 發現掉落寶物：撿到一張紙 ✨</p>
-            <p style="font-size: 20px; color: #fff; margin: 5px 0 18px 0; font-weight: bold;">「Khioh著魔咒秘訣，敢欲修行？」</p>
-            <div>
-                <button class="choice-btn btn-yes" onclick="showWrongReview()">欲 (展開秘訣)</button>
-                <button class="choice-btn btn-no" onclick="location.reload()">無愛 (回主選單)</button>
+            <p class="golden-question">✨ Khioh著魔咒秘訣，敢欲修行？ ✨</p>
+            <div class="choice-btn-group">
+                <button class="choice-btn btn-yes" onclick="showWrongReview()">欲</button>
+                <button class="choice-btn btn-no" onclick="location.reload()">無愛</button>
             </div>
         </div>
 
@@ -255,7 +258,7 @@
             <h3 style="color: #f9a826; margin: 0 0 12px 0; text-align: center; border-bottom: 1px solid #4a5c88; padding-bottom: 8px;">📖 魔咒秘訣（錯題修行）</h3>
             <div id="review-items-container"></div>
             <div style="text-align: center;">
-                <button class="start-btn" onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; font-size: 18px;">修行完畢（回主選單）</button>
+                <button class="start-btn" onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; font-size: 18px;">修行完畢</button>
             </div>
         </div>
 
@@ -674,7 +677,6 @@
         const effect = document.createElement('div');
         
         if (type === 'light') {
-            // 發射除魔聖光束
             effect.className = 'light-beam-effect';
         } else if (type === 'enemyAttack') {
             effect.className = 'combat-effect';
@@ -696,7 +698,6 @@
         const player = document.getElementById('player-sprite');
         const enemyEl = document.getElementById('enemy-sprite');
         
-        // 魔法師施法動作與聖光特效
         player.classList.add('player-cast');
         spawnEffect('light');
         
@@ -744,7 +745,7 @@
     function handleFail() {
         stopTimer();
         streakCount = 0; 
-        recordWrongCurrentQuestion(); // 紀錄到錯題本
+        recordWrongCurrentQuestion();
         
         const container = document.getElementById('syllable-boxes-container');
         container.classList.add('shake', 'error-shake');
@@ -763,7 +764,6 @@
             setTimeout(() => { player.classList.add('player-dodge'); }, 150); 
             setTimeout(() => { player.classList.remove('player-dodge'); }, 600); 
             
-            // 依照音節數量計算倒數秒數：第2次回答每字7.5秒，第3次回答每字5秒
             const wordCount = parsedAnswer.length;
             let nextTime = (attempt === 1) ? (wordCount * 7.5) : (wordCount * 5);
             attempt++; 
@@ -778,7 +778,7 @@
         if (hearts <= 0) return; 
         stopTimer(); 
         streakCount = 0; 
-        recordWrongCurrentQuestion(); // 扣血跳過也計入錯題秘訣
+        recordWrongCurrentQuestion();
         
         const container = document.getElementById('syllable-boxes-container');
         container.classList.add('shake', 'error-shake');
@@ -807,7 +807,6 @@
         }, 1000);
     }
 
-    // 支援小數點 (如7.5秒) 的平滑倒數計時器
     function startTimer(seconds) {
         const container = document.getElementById('timer-container');
         const bar = document.getElementById('timer-bar');
@@ -904,7 +903,6 @@
 
         reviewList.style.display = 'none';
 
-        // 若有答錯或跳過的題目，掉落寶物卷軸詢問是否修行
         if (wrongQuestions.length > 0) {
             treasureBox.style.display = 'block';
             normalReturnBtn.style.display = 'none';
@@ -914,7 +912,6 @@
         }
     }
 
-    // 展開魔咒秘訣（錯題列表）
     function showWrongReview() {
         document.getElementById('treasure-box').style.display = 'none';
         const reviewList = document.getElementById('review-list');
