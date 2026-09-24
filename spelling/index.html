@@ -6,9 +6,10 @@
     <title>台語聽寫特訓 - RPG特效版</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; user-select: none; -webkit-user-select: none; }
+        /* 使用 100dvh 解決手機瀏覽器上下導覽列遮擋問題 */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; user-select: none; -webkit-user-select: none; }
         
-        #app-container { position: relative; width: 100vw; height: 100vh; max-width: 800px; background-color: #16213e; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        #app-container { position: relative; width: 100vw; height: 100vh; height: 100dvh; max-width: 800px; background-color: #16213e; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         
         #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f3460; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 30px 20px; box-sizing: border-box; overflow-y: auto; }
         
@@ -23,22 +24,24 @@
         button.start-btn:active { transform: scale(0.95); }
 
         /* 遊戲畫面 UI */
-        #game-screen { display: none; flex-direction: column; height: 100%; padding: 15px 20px; box-sizing: border-box; }
+        #game-screen { display: none; flex-direction: column; height: 100%; padding: 10px 15px; box-sizing: border-box; justify-content: space-between; }
         
-        .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 15px; font-weight: bold; }
+        .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 10px; font-weight: bold; }
         
         #health-bar { font-size: 20px; letter-spacing: 3px; }
         
+        .question-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+
         /* 聽力播放圖示 */
         .audio-icon { font-size: 36px; margin-bottom: 5px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; text-align: center;}
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
         
         /* 漢字提示 */
-        #hanzi-hint { font-size: 30px; color: #f9a826; font-weight: bold; margin-bottom: 5px; min-height: 45px; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); text-align: center;}
+        #hanzi-hint { font-size: 30px; color: #f9a826; font-weight: bold; margin-bottom: 5px; min-height: 40px; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); text-align: center; display: flex; align-items: center; justify-content: center;}
         
         /* ==== RPG 戰鬥舞台 ==== */
-        #rpg-arena { position: relative; width: 100%; height: 100px; background: rgba(0,0,0,0.3); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; box-sizing: border-box; margin-bottom: 10px; overflow: hidden;}
-        .rpg-sprite { font-size: 60px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; }
+        #rpg-arena { position: relative; width: 100%; height: 90px; background: rgba(0,0,0,0.3); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; box-sizing: border-box; margin-bottom: 10px; overflow: hidden; flex-shrink: 0;}
+        .rpg-sprite { font-size: 55px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; }
         #player-sprite { transform-origin: bottom center; z-index: 2; }
         #enemy-sprite { transform-origin: bottom center; z-index: 1; filter: drop-shadow(0 0 10px red); }
         
@@ -59,22 +62,22 @@
         @keyframes coinFly { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(0, -60px) scale(1.2); opacity: 1; } 100% { transform: translate(0, -20px) scale(1); opacity: 0; } }
 
         /* 倒數計時條 */
-        #timer-container { width: 100%; height: 10px; background: #2a3654; border-radius: 5px; overflow: hidden; margin-bottom: 15px; position: relative; display: none; }
+        #timer-container { width: 100%; height: 8px; background: #2a3654; border-radius: 5px; overflow: hidden; margin-bottom: 10px; position: relative; display: none; flex-shrink: 0;}
         #timer-bar { height: 100%; width: 100%; background: #00e5ff; transition: width 1s linear, background 0.3s; }
-        #timer-text { position: absolute; right: 5px; top: -18px; font-size: 14px; color: #fff; font-weight: bold; }
+        #timer-text { position: absolute; right: 5px; top: -16px; font-size: 12px; color: #fff; font-weight: bold; }
 
         /* 多音節獨立輸入框 */
-        #syllable-boxes-container { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; width: 100%; }
-        .syllable-box { min-width: 55px; height: 55px; padding: 0 10px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 10px; font-size: 28px; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: monospace; transition: 0.2s; }
+        #syllable-boxes-container { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; width: 100%; }
+        .syllable-box { min-width: 50px; height: 50px; padding: 0 10px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 8px; font-size: 26px; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: monospace; transition: 0.2s; }
         .syllable-box.active-box { border-color: #00e5ff; box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3); color: #00e5ff; }
-        .cursor { display: inline-block; width: 3px; height: 28px; background: #e94560; margin-left: 2px; animation: blink 1s step-end infinite; }
+        .cursor { display: inline-block; width: 3px; height: 26px; background: #e94560; margin-left: 2px; animation: blink 1s step-end infinite; }
         @keyframes blink { 50% { opacity: 0; } }
 
         /* 虛擬鍵盤全區 */
-        #keyboard { display: flex; flex-direction: column; gap: 6px; width: 100%; flex-grow: 1; justify-content: flex-end; padding-bottom: 10px; }
+        #keyboard { display: flex; flex-direction: column; gap: 5px; width: 100%; flex-shrink: 0; padding-bottom: 5px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; }
         
-        .key { background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; min-height: 48px; min-width: 25px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; }
+        .key { background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; min-height: 45px; min-width: 25px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; }
         
         .key.active-key { background: #0f3460; border-color: #00e5ff; box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); color: #00e5ff; }
         .key.active-key:active { background: #00e5ff; color: #000; transform: scale(0.92); }
@@ -86,7 +89,7 @@
         .key-delete:active { background: #ff6b81 !important; transform: scale(0.92); }
 
         /* 高挑特化按鍵 (正/反 L型) */
-        .key-tall { height: 100%; min-height: 102px; font-size: 16px; line-height: 1.3;}
+        .key-tall { height: 100%; min-height: 95px; font-size: 16px; line-height: 1.3;}
         .key-skip { background: #d32f2f !important; border-color: #f44336 !important; color: white !important; box-shadow: 0 0 10px rgba(244, 67, 54, 0.4) !important;}
         .key-skip:active { background: #f44336 !important; transform: scale(0.92); }
         .key-enter { background: #00e5ff !important; border-color: #00b8d4 !important; color: #000 !important; font-size: 20px; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4) !important;}
@@ -102,8 +105,43 @@
         .checked-tone-group { display: flex; align-items: center; justify-content: center; }
         .checked-tone-letters { display: flex; flex-direction: column; font-size: 7px; line-height: 0.8; margin-left: 2px; text-align: left; color: #00e5ff; }
         
-        /* 結局動畫與標題 */
         #end-comment { font-size: 32px; font-weight: bold; margin-bottom: 20px; text-align: center; text-shadow: 0 0 15px rgba(0,0,0,0.8); }
+
+        /* ========================================================= */
+        /* 極致壓縮模式：針對手機橫向、小螢幕，避免鍵盤被擠出畫面外 */
+        /* ========================================================= */
+        @media (max-height: 700px) {
+            #game-screen { padding: 5px 10px; }
+            .header-info { margin-bottom: 5px; font-size: 14px; }
+            #health-bar { font-size: 16px; }
+            
+            /* 壓縮戰鬥畫面與圖示 */
+            #rpg-arena { height: 60px; padding: 0 20px; margin-bottom: 5px; border-bottom-width: 2px; }
+            .rpg-sprite { font-size: 40px; }
+            .combat-effect { font-size: 25px; }
+            .coin { font-size: 20px; }
+            
+            .audio-icon { font-size: 24px; margin-bottom: 2px; }
+            #hanzi-hint { font-size: 22px; min-height: 30px; margin-bottom: 2px; }
+            
+            /* 壓縮輸入框 */
+            #syllable-boxes-container { margin-bottom: 5px; gap: 5px; }
+            .syllable-box { min-width: 40px; height: 40px; font-size: 22px; padding: 0 5px; border-width: 1px;}
+            .cursor { height: 22px; }
+            
+            #timer-container { margin-bottom: 5px; height: 6px; }
+            #timer-text { font-size: 10px; top: -14px; }
+            
+            /* 壓縮鍵盤高度 */
+            #keyboard { gap: 3px; padding-bottom: 2px; }
+            .kb-row { gap: 3px; }
+            .key { min-height: 34px; border-radius: 5px; font-size: 15px; border-width: 1px;}
+            .key-tall { min-height: 71px; font-size: 14px;}
+            .key-enter { font-size: 16px; }
+            .key-delete { font-size: 16px; }
+            .tone-sub { font-size: 9px; }
+            .checked-tone-letters { font-size: 6px; }
+        }
     </style>
 </head>
 <body>
@@ -208,7 +246,6 @@
         lessonsDiv.appendChild(btn);
     });
 
-    // 動態生成 HTML 鍵盤元素
     function createKeyDiv(keyObj) {
         let val = typeof keyObj === 'string' ? keyObj : keyObj.val;
         let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display;
@@ -234,12 +271,10 @@
         return btn;
     }
 
-    // 全新配置：將 QAZ下方(扣血前進) 與 PLM下方(送出) 做成 L 型區塊
     function buildKeyboard() {
         const kbContainer = document.getElementById('keyboard');
         kbContainer.innerHTML = '';
 
-        // Row 0: 數字列 + 刪除鍵
         const row0 = document.createElement('div');
         row0.className = 'kb-row';
         const numKeys = [
@@ -251,30 +286,26 @@
         numKeys.forEach(k => row0.appendChild(createKeyDiv(k)));
         kbContainer.appendChild(row0);
 
-        // Row 1: Q~P 完全佔滿寬度
         const row1 = document.createElement('div');
         row1.className = 'kb-row';
         ['q','w','e','r','t','y','u','i','o','p'].forEach(k => row1.appendChild(createKeyDiv(k)));
         kbContainer.appendChild(row1);
 
-        // Row 2 & 3: 採用複合式排版 (左 L、中字母、右反 L)
         const wrapper23 = document.createElement('div');
         wrapper23.style.display = 'flex';
         wrapper23.style.gap = '4px';
         wrapper23.style.width = '100%';
 
-        // 左側 (正 L型空間) : 扣血前進按鈕 (Tall)
         const leftCol = document.createElement('div');
         leftCol.style.flex = '1.3';
         leftCol.appendChild(createKeyDiv({val: 'Skip', display: '扣血<br>前進', customClass: 'key-tall key-skip'}));
         wrapper23.appendChild(leftCol);
 
-        // 中間區塊 : A~L 及 Z~M 兩列
         const midCol = document.createElement('div');
         midCol.style.flex = '7.4';
         midCol.style.display = 'flex';
         midCol.style.flexDirection = 'column';
-        midCol.style.gap = '6px';
+        midCol.style.gap = '4px';
         
         const row2 = document.createElement('div');
         row2.className = 'kb-row';
@@ -288,7 +319,6 @@
         midCol.appendChild(row3);
         wrapper23.appendChild(midCol);
 
-        // 右側 (反 L型空間) : 送出按鈕 (Tall)
         const rightCol = document.createElement('div');
         rightCol.style.flex = '1.3';
         rightCol.appendChild(createKeyDiv({val: 'Enter', display: '送出', customClass: 'key-tall key-enter'}));
@@ -648,26 +678,24 @@
         }
     });
 
-    // ==== 結局判定系統 ====
     function endGame() {
         stopTimer();
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
         document.getElementById('final-score').innerText = score;
         
-        // 分數級距與對應評語
         let endComment = "";
         let commentColor = "";
         
         if (score >= 300) {
             endComment = "拍倒惡鬼，光榮倒轉來！";
-            commentColor = "#4caf50"; // 亮綠色
+            commentColor = "#4caf50";
         } else if (score >= 150) {
             endComment = "Hiàm出惡鬼，繼續修行！";
-            commentColor = "#ff9800"; // 橘黃色
+            commentColor = "#ff9800";
         } else {
             endComment = "惡鬼koh teh作孽，毋通放棄！";
-            commentColor = "#f44336"; // 紅色
+            commentColor = "#f44336";
         }
         
         const commentDiv = document.getElementById('end-comment');
