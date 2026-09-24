@@ -27,7 +27,6 @@
         
         .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 15px; font-weight: bold; }
         
-        /* 狀態列 (血條與進度) */
         #health-bar { font-size: 20px; letter-spacing: 3px; }
         
         /* 聽力播放圖示 */
@@ -43,7 +42,7 @@
         #player-sprite { transform-origin: bottom center; z-index: 2; }
         #enemy-sprite { transform-origin: bottom center; z-index: 1; filter: drop-shadow(0 0 10px red); }
         
-        /* 戰鬥與特效動畫 Classes */
+        /* 戰鬥與特效動畫 */
         .player-attack { transform: translateX(80px) rotate(15deg) !important; }
         .enemy-attack { transform: translateX(-60px) rotate(-15deg) !important; }
         .player-dodge { transform: translateY(-40px) rotate(-10deg) !important; }
@@ -51,20 +50,9 @@
         .enemy-hit-flash { transform: translateX(10px) rotate(10deg) !important; filter: brightness(2) contrast(1.5) drop-shadow(0 0 20px white) !important; }
         .enemy-dead { transform: rotate(90deg) translateY(30px) !important; filter: grayscale(1) opacity(0.7) drop-shadow(0 0 0 transparent) !important; }
         
-        /* 動態武器與魔法特效 */
         .combat-effect { position: absolute; font-size: 40px; z-index: 3; opacity: 0; pointer-events: none; }
-        @keyframes swordSlash { 
-            0% { transform: translate(0, 0) rotate(-45deg) scale(0.5); opacity: 1; } 
-            50% { transform: translate(120px, -20px) rotate(45deg) scale(1.5); opacity: 1; } 
-            100% { transform: translate(180px, 20px) rotate(90deg) scale(1); opacity: 0; } 
-        }
-        @keyframes fireBlast { 
-            0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 
-            50% { transform: translate(-120px, -15px) scale(2); opacity: 1; } 
-            100% { transform: translate(-220px, 0px) scale(1); opacity: 0; } 
-        }
-
-        /* 噴金幣特效 */
+        @keyframes swordSlash { 0% { transform: translate(0, 0) rotate(-45deg) scale(0.5); opacity: 1; } 50% { transform: translate(120px, -20px) rotate(45deg) scale(1.5); opacity: 1; } 100% { transform: translate(180px, 20px) rotate(90deg) scale(1); opacity: 0; } }
+        @keyframes fireBlast { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(-120px, -15px) scale(2); opacity: 1; } 100% { transform: translate(-220px, 0px) scale(1); opacity: 0; } }
         .coin { position: absolute; font-size: 30px; animation: coinFly 1s ease-out forwards; opacity: 0; }
         @keyframes coinFly { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(0, -60px) scale(1.2); opacity: 1; } 100% { transform: translate(0, -20px) scale(1); opacity: 0; } }
 
@@ -74,31 +62,33 @@
         #timer-text { position: absolute; right: 5px; top: -18px; font-size: 14px; color: #fff; font-weight: bold; }
 
         /* 多音節獨立輸入框 */
-        #syllable-boxes-container { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; width: 100%; }
+        #syllable-boxes-container { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; width: 100%; }
         .syllable-box { min-width: 55px; height: 55px; padding: 0 10px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 10px; font-size: 28px; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: monospace; transition: 0.2s; }
         .syllable-box.active-box { border-color: #00e5ff; box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3); color: #00e5ff; }
         .cursor { display: inline-block; width: 3px; height: 28px; background: #e94560; margin-left: 2px; animation: blink 1s step-end infinite; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* 虛擬鍵盤 */
+        /* 虛擬鍵盤全區 */
         #keyboard { display: flex; flex-direction: column; gap: 6px; width: 100%; flex-grow: 1; justify-content: flex-end; padding-bottom: 10px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; }
         
-        .key { background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; height: 48px; min-width: 25px; flex: 1; max-width: 60px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; }
+        .key { background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; min-height: 48px; min-width: 25px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; }
         
         .key.active-key { background: #0f3460; border-color: #00e5ff; box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); color: #00e5ff; }
         .key.active-key:active { background: #00e5ff; color: #000; transform: scale(0.92); }
+        .key.disabled-key { background: #1a1a2e; border-color: #222; color: #444; pointer-events: none; }
         
-        /* 針對第6聲按鍵縮小 */
-        .key[data-key="6"] { flex: 0.5; max-width: 30px; font-size: 14px; opacity: 0.5; pointer-events: none; }
-        
-        /* 針對刪除鍵特化 */
-        .key-delete { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; flex: 1.5; font-size: 20px;}
+        /* 特定按鍵微調 */
+        .key[data-key="6"] { flex: 0.6; font-size: 14px; opacity: 0.5; pointer-events: none; }
+        .key-delete { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; flex: 1.4; font-size: 20px;}
         .key-delete:active { background: #ff6b81 !important; transform: scale(0.92); }
 
-        /* 超大送出鍵 */
-        #btn-enter { width: 100%; max-width: 500px; margin: 5px auto 0; height: 60px; font-size: 24px; background: #00e5ff; color: #000; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.5); transition: 0.1s; }
-        #btn-enter:active { transform: scale(0.95); background: #fff; }
+        /* 高挑特化按鍵 (正/反 L型) */
+        .key-tall { height: 100%; min-height: 102px; font-size: 16px; line-height: 1.3;}
+        .key-skip { background: #d32f2f !important; border-color: #f44336 !important; color: white !important; box-shadow: 0 0 10px rgba(244, 67, 54, 0.4) !important;}
+        .key-skip:active { background: #f44336 !important; transform: scale(0.92); }
+        .key-enter { background: #00e5ff !important; border-color: #00b8d4 !important; color: #000 !important; font-size: 20px; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4) !important;}
+        .key-enter:active { background: #fff !important; transform: scale(0.92); }
 
         .tone-sub { font-size: 12px; color: #aaa; margin-top: 1px; }
         .key.active-key .tone-sub { color: #00e5ff; }
@@ -107,7 +97,6 @@
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
         .error-shake .syllable-box { border-color: red !important; box-shadow: inset 0 0 15px red !important; }
 
-        /* 入聲 (ptkh) 直式排列 */
         .checked-tone-group { display: flex; align-items: center; justify-content: center; }
         .checked-tone-letters { display: flex; flex-direction: column; font-size: 7px; line-height: 0.8; margin-left: 2px; text-align: left; color: #00e5ff; }
     </style>
@@ -148,13 +137,11 @@
         </div>
         
         <div class="question-area">
-            <!-- RPG 對戰舞台 -->
             <div id="rpg-arena">
                 <div class="rpg-sprite" id="player-sprite">🦸‍♂️</div>
                 <div class="rpg-sprite" id="enemy-sprite">👹</div>
             </div>
 
-            <!-- 倒數計時條 -->
             <div id="timer-container">
                 <span id="timer-text"></span>
                 <div id="timer-bar"></div>
@@ -162,14 +149,12 @@
 
             <div class="audio-icon" onclick="playAudio()">🔊</div>
             <div id="hanzi-hint"></div>
-            
             <div id="syllable-boxes-container"></div>
         </div>
 
         <div id="keyboard">
-            <!-- 將由 JS 動態生成鍵盤 -->
+            <!-- 鍵盤將由 JS 組合生成 -->
         </div>
-        <button id="btn-enter" onclick="handleInput('Enter')">送出答案</button>
     </div>
 </div>
 
@@ -187,7 +172,6 @@
     let streakCount = 0;
     let enemyHitCount = 0;
     
-    // 答題嘗試與計時器
     let attempt = 1; 
     let timer = null;
     let timeLeft = 0;
@@ -199,29 +183,11 @@
     let typedBase = "";    
 
     const validLetters = ['a','b','c','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
+    const toneDigits = ['1','2','3','4','5','7','8','9'];
     
     const verticalPtkhHtml = `<div class="checked-tone-letters"><span>p</span><span>t</span><span>k</span><span>h</span></div>`;
     const subTone4 = `<div class="checked-tone-group"><span>◌</span>${verticalPtkhHtml}</div>`;
     const subTone8 = `<div class="checked-tone-group"><span>◌̍</span>${verticalPtkhHtml}</div>`;
-
-    // 鍵盤配置：刪除鍵移至 9 的右邊
-    const keyboardLayout = [
-        [
-            {val: '1', display: '1', sub: '◌'},
-            {val: '2', display: '2', sub: '◌́'},
-            {val: '3', display: '3', sub: '◌̀'},
-            {val: '4', display: '4', sub: subTone4}, 
-            {val: '5', display: '5', sub: '◌̂'},
-            {val: '6', display: '6', sub: '✘', disabled: true}, 
-            {val: '7', display: '7', sub: '◌̄'},
-            {val: '8', display: '8', sub: subTone8}, 
-            {val: '9', display: '9', sub: '◌̋'},
-            {val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'}
-        ],
-        ['q','w','e','r','t','y','u','i','o','p'],
-        ['a','s','d','f','g','h','j','k','l'],
-        ['z','x','c','v','b','n','m']
-    ];
 
     const lessonsDiv = document.getElementById('lessons');
     lessons.forEach(l => {
@@ -236,40 +202,93 @@
         lessonsDiv.appendChild(btn);
     });
 
+    // 動態生成 HTML 鍵盤元素
+    function createKeyDiv(keyObj) {
+        let val = typeof keyObj === 'string' ? keyObj : keyObj.val;
+        let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display;
+        let subText = typeof keyObj === 'object' ? keyObj.sub : null;
+        let forceDisabled = typeof keyObj === 'object' && keyObj.disabled;
+        let customClass = typeof keyObj === 'object' && keyObj.customClass ? keyObj.customClass : '';
+
+        const btn = document.createElement('div');
+        btn.className = `key ${customClass}`;
+        btn.dataset.key = val;
+        
+        let html = `<div>${display}</div>`;
+        if(subText) html += `<div class="tone-sub">${subText}</div>`;
+        btn.innerHTML = html;
+
+        if (!forceDisabled && (validLetters.includes(val) || toneDigits.includes(val) || ['Backspace', 'Enter', 'Skip'].includes(val))) {
+            btn.classList.add('active-key');
+            btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
+        } else {
+            btn.classList.add('disabled-key');
+        }
+        return btn;
+    }
+
+    // 全新配置：將 QAZ下方(扣血前進) 與 PLM下方(送出) 做成 L 型區塊
     function buildKeyboard() {
         const kbContainer = document.getElementById('keyboard');
         kbContainer.innerHTML = '';
 
-        keyboardLayout.forEach(row => {
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'kb-row';
+        // Row 0: 數字列 + 刪除鍵
+        const row0 = document.createElement('div');
+        row0.className = 'kb-row';
+        const numKeys = [
+            {val: '1', display: '1', sub: '◌'}, {val: '2', display: '2', sub: '◌́'}, {val: '3', display: '3', sub: '◌̀'},
+            {val: '4', display: '4', sub: subTone4}, {val: '5', display: '5', sub: '◌̂'}, {val: '6', display: '6', sub: '✘', disabled: true}, 
+            {val: '7', display: '7', sub: '◌̄'}, {val: '8', display: '8', sub: subTone8}, {val: '9', display: '9', sub: '◌̋'},
+            {val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'}
+        ];
+        numKeys.forEach(k => row0.appendChild(createKeyDiv(k)));
+        kbContainer.appendChild(row0);
 
-            row.forEach(keyObj => {
-                let val = typeof keyObj === 'string' ? keyObj : keyObj.val;
-                let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display;
-                let subText = typeof keyObj === 'object' ? keyObj.sub : null;
-                let forceDisabled = typeof keyObj === 'object' && keyObj.disabled;
-                let customClass = typeof keyObj === 'object' && keyObj.customClass ? keyObj.customClass : '';
+        // Row 1: Q~P 完全佔滿寬度
+        const row1 = document.createElement('div');
+        row1.className = 'kb-row';
+        ['q','w','e','r','t','y','u','i','o','p'].forEach(k => row1.appendChild(createKeyDiv(k)));
+        kbContainer.appendChild(row1);
 
-                const btn = document.createElement('div');
-                btn.className = `key ${customClass}`;
-                btn.dataset.key = val;
-                
-                let html = `<div>${display}</div>`;
-                if(subText) html += `<div class="tone-sub">${subText}</div>`;
-                btn.innerHTML = html;
+        // Row 2 & 3: 採用複合式排版 (左 L、中字母、右反 L)
+        const wrapper23 = document.createElement('div');
+        wrapper23.style.display = 'flex';
+        wrapper23.style.gap = '4px';
+        wrapper23.style.width = '100%';
 
-                if (!forceDisabled && (validLetters.includes(val) || ['1','2','3','4','5','7','8','9', 'Backspace'].includes(val))) {
-                    btn.classList.add('active-key');
-                    btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
-                    btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
-                } else {
-                    btn.classList.add('disabled-key');
-                }
-                rowDiv.appendChild(btn);
-            });
-            kbContainer.appendChild(rowDiv);
-        });
+        // 左側 (正 L型空間) : 扣血前進按鈕 (Tall)
+        const leftCol = document.createElement('div');
+        leftCol.style.flex = '1.3';
+        leftCol.appendChild(createKeyDiv({val: 'Skip', display: '扣血<br>前進', customClass: 'key-tall key-skip'}));
+        wrapper23.appendChild(leftCol);
+
+        // 中間區塊 : A~L 及 Z~M 兩列
+        const midCol = document.createElement('div');
+        midCol.style.flex = '7.4';
+        midCol.style.display = 'flex';
+        midCol.style.flexDirection = 'column';
+        midCol.style.gap = '6px';
+        
+        const row2 = document.createElement('div');
+        row2.className = 'kb-row';
+        ['a','s','d','f','g','h','j','k','l'].forEach(k => row2.appendChild(createKeyDiv(k)));
+        
+        const row3 = document.createElement('div');
+        row3.className = 'kb-row';
+        ['z','x','c','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k)));
+        
+        midCol.appendChild(row2);
+        midCol.appendChild(row3);
+        wrapper23.appendChild(midCol);
+
+        // 右側 (反 L型空間) : 送出按鈕 (Tall)
+        const rightCol = document.createElement('div');
+        rightCol.style.flex = '1.3';
+        rightCol.appendChild(createKeyDiv({val: 'Enter', display: '送出', customClass: 'key-tall key-enter'}));
+        wrapper23.appendChild(rightCol);
+
+        kbContainer.appendChild(wrapper23);
     }
 
     async function startGame() {
@@ -299,7 +318,6 @@
 
         questionBank.sort(() => Math.random() - 0.5);
         
-        // 初始化遊戲狀態
         score = 0; hearts = 3; currentQuestionIndex = 0; maxQuestions = 14; 
         streakCount = 0; enemyHitCount = 0;
         
@@ -360,7 +378,6 @@
         
         parsedAnswer = parseTaiLoAnswer(currentQ.r);
         resetInputBoxes();
-        
         playAudio();
     }
 
@@ -376,7 +393,7 @@
     }
 
     function handleInput(key) {
-        const toneDigits = ['1','2','3','4','5','7','8','9'];
+        if (key === 'Skip') { handleSkip(); return; }
         
         if (key === 'Backspace') {
             if (typedBase.length > 0) {
@@ -438,7 +455,6 @@
         else handleFail();
     }
 
-    // ==== 戰鬥特效產生器 ====
     function spawnEffect(type) {
         const arena = document.getElementById('rpg-arena');
         const effect = document.createElement('div');
@@ -446,12 +462,10 @@
         effect.innerText = type === 'sword' ? '🗡️' : '🔥';
         
         if (type === 'sword') {
-            effect.style.left = '70px';
-            effect.style.bottom = '10px';
+            effect.style.left = '70px'; effect.style.bottom = '10px';
             effect.style.animation = 'swordSlash 0.3s ease-out forwards';
         } else {
-            effect.style.right = '70px';
-            effect.style.bottom = '10px';
+            effect.style.right = '70px'; effect.style.bottom = '10px';
             effect.style.animation = 'fireBlast 0.4s ease-in forwards';
         }
         
@@ -459,14 +473,11 @@
         setTimeout(() => { effect.remove(); }, 500);
     }
 
-    // ==== 成功與失敗的 RPG 處理邏輯 ====
     function handleSuccess() {
         stopTimer();
         
         streakCount++;
-        if (streakCount > 0 && streakCount % 2 === 0 && maxQuestions < 21) {
-            maxQuestions++;
-        }
+        if (streakCount > 0 && streakCount % 2 === 0 && maxQuestions < 21) { maxQuestions++; }
         
         enemyHitCount++;
         let currentEarn = isHintEnabled ? 10 : 20;
@@ -474,20 +485,15 @@
         const player = document.getElementById('player-sprite');
         const enemy = document.getElementById('enemy-sprite');
         
-        // 勇者攻擊與飛劍特效
         player.classList.add('player-attack');
         spawnEffect('sword');
         
-        // 劍抵達目標時，敵人閃白受損
-        setTimeout(() => { 
-            enemy.classList.add('enemy-hit-flash'); 
-        }, 150);
+        setTimeout(() => { enemy.classList.add('enemy-hit-flash'); }, 150);
 
         setTimeout(() => { 
             player.classList.remove('player-attack'); 
             enemy.classList.remove('enemy-hit-flash');
             
-            // 敵人死亡判定
             if (enemyHitCount >= 10) {
                 currentEarn += 10;
                 spawnCoin();
@@ -497,10 +503,7 @@
             updateDisplay();
         }, 400);
         
-        setTimeout(() => {
-            currentQuestionIndex++;
-            loadQuestion();
-        }, 800);
+        setTimeout(() => { currentQuestionIndex++; loadQuestion(); }, 800);
     }
 
     function handleFail() {
@@ -515,45 +518,59 @@
         const enemy = document.getElementById('enemy-sprite');
 
         if (attempt === 1 || attempt === 2) {
-            // 第 1, 2 次錯：怪物吐火攻擊，勇者跳躍閃躲 (持續維持跳空)
             if(enemyHitCount < 10) { 
                 enemy.classList.add('enemy-attack');
                 spawnEffect('fire');
                 setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
             }
             
-            setTimeout(() => { player.classList.add('player-dodge'); }, 150); // 火焰靠近時跳起
-            setTimeout(() => { player.classList.remove('player-dodge'); }, 600); // 落地
+            setTimeout(() => { player.classList.add('player-dodge'); }, 150); 
+            setTimeout(() => { player.classList.remove('player-dodge'); }, 600); 
             
             let nextTime = (attempt === 1) ? 15 : 10;
             attempt++;
             resetInputBoxes();
             startTimer(nextTime);
         } else {
-            // 第 3 次錯：怪物吐火，勇者被砸中維持紅光
-            if(enemyHitCount < 10) {
-                enemy.classList.add('enemy-attack');
-                spawnEffect('fire');
-                setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
-            }
-            
-            setTimeout(() => { player.classList.add('player-hit'); }, 200); // 火焰砸中時變紅
-            setTimeout(() => { player.classList.remove('player-hit'); }, 700); 
-            
-            hearts--;
-            updateHearts();
-            
-            setTimeout(() => {
-                if (hearts <= 0) endGame();
-                else {
-                    currentQuestionIndex++;
-                    loadQuestion();
-                }
-            }, 1000);
+            takeDamage();
         }
     }
 
-    // ==== 倒數計時系統 ====
+    // 將放棄前進與失敗扣血收斂至獨立函式
+    function handleSkip() {
+        if (hearts <= 0) return; // 已經死掉就不做事
+        stopTimer();
+        streakCount = 0; 
+        
+        const container = document.getElementById('syllable-boxes-container');
+        container.classList.add('shake', 'error-shake');
+        setTimeout(() => { container.classList.remove('shake', 'error-shake'); }, 400);
+        
+        takeDamage();
+    }
+
+    function takeDamage() {
+        const player = document.getElementById('player-sprite');
+        const enemy = document.getElementById('enemy-sprite');
+        
+        if(enemyHitCount < 10) {
+            enemy.classList.add('enemy-attack');
+            spawnEffect('fire');
+            setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
+        }
+        
+        setTimeout(() => { player.classList.add('player-hit'); }, 200); 
+        setTimeout(() => { player.classList.remove('player-hit'); }, 700); 
+        
+        hearts--;
+        updateHearts();
+        
+        setTimeout(() => {
+            if (hearts <= 0) endGame();
+            else { currentQuestionIndex++; loadQuestion(); }
+        }, 1000);
+    }
+
     function startTimer(seconds) {
         const container = document.getElementById('timer-container');
         const bar = document.getElementById('timer-bar');
@@ -574,11 +591,7 @@
             timeLeft--;
             bar.style.width = `${(timeLeft / seconds) * 100}%`;
             text.innerText = timeLeft + "秒";
-            
-            if (timeLeft <= 0) {
-                stopTimer();
-                handleFail(); 
-            }
+            if (timeLeft <= 0) { stopTimer(); handleFail(); }
         }, 1000);
     }
 
