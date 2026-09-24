@@ -99,6 +99,9 @@
 
         .checked-tone-group { display: flex; align-items: center; justify-content: center; }
         .checked-tone-letters { display: flex; flex-direction: column; font-size: 7px; line-height: 0.8; margin-left: 2px; text-align: left; color: #00e5ff; }
+        
+        /* 結局動畫與標題 */
+        #end-comment { font-size: 32px; font-weight: bold; margin-bottom: 20px; text-align: center; text-shadow: 0 0 15px rgba(0,0,0,0.8); }
     </style>
 </head>
 <body>
@@ -125,8 +128,9 @@
 
     <div id="game-over" style="display: none;">
         <h2>戰鬥結束！</h2>
-        <p style="font-size: 24px; margin-bottom: 5px;">總得分：<span id="final-score" style="color:#00e5ff; font-weight:bold; font-size: 36px;">0</span></p>
-        <button class="start-btn" onclick="location.reload()">回主選單</button>
+        <p style="font-size: 24px; margin-bottom: 15px;">總得分：<span id="final-score" style="color:#00e5ff; font-weight:bold; font-size: 40px;">0</span></p>
+        <div id="end-comment"></div>
+        <button class="start-btn" onclick="location.reload()" style="margin-top: 30px;">回主選單</button>
     </div>
 
     <div id="game-screen">
@@ -536,9 +540,8 @@
         }
     }
 
-    // 將放棄前進與失敗扣血收斂至獨立函式
     function handleSkip() {
-        if (hearts <= 0) return; // 已經死掉就不做事
+        if (hearts <= 0) return; 
         stopTimer();
         streakCount = 0; 
         
@@ -634,11 +637,31 @@
         }
     });
 
+    // ==== 結局判定系統 ====
     function endGame() {
         stopTimer();
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
         document.getElementById('final-score').innerText = score;
+        
+        // 分數級距與對應評語
+        let endComment = "";
+        let commentColor = "";
+        
+        if (score >= 300) {
+            endComment = "拍倒惡鬼，光榮倒轉來！";
+            commentColor = "#4caf50"; // 亮綠色
+        } else if (score >= 150) {
+            endComment = "Hiàm出惡鬼，繼續修行！";
+            commentColor = "#ff9800"; // 橘黃色
+        } else {
+            endComment = "惡鬼koh teh作孽，毋通放棄！";
+            commentColor = "#f44336"; // 紅色
+        }
+        
+        const commentDiv = document.getElementById('end-comment');
+        commentDiv.innerText = endComment;
+        commentDiv.style.color = commentColor;
     }
 </script>
 </body>
