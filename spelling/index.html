@@ -53,7 +53,7 @@
         
         .key.disabled-key { background: #1a1a2e; border-color: #222; color: #444; pointer-events: none; }
         
-        .key-action { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; box-shadow: 0 0 10px rgba(233, 69, 96, 0.5) !important; flex: 2; max-width: 100px; font-size: 16px;}
+        .key-action { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; box-shadow: 0 0 10px rgba(233, 69, 96, 0.5) !important; flex: 2; max-width: 80px; font-size: 16px;}
         .key-action:active { background: #ff6b81 !important; transform: scale(0.92); }
 
         .tone-sub { font-size: 14px; color: #aaa; margin-top: 2px; }
@@ -149,11 +149,11 @@
             {val: '1', display: '1', sub: '◌'},
             {val: '2', display: '2', sub: '◌́'},
             {val: '3', display: '3', sub: '◌̀'},
-            {val: '4', display: '4', sub: subTone4}, // 包含 ptkh 直排
+            {val: '4', display: '4', sub: subTone4}, 
             {val: '5', display: '5', sub: '◌̂'},
-            {val: '6', display: '6', sub: '✘', disabled: true}, // 第6聲停用
+            {val: '6', display: '6', sub: '✘', disabled: true}, 
             {val: '7', display: '7', sub: '◌̄'},
-            {val: '8', display: '8', sub: subTone8}, // 包含 ptkh 直排
+            {val: '8', display: '8', sub: subTone8}, 
             {val: '9', display: '9', sub: '◌̋'},
             {val: '-', display: '-', sub: '連字'}
         ],
@@ -209,6 +209,7 @@
                 rowDiv.appendChild(btn);
             });
 
+            // 在最後一排加入刪除、空白與確認鍵
             if (rowIndex === 3) {
                 const delBtn = document.createElement('div');
                 delBtn.className = 'key active-key key-action';
@@ -217,6 +218,14 @@
                 delBtn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput('Backspace'); });
                 delBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput('Backspace'); }, {passive: false});
                 rowDiv.appendChild(delBtn);
+
+                const spaceBtn = document.createElement('div');
+                spaceBtn.className = 'key active-key key-action';
+                spaceBtn.innerText = '空白';
+                spaceBtn.dataset.key = ' ';
+                spaceBtn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(' '); });
+                spaceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(' '); }, {passive: false});
+                rowDiv.appendChild(spaceBtn);
 
                 const enterBtn = document.createElement('div');
                 enterBtn.className = 'key active-key key-action';
@@ -253,6 +262,7 @@
             text.split(/\r?\n/).forEach(l => {
                 const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
                 if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
+                    // 題庫羅馬字統一轉小寫以便比對
                     questionBank.push({ h: p[0].trim(), r: p[1].trim().toLowerCase() });
                 }
             });
@@ -281,14 +291,49 @@
         console.log("現在播放:", currentQ.h);
     }
 
+    // 自動標調核心邏輯：根據台羅規則，尋找正確的母音並加上 Unicode 組合聲調符號
+    function applyToneToSyllable(syllable, toneDigit) {
+        if (toneDigit === '1' || toneDigit === '4') return syllable;
+        
+        const marks = { '2': '\u0301', '3': '\u0300', '5': '\u0302', '7': '\u0304', '8': '\u030D', '9': '\u030B' };
+        const m = marks[toneDigit];
+        if (!m) return syllable;
+
+        if (syllable.includes('a')) return syllable.replace('a', 'a' + m);
+        if (syllable.includes('oo')) return syllable.replace('oo', 'o' + m + 'o');
+        if (syllable.includes('e')) return syllable.replace('e', 'e' + m);
+        if (syllable.includes('o')) return syllable.replace('o', 'o' + m);
+        if (syllable.includes('iu')) return syllable.replace('iu', 'iu' + m);
+        if (syllable.includes('ui')) return syllable.replace('ui', 'ui' + m);
+        if (syllable.includes('i')) return syllable.replace('i', 'i' + m);
+        if (syllable.includes('u')) return syllable.replace('u', 'u' + m);
+        if (syllable.includes('ng')) return syllable.replace('ng', 'n' + m + 'g');
+        if (syllable.includes('m')) return syllable.replace('m', 'm' + m);
+        
+        return syllable;
+    }
+
     function handleInput(key) {
-        const validSet = validLetters.concat(['1','2','3','4','5','7','8','9']);
+        const validSet = validLetters.concat([' ']);
+        const toneDigits = ['1','2','3','4','5','7','8','9'];
         
         if (key === 'Backspace') {
-            typedString = typedString.slice(0, -1);
+            // 使用 Array.from 正確處理包含組合字元（聲調）的刪除行為
+            let chars = Array.from(typedString);
+            chars.pop();
+            typedString = chars.join('');
         } else if (key === 'Enter') {
             checkAnswer();
             return;
+        } else if (toneDigits.includes(key)) {
+            // 切割出最後一個音節套用聲調
+            let parts = typedString.split(/([- ])/); 
+            let lastSyllable = parts.pop();
+            
+            let tonedSyllable = applyToneToSyllable(lastSyllable, key);
+            parts.push(tonedSyllable);
+            
+            typedString = parts.join('');
         } else if (validSet.includes(key)) {
             typedString += key;
         }
@@ -337,6 +382,7 @@
         }
     }
 
+    // 監聽實體鍵盤
     window.addEventListener('keydown', e => {
         if(document.getElementById('game-screen').style.display === 'flex') {
             const k = e.key.toLowerCase();
@@ -344,6 +390,9 @@
                 handleInput('Enter');
             } else if (k === 'backspace') {
                 handleInput('Backspace');
+            } else if (k === ' ') {
+                e.preventDefault(); // 阻止按下空白鍵時網頁向下捲動
+                handleInput(' ');
             } else {
                 handleInput(k);
             }
