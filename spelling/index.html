@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>台語聽寫特訓 - 鍵盤測試版</title>
+    <title>台語聽寫特訓 - RPG戰鬥版</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; user-select: none; -webkit-user-select: none; }
@@ -23,62 +23,86 @@
         button.start-btn:active { transform: scale(0.95); }
 
         /* 遊戲畫面 UI */
-        #game-screen { display: none; flex-direction: column; height: 100%; padding: 20px; box-sizing: border-box; }
+        #game-screen { display: none; flex-direction: column; height: 100%; padding: 15px 20px; box-sizing: border-box; }
         
-        .header-info { display: flex; justify-content: space-between; font-size: 18px; color: #00e5ff; margin-bottom: 20px; font-weight: bold; }
+        .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 15px; font-weight: bold; }
         
-        .question-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        /* 狀態列 (血條與進度) */
+        #health-bar { font-size: 20px; letter-spacing: 3px; }
         
         /* 聽力播放圖示 */
-        .audio-icon { font-size: 50px; margin-bottom: 10px; animation: pulse 1.5s infinite; color: #e94560; }
+        .audio-icon { font-size: 36px; margin-bottom: 5px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; text-align: center;}
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
         
         /* 漢字提示 */
-        #hanzi-hint { font-size: 36px; color: #f9a826; font-weight: bold; margin-bottom: 20px; min-height: 50px; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); }
+        #hanzi-hint { font-size: 30px; color: #f9a826; font-weight: bold; margin-bottom: 5px; min-height: 45px; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); text-align: center;}
         
-        /* 多音節獨立輸入框容器 */
-        #syllable-boxes-container { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 30px; width: 100%; }
+        /* ==== RPG 戰鬥舞台 ==== */
+        #rpg-arena { position: relative; width: 100%; height: 100px; background: rgba(0,0,0,0.3); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; box-sizing: border-box; margin-bottom: 10px; overflow: hidden;}
+        .rpg-sprite { font-size: 60px; line-height: 1; transition: transform 0.3s ease-in-out; }
+        #player-sprite { transform-origin: bottom center; z-index: 2; }
+        #enemy-sprite { transform-origin: bottom center; z-index: 1; filter: drop-shadow(0 0 10px red); }
         
-        .syllable-box { min-width: 60px; height: 60px; padding: 0 15px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 10px; font-size: 32px; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 2px; font-family: monospace; transition: 0.2s; }
+        /* 戰鬥動畫 Class */
+        .player-attack { transform: translateX(120px) rotate(15deg) !important; }
+        .enemy-attack { transform: translateX(-120px) rotate(-15deg) !important; }
+        .player-dodge { transform: translateY(-50px) rotate(-15deg) !important; }
+        .player-hit { transform: translateX(-10px) rotate(-10deg) !important; filter: drop-shadow(0 0 20px red) sepia(1) hue-rotate(-50deg) saturate(5); }
+        .enemy-dead { transform: rotate(90deg) translateY(30px) !important; filter: grayscale(1) opacity(0.7) drop-shadow(0 0 0 transparent) !important; }
         
+        /* 噴金幣特效 */
+        .coin { position: absolute; font-size: 30px; animation: coinFly 1s ease-out forwards; opacity: 0; }
+        @keyframes coinFly { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(0, -60px) scale(1.2); opacity: 1; } 100% { transform: translate(0, -20px) scale(1); opacity: 0; } }
+
+        /* 倒數計時條 */
+        #timer-container { width: 100%; height: 10px; background: #2a3654; border-radius: 5px; overflow: hidden; margin-bottom: 15px; position: relative; display: none; }
+        #timer-bar { height: 100%; width: 100%; background: #00e5ff; transition: width 1s linear, background 0.3s; }
+        #timer-text { position: absolute; right: 5px; top: -18px; font-size: 14px; color: #fff; font-weight: bold; }
+
+        /* 多音節獨立輸入框 */
+        #syllable-boxes-container { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; width: 100%; }
+        .syllable-box { min-width: 55px; height: 55px; padding: 0 10px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 10px; font-size: 28px; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: monospace; transition: 0.2s; }
         .syllable-box.active-box { border-color: #00e5ff; box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3); color: #00e5ff; }
-        
-        .cursor { display: inline-block; width: 4px; height: 32px; background: #e94560; margin-left: 3px; animation: blink 1s step-end infinite; }
+        .cursor { display: inline-block; width: 3px; height: 28px; background: #e94560; margin-left: 2px; animation: blink 1s step-end infinite; }
         @keyframes blink { 50% { opacity: 0; } }
 
         /* 虛擬鍵盤 */
-        #keyboard { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 10px; }
-        .kb-row { display: flex; justify-content: center; gap: 6px; }
+        #keyboard { display: flex; flex-direction: column; gap: 6px; width: 100%; flex-grow: 1; justify-content: flex-end; padding-bottom: 10px; }
+        .kb-row { display: flex; justify-content: center; gap: 4px; }
         
-        .key { background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; height: 50px; min-width: 35px; flex: 1; max-width: 60px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; }
+        .key { background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; height: 48px; min-width: 25px; flex: 1; max-width: 60px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; }
         
         .key.active-key { background: #0f3460; border-color: #00e5ff; box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); color: #00e5ff; }
         .key.active-key:active { background: #00e5ff; color: #000; transform: scale(0.92); }
         
-        .key.disabled-key { background: #1a1a2e; border-color: #222; color: #444; pointer-events: none; }
+        /* 針對第6聲按鍵縮小 */
+        .key[data-key="6"] { flex: 0.5; max-width: 30px; font-size: 14px; opacity: 0.5; pointer-events: none; }
         
-        .key-action { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; box-shadow: 0 0 10px rgba(233, 69, 96, 0.5) !important; flex: 2; max-width: 100px; font-size: 16px;}
-        .key-action:active { background: #ff6b81 !important; transform: scale(0.92); }
+        /* 針對刪除鍵特化 */
+        .key-delete { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; flex: 1.5; font-size: 20px;}
+        .key-delete:active { background: #ff6b81 !important; transform: scale(0.92); }
 
-        .tone-sub { font-size: 14px; color: #aaa; margin-top: 2px; }
+        /* 超大送出鍵 */
+        #btn-enter { width: 100%; max-width: 500px; margin: 5px auto 0; height: 60px; font-size: 24px; background: #00e5ff; color: #000; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.5); transition: 0.1s; }
+        #btn-enter:active { transform: scale(0.95); background: #fff; }
+
+        .tone-sub { font-size: 12px; color: #aaa; margin-top: 1px; }
         .key.active-key .tone-sub { color: #00e5ff; }
 
-        /* 答錯時的震動特效 */
         .shake { animation: shake 0.4s; }
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
-        
         .error-shake .syllable-box { border-color: red !important; box-shadow: inset 0 0 15px red !important; }
 
-        /* 專門給入聲 (ptkh) 直式排列的 CSS */
+        /* 入聲 (ptkh) 直式排列 */
         .checked-tone-group { display: flex; align-items: center; justify-content: center; }
-        .checked-tone-letters { display: flex; flex-direction: column; font-size: 8px; line-height: 0.85; margin-left: 3px; text-align: left; color: #00e5ff; }
+        .checked-tone-letters { display: flex; flex-direction: column; font-size: 7px; line-height: 0.8; margin-left: 2px; text-align: left; color: #00e5ff; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
     <div id="menu">
-        <h2>🔊 台羅聽寫特訓 (多音節測試)</h2>
+        <h2>🔊 台羅特訓 - RPG除魔戰</h2>
         <div id="lessons" style="display:flex; flex-wrap:wrap; justify-content:center; max-width: 600px;"></div>
         
         <div class="toggle-container">
@@ -90,14 +114,14 @@
         </div>
         
         <p style="color:#aaa; font-size:14px; line-height: 1.6; text-align: center;">
-            請依序打出每個音節，並<b>必須輸入聲調數字(1~9)</b>才能跳下一格。<br>
-            ※ 無需輸入空格與連字號。
+            答錯 3 次扣一顆愛心，連對 2 題擴充題數上限。<br>
+            必須輸入聲調數字 (1~9) 才會跳下一格！
         </p>
-        <button class="start-btn" onclick="startGame()">開始測驗</button>
+        <button class="start-btn" onclick="startGame()">開始出擊</button>
     </div>
 
     <div id="game-over" style="display: none;">
-        <h2>特訓結束！</h2>
+        <h2>戰鬥結束！</h2>
         <p style="font-size: 24px; margin-bottom: 5px;">總得分：<span id="final-score" style="color:#00e5ff; font-weight:bold; font-size: 36px;">0</span></p>
         <button class="start-btn" onclick="location.reload()">回主選單</button>
     </div>
@@ -105,20 +129,34 @@
     <div id="game-screen">
         <div class="header-info">
             <span id="score-display">分數: 0</span>
-            <span id="progress-display">進度: 0 / 0</span>
+            <span id="health-bar">❤️❤️❤️</span>
+            <span id="progress-display">進度: 0 / 14</span>
         </div>
         
         <div class="question-area">
-            <div class="audio-icon">🔊</div>
+            <!-- RPG 對戰舞台 -->
+            <div id="rpg-arena">
+                <div class="rpg-sprite" id="player-sprite">🦸‍♂️</div>
+                <div class="rpg-sprite" id="enemy-sprite">👹</div>
+            </div>
+
+            <!-- 倒數計時條 -->
+            <div id="timer-container">
+                <span id="timer-text"></span>
+                <div id="timer-bar"></div>
+            </div>
+
+            <div class="audio-icon" onclick="playAudio()">🔊</div>
             <div id="hanzi-hint"></div>
             
-            <!-- 動態生成的多音節輸入框區域 -->
             <div id="syllable-boxes-container"></div>
         </div>
 
         <div id="keyboard">
             <!-- 將由 JS 動態生成鍵盤 -->
         </div>
+        <!-- 超大送出鍵獨立於下方 -->
+        <button id="btn-enter" onclick="handleInput('Enter')">送出答案</button>
     </div>
 </div>
 
@@ -127,29 +165,33 @@
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一"];
     let selectedLessons = [];
     let questionBank = [];
-    let currentQuestionIndex = 0;
     
+    // 遊戲核心狀態
     let score = 0;
+    let hearts = 3;
+    let currentQuestionIndex = 0;
+    let maxQuestions = 14;
+    let streakCount = 0;
+    let enemyHitCount = 0;
+    
+    // 答題嘗試與計時器
+    let attempt = 1; 
+    let timer = null;
+    let timeLeft = 0;
     let isHintEnabled = true;
 
-    // 遊戲狀態 (多音節拆分系統)
-    let parsedAnswer = []; // 存放解析後的正確答案: [{base: 'hioh', tone: '4'}, {base: 'juah', tone: '8'}]
-    let inputBoxes = [];   // 存放玩家目前的輸入狀態
-    let currentSyllableIndex = 0; // 目前正在打哪一個框框
-    let typedBase = "";    // 目前框框打到一半的英文字母
+    let parsedAnswer = []; 
+    let inputBoxes = [];   
+    let currentSyllableIndex = 0; 
+    let typedBase = "";    
 
     const validLetters = ['a','b','c','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
     
-    // 定義入聲字 ptkh 的垂直 HTML 結構
-    const verticalPtkhHtml = `
-        <div class="checked-tone-letters">
-            <span>p</span><span>t</span><span>k</span><span>h</span>
-        </div>`;
-    
+    const verticalPtkhHtml = `<div class="checked-tone-letters"><span>p</span><span>t</span><span>k</span><span>h</span></div>`;
     const subTone4 = `<div class="checked-tone-group"><span>◌</span>${verticalPtkhHtml}</div>`;
     const subTone8 = `<div class="checked-tone-group"><span>◌̍</span>${verticalPtkhHtml}</div>`;
 
-    // 移除連字號與空白，頂部只有 9 個數字鍵
+    // 鍵盤配置：刪除鍵移至 9 的右邊
     const keyboardLayout = [
         [
             {val: '1', display: '1', sub: '◌'},
@@ -160,7 +202,8 @@
             {val: '6', display: '6', sub: '✘', disabled: true}, 
             {val: '7', display: '7', sub: '◌̄'},
             {val: '8', display: '8', sub: subTone8}, 
-            {val: '9', display: '9', sub: '◌̋'}
+            {val: '9', display: '9', sub: '◌̋'},
+            {val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'}
         ],
         ['q','w','e','r','t','y','u','i','o','p'],
         ['a','s','d','f','g','h','j','k','l'],
@@ -184,7 +227,7 @@
         const kbContainer = document.getElementById('keyboard');
         kbContainer.innerHTML = '';
 
-        keyboardLayout.forEach((row, rowIndex) => {
+        keyboardLayout.forEach(row => {
             const rowDiv = document.createElement('div');
             rowDiv.className = 'kb-row';
 
@@ -193,16 +236,17 @@
                 let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display;
                 let subText = typeof keyObj === 'object' ? keyObj.sub : null;
                 let forceDisabled = typeof keyObj === 'object' && keyObj.disabled;
+                let customClass = typeof keyObj === 'object' && keyObj.customClass ? keyObj.customClass : '';
 
                 const btn = document.createElement('div');
-                btn.className = 'key';
+                btn.className = `key ${customClass}`;
                 btn.dataset.key = val;
                 
                 let html = `<div>${display}</div>`;
                 if(subText) html += `<div class="tone-sub">${subText}</div>`;
                 btn.innerHTML = html;
 
-                if (!forceDisabled && (validLetters.includes(val) || ['1','2','3','4','5','7','8','9'].includes(val))) {
+                if (!forceDisabled && (validLetters.includes(val) || ['1','2','3','4','5','7','8','9', 'Backspace'].includes(val))) {
                     btn.classList.add('active-key');
                     btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
                     btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
@@ -211,27 +255,6 @@
                 }
                 rowDiv.appendChild(btn);
             });
-
-            // 最後一排加上刪除與送出鍵
-            if (rowIndex === 3) {
-                const delBtn = document.createElement('div');
-                delBtn.className = 'key active-key key-action';
-                delBtn.innerText = '刪除';
-                delBtn.dataset.key = 'Backspace';
-                delBtn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput('Backspace'); });
-                delBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput('Backspace'); }, {passive: false});
-                rowDiv.appendChild(delBtn);
-
-                const enterBtn = document.createElement('div');
-                enterBtn.className = 'key active-key key-action';
-                enterBtn.innerText = '送出';
-                enterBtn.style.background = '#00e5ff';
-                enterBtn.style.color = '#000';
-                enterBtn.dataset.key = 'Enter';
-                enterBtn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput('Enter'); });
-                enterBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput('Enter'); }, {passive: false});
-                rowDiv.appendChild(enterBtn);
-            }
             kbContainer.appendChild(rowDiv);
         });
     }
@@ -262,49 +285,36 @@
         });
 
         questionBank.sort(() => Math.random() - 0.5);
-        score = 0;
-        currentQuestionIndex = 0;
+        
+        // 初始化遊戲狀態
+        score = 0; hearts = 3; currentQuestionIndex = 0; maxQuestions = 14; 
+        streakCount = 0; enemyHitCount = 0;
+        
+        updateHearts();
         loadQuestion();
     }
 
-    // ==========================================
-    // 核心大腦：完美解析試算表的台羅拼音
-    // ==========================================
     function parseTaiLoAnswer(rawText) {
-        // 1. 去除括號內的文字，轉為小寫
         let text = rawText.split('(')[0].toLowerCase().trim();
-        // 2. 以空白或連字符拆分出每個音節，完全忽略分隔符號
         let rawSyllables = text.split(/[\s\-–—]+/).filter(s => s.length > 0);
-
         const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
         let parsed = [];
 
         for (let s of rawSyllables) {
-            // NFD 會將 "á" 拆解為 "a" 與 "\u0301"
             let nfd = s.normalize("NFD");
-            let base = "";
-            let tone = null;
-
+            let base = ""; let tone = null;
             for (let char of nfd) {
-                if (toneMap[char]) {
-                    tone = toneMap[char];
-                } else if (/[a-z]/.test(char)) {
-                    base += char;
-                }
+                if (toneMap[char]) tone = toneMap[char];
+                else if (/[a-z]/.test(char)) base += char;
             }
-            // 如果沒有抓到特殊符號，判斷是 1 聲還是 4 聲
-            if (!tone) {
-                tone = /[ptkh]$/.test(base) ? '4' : '1';
-            }
+            if (!tone) tone = /[ptkh]$/.test(base) ? '4' : '1';
             parsed.push({ base: base, tone: tone });
         }
-        return parsed; // 回傳乾淨的陣列: [{base: 'hioh', tone: '4'}, {base: 'juah', tone: '8'}]
+        return parsed; 
     }
 
-    // 將英文字母加上正確的 Unicode 聲調符號（用於畫面顯示）
     function applyToneToSyllable(syllable, toneDigit) {
         if (toneDigit === '1' || toneDigit === '4') return syllable;
-        
         const marks = { '2': '\u0301', '3': '\u0300', '5': '\u0302', '7': '\u0304', '8': '\u030D', '9': '\u030B' };
         const m = marks[toneDigit];
         if (!m) return syllable;
@@ -323,22 +333,34 @@
     }
 
     function loadQuestion() {
-        if (currentQuestionIndex >= questionBank.length) {
+        if (currentQuestionIndex >= Math.min(questionBank.length, maxQuestions) || hearts <= 0) {
             endGame();
             return;
         }
         
+        // 重置嘗試次數與計時器
+        attempt = 1;
+        stopTimer();
+        
         const currentQ = questionBank[currentQuestionIndex];
         document.getElementById('hanzi-hint').innerText = isHintEnabled ? currentQ.h : "???";
-        document.getElementById('progress-display').innerText = `進度: ${currentQuestionIndex + 1} / ${questionBank.length}`;
-        console.log("現在播放:", currentQ.h);
-
-        // 解析答案並重置輸入狀態
+        document.getElementById('progress-display').innerText = `進度: ${currentQuestionIndex + 1} / ${maxQuestions}`;
+        
         parsedAnswer = parseTaiLoAnswer(currentQ.r);
+        resetInputBoxes();
+        
+        playAudio();
+    }
+
+    function playAudio() {
+        // 留作未來串接 MP3 使用
+        console.log("現在播放:", questionBank[currentQuestionIndex].h);
+    }
+
+    function resetInputBoxes() {
         inputBoxes = new Array(parsedAnswer.length).fill(null);
         currentSyllableIndex = 0;
         typedBase = "";
-        
         updateDisplay();
     }
 
@@ -347,25 +369,17 @@
         
         if (key === 'Backspace') {
             if (typedBase.length > 0) {
-                // 退回字母
-                let chars = Array.from(typedBase);
-                chars.pop();
-                typedBase = chars.join('');
+                let chars = Array.from(typedBase); chars.pop(); typedBase = chars.join('');
             } else if (currentSyllableIndex > 0) {
-                // 如果目前框框是空的，退回前一個框框，並拔掉聲調讓你重改
                 currentSyllableIndex--;
                 typedBase = inputBoxes[currentSyllableIndex].base;
                 inputBoxes[currentSyllableIndex] = null;
             }
         } 
         else if (key === 'Enter') {
-            // 只有全部格子都填了聲調，才能送出檢查
-            if (currentSyllableIndex === parsedAnswer.length) {
-                checkAnswer();
-            }
+            if (currentSyllableIndex === parsedAnswer.length) checkAnswer();
         } 
         else if (toneDigits.includes(key)) {
-            // 按下聲調：鎖定目前的拼音與聲調，跳下一格
             if (typedBase.length > 0 && currentSyllableIndex < parsedAnswer.length) {
                 inputBoxes[currentSyllableIndex] = { base: typedBase, tone: key };
                 currentSyllableIndex++;
@@ -373,10 +387,7 @@
             }
         } 
         else if (validLetters.includes(key)) {
-            // 輸入字母
-            if (currentSyllableIndex < parsedAnswer.length) {
-                typedBase += key;
-            }
+            if (currentSyllableIndex < parsedAnswer.length) typedBase += key;
         }
         
         updateDisplay();
@@ -385,24 +396,19 @@
 
     function updateDisplay() {
         document.getElementById('score-display').innerText = `分數: ${score}`;
-        
         const container = document.getElementById('syllable-boxes-container');
         container.innerHTML = ''; 
 
-        // 依據解析出來的音節數量，畫出對應的 N 個框框
         for (let i = 0; i < parsedAnswer.length; i++) {
             const box = document.createElement('div');
             box.className = 'syllable-box';
 
             if (i < currentSyllableIndex) {
-                // 已經輸入完聲調的框框，渲染成帶有符號的字
                 box.innerText = applyToneToSyllable(inputBoxes[i].base, inputBoxes[i].tone);
             } else if (i === currentSyllableIndex) {
-                // 正在輸入的框框 (亮起 + 游標閃爍)
                 box.classList.add('active-box');
                 box.innerHTML = `<span>${typedBase}</span><span class="cursor"></span>`;
             } else {
-                // 還沒輸入到的框框
                 box.innerText = '';
             }
             container.appendChild(box);
@@ -411,33 +417,152 @@
 
     function checkAnswer() {
         let isCorrect = true;
-        
-        // 嚴格比對每個框框的字母與聲調是否與答案完全一致
         for (let i = 0; i < parsedAnswer.length; i++) {
             if (inputBoxes[i].base !== parsedAnswer[i].base || inputBoxes[i].tone !== parsedAnswer[i].tone) {
-                isCorrect = false;
-                break;
+                isCorrect = false; break;
             }
         }
         
         if (isCorrect) {
-            score += isHintEnabled ? 10 : 20; 
-            confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
-            setTimeout(() => {
-                currentQuestionIndex++;
-                loadQuestion();
-            }, 500);
+            handleSuccess();
         } else {
-            // 答錯時震動容器，並清空讓你重打
-            const container = document.getElementById('syllable-boxes-container');
-            container.classList.add('shake', 'error-shake');
-            setTimeout(() => { container.classList.remove('shake', 'error-shake'); }, 400);
-            
-            inputBoxes = new Array(parsedAnswer.length).fill(null);
-            currentSyllableIndex = 0;
-            typedBase = "";
-            updateDisplay();
+            handleFail();
         }
+    }
+
+    // ==== 成功與失敗的 RPG 處理邏輯 ====
+    function handleSuccess() {
+        stopTimer();
+        
+        // 連續答對邏輯：擴充題數 (上限21)
+        streakCount++;
+        if (streakCount > 0 && streakCount % 2 === 0 && maxQuestions < 21) {
+            maxQuestions++;
+        }
+        
+        // 敵人受擊與分數計算
+        enemyHitCount++;
+        let currentEarn = isHintEnabled ? 10 : 20;
+        
+        if (enemyHitCount >= 10) {
+            currentEarn += 10; // 砍死後每次加送10分
+            spawnCoin();
+            document.getElementById('enemy-sprite').classList.add('enemy-dead');
+        }
+        score += currentEarn;
+        
+        // 勇者攻擊動畫
+        const player = document.getElementById('player-sprite');
+        player.classList.add('player-attack');
+        setTimeout(() => { player.classList.remove('player-attack'); }, 300);
+        
+        updateDisplay();
+        
+        setTimeout(() => {
+            currentQuestionIndex++;
+            loadQuestion();
+        }, 800);
+    }
+
+    function handleFail() {
+        stopTimer();
+        streakCount = 0; // 斷連擊
+        
+        // 輸入框震動紅光
+        const container = document.getElementById('syllable-boxes-container');
+        container.classList.add('shake', 'error-shake');
+        setTimeout(() => { container.classList.remove('shake', 'error-shake'); }, 400);
+        
+        const player = document.getElementById('player-sprite');
+        const enemy = document.getElementById('enemy-sprite');
+
+        if (attempt === 1 || attempt === 2) {
+            // 第 1, 2 次錯：怪物攻擊，勇者閃躲
+            if(enemyHitCount < 10) { // 如果怪還沒死才會動
+                enemy.classList.add('enemy-attack');
+                setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 300);
+            }
+            player.classList.add('player-dodge');
+            setTimeout(() => { player.classList.remove('player-dodge'); }, 300);
+            
+            // 進入下一階段倒數
+            let nextTime = (attempt === 1) ? 15 : 10;
+            attempt++;
+            resetInputBoxes();
+            startTimer(nextTime);
+        } else {
+            // 第 3 次錯：勇者挨打扣血
+            if(enemyHitCount < 10) {
+                enemy.classList.add('enemy-attack');
+                setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 300);
+            }
+            player.classList.add('player-hit');
+            setTimeout(() => { player.classList.remove('player-hit'); }, 400);
+            
+            hearts--;
+            updateHearts();
+            
+            setTimeout(() => {
+                if (hearts <= 0) endGame();
+                else {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                }
+            }, 1000);
+        }
+    }
+
+    // ==== 倒數計時系統 ====
+    function startTimer(seconds) {
+        const container = document.getElementById('timer-container');
+        const bar = document.getElementById('timer-bar');
+        const text = document.getElementById('timer-text');
+        
+        container.style.display = 'block';
+        timeLeft = seconds;
+        
+        // 初始狀態
+        bar.style.transition = 'none';
+        bar.style.width = '100%';
+        bar.style.background = (seconds === 15) ? '#ff9800' : '#f44336';
+        text.innerText = timeLeft + "秒";
+        
+        // 強制重繪以啟動 CSS 動畫
+        bar.offsetHeight;
+        bar.style.transition = 'width 1s linear';
+        
+        timer = setInterval(() => {
+            timeLeft--;
+            bar.style.width = `${(timeLeft / seconds) * 100}%`;
+            text.innerText = timeLeft + "秒";
+            
+            if (timeLeft <= 0) {
+                stopTimer();
+                handleFail(); // 時間到視同答錯
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timer);
+        document.getElementById('timer-container').style.display = 'none';
+    }
+
+    function updateHearts() {
+        let hStr = "";
+        for(let i=0; i<3; i++) hStr += (i < hearts) ? "❤️" : "🖤";
+        document.getElementById('health-bar').innerText = hStr;
+    }
+
+    // 噴金幣動畫特效
+    function spawnCoin() {
+        const arena = document.getElementById('rpg-arena');
+        const coin = document.createElement('div');
+        coin.className = 'coin';
+        coin.innerText = '🪙';
+        coin.style.right = '40px'; 
+        arena.appendChild(coin);
+        setTimeout(() => { coin.remove(); }, 1000);
     }
 
     function triggerVisualFeedback(key) {
@@ -459,6 +584,7 @@
     });
 
     function endGame() {
+        stopTimer();
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
         document.getElementById('final-score').innerText = score;
