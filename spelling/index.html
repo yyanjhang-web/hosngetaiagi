@@ -166,7 +166,7 @@
 
 <script>
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
-    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一"];
+    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
     let selectedLessons = [];
     let questionBank = [];
     
@@ -529,13 +529,11 @@
         const enemy = document.getElementById('enemy-sprite');
 
         if (attempt === 1 || attempt === 2) {
-            // 第 1, 2 次錯：怪物發動攻擊，勇者跳躍閃躲
             if (enemyHitCount < 10) { 
                 enemy.classList.add('enemy-attack');
                 spawnEffect('fire');
                 setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
             } else {
-                // 如果怪物已死，噴骨頭取代火焰，且敵人本體不衝撞
                 spawnEffect('bone');
             }
             
@@ -572,7 +570,6 @@
             spawnEffect('fire');
             setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
         } else {
-            // 如果怪物已死，噴骨頭取代火焰，且敵人本體不衝撞
             spawnEffect('bone');
         }
         
