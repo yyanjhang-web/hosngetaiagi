@@ -6,7 +6,6 @@
     <title>台語聽寫特訓 - RPG特效版</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* 使用 100dvh 解決手機瀏覽器上下導覽列遮擋問題 */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; user-select: none; -webkit-user-select: none; }
         
         #app-container { position: relative; width: 100vw; height: 100vh; height: 100dvh; max-width: 800px; background-color: #16213e; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
@@ -27,25 +26,24 @@
         #game-screen { display: none; flex-direction: column; height: 100%; padding: 10px 15px; box-sizing: border-box; justify-content: space-between; }
         
         .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 10px; font-weight: bold; }
-        
         #health-bar { font-size: 20px; letter-spacing: 3px; }
-        
         .question-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
 
-        /* 聽力播放圖示 */
-        .audio-icon { font-size: 36px; margin-bottom: 5px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; text-align: center;}
+        /* 喇叭與漢字併排 */
+        .question-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
+        .audio-icon { font-size: 36px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; margin: 0; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
-        
-        /* 漢字提示 */
-        #hanzi-hint { font-size: 30px; color: #f9a826; font-weight: bold; margin-bottom: 5px; min-height: 40px; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); text-align: center; display: flex; align-items: center; justify-content: center;}
+        #hanzi-hint { font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; }
         
         /* ==== RPG 戰鬥舞台 ==== */
-        #rpg-arena { position: relative; width: 100%; height: 90px; background: rgba(0,0,0,0.3); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; box-sizing: border-box; margin-bottom: 10px; overflow: hidden; flex-shrink: 0;}
+        #rpg-arena { position: relative; width: 100%; height: 90px; background: rgba(0,0,0,0.3); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; box-sizing: border-box; margin-bottom: 5px; overflow: hidden; flex-shrink: 0;}
         .rpg-sprite { font-size: 55px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; }
         #player-sprite { transform-origin: bottom center; z-index: 2; }
-        #enemy-sprite { transform-origin: bottom center; z-index: 1; filter: drop-shadow(0 0 10px red); }
+        #enemy-wrapper { display: flex; flex-direction: column; align-items: center; z-index: 1; }
+        #enemy-hp-ui { font-size: 12px; letter-spacing: 2px; margin-bottom: 2px; text-shadow: 0 0 5px rgba(0,0,0,0.8); }
+        #enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
         
-        /* 戰鬥與特效動畫 */
+        /* 戰鬥動畫 */
         .player-attack { transform: translateX(80px) rotate(15deg) !important; }
         .enemy-attack { transform: translateX(-60px) rotate(-15deg) !important; }
         .player-dodge { transform: translateY(-40px) rotate(-10deg) !important; }
@@ -55,8 +53,8 @@
         
         .combat-effect { position: absolute; font-size: 40px; z-index: 3; opacity: 0; pointer-events: none; }
         @keyframes swordSlash { 0% { transform: translate(0, 0) rotate(-45deg) scale(0.5); opacity: 1; } 50% { transform: translate(120px, -20px) rotate(45deg) scale(1.5); opacity: 1; } 100% { transform: translate(180px, 20px) rotate(90deg) scale(1); opacity: 0; } }
-        @keyframes fireBlast { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(-120px, -15px) scale(2); opacity: 1; } 100% { transform: translate(-220px, 0px) scale(1); opacity: 0; } }
-        @keyframes boneThrow { 0% { transform: translate(0, 0) rotate(0deg) scale(0.5); opacity: 1; } 50% { transform: translate(-120px, -30px) rotate(-180deg) scale(1.5); opacity: 1; } 100% { transform: translate(-220px, 0px) rotate(-360deg) scale(1); opacity: 0; } }
+        /* 通用投擲物軌跡 (火、針、水、網、骨頭) */
+        @keyframes projFly { 0% { transform: translate(0, 0) rotate(0deg) scale(0.8); opacity: 1; } 50% { transform: translate(-100px, -20px) rotate(-180deg) scale(1.5); opacity: 1; } 100% { transform: translate(-220px, 0px) rotate(-360deg) scale(1.2); opacity: 0; } }
 
         .coin { position: absolute; font-size: 30px; animation: coinFly 1s ease-out forwards; opacity: 0; }
         @keyframes coinFly { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(0, -60px) scale(1.2); opacity: 1; } 100% { transform: translate(0, -20px) scale(1); opacity: 0; } }
@@ -66,8 +64,8 @@
         #timer-bar { height: 100%; width: 100%; background: #00e5ff; transition: width 1s linear, background 0.3s; }
         #timer-text { position: absolute; right: 5px; top: -16px; font-size: 12px; color: #fff; font-weight: bold; }
 
-        /* 多音節獨立輸入框 */
-        #syllable-boxes-container { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; width: 100%; }
+        /* 輸入框 */
+        #syllable-boxes-container { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 5px; width: 100%; }
         .syllable-box { min-width: 50px; height: 50px; padding: 0 10px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 8px; font-size: 26px; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: monospace; transition: 0.2s; }
         .syllable-box.active-box { border-color: #00e5ff; box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3); color: #00e5ff; }
         .cursor { display: inline-block; width: 3px; height: 26px; background: #e94560; margin-left: 2px; animation: blink 1s step-end infinite; }
@@ -78,67 +76,58 @@
         .kb-row { display: flex; justify-content: center; gap: 4px; }
         
         .key { background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; min-height: 45px; min-width: 25px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; }
-        
         .key.active-key { background: #0f3460; border-color: #00e5ff; box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); color: #00e5ff; }
         .key.active-key:active { background: #00e5ff; color: #000; transform: scale(0.92); }
         .key.disabled-key { background: #1a1a2e; border-color: #222; color: #444; pointer-events: none; }
         
-        /* 特定按鍵微調 */
+        /* 長按扣血鍵特化與動畫 */
+        .key-skip { position: relative; overflow: hidden; background: #d32f2f !important; border-color: #f44336 !important; color: white !important; box-shadow: 0 0 10px rgba(244, 67, 54, 0.4) !important;}
+        .key-skip::before { content: ''; position: absolute; left: 0; bottom: 0; height: 100%; width: 0%; background: rgba(255, 255, 255, 0.3); z-index: 1; transition: width 0s; }
+        .key-skip.pressing::before { width: 100%; transition: width 2.5s linear; }
+        .key-skip > div { position: relative; z-index: 2; pointer-events: none; }
+
         .key[data-key="6"] { flex: 0.6; font-size: 14px; opacity: 0.5; pointer-events: none; }
         .key-delete { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; flex: 1.4; font-size: 20px;}
         .key-delete:active { background: #ff6b81 !important; transform: scale(0.92); }
-
-        /* 高挑特化按鍵 (正/反 L型) */
         .key-tall { height: 100%; min-height: 95px; font-size: 16px; line-height: 1.3;}
-        .key-skip { background: #d32f2f !important; border-color: #f44336 !important; color: white !important; box-shadow: 0 0 10px rgba(244, 67, 54, 0.4) !important;}
-        .key-skip:active { background: #f44336 !important; transform: scale(0.92); }
         .key-enter { background: #00e5ff !important; border-color: #00b8d4 !important; color: #000 !important; font-size: 20px; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4) !important;}
         .key-enter:active { background: #fff !important; transform: scale(0.92); }
 
         .tone-sub { font-size: 12px; color: #aaa; margin-top: 1px; }
         .key.active-key .tone-sub { color: #00e5ff; }
-
         .shake { animation: shake 0.4s; }
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
         .error-shake .syllable-box { border-color: red !important; box-shadow: inset 0 0 15px red !important; }
-
         .checked-tone-group { display: flex; align-items: center; justify-content: center; }
         .checked-tone-letters { display: flex; flex-direction: column; font-size: 7px; line-height: 0.8; margin-left: 2px; text-align: left; color: #00e5ff; }
         
         #end-comment { font-size: 32px; font-weight: bold; margin-bottom: 20px; text-align: center; text-shadow: 0 0 15px rgba(0,0,0,0.8); }
 
         /* ========================================================= */
-        /* 極致壓縮模式：針對手機橫向、小螢幕，避免鍵盤被擠出畫面外 */
+        /* 極致壓縮模式：手機橫向、小螢幕 */
         /* ========================================================= */
         @media (max-height: 700px) {
             #game-screen { padding: 5px 10px; }
             .header-info { margin-bottom: 5px; font-size: 14px; }
             #health-bar { font-size: 16px; }
-            
-            /* 壓縮戰鬥畫面與圖示 */
-            #rpg-arena { height: 60px; padding: 0 20px; margin-bottom: 5px; border-bottom-width: 2px; }
+            #rpg-arena { height: 60px; padding: 0 20px; margin-bottom: 2px; border-bottom-width: 2px; }
             .rpg-sprite { font-size: 40px; }
+            #enemy-hp-ui { font-size: 9px; margin-bottom: 1px; }
             .combat-effect { font-size: 25px; }
             .coin { font-size: 20px; }
-            
-            .audio-icon { font-size: 24px; margin-bottom: 2px; }
-            #hanzi-hint { font-size: 22px; min-height: 30px; margin-bottom: 2px; }
-            
-            /* 壓縮輸入框 */
-            #syllable-boxes-container { margin-bottom: 5px; gap: 5px; }
+            .question-row { gap: 10px; margin-bottom: 2px; }
+            .audio-icon { font-size: 24px; }
+            #hanzi-hint { font-size: 22px; }
+            #syllable-boxes-container { margin-bottom: 2px; gap: 5px; }
             .syllable-box { min-width: 40px; height: 40px; font-size: 22px; padding: 0 5px; border-width: 1px;}
             .cursor { height: 22px; }
-            
             #timer-container { margin-bottom: 5px; height: 6px; }
             #timer-text { font-size: 10px; top: -14px; }
-            
-            /* 壓縮鍵盤高度 */
             #keyboard { gap: 3px; padding-bottom: 2px; }
             .kb-row { gap: 3px; }
             .key { min-height: 34px; border-radius: 5px; font-size: 15px; border-width: 1px;}
             .key-tall { min-height: 71px; font-size: 14px;}
-            .key-enter { font-size: 16px; }
-            .key-delete { font-size: 16px; }
+            .key-enter, .key-delete { font-size: 16px; }
             .tone-sub { font-size: 9px; }
             .checked-tone-letters { font-size: 6px; }
         }
@@ -160,8 +149,8 @@
         </div>
         
         <p style="color:#aaa; font-size:14px; line-height: 1.6; text-align: center;">
-            答錯 3 次扣一顆愛心，連對 2 題擴充題數上限。<br>
-            必須輸入聲調數字 (1~9) 才會跳下一格！
+            答錯 3 次扣一血，長按 Ctrl 或按鈕 2.5 秒可扣血跳過。<br>
+            擊敗四陣妖物，光榮倒轉來！
         </p>
         <button class="start-btn" onclick="startGame()">開始出擊</button>
     </div>
@@ -183,7 +172,10 @@
         <div class="question-area">
             <div id="rpg-arena">
                 <div class="rpg-sprite" id="player-sprite">🦸‍♂️</div>
-                <div class="rpg-sprite" id="enemy-sprite">👹</div>
+                <div id="enemy-wrapper">
+                    <div id="enemy-hp-ui">🔴</div>
+                    <div class="rpg-sprite" id="enemy-sprite">🌵</div>
+                </div>
             </div>
 
             <div id="timer-container">
@@ -191,14 +183,15 @@
                 <div id="timer-bar"></div>
             </div>
 
-            <div class="audio-icon" onclick="playAudio()">🔊</div>
-            <div id="hanzi-hint"></div>
+            <div class="question-row">
+                <div class="audio-icon" onclick="playAudio()">🔊</div>
+                <div id="hanzi-hint"></div>
+            </div>
+
             <div id="syllable-boxes-container"></div>
         </div>
 
-        <div id="keyboard">
-            <!-- 鍵盤將由 JS 組合生成 -->
-        </div>
+        <div id="keyboard"></div>
     </div>
 </div>
 
@@ -208,24 +201,24 @@
     let selectedLessons = [];
     let questionBank = [];
     
-    // 遊戲核心狀態
-    let score = 0;
-    let hearts = 3;
-    let currentQuestionIndex = 0;
-    let maxQuestions = 14;
+    // 遊戲狀態與計時器
+    let score = 0; let hearts = 3; let currentQuestionIndex = 0; let maxQuestions = 14; 
     let streakCount = 0;
-    let enemyHitCount = 0;
-    
-    let attempt = 1; 
-    let timer = null;
-    let timeLeft = 0;
-    let isHintEnabled = true;
+    let attempt = 1; let timer = null; let timeLeft = 0; let isHintEnabled = true;
 
-    let parsedAnswer = []; 
-    let inputBoxes = [];   
-    let currentSyllableIndex = 0; 
-    let typedBase = "";    
+    // 敵人系統設定
+    const enemyConfig = [
+        { sprite: '🌵', maxHp: 1, attack: '📍' },
+        { sprite: '🐍', maxHp: 2, attack: '💧' },
+        { sprite: '🕷️', maxHp: 3, attack: '🕸️' },
+        { sprite: '👹', maxHp: 4, attack: '🔥' }
+    ];
+    let currentEnemyIdx = 0;
+    let currentEnemyHp = 1;
+    let allEnemiesCleared = false; // 是否已打完最後一隻惡鬼
 
+    // 拼音解析系統
+    let parsedAnswer = []; let inputBoxes = []; let currentSyllableIndex = 0; let typedBase = "";    
     const validLetters = ['a','b','c','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
     const toneDigits = ['1','2','3','4','5','7','8','9'];
     
@@ -246,6 +239,31 @@
         lessonsDiv.appendChild(btn);
     });
 
+    // ==== 長按跳過機制 ====
+    let skipTimer = null;
+    let isPressingSkip = false;
+
+    function startSkip() {
+        if (isPressingSkip || hearts <= 0) return;
+        isPressingSkip = true;
+        const btn = document.querySelector('.key-skip');
+        if (btn) btn.classList.add('pressing');
+        
+        skipTimer = setTimeout(() => {
+            isPressingSkip = false;
+            if (btn) btn.classList.remove('pressing');
+            handleSkip(); // 2.5秒後觸發跳過扣血
+        }, 2500);
+    }
+
+    function cancelSkip() {
+        if (!isPressingSkip) return;
+        isPressingSkip = false;
+        clearTimeout(skipTimer);
+        const btn = document.querySelector('.key-skip');
+        if (btn) btn.classList.remove('pressing');
+    }
+
     function createKeyDiv(keyObj) {
         let val = typeof keyObj === 'string' ? keyObj : keyObj.val;
         let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display;
@@ -263,8 +281,17 @@
 
         if (!forceDisabled && (validLetters.includes(val) || toneDigits.includes(val) || ['Backspace', 'Enter', 'Skip'].includes(val))) {
             btn.classList.add('active-key');
-            btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
+            
+            if (val === 'Skip') {
+                btn.addEventListener('mousedown', (e) => { e.preventDefault(); startSkip(); });
+                btn.addEventListener('touchstart', (e) => { e.preventDefault(); startSkip(); }, {passive: false});
+                btn.addEventListener('mouseup', (e) => { e.preventDefault(); cancelSkip(); });
+                btn.addEventListener('mouseleave', (e) => { e.preventDefault(); cancelSkip(); });
+                btn.addEventListener('touchend', (e) => { e.preventDefault(); cancelSkip(); }, {passive: false});
+            } else {
+                btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
+                btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
+            }
         } else {
             btn.classList.add('disabled-key');
         }
@@ -292,35 +319,22 @@
         kbContainer.appendChild(row1);
 
         const wrapper23 = document.createElement('div');
-        wrapper23.style.display = 'flex';
-        wrapper23.style.gap = '4px';
-        wrapper23.style.width = '100%';
+        wrapper23.style.display = 'flex'; wrapper23.style.gap = '4px'; wrapper23.style.width = '100%';
 
-        const leftCol = document.createElement('div');
-        leftCol.style.flex = '1.3';
-        leftCol.appendChild(createKeyDiv({val: 'Skip', display: '扣血<br>前進', customClass: 'key-tall key-skip'}));
+        const leftCol = document.createElement('div'); leftCol.style.flex = '1.3';
+        leftCol.appendChild(createKeyDiv({val: 'Skip', display: '長按<br>跳過', customClass: 'key-tall key-skip'}));
         wrapper23.appendChild(leftCol);
 
         const midCol = document.createElement('div');
-        midCol.style.flex = '7.4';
-        midCol.style.display = 'flex';
-        midCol.style.flexDirection = 'column';
-        midCol.style.gap = '4px';
-        
-        const row2 = document.createElement('div');
-        row2.className = 'kb-row';
+        midCol.style.flex = '7.4'; midCol.style.display = 'flex'; midCol.style.flexDirection = 'column'; midCol.style.gap = '6px';
+        const row2 = document.createElement('div'); row2.className = 'kb-row';
         ['a','s','d','f','g','h','j','k','l'].forEach(k => row2.appendChild(createKeyDiv(k)));
-        
-        const row3 = document.createElement('div');
-        row3.className = 'kb-row';
+        const row3 = document.createElement('div'); row3.className = 'kb-row';
         ['z','x','c','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k)));
-        
-        midCol.appendChild(row2);
-        midCol.appendChild(row3);
+        midCol.appendChild(row2); midCol.appendChild(row3);
         wrapper23.appendChild(midCol);
 
-        const rightCol = document.createElement('div');
-        rightCol.style.flex = '1.3';
+        const rightCol = document.createElement('div'); rightCol.style.flex = '1.3';
         rightCol.appendChild(createKeyDiv({val: 'Enter', display: '送出', customClass: 'key-tall key-enter'}));
         wrapper23.appendChild(rightCol);
 
@@ -330,7 +344,6 @@
     async function startGame() {
         if(selectedLessons.length === 0) return alert("請至少選擇一課！");
         isHintEnabled = document.getElementById('hint-toggle').checked;
-        
         document.getElementById('menu').style.display = 'none';
         document.getElementById('game-screen').style.display = 'flex';
         
@@ -354,11 +367,31 @@
 
         questionBank.sort(() => Math.random() - 0.5);
         
+        // 重置狀態
         score = 0; hearts = 3; currentQuestionIndex = 0; maxQuestions = 14; 
-        streakCount = 0; enemyHitCount = 0;
+        streakCount = 0; 
         
+        // 重置敵人
+        currentEnemyIdx = 0;
+        currentEnemyHp = enemyConfig[0].maxHp;
+        allEnemiesCleared = false;
+        document.getElementById('enemy-sprite').innerText = enemyConfig[0].sprite;
+        document.getElementById('enemy-sprite').classList.remove('enemy-dead');
+        updateEnemyHpUI();
+
         updateHearts();
         loadQuestion();
+    }
+
+    function updateEnemyHpUI() {
+        const hpDiv = document.getElementById('enemy-hp-ui');
+        if (allEnemiesCleared) {
+            hpDiv.innerText = "💀";
+            return;
+        }
+        const max = enemyConfig[currentEnemyIdx].maxHp;
+        const hp = currentEnemyHp;
+        hpDiv.innerText = '🔴'.repeat(hp) + '⚫'.repeat(max - hp);
     }
 
     function parseTaiLoAnswer(rawText) {
@@ -366,10 +399,8 @@
         let rawSyllables = text.split(/[\s\-–—]+/).filter(s => s.length > 0);
         const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
         let parsed = [];
-
         for (let s of rawSyllables) {
-            let nfd = s.normalize("NFD");
-            let base = ""; let tone = null;
+            let nfd = s.normalize("NFD"); let base = ""; let tone = null;
             for (let char of nfd) {
                 if (toneMap[char]) tone = toneMap[char];
                 else if (/[a-z]/.test(char)) base += char;
@@ -401,12 +432,9 @@
 
     function loadQuestion() {
         if (currentQuestionIndex >= Math.min(questionBank.length, maxQuestions) || hearts <= 0) {
-            endGame();
-            return;
+            endGame(); return;
         }
-        
-        attempt = 1;
-        stopTimer();
+        attempt = 1; stopTimer();
         
         const currentQ = questionBank[currentQuestionIndex];
         document.getElementById('hanzi-hint').innerText = isHintEnabled ? currentQ.h : "???";
@@ -417,19 +445,15 @@
         playAudio();
     }
 
-    function playAudio() {
-        console.log("現在播放:", questionBank[currentQuestionIndex].h);
-    }
+    function playAudio() { console.log("現在播放:", questionBank[currentQuestionIndex].h); }
 
     function resetInputBoxes() {
         inputBoxes = new Array(parsedAnswer.length).fill(null);
-        currentSyllableIndex = 0;
-        typedBase = "";
-        updateDisplay();
+        currentSyllableIndex = 0; typedBase = ""; updateDisplay();
     }
 
     function handleInput(key) {
-        if (key === 'Skip') { handleSkip(); return; }
+        if (key === 'Skip') return; // Click skips are disabled, long press only
         
         if (key === 'Backspace') {
             if (typedBase.length > 0) {
@@ -446,16 +470,13 @@
         else if (toneDigits.includes(key)) {
             if (typedBase.length > 0 && currentSyllableIndex < parsedAnswer.length) {
                 inputBoxes[currentSyllableIndex] = { base: typedBase, tone: key };
-                currentSyllableIndex++;
-                typedBase = "";
+                currentSyllableIndex++; typedBase = "";
             }
         } 
         else if (validLetters.includes(key)) {
             if (currentSyllableIndex < parsedAnswer.length) typedBase += key;
         }
-        
-        updateDisplay();
-        triggerVisualFeedback(key);
+        updateDisplay(); triggerVisualFeedback(key);
     }
 
     function updateDisplay() {
@@ -464,17 +485,13 @@
         container.innerHTML = ''; 
 
         for (let i = 0; i < parsedAnswer.length; i++) {
-            const box = document.createElement('div');
-            box.className = 'syllable-box';
-
+            const box = document.createElement('div'); box.className = 'syllable-box';
             if (i < currentSyllableIndex) {
                 box.innerText = applyToneToSyllable(inputBoxes[i].base, inputBoxes[i].tone);
             } else if (i === currentSyllableIndex) {
                 box.classList.add('active-box');
                 box.innerHTML = `<span>${typedBase}</span><span class="cursor"></span>`;
-            } else {
-                box.innerText = '';
-            }
+            } else { box.innerText = ''; }
             container.appendChild(box);
         }
     }
@@ -486,9 +503,7 @@
                 isCorrect = false; break;
             }
         }
-        
-        if (isCorrect) handleSuccess();
-        else handleFail();
+        if (isCorrect) handleSuccess(); else handleFail();
     }
 
     function spawnEffect(type) {
@@ -500,51 +515,68 @@
             effect.innerText = '🗡️';
             effect.style.left = '70px'; effect.style.bottom = '10px';
             effect.style.animation = 'swordSlash 0.3s ease-out forwards';
-        } else if (type === 'fire') {
-            effect.innerText = '🔥';
+        } else if (type === 'enemyAttack') {
+            // 取出目前敵人的攻擊符號，若死透了則噴骨頭
+            effect.innerText = allEnemiesCleared ? '🦴' : enemyConfig[currentEnemyIdx].attack;
             effect.style.right = '70px'; effect.style.bottom = '10px';
-            effect.style.animation = 'fireBlast 0.4s ease-in forwards';
-        } else if (type === 'bone') {
-            effect.innerText = '🦴';
-            effect.style.right = '70px'; effect.style.bottom = '10px';
-            effect.style.animation = 'boneThrow 0.5s ease-out forwards';
+            effect.style.animation = 'projFly 0.5s ease-out forwards';
         }
-        
         arena.appendChild(effect);
         setTimeout(() => { effect.remove(); }, 500);
     }
 
     function handleSuccess() {
         stopTimer();
-        
         streakCount++;
         if (streakCount > 0 && streakCount % 2 === 0 && maxQuestions < 21) { maxQuestions++; }
         
-        enemyHitCount++;
-        let currentEarn = isHintEnabled ? 10 : 20;
-        
         const player = document.getElementById('player-sprite');
-        const enemy = document.getElementById('enemy-sprite');
+        const enemyEl = document.getElementById('enemy-sprite');
         
         player.classList.add('player-attack');
         spawnEffect('sword');
         
-        setTimeout(() => { enemy.classList.add('enemy-hit-flash'); }, 150);
-
+        let extraScore = 0;
+        
         setTimeout(() => { 
             player.classList.remove('player-attack'); 
-            enemy.classList.remove('enemy-hit-flash');
             
-            if (enemyHitCount >= 10) {
-                currentEarn += 10;
+            // 敵人受損邏輯
+            if (allEnemiesCleared) {
                 spawnCoin();
-                enemy.classList.add('enemy-dead');
+                extraScore = 10;
+            } else {
+                currentEnemyHp--;
+                updateEnemyHpUI();
+                if (currentEnemyHp <= 0) {
+                    enemyEl.classList.add('enemy-dead');
+                    spawnCoin();
+                    extraScore = 10;
+                    
+                    // 700ms後切換下一個敵人
+                    setTimeout(() => {
+                        if (currentEnemyIdx < 3) {
+                            currentEnemyIdx++;
+                            currentEnemyHp = enemyConfig[currentEnemyIdx].maxHp;
+                            enemyEl.innerText = enemyConfig[currentEnemyIdx].sprite;
+                            enemyEl.classList.remove('enemy-dead');
+                            updateEnemyHpUI();
+                        } else {
+                            allEnemiesCleared = true;
+                            updateEnemyHpUI();
+                        }
+                    }, 700);
+                } else {
+                    enemyEl.classList.add('enemy-hit-flash');
+                    setTimeout(() => enemyEl.classList.remove('enemy-hit-flash'), 400);
+                }
             }
-            score += currentEarn;
+            
+            score += (isHintEnabled ? 10 : 20) + extraScore;
             updateDisplay();
-        }, 400);
+        }, 150);
         
-        setTimeout(() => { currentQuestionIndex++; loadQuestion(); }, 800);
+        setTimeout(() => { currentQuestionIndex++; loadQuestion(); }, 900);
     }
 
     function handleFail() {
@@ -559,21 +591,17 @@
         const enemy = document.getElementById('enemy-sprite');
 
         if (attempt === 1 || attempt === 2) {
-            if (enemyHitCount < 10) { 
+            if (!allEnemiesCleared) {
                 enemy.classList.add('enemy-attack');
-                spawnEffect('fire');
                 setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
-            } else {
-                spawnEffect('bone');
             }
+            spawnEffect('enemyAttack');
             
             setTimeout(() => { player.classList.add('player-dodge'); }, 150); 
             setTimeout(() => { player.classList.remove('player-dodge'); }, 600); 
             
             let nextTime = (attempt === 1) ? 15 : 10;
-            attempt++;
-            resetInputBoxes();
-            startTimer(nextTime);
+            attempt++; resetInputBoxes(); startTimer(nextTime);
         } else {
             takeDamage();
         }
@@ -581,9 +609,7 @@
 
     function handleSkip() {
         if (hearts <= 0) return; 
-        stopTimer();
-        streakCount = 0; 
-        
+        stopTimer(); streakCount = 0; 
         const container = document.getElementById('syllable-boxes-container');
         container.classList.add('shake', 'error-shake');
         setTimeout(() => { container.classList.remove('shake', 'error-shake'); }, 400);
@@ -595,23 +621,18 @@
         const player = document.getElementById('player-sprite');
         const enemy = document.getElementById('enemy-sprite');
         
-        if (enemyHitCount < 10) {
+        if (!allEnemiesCleared) {
             enemy.classList.add('enemy-attack');
-            spawnEffect('fire');
             setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
-        } else {
-            spawnEffect('bone');
         }
+        spawnEffect('enemyAttack');
         
         setTimeout(() => { player.classList.add('player-hit'); }, 200); 
         setTimeout(() => { player.classList.remove('player-hit'); }, 700); 
         
-        hearts--;
-        updateHearts();
-        
+        hearts--; updateHearts();
         setTimeout(() => {
-            if (hearts <= 0) endGame();
-            else { currentQuestionIndex++; loadQuestion(); }
+            if (hearts <= 0) endGame(); else { currentQuestionIndex++; loadQuestion(); }
         }, 1000);
     }
 
@@ -620,16 +641,11 @@
         const bar = document.getElementById('timer-bar');
         const text = document.getElementById('timer-text');
         
-        container.style.display = 'block';
-        timeLeft = seconds;
-        
-        bar.style.transition = 'none';
-        bar.style.width = '100%';
-        bar.style.background = (seconds === 15) ? '#ff9800' : '#f44336';
+        container.style.display = 'block'; timeLeft = seconds;
+        bar.style.transition = 'none'; bar.style.width = '100%'; bar.style.background = (seconds === 15) ? '#ff9800' : '#f44336';
         text.innerText = timeLeft + "秒";
         
-        bar.offsetHeight;
-        bar.style.transition = 'width 1s linear';
+        bar.offsetHeight; bar.style.transition = 'width 1s linear';
         
         timer = setInterval(() => {
             timeLeft--;
@@ -640,8 +656,7 @@
     }
 
     function stopTimer() {
-        clearInterval(timer);
-        document.getElementById('timer-container').style.display = 'none';
+        clearInterval(timer); document.getElementById('timer-container').style.display = 'none';
     }
 
     function updateHearts() {
@@ -653,28 +668,36 @@
     function spawnCoin() {
         const arena = document.getElementById('rpg-arena');
         const coin = document.createElement('div');
-        coin.className = 'coin';
-        coin.innerText = '🪙';
-        coin.style.right = '40px'; 
-        arena.appendChild(coin);
+        coin.className = 'coin'; coin.innerText = '🪙';
+        coin.style.right = '40px'; arena.appendChild(coin);
         setTimeout(() => { coin.remove(); }, 1000);
     }
 
     function triggerVisualFeedback(key) {
         const btn = document.querySelector(`.key[data-key="${key}"]`);
         if(btn && !btn.classList.contains('disabled-key')) {
-            btn.style.background = '#00e5ff';
-            btn.style.color = '#000';
+            btn.style.background = '#00e5ff'; btn.style.color = '#000';
             setTimeout(() => { btn.style.background = ''; btn.style.color = ''; }, 100);
         }
     }
 
+    // 實體鍵盤綁定：增加 Ctrl 長按偵測
     window.addEventListener('keydown', e => {
         if(document.getElementById('game-screen').style.display === 'flex') {
+            if (e.key === 'Control') {
+                if (!e.repeat) startSkip();
+                return;
+            }
             const k = e.key.toLowerCase();
             if (k === 'enter') handleInput('Enter');
             else if (k === 'backspace') handleInput('Backspace');
             else handleInput(k);
+        }
+    });
+
+    window.addEventListener('keyup', e => {
+        if(document.getElementById('game-screen').style.display === 'flex') {
+            if (e.key === 'Control') { cancelSkip(); }
         }
     });
 
@@ -684,23 +707,13 @@
         document.getElementById('game-over').style.display = 'flex';
         document.getElementById('final-score').innerText = score;
         
-        let endComment = "";
-        let commentColor = "";
-        
-        if (score >= 300) {
-            endComment = "拍倒惡鬼，光榮倒轉來！";
-            commentColor = "#4caf50";
-        } else if (score >= 150) {
-            endComment = "Hiàm出惡鬼，繼續修行！";
-            commentColor = "#ff9800";
-        } else {
-            endComment = "惡鬼koh teh作孽，毋通放棄！";
-            commentColor = "#f44336";
-        }
+        let endComment = ""; let commentColor = "";
+        if (score >= 300) { endComment = "拍倒惡鬼，光榮倒轉來！"; commentColor = "#4caf50"; } 
+        else if (score >= 150) { endComment = "Hiàm出惡鬼，繼續修行！"; commentColor = "#ff9800"; } 
+        else { endComment = "惡鬼koh teh作孽，毋通放棄！"; commentColor = "#f44336"; }
         
         const commentDiv = document.getElementById('end-comment');
-        commentDiv.innerText = endComment;
-        commentDiv.style.color = commentColor;
+        commentDiv.innerText = endComment; commentDiv.style.color = commentColor;
     }
 </script>
 </body>
