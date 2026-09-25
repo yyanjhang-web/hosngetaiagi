@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>除魔咒術 - 緊念台語咒語降妖除魔</title>
-    <!-- 引入 Google Fonts 思源黑體 (Noto Sans TC) 以解決台語罕見字缺字問題 -->
+    <!-- 引入 Google Fonts：Noto Sans TC、霞鶩文楷 (LXGW WenKai TC 支援台語擴展罕見字) 與 Charis SIL (完美支援台羅聲調) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Charis+SIL:wght@400;700&family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* 全域字體改為 Noto Sans TC 優先 */
-        body { font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; user-select: none; -webkit-user-select: none; }
+        /* 全域字體：結合思源黑體與霞鶩文楷，互相補齊台語罕用字 */
+        body { font-family: 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; user-select: none; -webkit-user-select: none; }
         
         #app-container { position: relative; width: 100vw; height: 100vh; height: 100dvh; max-width: 800px; background-color: #16213e; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         
@@ -35,11 +35,11 @@
         #health-bar { font-size: 20px; letter-spacing: 3px; }
         .question-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
 
-        /* 喇叭與漢字併排 */
+        /* 喇叭與漢字併排 (套用霞鶩文楷支援擴展區台語漢字) */
         .question-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
         .audio-icon { font-size: 36px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; margin: 0; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
-        #hanzi-hint { font-family: 'Noto Sans TC', sans-serif; font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; }
+        #hanzi-hint { font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; }
         
         /* ==== RPG 戰鬥舞台與魔法詠唱特效 ==== */
         #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; box-sizing: border-box; margin-bottom: 5px; overflow: hidden; flex-shrink: 0;}
@@ -95,12 +95,41 @@
         #timer-bar { height: 100%; width: 100%; background: #00e5ff; transition: width 0.1s linear, background 0.3s; }
         #timer-text { position: absolute; right: 5px; top: -16px; font-size: 12px; color: #fff; font-weight: bold; }
 
-        /* 輸入框 */
+        /* 輸入框 (移除 Courier New，改用完美支援台羅的字型) */
         #syllable-boxes-container { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 5px; width: 100%; }
-        .syllable-box { min-width: 50px; height: 50px; padding: 0 10px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 8px; font-size: 26px; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: 'Courier New', Courier, monospace; transition: 0.2s; }
+        .syllable-box { min-width: 50px; height: 50px; padding: 0 12px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 8px; font-size: 26px; font-weight: bold; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: 'Charis SIL', 'Noto Sans', sans-serif; transition: 0.2s; }
         .syllable-box.active-box { border-color: #00e5ff; box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3); color: #00e5ff; }
         .cursor { display: inline-block; width: 3px; height: 26px; background: #e94560; margin-left: 2px; animation: blink 1s step-end infinite; }
         @keyframes blink { 50% { opacity: 0; } }
+
+        /* ==== 永不破圖的第8聲、第9聲 CSS 獨立描繪樣式 ==== */
+        .t8, .t9 { position: relative; display: inline-block; line-height: 1; }
+        .t8::after {
+            content: '';
+            position: absolute;
+            top: -0.16em;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2.2px;
+            height: 0.24em;
+            background-color: currentColor;
+            border-radius: 1px;
+            pointer-events: none;
+        }
+        /* 若母音是 i，將原本的點蓋掉或直接替換為無點 ı (U+0131) 加上直豎 */
+        .t8-i { position: relative; display: inline-block; line-height: 1; }
+        .t8-i::after {
+            content: '';
+            position: absolute;
+            top: -0.16em;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2.2px;
+            height: 0.25em;
+            background-color: currentColor;
+            border-radius: 1px;
+            pointer-events: none;
+        }
 
         /* ================================================= */
         /* 虛擬鍵盤與「自製 SVG 聲調系統」 */
@@ -170,10 +199,11 @@
         .btn-no:active { transform: scale(0.95); }
         
         #review-list { display: none; width: 92%; max-width: 500px; background: #16213e; border: 2px solid #00e5ff; border-radius: 12px; padding: 15px; margin-top: 10px; max-height: 48vh; overflow-y: auto; box-sizing: border-box; box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); }
-        .review-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #2a3654; font-size: 20px; }
+        .review-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 12px; border-bottom: 1px solid #2a3654; font-size: 20px; }
         .review-item:last-child { border-bottom: none; }
-        .review-hanzi { color: #f9a826; font-weight: bold; }
-        .review-tailo { color: #00e5ff; font-family: 'Courier New', Courier, monospace; font-weight: bold; letter-spacing: 1px; }
+        .review-hanzi { color: #f9a826; font-weight: bold; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; }
+        /* 移除 Courier New，改用完美支援台羅與自製標調的字型 */
+        .review-tailo { color: #00e5ff; font-family: 'Charis SIL', 'Noto Sans', sans-serif; font-weight: bold; letter-spacing: 1px; font-size: 22px; }
 
         /* ========================================================= */
         /* 極致壓縮模式：手機橫向、小螢幕 */
@@ -364,6 +394,18 @@
         };
         lessonsDiv.appendChild(btn);
     });
+
+    // ==== 將台羅字串中的第8聲 (\u030D) 轉為永不破圖的 HTML 標籤 ====
+    function formatTailoDisplay(str) {
+        // 先轉為 NFD 拆開母音與組合符號
+        let nfd = str.normalize('NFD');
+        // 針對字母 i 加上第8聲，替換為無點 ı (U+0131) 搭配 CSS 短直線，避免點與線重疊
+        let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>');
+        // 針對其他母音加上第8聲，替換為 CSS 短直線
+        res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
+        // 其餘聲調 (2, 3, 5, 7) 轉回 NFC 標準合成字
+        return res.normalize('NFC');
+    }
 
     // ==== 長按跳過機制 ====
     let skipTimer = null;
@@ -569,7 +611,7 @@
         else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g');
         else if (res.includes('m')) res = res.replace('m', 'm' + m);
         
-        return res.normalize('NFC'); 
+        return formatTailoDisplay(res); 
     }
 
     // 紀錄錯題至秘訣清單
@@ -643,7 +685,8 @@
         for (let i = 0; i < parsedAnswer.length; i++) {
             const box = document.createElement('div'); box.className = 'syllable-box';
             if (i < currentSyllableIndex) {
-                box.innerText = applyToneToSyllable(inputBoxes[i].base, inputBoxes[i].tone);
+                // 使用 innerHTML 呈現無破綻的第8聲標記
+                box.innerHTML = applyToneToSyllable(inputBoxes[i].base, inputBoxes[i].tone);
             } else if (i === currentSyllableIndex) {
                 box.classList.add('active-box');
                 box.innerHTML = `<span>${typedBase}</span><span class="cursor"></span>`;
@@ -921,7 +964,8 @@
         wrongQuestions.forEach(item => {
             const row = document.createElement('div');
             row.className = 'review-item';
-            row.innerHTML = `<span class="review-hanzi">${item.h}</span><span class="review-tailo">${item.r}</span>`;
+            // 使用 formatTailoDisplay 確保魔咒秘訣中的第8聲永不破圖
+            row.innerHTML = `<span class="review-hanzi">${item.h}</span><span class="review-tailo">${formatTailoDisplay(item.r)}</span>`;
             container.appendChild(row);
         });
 
