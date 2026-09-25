@@ -38,6 +38,7 @@
         /* 喇叭與漢字併排 */
         .question-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 8px; }
         .audio-icon { font-size: 36px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; margin: 0; }
+        .audio-icon:active { transform: scale(0.9); }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
         #hanzi-hint { font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; }
         
@@ -192,7 +193,8 @@
         .btn-no:active { transform: scale(0.95); }
         
         #review-list { display: none; width: 92%; max-width: 500px; background: #16213e; border: 2px solid #00e5ff; border-radius: 12px; padding: 15px; margin-top: 10px; max-height: 48vh; overflow-y: auto; box-sizing: border-box; box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); }
-        .review-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 12px; border-bottom: 1px solid #2a3654; font-size: 20px; }
+        .review-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 12px; border-bottom: 1px solid #2a3654; font-size: 20px; cursor: pointer; transition: background 0.15s; border-radius: 6px; }
+        .review-item:active { background: rgba(0, 229, 255, 0.15); }
         .review-item:last-child { border-bottom: none; }
         .review-hanzi { color: #f9a826; font-weight: bold; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; }
         .review-tailo { color: #00e5ff; font-family: 'Charis SIL', 'Noto Sans', sans-serif; font-weight: bold; letter-spacing: 1px; font-size: 22px; }
@@ -339,6 +341,9 @@
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
     let selectedLessons = [];
     let questionBank = [];
+    
+    // 音訊播放器實體
+    const audioPlayer = new Audio();
     
     // 遊戲狀態與計時器
     let score = 0; let hearts = 3; let currentQuestionIndex = 0; let maxQuestions = 14; 
@@ -551,7 +556,7 @@
         document.getElementById('hanzi-hint').innerText = "載入中...";
 
         const fetchPromises = selectedLessons.map(sheet => 
-            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}`).then(res => res.text())
+            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`).then(res => res.text())
         );
 
         const results = await Promise.all(fetchPromises);
@@ -560,7 +565,12 @@
             text.split(/\r?\n/).forEach(l => {
                 const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
                 if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
-                    questionBank.push({ h: p[0].trim(), r: p[1].trim() });
+                    // 同時讀取 A欄(漢字)、B欄(台羅) 與 C欄(音檔網址)
+                    questionBank.push({ 
+                        h: p[0].trim(), 
+                        r: p[1].trim(),
+                        a: p.length >= 3 ? p[2].trim() : ""
+                    });
                 }
             });
         });
@@ -640,7 +650,7 @@
             const q = questionBank[currentQuestionIndex];
             const cleanR = q.r.split('(')[0].trim();
             if (!wrongQuestions.some(item => item.h === q.h)) {
-                wrongQuestions.push({ h: q.h, r: cleanR });
+                wrongQuestions.push({ h: q.h, r: cleanR, a: q.a });
             }
         }
     }
@@ -662,7 +672,22 @@
         playAudio();
     }
 
-    function playAudio() { console.log("現在播放:", questionBank[currentQuestionIndex].h); }
+    // 播放當前題目的音檔（或指定網址的音檔）
+    function playAudio(customUrl) {
+        const currentQ = questionBank[currentQuestionIndex];
+        const rawUrl = customUrl || (currentQ ? currentQ.a : "");
+        if (!rawUrl) {
+            console.log("此題尚未設定音檔網址:", currentQ ? currentQ.h : "");
+            return;
+        }
+        
+        // 若網址含有未編碼的中文字元（如「拼音練習音檔」），自動進行安全編碼
+        const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
+        audioPlayer.pause();
+        audioPlayer.src = safeUrl;
+        audioPlayer.currentTime = 0;
+        audioPlayer.play().catch(err => console.warn("音檔播放失敗:", err));
+    }
 
     function resetInputBoxes() {
         inputBoxes = new Array(parsedAnswer.length).fill(null);
@@ -829,6 +854,7 @@
             let nextTime = (attempt === 1) ? (wordCount * 7.5) : (wordCount * 5);
             attempt++; 
             resetInputBoxes(); 
+            playAudio(); // 答錯重試時自動再播一次音檔提示
             startTimer(nextTime);
         } else {
             takeDamage();
@@ -982,7 +1008,10 @@
         wrongQuestions.forEach(item => {
             const row = document.createElement('div');
             row.className = 'review-item';
-            row.innerHTML = `<span class="review-hanzi">${item.h}</span><span class="review-tailo">${formatTailoDisplay(item.r)}</span>`;
+            row.innerHTML = `<span class="review-hanzi">🔊 ${item.h}</span><span class="review-tailo">${formatTailoDisplay(item.r)}</span>`;
+            if (item.a) {
+                row.onclick = () => playAudio(item.a);
+            }
             container.appendChild(row);
         });
 
