@@ -25,6 +25,9 @@
         
         .toggle-container { margin: 15px 0; padding: 12px 15px; background: #1a1a2e; border-radius: 10px; border: 1px solid #e94560; width: 85%; max-width: 400px; text-align: center; }
         
+        /* 主選單說明文字內嵌黃金葫蘆小圖示 */
+        .inline-gourd-svg { width: 15px; height: 18px; vertical-align: -3px; display: inline-block; margin: 0 2px; filter: drop-shadow(0 0 3px rgba(249, 168, 38, 0.6)); }
+
         button.start-btn { padding: 14px 40px; font-size: 22px; font-weight: bold; background: #0f3460; color: #00e5ff; border: 2px solid #00e5ff; border-radius: 10px; margin-top: 15px; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transition: 0.2s; font-family: inherit; }
         button.start-btn:active { transform: scale(0.95); }
 
@@ -127,7 +130,7 @@
         }
 
         /* ================================================= */
-        /* 鍵盤上方獨立施法動作列（扣血前進 & 詠唱攻擊） */
+        /* 鍵盤上方獨立施法動作列（扣血前進 & 實施咒語） */
         /* ================================================= */
         #action-bar { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; padding: 0 2px; box-sizing: border-box; flex-shrink: 0; }
         
@@ -140,7 +143,7 @@
         .key-skip > div { position: relative; z-index: 2; pointer-events: none; }
         .key-skip:active { transform: scale(0.95); }
 
-        /* 詠唱攻擊鍵特化 */
+        /* 實施咒語鍵特化 */
         .key-enter { background: #00e5ff !important; border: 2px solid #84ffff !important; color: #000 !important; box-shadow: 0 0 15px rgba(0, 229, 255, 0.5) !important; }
         .key-enter:active { background: #fff !important; transform: scale(0.95); }
 
@@ -266,10 +269,10 @@
             </label>
         </div>
         
-        <p style="color:#aaa; font-size:14px; line-height: 1.7; text-align: center; margin: 5px 0;">
-            輸入台羅字母將啟動「詠唱煉成陣」，送出正確咒語即可發射除魔聖光！<br>
-            <span style="color:#ffd700;">使用漢字救命丹(圖示：葫蘆)，得分減半。</span><br>
-            答錯將啟動字數限時倒數，長按 Ctrl 或左側按鈕 2.5 秒可耗血跳過。
+        <p style="color:#aaa; font-size:14px; line-height: 1.8; text-align: center; margin: 5px 0;">
+            利用台語羅馬字生成拍倒鬼怪的咒語<br>
+            <span style="color:#ffd700;">使用漢字救命丹(<svg class="inline-gourd-svg" viewBox="0 0 32 38"><path d="M16 1 C16 1 18 4 16 6" stroke="#8d6e63" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="11" r="6.5" fill="#ffb300" stroke="#ffe082" stroke-width="1"/><circle cx="16" cy="25.5" r="10" fill="#ffa000" stroke="#ffe082" stroke-width="1"/><path d="M10.5 16.8 Q16 18.8 21.5 16.8" stroke="#e94560" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse cx="12.5" cy="23" rx="2" ry="3.5" fill="rgba(255,255,255,0.4)" transform="rotate(-15 12.5 23)"/></svg>)得分減半。</span><br>
+            咒語毋著愛趕緊改正，若無會受著鬼怪的攻擊
         </p>
         <button class="start-btn" onclick="startGame()">開始降魔</button>
     </div>
@@ -356,7 +359,7 @@
         <!-- 位於鍵盤上方兩側的獨立動作列（不會遮擋輸入框） -->
         <div id="action-bar">
             <div class="action-btn key-skip" id="btn-skip" data-key="Skip"><div>扣血前進</div></div>
-            <div class="action-btn key-enter" id="btn-enter" data-key="Enter"><div>詠唱攻擊</div></div>
+            <div class="action-btn key-enter" id="btn-enter" data-key="Enter"><div>實施咒語</div></div>
         </div>
 
         <div id="keyboard"></div>
