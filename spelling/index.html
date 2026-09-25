@@ -97,9 +97,11 @@
         }
 
         .combat-effect { position: absolute; font-size: 40px; z-index: 3; opacity: 0; pointer-events: none; }
+        /* 蝙蝠專屬：黑暗音符濾鏡特效 */
+        .dark-note { filter: brightness(0.25) sepia(1) hue-rotate(230deg) saturate(8) drop-shadow(0 0 8px #aa00ff) drop-shadow(0 0 12px #000); }
         @keyframes projFly { 0% { transform: translate(0, 0) rotate(0deg) scale(0.8); opacity: 1; } 50% { transform: translate(-100px, -20px) rotate(-180deg) scale(1.5); opacity: 1; } 100% { transform: translate(-220px, 0px) rotate(-360deg) scale(1.2); opacity: 0; } }
 
-        .coin { position: absolute; font-size: 30px; animation: coinFly 1s ease-out forwards; opacity: 0; }
+        .coin { position: absolute; font-size: 30px; animation: coinFly 1s ease-out forwards; opacity: 0; z-index: 4; }
         @keyframes coinFly { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(0, -60px) scale(1.2); opacity: 1; } 100% { transform: translate(0, -20px) scale(1); opacity: 0; } }
 
         /* 倒數計時條 */
@@ -323,7 +325,7 @@
                 <!-- 妖魔與血條 -->
                 <div id="enemy-wrapper">
                     <div id="enemy-hp-ui">🔴</div>
-                    <div class="rpg-sprite" id="enemy-sprite">🌵</div>
+                    <div class="rpg-sprite" id="enemy-sprite">🦇</div>
                 </div>
             </div>
 
@@ -403,23 +405,23 @@
     let wrongQuestions = [];
     let currentQuestionHasFailed = false;
 
-    // 敵人系統設定
+    // 敵人系統設定：第1關改為蝙蝠與黑暗音符
     const enemyConfig = [
-        { sprite: '🌵', maxHp: 1, attack: '📍' },
+        { sprite: '🦇', maxHp: 1, attack: '🎵' },
         { sprite: '🐍', maxHp: 2, attack: '💧' },
         { sprite: '🕷️', maxHp: 3, attack: '🕸️' },
         { sprite: '👹', maxHp: 4, attack: '🔥' }
     ];
     let currentEnemyIdx = 0;
     let currentEnemyHp = 1;
-    let allEnemiesCleared = false; 
+    let allEnemiesCleared = false; // true 代表紅惡鬼已死，進入骷髏怪賞金階段
 
     // 拼音解析系統
     let parsedAnswer = []; let inputBoxes = []; let currentSyllableIndex = 0; let typedBase = "";    
     const validLetters = ['a','b','c','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
     const toneDigits = ['1','2','3','4','5','7','8','9'];
     
-    // ==== 一體成形 SVG 聲調繪製系統（所有符號皆緊貼虛線圓圈正上方，如第8聲般緊湊） ====
+    // ==== 一體成形 SVG 聲調繪製系統 ====
     function getToneSvg(tone) {
         let markPath = '';
         switch(tone) {
@@ -499,7 +501,6 @@
     }
 
     function useGourd() {
-        // 若此題已經顯示漢字，不重複扣丹
         if (usedGourdOnCurrentQ) return;
         if (!isInfiniteGourd && gourdsLeft <= 0) return;
 
@@ -680,7 +681,7 @@
         streakCount = 0; 
         wrongQuestions = [];
         
-        // 重置敵人
+        // 重置敵人（從第1關蝙蝠開始）
         currentEnemyIdx = 0;
         currentEnemyHp = enemyConfig[0].maxHp;
         allEnemiesCleared = false;
@@ -695,7 +696,8 @@
     function updateEnemyHpUI() {
         const hpDiv = document.getElementById('enemy-hp-ui');
         if (allEnemiesCleared) {
-            hpDiv.innerText = "💀";
+            // 骷髏怪階段顯示無限金幣賞金圖示
+            hpDiv.innerText = "🪙 ♾️";
             return;
         }
         const max = enemyConfig[currentEnemyIdx].maxHp;
@@ -763,7 +765,6 @@
         stopTimer();
         
         const currentQ = questionBank[currentQuestionIndex];
-        // 未按葫蘆前，不顯示漢字與 ???
         const hintEl = document.getElementById('hanzi-hint');
         hintEl.innerText = "";
         hintEl.style.display = "none";
@@ -868,6 +869,10 @@
             effect.className = 'light-beam-effect';
         } else if (type === 'enemyAttack') {
             effect.className = 'combat-effect';
+            // 第1關蝙蝠使用黑暗音符濾鏡
+            if (!allEnemiesCleared && currentEnemyIdx === 0) {
+                effect.classList.add('dark-note');
+            }
             effect.innerText = allEnemiesCleared ? '🦴' : enemyConfig[currentEnemyIdx].attack;
             effect.style.right = '70px'; effect.style.bottom = '10px';
             effect.style.animation = 'projFly 0.5s ease-out forwards';
@@ -880,8 +885,15 @@
         stopTimer();
         document.getElementById('player-wrapper').classList.remove('chanting');
 
-        streakCount++;
-        if (streakCount > 0 && streakCount % 2 === 0 && maxQuestions < 21) { maxQuestions++; }
+        // 只有第 1 次就答對才累積連勝加題
+        if (attempt === 1) {
+            streakCount++;
+            if (streakCount > 0 && streakCount % 2 === 0 && maxQuestions < 21) {
+                maxQuestions++;
+            }
+        } else {
+            streakCount = 0;
+        }
         
         const player = document.getElementById('player-sprite');
         const enemyEl = document.getElementById('enemy-sprite');
@@ -889,21 +901,30 @@
         player.classList.add('player-cast');
         spawnEffect('light');
         
-        let extraScore = 0;
+        // 依答對次數計算基礎分：第1次20分、第2次12分、第3次6分（用救命丹則減半）
+        const currentAttempt = attempt;
+        let baseScore = (currentAttempt === 1) ? 20 : (currentAttempt === 2 ? 12 : 6);
+        if (usedGourdOnCurrentQ) {
+            baseScore = Math.floor(baseScore / 2);
+        }
+        
+        let coinBonus = 0;
         
         setTimeout(() => { 
             player.classList.remove('player-cast'); 
             
             if (allEnemiesCleared) {
+                // 骷髏怪階段：每次成功攻擊都會受擊閃爍並獲得金幣 (+10分)
+                enemyEl.classList.add('enemy-hit-flash');
+                setTimeout(() => enemyEl.classList.remove('enemy-hit-flash'), 400);
                 spawnCoin();
-                extraScore = 10;
+                coinBonus = 10;
             } else {
+                // 前四隻妖魔（蝙蝠、蛇、蜘蛛、紅惡鬼）：死後不掉金幣
                 currentEnemyHp--;
                 updateEnemyHpUI();
                 if (currentEnemyHp <= 0) {
                     enemyEl.classList.add('enemy-dead');
-                    spawnCoin();
-                    extraScore = 10;
                     
                     setTimeout(() => {
                         if (currentEnemyIdx < 3) {
@@ -913,7 +934,10 @@
                             enemyEl.classList.remove('enemy-dead');
                             updateEnemyHpUI();
                         } else {
+                            // 紅惡鬼死亡後，化為站立的骷髏怪登場
                             allEnemiesCleared = true;
+                            enemyEl.innerText = '💀';
+                            enemyEl.classList.remove('enemy-dead');
                             updateEnemyHpUI();
                         }
                     }, 700);
@@ -923,8 +947,7 @@
                 }
             }
             
-            // 若該題使用了漢字救命丹（葫蘆），得分減半 (10分)，未使用則拿滿 20分
-            score += (usedGourdOnCurrentQ ? 10 : 20) + extraScore;
+            score += baseScore + coinBonus;
             updateDisplay();
         }, 180);
         
@@ -944,10 +967,9 @@
         const enemy = document.getElementById('enemy-sprite');
 
         if (attempt === 1 || attempt === 2) {
-            if (!allEnemiesCleared) {
-                enemy.classList.add('enemy-attack');
-                setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
-            }
+            // 骷髏怪與一般妖魔皆會發動攻擊動作
+            enemy.classList.add('enemy-attack');
+            setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
             spawnEffect('enemyAttack');
             
             setTimeout(() => { player.classList.add('player-dodge'); }, 150); 
@@ -982,10 +1004,8 @@
         const player = document.getElementById('player-sprite');
         const enemy = document.getElementById('enemy-sprite');
         
-        if (!allEnemiesCleared) {
-            enemy.classList.add('enemy-attack');
-            setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
-        }
+        enemy.classList.add('enemy-attack');
+        setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
         spawnEffect('enemyAttack');
         
         setTimeout(() => { player.classList.add('player-hit'); }, 200); 
@@ -1079,10 +1099,15 @@
         document.getElementById('game-over').style.display = 'flex';
         document.getElementById('final-score').innerText = score;
         
+        // 新制結局判定：結合「是否擊敗紅惡鬼(allEnemiesCleared)」與「總分門檻」
         let endComment = ""; let commentColor = "";
-        if (score >= 300) { endComment = "拍倒惡鬼，光榮倒轉來！"; commentColor = "#4caf50"; } 
-        else if (score >= 150) { endComment = "Hiàm出惡鬼，繼續修行！"; commentColor = "#ff9800"; } 
-        else { endComment = "惡鬼koh teh作孽，毋通放棄！"; commentColor = "#f44336"; }
+        if (allEnemiesCleared && score >= 360) { 
+            endComment = "拍倒惡鬼，光榮倒轉來！"; commentColor = "#4caf50"; 
+        } else if (allEnemiesCleared || score >= 160) { 
+            endComment = "Hiàm出惡鬼，繼續修行！"; commentColor = "#ff9800"; 
+        } else { 
+            endComment = "惡鬼koh teh作孽，毋通放棄！"; commentColor = "#f44336"; 
+        }
         
         const commentDiv = document.getElementById('end-comment');
         commentDiv.innerText = endComment; commentDiv.style.color = commentColor;
