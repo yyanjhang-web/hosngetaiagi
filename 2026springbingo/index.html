@@ -2,1187 +2,503 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 緊念台語咒語降妖除魔</title>
-    <!-- 引入 Google Fonts：Noto Sans TC、霞鶩文楷 (LXGW WenKai TC 支援台語擴展罕見字) 與 Charis SIL (完美支援台羅聲調) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Charis+SIL:wght@400;700&family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共編賓果 & 閃示卡</title>
     <style>
-        /* 全域字體：結合思源黑體與霞鶩文楷，互相補齊台語罕用字 */
-        body { font-family: 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif; margin: 0; padding: 0; background-color: #1a1a2e; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; user-select: none; -webkit-user-select: none; }
+        :root {
+            --bg-color: #f0f9ff;
+            --container-bg-color: #e0f2f7;
+            --btn-color: #20b2aa;
+            --btn-hover-color: #008b8b;
+            --card-front-color: #b3e0ff;
+            --card-back-color: #81c784;
+            --card-front-text: #005f99;
+            --card-back-text: #004085;
+            --text-color: #333;
+        }
+        .theme-style2 {
+            --bg-color: #fffaf0;
+            --container-bg-color: #ffeccf;
+            --btn-color: #f59e0b;
+            --btn-hover-color: #d97706;
+            --card-front-color: #fbd38d;
+            --card-back-color: #d8b4fe;
+            --card-front-text: #92400e;
+            --card-back-text: #6b21a8;
+            --text-color: #333;
+        }
+        .theme-style3 {
+            --bg-color: #1a202c;
+            --container-bg-color: #2d3748;
+            --btn-color: #4299e1;
+            --btn-hover-color: #2b6cb0;
+            --card-front-color: #4a5568;
+            --card-back-color: #fcd34d;
+            --card-front-text: #e2e8f0;
+            --card-back-text: #713f12;
+            --text-color: #e2e8f0;
+        }
         
-        #app-container { position: relative; width: 100vw; height: 100vh; height: 100dvh; max-width: 800px; background-color: #16213e; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
-        
-        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f3460; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 25px 20px 15px 20px; box-sizing: border-box; overflow-y: auto; }
-        
-        h2 { color: #e94560; font-size: 34px; margin-bottom: 5px; text-shadow: 0 0 12px rgba(233, 69, 96, 0.6); letter-spacing: 2px; }
-        .subtitle { color: #00e5ff; font-size: 18px; font-weight: bold; margin-top: 0; margin-bottom: 15px; text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); letter-spacing: 1px; }
-        
-        .lesson-btn { padding: 10px 15px; margin: 5px; background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; font-family: inherit; }
-        .lesson-btn.active { background: #e94560; border-color: #ff6b81; box-shadow: 0 0 10px #e94560; }
-        
-        .toggle-container { margin: 12px 0; padding: 12px 15px; background: #1a1a2e; border-radius: 10px; border: 1px solid #e94560; width: 85%; max-width: 400px; text-align: center; }
-        
-        /* 主選單說明文字內嵌黃金葫蘆小圖示 */
-        .inline-gourd-svg { width: 15px; height: 18px; vertical-align: -3px; display: inline-block; margin: 0 2px; filter: drop-shadow(0 0 3px rgba(249, 168, 38, 0.6)); }
-
-        button.start-btn { padding: 14px 40px; font-size: 22px; font-weight: bold; background: #0f3460; color: #00e5ff; border: 2px solid #00e5ff; border-radius: 10px; margin-top: 12px; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transition: 0.2s; font-family: inherit; flex-shrink: 0; }
-        button.start-btn:active { transform: scale(0.95); }
-
-        /* 頁尾版權聲明與計數器（字體縮小、顏色淡化） */
-        .footer { margin-top: auto; padding-top: 24px; padding-bottom: 5px; text-align: center; width: 100%; font-size: 12px; color: rgba(255, 255, 255, 0.45); line-height: 1.5; flex-shrink: 0; }
-        .footer p { margin: 0; }
-        .footer .copyright-text { font-size: 11px; color: rgba(255, 255, 255, 0.32); margin-top: 4px; line-height: 1.4; }
-        .counter-container { margin-top: 6px; opacity: 0.65; transition: opacity 0.2s; }
-        .counter-container:hover { opacity: 0.9; }
-        .counter-container img { height: 16px; width: auto; vertical-align: middle; }
-
-        /* 遊戲畫面 UI */
-        #game-screen { display: none; flex-direction: column; height: 100%; padding: 10px 12px; box-sizing: border-box; justify-content: space-between; }
-        
-        .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 6px; font-weight: bold; flex-shrink: 0; }
-        #health-bar { font-size: 20px; letter-spacing: 3px; }
-        .question-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
-
-        /* 葫蘆(救命丹)、喇叭與漢字併排 */
-        .question-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px; min-height: 46px; }
-        
-        /* 漢字救命丹（葫蘆按鈕） */
-        #gourd-btn { display: flex; align-items: center; gap: 5px; background: rgba(249, 168, 38, 0.15); border: 2px solid #f9a826; border-radius: 24px; padding: 4px 12px 4px 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(249, 168, 38, 0.35); }
-        #gourd-btn:active { transform: scale(0.92); }
-        #gourd-btn.gourd-disabled { opacity: 0.3; filter: grayscale(1); pointer-events: none; border-color: #555; box-shadow: none; }
-        .gourd-svg { width: 26px; height: 30px; display: block; filter: drop-shadow(0 0 4px rgba(249, 168, 38, 0.6)); }
-        #gourd-count { font-size: 18px; font-weight: bold; color: #ffd700; line-height: 1; }
-
-        .audio-icon { font-size: 36px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; margin: 0; line-height: 1; }
-        .audio-icon:active { transform: scale(0.9); }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
-        #hanzi-hint { font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; display: none; }
-        
-        /* ==== RPG 戰鬥舞台與魔法詠唱特效 ==== */
-        #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; box-sizing: border-box; margin-bottom: 6px; overflow: hidden; flex-shrink: 0;}
-        
-        #player-wrapper { position: relative; display: flex; align-items: flex-end; justify-content: center; z-index: 2; }
-        .rpg-sprite { font-size: 55px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; position: relative; z-index: 2; }
-        #player-sprite { transform-origin: bottom center; }
-        
-        /* 煉成陣與詠唱符文特效 */
-        #magic-circle { position: absolute; width: 76px; height: 76px; bottom: -8px; left: 50%; transform: translateX(-50%) scale(0); border: 2px dashed #00e5ff; border-radius: 50%; box-shadow: 0 0 15px #00e5ff, inset 0 0 15px #00e5ff; opacity: 0; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s; pointer-events: none; z-index: 1; display: flex; align-items: center; justify-content: center; }
-        #magic-circle::after { content: '۞'; font-size: 48px; color: rgba(0, 229, 255, 0.45); line-height: 1; }
-        
-        #chant-runes { position: absolute; right: -32px; top: -5px; font-size: 22px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 3; filter: drop-shadow(0 0 8px #ffd700); }
-        
-        /* 詠唱啟動狀態 */
-        .chanting #magic-circle { opacity: 1; transform: translateX(-50%) scale(1); animation: spinCircle 3s linear infinite; }
-        .chanting #chant-runes { opacity: 1; animation: floatRunes 0.8s ease-in-out infinite alternate; }
-        .chanting #player-sprite { filter: drop-shadow(0 0 12px #00e5ff); }
-        
-        @keyframes spinCircle { 0% { transform: translateX(-50%) scale(1) rotate(0deg); } 100% { transform: translateX(-50%) scale(1) rotate(360deg); } }
-        @keyframes floatRunes { 0% { transform: translateY(0) scale(0.9); } 100% { transform: translateY(-10px) scale(1.15); } }
-
-        #enemy-wrapper { display: flex; flex-direction: column; align-items: center; z-index: 1; }
-        #enemy-hp-ui { font-size: 12px; letter-spacing: 2px; margin-bottom: 2px; text-shadow: 0 0 5px rgba(0,0,0,0.8); }
-        #enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
-        
-        /* 戰鬥動作動畫 */
-        .player-cast { transform: scale(1.15) rotate(5deg) !important; filter: drop-shadow(0 0 20px #fff) !important; }
-        .enemy-attack { transform: translateX(-60px) rotate(-15deg) !important; }
-        .player-dodge { transform: translateY(-40px) rotate(-10deg) !important; }
-        .player-hit { transform: translateX(-10px) rotate(-10deg) !important; filter: drop-shadow(0 0 20px red) sepia(1) hue-rotate(-50deg) saturate(5) !important; }
-        .enemy-hit-flash { transform: translateX(12px) rotate(12deg) !important; filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 25px #00e5ff) !important; }
-        .enemy-dead { transform: rotate(90deg) translateY(30px) !important; filter: grayscale(1) opacity(0.7) drop-shadow(0 0 0 transparent) !important; }
-        
-        /* 除魔聖光束特效 */
-        .light-beam-effect { position: absolute; left: 85px; bottom: 28px; height: 14px; background: linear-gradient(90deg, #ffffff, #00e5ff, #e040fb, transparent); border-radius: 10px; box-shadow: 0 0 20px #00e5ff, 0 0 35px #ffffff; z-index: 3; transform-origin: left center; pointer-events: none; animation: shootLightBeam 0.4s ease-out forwards; }
-        .light-beam-effect::after { content: '✨'; position: absolute; right: 0; top: -14px; font-size: 28px; filter: drop-shadow(0 0 10px #fff); }
-        @keyframes shootLightBeam {
-            0% { width: 0%; opacity: 1; transform: scaleY(0.5); }
-            40% { width: calc(100% - 160px); opacity: 1; transform: scaleY(1.6); }
-            80% { width: calc(100% - 160px); opacity: 0.9; transform: scaleY(0.8); }
-            100% { width: calc(100% - 160px); opacity: 0; transform: scaleY(0.1); }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.5s;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        .combat-effect { position: absolute; font-size: 40px; z-index: 3; opacity: 0; pointer-events: none; }
-        /* 蝙蝠專屬：黑暗音符濾鏡特效 */
-        .dark-note { filter: brightness(0.25) sepia(1) hue-rotate(230deg) saturate(8) drop-shadow(0 0 8px #aa00ff) drop-shadow(0 0 12px #000); }
-        @keyframes projFly { 0% { transform: translate(0, 0) rotate(0deg) scale(0.8); opacity: 1; } 50% { transform: translate(-100px, -20px) rotate(-180deg) scale(1.5); opacity: 1; } 100% { transform: translate(-220px, 0px) rotate(-360deg) scale(1.2); opacity: 0; } }
+        .dictionary-input {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--container-bg-color);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+            box-sizing: border-box;
+        }
 
-        .coin { position: absolute; font-size: 30px; animation: coinFly 1s ease-out forwards; opacity: 0; z-index: 4; }
-        @keyframes coinFly { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 50% { transform: translate(0, -60px) scale(1.2); opacity: 1; } 100% { transform: translate(0, -20px) scale(1); opacity: 0; } }
+        /* 課程按鈕區塊 */
+        .lesson-btn-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 500px) {
+            .lesson-btn-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
 
-        /* 倒數計時條 */
-        #timer-container { width: 100%; height: 8px; background: #2a3654; border-radius: 5px; overflow: hidden; margin-bottom: 8px; position: relative; display: none; flex-shrink: 0;}
-        #timer-bar { height: 100%; width: 100%; background: #00e5ff; transition: width 0.1s linear, background 0.3s; }
-        #timer-text { position: absolute; right: 5px; top: -16px; font-size: 12px; color: #fff; font-weight: bold; }
+        .lesson-btn {
+            background-color: #ccc; 
+            color: #333;
+            border: none;
+            padding: 8px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: 0.3s;
+        }
+        .lesson-btn:hover { filter: brightness(95%); }
+        .lesson-btn.active { 
+            background-color: var(--btn-color); 
+            color: white;
+            font-weight: bold; 
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+        }
 
-        /* 輸入框 */
-        #syllable-boxes-container { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 6px; width: 100%; }
-        .syllable-box { min-width: 50px; height: 50px; padding: 0 12px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 8px; font-size: 26px; font-weight: bold; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: 'Charis SIL', 'Noto Sans', sans-serif; transition: 0.2s; }
-        .syllable-box.active-box { border-color: #00e5ff; box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3); color: #00e5ff; }
-        .cursor { display: inline-block; width: 3px; height: 26px; background: #e94560; margin-left: 2px; animation: blink 1s step-end infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
+        .control-group {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
 
-        /* ==== 永不破圖的第8聲、第9聲 CSS 獨立描繪樣式 ==== */
-        .t8, .t8-i { position: relative; display: inline-block; line-height: 1; }
-        .t8::after, .t8-i::after {
-            content: '';
+        .input-group {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--btn-color);
+            color: white;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+        button:hover { background-color: var(--btn-hover-color); opacity: 0.9; }
+
+        .container {
+            display: grid;
+            gap: 15px;
+            padding: 15px;
+            background-color: var(--container-bg-color);
+            border-radius: 15px;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+
+        /* Bingo Card Styles */
+        .card { width: 100%; padding-bottom: 70%; height: 0; background-color: var(--card-front-color); border-radius: 10px; cursor: pointer; perspective: 1000px; position: relative; }
+        .card-inner { position: absolute; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; border-radius: 10px; padding: 5px; text-align: center; font-weight: bold; box-sizing: border-box; font-size: clamp(1rem, 2.5vw, 1.5rem); overflow: hidden; word-break: break-word;}
+        
+        .card-front { background-color: var(--card-front-color); color: var(--card-front-text); }
+        .card-back { background-color: var(--card-back-color); color: var(--card-back-text); transform: rotateY(180deg); }
+        
+        /* Flashcard Mode Specific Styles */
+        .flashcard-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .flashcard {
+            width: 100%;
+            max-width: 400px;
+            height: 250px;
+            padding-bottom: 0;
+            margin-bottom: 20px;
+        }
+        .flashcard .card-face {
+            font-size: 2em;
+            padding: 20px;
+        }
+        
+        .card-counter {
             position: absolute;
-            top: -0.16em;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2.2px;
-            height: 0.24em;
-            background-color: currentColor;
-            border-radius: 1px;
-            pointer-events: none;
+            top: 15px;
+            right: 15px;
+            font-size: 16px; 
+            font-weight: normal;
+            opacity: 0.6;
         }
 
-        /* ================================================= */
-        /* 鍵盤上方獨立施法動作列（扣血前進 & 實施咒語） */
-        /* ================================================= */
-        #action-bar { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; padding: 0 2px; box-sizing: border-box; flex-shrink: 0; }
+        .mark-btn { position: absolute; bottom: 5px; right: 5px; width: 18px; height: 18px; border-radius: 50%; background-color: rgba(255,255,255,0.4); border: 1px solid #ccc; z-index: 5; }
+        .mark-btn.marked { background-color: #ff5252; }
+
+        .nav-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .nav-btn {
+            background-color: #607d8b;
+            width: 100px;
+        }
+        .nav-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .footer { margin-top: 20px; text-align: center; font-size: 0.85em; color: #777; }
+        .theme-style3 .footer { color: #a0aec0; }
+        .theme-style3 .dictionary-input h3 { color: #fff; }
+        .theme-style3 .dictionary-input summary { color: #cbd5e0; }
+
+        .counter-container { margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; }
         
-        .action-btn { width: 130px; height: 52px; border-radius: 12px; font-size: 18px; font-weight: bold; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.1s; box-sizing: border-box; letter-spacing: 1px; }
-
-        /* 長按扣血鍵特化與動畫 */
-        .key-skip { position: relative; overflow: hidden; background: #d32f2f !important; border: 2px solid #ff5252 !important; color: white !important; box-shadow: 0 0 12px rgba(244, 67, 54, 0.45) !important; }
-        .key-skip::before { content: ''; position: absolute; left: 0; bottom: 0; height: 100%; width: 0%; background: rgba(255, 255, 255, 0.35); z-index: 1; transition: width 0s; }
-        .key-skip.pressing::before { width: 100%; transition: width 2.5s linear; }
-        .key-skip > div { position: relative; z-index: 2; pointer-events: none; }
-        .key-skip:active { transform: scale(0.95); }
-
-        /* 實施咒語鍵特化 */
-        .key-enter { background: #00e5ff !important; border: 2px solid #84ffff !important; color: #000 !important; box-shadow: 0 0 15px rgba(0, 229, 255, 0.5) !important; }
-        .key-enter:active { background: #fff !important; transform: scale(0.95); }
-
-        /* ================================================= */
-        /* 虛擬鍵盤與「一體成形 SVG 聲調系統」 */
-        /* ================================================= */
-        #keyboard { display: flex; flex-direction: column; gap: 6px; width: 100%; flex-shrink: 0; padding-bottom: 6px; }
-        .kb-row { display: flex; justify-content: center; gap: 5px; width: 100%; box-sizing: border-box; }
-        
-        /* 讓 A~L 與 Z~M 稍微向內縮排並放大單鍵寬度，符合人體工學且飽滿好按 */
-        .kb-row-2 { padding: 0 3%; }
-        .kb-row-3 { padding: 0 11%; }
-        
-        .key { position: relative; background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; min-height: 48px; min-width: 26px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; }
-        .key.active-key { background: #0f3460; border-color: #00e5ff; box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); color: #00e5ff; }
-        .key.active-key:active { background: #00e5ff; color: #000; transform: scale(0.92); }
-        .key.disabled-key { background: #1a1a2e; border-color: #222; color: #444; pointer-events: none; }
-        
-        /* 聲調按鍵專屬佈局 */
-        .tone-num { position: absolute; top: 3px; left: 5px; font-size: 11px; color: #78909c; font-weight: bold; line-height: 1; }
-        .key.active-key .tone-num { color: #00b8d4; }
-        .tone-symbol { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding-top: 4px; }
-        
-        /* 一體成形的 SVG 畫布：確保所有聲調符號緊貼虛線圓圈正上方 */
-        .tone-svg-unified { width: 20px; height: 26px; overflow: visible; display: block; }
-
-        /* 入聲 (ptkh) 的 2x2 方塊排列 */
-        .checked-tone-group { display: flex; align-items: flex-end; justify-content: center; line-height: 1; }
-        .checked-tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; font-size: 9px; margin-left: 2px; margin-bottom: 2px; text-align: center; line-height: 0.9; font-family: Arial, sans-serif; color: #aaa; }
-        .key.active-key .checked-tone-grid { color: #00e5ff; }
-
-        /* 針對第6聲按鍵微調 */
-        .key[data-key="6"] { flex: 0.6; opacity: 0.5; pointer-events: none; }
-
-        .key-delete { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; flex: 1.35; font-size: 20px;}
-        .key-delete:active { background: #ff6b81 !important; transform: scale(0.92); }
-
-        .shake { animation: shake 0.4s; }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
-        .error-shake .syllable-box { border-color: red !important; box-shadow: inset 0 0 15px red !important; }
-
-        #end-comment { font-size: 28px; font-weight: bold; margin-bottom: 15px; text-align: center; text-shadow: 0 0 15px rgba(0,0,0,0.8); }
-
-        /* ========================================================= */
-        /* 戰後掉落寶物（魔咒秘訣）與錯題檢視區 */
-        /* ========================================================= */
-        #treasure-box { background: rgba(26, 26, 46, 0.9); border: 2px solid #f9a826; border-radius: 12px; padding: 22px 20px; text-align: center; max-width: 450px; width: 90%; margin-top: 10px; box-shadow: 0 0 20px rgba(249, 168, 38, 0.35); animation: dropTreasure 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes dropTreasure { 0% { transform: translateY(-40px) scale(0.8); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-        .treasure-icon { font-size: 56px; margin-bottom: 12px; display: inline-block; filter: drop-shadow(0 0 12px #f9a826); }
-        
-        .golden-question { color: #ffd700; font-size: 20px; margin: 0 0 22px 0; font-weight: bold; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); letter-spacing: 1px; }
-        
-        .choice-btn-group { display: flex; justify-content: center; gap: 15px; }
-        .choice-btn { padding: 12px 36px; font-size: 20px; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; transition: 0.2s; font-family: inherit; }
-        .btn-yes { background: #f9a826; color: #000; box-shadow: 0 0 12px rgba(249, 168, 38, 0.5); }
-        .btn-yes:active { transform: scale(0.95); }
-        .btn-no { background: #2a3654; color: #ccc; border: 1px solid #4a5c88; }
-        .btn-no:active { transform: scale(0.95); }
-        
-        #review-list { display: none; width: 92%; max-width: 500px; background: #16213e; border: 2px solid #00e5ff; border-radius: 12px; padding: 15px; margin-top: 10px; max-height: 44vh; overflow-y: auto; box-sizing: border-box; box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); }
-        .review-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 12px; border-bottom: 1px solid #2a3654; font-size: 20px; cursor: pointer; transition: background 0.15s; border-radius: 6px; }
-        .review-item:active { background: rgba(0, 229, 255, 0.15); }
-        .review-item:last-child { border-bottom: none; }
-        .review-hanzi { color: #f9a826; font-weight: bold; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; }
-        .review-tailo { color: #00e5ff; font-family: 'Charis SIL', 'Noto Sans', sans-serif; font-weight: bold; letter-spacing: 1px; font-size: 22px; }
-
-        /* ========================================================= */
-        /* 極致壓縮模式：手機橫向、小螢幕 */
-        /* ========================================================= */
-        @media (max-height: 700px) {
-            #game-screen { padding: 4px 10px; }
-            .header-info { margin-bottom: 3px; font-size: 14px; }
-            #health-bar { font-size: 16px; }
-            #rpg-arena { height: 55px; padding: 0 20px; margin-bottom: 2px; border-bottom-width: 2px; }
-            .rpg-sprite { font-size: 38px; }
-            #magic-circle { width: 48px; height: 48px; bottom: -4px; }
-            #magic-circle::after { font-size: 30px; }
-            #chant-runes { font-size: 15px; right: -20px; }
-            .light-beam-effect { left: 55px; bottom: 16px; height: 10px; }
-            #enemy-hp-ui { font-size: 9px; margin-bottom: 1px; }
-            .combat-effect { font-size: 24px; }
-            .coin { font-size: 20px; }
-            .question-row { gap: 10px; margin-bottom: 2px; min-height: 32px; }
-            #gourd-btn { padding: 2px 8px 2px 6px; }
-            .gourd-svg { width: 18px; height: 22px; }
-            #gourd-count { font-size: 14px; }
-            .audio-icon { font-size: 22px; }
-            #hanzi-hint { font-size: 20px; }
-            #syllable-boxes-container { margin-bottom: 2px; gap: 5px; }
-            .syllable-box { min-width: 38px; height: 36px; font-size: 20px; padding: 0 6px; border-width: 1px;}
-            .cursor { height: 20px; }
-            #timer-container { margin-bottom: 3px; height: 5px; }
-            #timer-text { font-size: 10px; top: -13px; }
-            
-            #action-bar { margin-bottom: 4px; }
-            .action-btn { width: 110px; height: 34px; font-size: 14px; border-radius: 8px; border-width: 1px; }
-
-            #keyboard { gap: 3px; padding-bottom: 2px; }
-            .kb-row { gap: 3px; }
-            .key { min-height: 32px; border-radius: 5px; font-size: 15px; border-width: 1px;}
-            .key-delete { font-size: 15px; }
-            
-            /* 壓縮模式下的聲調符號微調 */
-            .tone-num { font-size: 9px; top: 1px; left: 3px; }
-            .tone-symbol { padding-top: 2px; }
-            .tone-svg-unified { width: 15px; height: 19px; }
-            .checked-tone-grid { font-size: 7px; gap: 0; margin-left: 1px; margin-bottom: 1px; }
+        /* 反向翻牌 Toggle 樣式 */
+        .toggle-container {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .toggle-label {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: var(--text-color);
+        }
+        .toggle-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
         }
     </style>
 </head>
-<body>
+<body class="theme-style1">
 
-<div id="app-container">
-    <div id="menu">
-        <h2>✨ 除魔咒術 ✨</h2>
-        <p class="subtitle">緊念台語咒語降妖除魔</p>
-        <div id="lessons" style="display:flex; flex-wrap:wrap; justify-content:center; max-width: 600px;"></div>
+    <div class="dictionary-input">
+        <h3 style="margin-top: 0; margin-bottom: 5px;">賓果佮字卡<br><span style="font-size: 0.8em; font-weight: normal;">Bingo kap jī-khah</span></h3>
+        <p style="font-size: 0.85em; margin-top: 0; opacity: 0.8;">💡 可複選課別</p>
         
-        <div class="toggle-container">
-            <label style="font-size: 18px; color: #f9a826; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                <input type="checkbox" id="infinite-gourd-toggle" style="transform: scale(1.5); margin-right: 12px;">
-                漢字救命丹無限模式
-            </label>
-        </div>
-        
-        <p style="color:#aaa; font-size:14px; line-height: 1.8; text-align: center; margin: 5px 0;">
-            利用台語羅馬字生成拍倒鬼怪的咒語<br>
-            <span style="color:#ffd700;">使用漢字救命丹(<svg class="inline-gourd-svg" viewBox="0 0 32 38"><path d="M16 1 C16 1 18 4 16 6" stroke="#8d6e63" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="11" r="6.5" fill="#ffb300" stroke="#ffe082" stroke-width="1"/><circle cx="16" cy="25.5" r="10" fill="#ffa000" stroke="#ffe082" stroke-width="1"/><path d="M10.5 16.8 Q16 18.8 21.5 16.8" stroke="#e94560" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse cx="12.5" cy="23" rx="2" ry="3.5" fill="rgba(255,255,255,0.4)" transform="rotate(-15 12.5 23)"/></svg>)得分減半。</span><br>
-            咒語毋著愛趕緊改正，若無會受著鬼怪的攻擊
-        </p>
-        <button class="start-btn" onclick="startGame()">開始降魔</button>
-
-        <!-- 主選單底部版權聲明與計數器 -->
-        <div class="footer">
-            <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
-            <p class="copyright-text">
-                Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
-                本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
-                未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
-            </p>
-            <div class="counter-container">
-                <a href="https://www.hitwebcounter.com/" target="_blank">
-                    <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
-                </a>
+        <div class="lesson-btn-group" id="lesson-buttons">
             </div>
+
+        <details style="margin-top: 10px; font-size: 0.9em; cursor: pointer;">
+            <summary style="font-weight: bold;">手動輸入詞庫</summary>
+            <textarea id="custom-dictionary" style="width:100%; height:80px; margin-top:10px; padding: 8px; border-radius: 5px; box-sizing: border-box;" 
+                      placeholder="以逗號分隔正反面。逗號全形半形皆可&#10;蘋果, phông-kó&#10;弓蕉，king-tsio"></textarea>
+            <button id="apply-btn" style="width:100%; margin-top:8px;">套用手動詞庫</button>
+        </details>
+    </div>
+
+    <div class="toggle-container">
+        <label class="toggle-label">
+            <input type="checkbox" id="reverse-toggle" onchange="toggleReverse()">
+            反向翻牌
+        </label>
+    </div>
+
+    <div class="control-group">
+        <button onclick="startGame(3)">3x3</button>
+        <button onclick="startGame(4)">4x4</button>
+        <button onclick="startGame(5)">5x5</button>
+        <button onclick="startFlashcardMode()" style="background-color: #e91e63;">全部詞卡</button>
+    </div>
+
+    <div id="game-container" class="container"></div>
+
+    <div id="flashcard-controls" class="nav-buttons" style="display: none;">
+        <button id="prev-card-btn" class="nav-btn" onclick="navCard(-1)">頂一張</button>
+        <button id="next-card-btn" class="nav-btn" onclick="navCard(1)">後一張</button>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <button onclick="applyStyle('theme-style1')">清新藍</button>
+        <button onclick="applyStyle('theme-style2')">暖心橘</button>
+        <button onclick="applyStyle('theme-style3')">沉穩黑</button>
+    </div>
+
+    <div class="footer">
+    <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+    <p style="font-size: 0.85em; color: #666; margin-top: 5px;">
+        Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
+        本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
+        未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
+    </p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
         </div>
     </div>
 
-    <div id="game-over" style="display: none;">
-        <h2>除魔結束！</h2>
-        <p style="font-size: 22px; margin: 5px 0 10px 0;">總得分：<span id="final-score" style="color:#00e5ff; font-weight:bold; font-size: 38px;">0</span></p>
-        <div id="end-comment"></div>
+    <script>
+        // 設定區
+        const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc"; 
+        // ★ 修改：增加「拼音練習」至課程陣列中
+        const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
 
-        <!-- 掉落寶物：魔咒秘訣互動區 -->
-        <div id="treasure-box" style="display: none;">
-            <div class="treasure-icon">📜</div>
-            <p class="golden-question">✨ Khioh著魔咒秘訣，敢欲修行？ ✨</p>
-            <div class="choice-btn-group">
-                <button class="choice-btn btn-yes" onclick="showWrongReview()">欲</button>
-                <button class="choice-btn btn-no" onclick="location.reload()">無愛</button>
-            </div>
-        </div>
+        // 狀態變數
+        let activeCards = [];
+        let currentSize = 3;
+        let isFlashcard = false;
+        let flashcardDeck = [];
+        let flashcardIndex = 0;
+        let selectedLessons = [];
+        let isReverse = false;
 
-        <!-- 錯題正解展開列表 -->
-        <div id="review-list">
-            <h3 style="color: #f9a826; margin: 0 0 12px 0; text-align: center; border-bottom: 1px solid #4a5c88; padding-bottom: 8px;">📖 魔咒秘訣</h3>
-            <div id="review-items-container"></div>
-            <div style="text-align: center;">
-                <button class="start-btn" onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; font-size: 18px;">修練完成</button>
-            </div>
-        </div>
+        const container = document.getElementById('game-container');
+        const lessonContainer = document.getElementById('lesson-buttons');
+        const flashcardControls = document.getElementById('flashcard-controls');
+        const prevBtn = document.getElementById('prev-card-btn');
+        const nextBtn = document.getElementById('next-card-btn');
 
-        <!-- 完美無錯題時的返回按鈕 -->
-        <button id="normal-return-btn" class="start-btn" onclick="location.reload()" style="margin-top: 25px; display: none;">回主選單</button>
-
-        <!-- 遊戲結束頁面底部版權聲明與計數器 -->
-        <div class="footer">
-            <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
-            <p class="copyright-text">
-                Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
-                本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
-                未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
-            </p>
-            <div class="counter-container">
-                <a href="https://www.hitwebcounter.com/" target="_blank">
-                    <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div id="game-screen">
-        <div class="header-info">
-            <span id="score-display">分數: 0</span>
-            <span id="health-bar">❤️❤️❤️</span>
-            <span id="progress-display">進度: 0 / 14</span>
-        </div>
-        
-        <div class="question-area">
-            <div id="rpg-arena">
-                <!-- 魔法師與詠唱煉成陣 -->
-                <div id="player-wrapper">
-                    <div id="magic-circle"></div>
-                    <div class="rpg-sprite" id="player-sprite">🧙‍♂️</div>
-                    <div id="chant-runes">✨</div>
-                </div>
-                <!-- 妖魔與血條 -->
-                <div id="enemy-wrapper">
-                    <div id="enemy-hp-ui">🔴</div>
-                    <div class="rpg-sprite" id="enemy-sprite">🦇</div>
-                </div>
-            </div>
-
-            <div id="timer-container">
-                <span id="timer-text"></span>
-                <div id="timer-bar"></div>
-            </div>
-
-            <!-- 葫蘆(左) + 喇叭(中) + 漢字(右) -->
-            <div class="question-row">
-                <div id="gourd-btn" onclick="useGourd()" title="使用漢字救命丹">
-                    <svg class="gourd-svg" viewBox="0 0 32 38">
-                        <!-- 葫蘆蒂頭 -->
-                        <path d="M16 1 C16 1 18 4 16 6" stroke="#8d6e63" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                        <!-- 葫蘆上肚 -->
-                        <circle cx="16" cy="11" r="6.5" fill="#ffb300" stroke="#ffe082" stroke-width="1"/>
-                        <!-- 葫蘆下肚 -->
-                        <circle cx="16" cy="25.5" r="10" fill="#ffa000" stroke="#ffe082" stroke-width="1"/>
-                        <!-- 葫蘆腰際紅仙繩 -->
-                        <path d="M10.5 16.8 Q16 18.8 21.5 16.8" stroke="#e94560" stroke-width="3" stroke-linecap="round" fill="none"/>
-                        <!-- 葫蘆光澤 -->
-                        <ellipse cx="12.5" cy="23" rx="2" ry="3.5" fill="rgba(255,255,255,0.4)" transform="rotate(-15 12.5 23)"/>
-                    </svg>
-                    <span id="gourd-count">3</span>
-                </div>
-                <div class="audio-icon" onclick="playAudio()">🔊</div>
-                <div id="hanzi-hint"></div>
-            </div>
-
-            <div id="syllable-boxes-container"></div>
-        </div>
-
-        <!-- 位於鍵盤上方兩側的獨立動作列（不會遮擋輸入框） -->
-        <div id="action-bar">
-            <div class="action-btn key-skip" id="btn-skip" data-key="Skip"><div>扣血前進</div></div>
-            <div class="action-btn key-enter" id="btn-enter" data-key="Enter"><div>實施咒語</div></div>
-        </div>
-
-        <div id="keyboard"></div>
-    </div>
-</div>
-
-<script>
-    const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
-    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
-    
-    // 各課對應的 GitHub 音檔資料夾名稱（當 C 欄空白時也能自動合成正確音檔網址）
-    const audioFolderMap = {
-        "B1L1": "育達B1L1音檔",
-        "B1L2": "育達B1L2音檔",
-        "B1L3": "育達B1L3音檔",
-        "B1L4": "育達B1L4音檔",
-        "B3L1": "康軒B3L1音檔",
-        "B3L2": "康軒B3L2音檔",
-        "B3L3": "康軒B3L3音檔",
-        "防災素一": "康軒防災素一音檔",
-        "拼音練習": "拼音練習音檔"
-    };
-
-    let selectedLessons = [];
-    let questionBank = [];
-    
-    // 音訊播放器實體
-    const audioPlayer = new Audio();
-    
-    // 遊戲狀態與計時器
-    let score = 0; let hearts = 3; let currentQuestionIndex = 0; let maxQuestions = 14; 
-    let streakCount = 0;
-    let attempt = 1; let timer = null; let timeLeft = 0;
-
-    // 漢字救命丹（葫蘆）狀態
-    let isInfiniteGourd = false;
-    let gourdsLeft = 3;
-    let usedGourdOnCurrentQ = false;
-
-    // 錯題收集陣列
-    let wrongQuestions = [];
-    let currentQuestionHasFailed = false;
-
-    // 敵人系統設定：第1關改為蝙蝠與黑暗音符
-    const enemyConfig = [
-        { sprite: '🦇', maxHp: 1, attack: '🎵' },
-        { sprite: '🐍', maxHp: 2, attack: '💧' },
-        { sprite: '🕷️', maxHp: 3, attack: '🕸️' },
-        { sprite: '👹', maxHp: 4, attack: '🔥' }
-    ];
-    let currentEnemyIdx = 0;
-    let currentEnemyHp = 1;
-    let allEnemiesCleared = false; // true 代表紅惡鬼已死，進入骷髏怪賞金階段
-
-    // 拼音解析系統
-    let parsedAnswer = []; let inputBoxes = []; let currentSyllableIndex = 0; let typedBase = "";    
-    const validLetters = ['a','b','c','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
-    const toneDigits = ['1','2','3','4','5','7','8','9'];
-    
-    // ==== 一體成形 SVG 聲調繪製系統 ====
-    function getToneSvg(tone) {
-        let markPath = '';
-        switch(tone) {
-            case 2:
-                markPath = `<line x1="12.5" y1="3.5" x2="8" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
-                break;
-            case 3:
-                markPath = `<line x1="7.5" y1="3.5" x2="12" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
-                break;
-            case 5:
-                markPath = `<path d="M 6.2 9 L 10 3.8 L 13.8 9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />`;
-                break;
-            case 6:
-                markPath = `<path d="M 7.2 3.8 L 12.8 9.2 M 12.8 3.8 L 7.2 9.2" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" />`;
-                break;
-            case 7:
-                markPath = `<line x1="6.2" y1="6.8" x2="13.8" y2="6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
-                break;
-            case 8:
-                markPath = `<line x1="10" y1="3" x2="10" y2="9.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />`;
-                break;
-            case 9:
-                markPath = `<line x1="9.8" y1="3.5" x2="6.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                            <line x1="13.8" y1="3.5" x2="10.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />`;
-                break;
-        }
-        return `<svg class="tone-svg-unified" viewBox="0 0 20 26">
-            ${markPath}
-            <circle cx="10" cy="18" r="5.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5,2" />
-        </svg>`;
-    }
-
-    const ptkhGridHtml = `
-        <div class="checked-tone-grid">
-            <span>p</span><span>t</span>
-            <span>k</span><span>h</span>
-        </div>`;
-    const subTone4 = `<div class="checked-tone-group">${getToneSvg(4)}${ptkhGridHtml}</div>`;
-    const subTone8 = `<div class="checked-tone-group">${getToneSvg(8)}${ptkhGridHtml}</div>`;
-
-    const lessonsDiv = document.getElementById('lessons');
-    lessons.forEach(l => {
-        const btn = document.createElement('button');
-        btn.className = 'lesson-btn';
-        btn.innerText = l;
-        btn.onclick = () => {
-            btn.classList.toggle('active');
-            if(selectedLessons.includes(l)) selectedLessons = selectedLessons.filter(x => x !== l);
-            else selectedLessons.push(l);
-        };
-        lessonsDiv.appendChild(btn);
-    });
-
-    // ==== 將台羅字串中的第8聲 (\u030D) 轉為永不破圖的 HTML 標籤 ====
-    function formatTailoDisplay(str) {
-        let nfd = str.normalize('NFD');
-        let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>');
-        res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
-        return res.normalize('NFC');
-    }
-
-    // ==== 漢字救命丹（葫蘆）更新與點擊邏輯 ====
-    function updateGourdUI() {
-        const gourdBtn = document.getElementById('gourd-btn');
-        const gourdCount = document.getElementById('gourd-count');
-        if (isInfiniteGourd) {
-            gourdCount.innerText = '∞';
-            gourdBtn.classList.remove('gourd-disabled');
-        } else {
-            gourdCount.innerText = gourdsLeft;
-            if (gourdsLeft <= 0) {
-                gourdBtn.classList.add('gourd-disabled');
-            } else {
-                gourdBtn.classList.remove('gourd-disabled');
-            }
-        }
-    }
-
-    function useGourd() {
-        if (usedGourdOnCurrentQ) return;
-        if (!isInfiniteGourd && gourdsLeft <= 0) return;
-
-        if (!isInfiniteGourd) {
-            gourdsLeft--;
-        }
-        usedGourdOnCurrentQ = true;
-        updateGourdUI();
-
-        const currentQ = questionBank[currentQuestionIndex];
-        if (currentQ) {
-            const hintEl = document.getElementById('hanzi-hint');
-            hintEl.innerText = currentQ.h;
-            hintEl.style.display = 'block';
-        }
-    }
-
-    // ==== 長按跳過機制 ====
-    let skipTimer = null;
-    let isPressingSkip = false;
-
-    function startSkip() {
-        if (isPressingSkip || hearts <= 0) return;
-        isPressingSkip = true;
-        const btn = document.getElementById('btn-skip');
-        if (btn) btn.classList.add('pressing');
-        
-        skipTimer = setTimeout(() => {
-            isPressingSkip = false;
-            if (btn) btn.classList.remove('pressing');
-            handleSkip(); 
-        }, 2500);
-    }
-
-    function cancelSkip() {
-        if (!isPressingSkip) return;
-        isPressingSkip = false;
-        clearTimeout(skipTimer);
-        const btn = document.getElementById('btn-skip');
-        if (btn) btn.classList.remove('pressing');
-    }
-
-    // 綁定上方獨立動作列按鈕事件
-    function setupActionButtons() {
-        const skipBtn = document.getElementById('btn-skip');
-        const enterBtn = document.getElementById('btn-enter');
-
-        skipBtn.onmousedown = (e) => { e.preventDefault(); startSkip(); };
-        skipBtn.ontouchstart = (e) => { e.preventDefault(); startSkip(); };
-        skipBtn.onmouseup = (e) => { e.preventDefault(); cancelSkip(); };
-        skipBtn.onmouseleave = (e) => { e.preventDefault(); cancelSkip(); };
-        skipBtn.ontouchend = (e) => { e.preventDefault(); cancelSkip(); };
-
-        enterBtn.onmousedown = (e) => { e.preventDefault(); handleInput('Enter'); };
-        enterBtn.ontouchstart = (e) => { e.preventDefault(); handleInput('Enter'); };
-    }
-    setupActionButtons();
-
-    // ==== 動態鍵盤生成 ====
-    function createKeyDiv(keyObj) {
-        let val = typeof keyObj === 'string' ? keyObj : keyObj.val;
-        let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display;
-        let subText = typeof keyObj === 'object' ? keyObj.sub : null;
-        let forceDisabled = typeof keyObj === 'object' && keyObj.disabled;
-        let customClass = typeof keyObj === 'object' && keyObj.customClass ? keyObj.customClass : '';
-
-        const btn = document.createElement('div');
-        btn.className = `key ${customClass}`;
-        btn.dataset.key = val;
-        
-        let html = '';
-        if (toneDigits.includes(val) || val === '6') {
-            html += `<div class="tone-num">${display}</div>`;
-            html += `<div class="tone-symbol">${subText}</div>`;
-        } else {
-            html = `<div>${display}</div>`;
-            if(subText) html += `<div class="tone-sub">${subText}</div>`;
-        }
-        btn.innerHTML = html;
-
-        if (!forceDisabled && (validLetters.includes(val) || toneDigits.includes(val) || val === 'Backspace')) {
-            btn.classList.add('active-key');
-            btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
-        } else {
-            btn.classList.add('disabled-key');
-        }
-        return btn;
-    }
-
-    function buildKeyboard() {
-        const kbContainer = document.getElementById('keyboard');
-        kbContainer.innerHTML = '';
-
-        // 第 0 列：聲調數字 1~9 + 刪
-        const row0 = document.createElement('div');
-        row0.className = 'kb-row';
-        const numKeys = [
-            {val: '1', display: '1', sub: getToneSvg(1)}, 
-            {val: '2', display: '2', sub: getToneSvg(2)}, 
-            {val: '3', display: '3', sub: getToneSvg(3)},
-            {val: '4', display: '4', sub: subTone4}, 
-            {val: '5', display: '5', sub: getToneSvg(5)}, 
-            {val: '6', display: '6', sub: getToneSvg(6), disabled: true}, 
-            {val: '7', display: '7', sub: getToneSvg(7)}, 
-            {val: '8', display: '8', sub: subTone8}, 
-            {val: '9', display: '9', sub: getToneSvg(9)},
-            {val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'}
-        ];
-        numKeys.forEach(k => row0.appendChild(createKeyDiv(k)));
-        kbContainer.appendChild(row0);
-
-        // 第 1 列：Q ~ P (10鍵滿版)
-        const row1 = document.createElement('div');
-        row1.className = 'kb-row';
-        ['q','w','e','r','t','y','u','i','o','p'].forEach(k => row1.appendChild(createKeyDiv(k)));
-        kbContainer.appendChild(row1);
-
-        // 第 2 列：A ~ L (9鍵完整展開)
-        const row2 = document.createElement('div');
-        row2.className = 'kb-row kb-row-2';
-        ['a','s','d','f','g','h','j','k','l'].forEach(k => row2.appendChild(createKeyDiv(k)));
-        kbContainer.appendChild(row2);
-
-        // 第 3 列：Z ~ M (7鍵完整展開)
-        const row3 = document.createElement('div');
-        row3.className = 'kb-row kb-row-3';
-        ['z','x','c','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k)));
-        kbContainer.appendChild(row3);
-    }
-
-    async function startGame() {
-        if(selectedLessons.length === 0) return alert("請至少選擇一課！");
-        isInfiniteGourd = document.getElementById('infinite-gourd-toggle').checked;
-        gourdsLeft = 3;
-        updateGourdUI();
-
-        document.getElementById('menu').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'flex';
-        
-        buildKeyboard();
-        const hintEl = document.getElementById('hanzi-hint');
-        hintEl.innerText = "載入中...";
-        hintEl.style.display = "block";
-
-        const fetchPromises = selectedLessons.map(sheet => 
-            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
-                .then(res => res.text())
-                .then(text => ({ sheet, text }))
-        );
-
-        const results = await Promise.all(fetchPromises);
-        questionBank = [];
-        results.forEach(({ sheet, text }) => {
-            let rowNumber = 0;
-            text.split(/\r?\n/).forEach(l => {
-                const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
-                if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
-                    rowNumber++;
-                    const numStr = String(rowNumber).padStart(2, '0');
-                    const folderName = audioFolderMap[sheet] || `${sheet}音檔`;
-                    const fallbackAudioUrl = `https://yyanjhang-web.github.io/hosngetaiagi/${folderName}/-${numStr}.mp3`;
-                    const colCAudioUrl = (p.length >= 3 && p[2].trim() !== "") ? p[2].trim() : fallbackAudioUrl;
-
-                    questionBank.push({ 
-                        h: p[0].trim(), 
-                        r: p[1].trim(),
-                        a: colCAudioUrl
-                    });
-                }
+        function initLessonButtons() {
+            lessons.forEach(lesson => {
+                const btn = document.createElement('button');
+                btn.className = 'lesson-btn';
+                btn.textContent = lesson;
+                btn.onclick = () => toggleLesson(lesson, btn);
+                lessonContainer.appendChild(btn);
             });
-        });
-
-        questionBank.sort(() => Math.random() - 0.5);
-        
-        // 重置狀態
-        score = 0; hearts = 3; currentQuestionIndex = 0; maxQuestions = 14; 
-        streakCount = 0; 
-        wrongQuestions = [];
-        
-        // 重置敵人（從第1關蝙蝠開始）
-        currentEnemyIdx = 0;
-        currentEnemyHp = enemyConfig[0].maxHp;
-        allEnemiesCleared = false;
-        document.getElementById('enemy-sprite').innerText = enemyConfig[0].sprite;
-        document.getElementById('enemy-sprite').classList.remove('enemy-dead');
-        updateEnemyHpUI();
-
-        updateHearts();
-        loadQuestion();
-    }
-
-    function updateEnemyHpUI() {
-        const hpDiv = document.getElementById('enemy-hp-ui');
-        if (allEnemiesCleared) {
-            // 骷髏怪階段顯示無限金幣賞金圖示
-            hpDiv.innerText = "🪙 ♾️";
-            return;
-        }
-        const max = enemyConfig[currentEnemyIdx].maxHp;
-        const hp = currentEnemyHp;
-        hpDiv.innerText = '🔴'.repeat(hp) + '⚫'.repeat(max - hp);
-    }
-
-    function parseTaiLoAnswer(rawText) {
-        let text = rawText.split('(')[0].toLowerCase().trim();
-        let rawSyllables = text.split(/[\s\-–—]+/).filter(s => s.length > 0);
-        const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
-        let parsed = [];
-        for (let s of rawSyllables) {
-            let nfd = s.normalize("NFD"); let base = ""; let tone = null;
-            for (let char of nfd) {
-                if (toneMap[char]) tone = toneMap[char];
-                else if (/[a-z]/.test(char)) base += char;
-            }
-            if (!tone) tone = /[ptkh]$/.test(base) ? '4' : '1';
-            parsed.push({ base: base, tone: tone });
-        }
-        return parsed; 
-    }
-
-    function applyToneToSyllable(syllable, toneDigit) {
-        if (toneDigit === '1' || toneDigit === '4') return syllable;
-        const marks = { '2': '\u0301', '3': '\u0300', '5': '\u0302', '7': '\u0304', '8': '\u030D', '9': '\u030B' };
-        const m = marks[toneDigit];
-        if (!m) return syllable;
-
-        let res = syllable;
-        if (res.includes('a')) res = res.replace('a', 'a' + m);
-        else if (res.includes('oo')) res = res.replace('oo', 'o' + m + 'o');
-        else if (res.includes('o') && !res.includes('oa') && !res.includes('oe')) res = res.replace('o', 'o' + m);
-        else if (res.includes('e')) res = res.replace('e', 'e' + m);
-        else if (res.includes('iu')) res = res.replace('iu', 'i' + 'u' + m);
-        else if (res.includes('ui')) res = res.replace('ui', 'u' + 'i' + m);
-        else if (res.includes('i')) res = res.replace('i', 'i' + m);
-        else if (res.includes('u')) res = res.replace('u', 'u' + m);
-        else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g');
-        else if (res.includes('m')) res = res.replace('m', 'm' + m);
-        
-        return formatTailoDisplay(res); 
-    }
-
-    // 紀錄錯題至秘訣清單
-    function recordWrongCurrentQuestion() {
-        if (!currentQuestionHasFailed) {
-            currentQuestionHasFailed = true;
-            const q = questionBank[currentQuestionIndex];
-            const cleanR = q.r.split('(')[0].trim();
-            if (!wrongQuestions.some(item => item.h === q.h)) {
-                wrongQuestions.push({ h: q.h, r: cleanR, a: q.a });
-            }
-        }
-    }
-
-    function loadQuestion() {
-        if (currentQuestionIndex >= Math.min(questionBank.length, maxQuestions) || hearts <= 0) {
-            endGame(); return;
-        }
-        attempt = 1; 
-        currentQuestionHasFailed = false;
-        usedGourdOnCurrentQ = false;
-        stopTimer();
-        
-        const currentQ = questionBank[currentQuestionIndex];
-        const hintEl = document.getElementById('hanzi-hint');
-        hintEl.innerText = "";
-        hintEl.style.display = "none";
-
-        document.getElementById('progress-display').innerText = `進度: ${currentQuestionIndex + 1} / ${maxQuestions}`;
-        
-        parsedAnswer = parseTaiLoAnswer(currentQ.r);
-        resetInputBoxes();
-        playAudio();
-    }
-
-    // 播放當前題目的音檔（或指定網址的音檔）
-    function playAudio(customUrl) {
-        const currentQ = questionBank[currentQuestionIndex];
-        const rawUrl = customUrl || (currentQ ? currentQ.a : "");
-        if (!rawUrl) {
-            console.log("此題尚未設定音檔網址:", currentQ ? currentQ.h : "");
-            return;
-        }
-        
-        const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
-        audioPlayer.pause();
-        audioPlayer.src = safeUrl;
-        audioPlayer.currentTime = 0;
-        audioPlayer.play().catch(err => console.warn("音檔播放失敗:", err));
-    }
-
-    function resetInputBoxes() {
-        inputBoxes = new Array(parsedAnswer.length).fill(null);
-        currentSyllableIndex = 0; typedBase = ""; updateDisplay();
-    }
-
-    function handleInput(key) {
-        if (key === 'Skip') return;
-        
-        if (key === 'Backspace') {
-            if (typedBase.length > 0) {
-                let chars = Array.from(typedBase); chars.pop(); typedBase = chars.join('');
-            } else if (currentSyllableIndex > 0) {
-                currentSyllableIndex--;
-                typedBase = inputBoxes[currentSyllableIndex].base;
-                inputBoxes[currentSyllableIndex] = null;
-            }
-        } 
-        else if (key === 'Enter') {
-            if (currentSyllableIndex === parsedAnswer.length) checkAnswer();
-        } 
-        else if (toneDigits.includes(key)) {
-            if (typedBase.length > 0 && currentSyllableIndex < parsedAnswer.length) {
-                inputBoxes[currentSyllableIndex] = { base: typedBase, tone: key };
-                currentSyllableIndex++; typedBase = "";
-            }
-        } 
-        else if (validLetters.includes(key)) {
-            if (currentSyllableIndex < parsedAnswer.length) typedBase += key;
-        }
-        updateDisplay(); triggerVisualFeedback(key);
-    }
-
-    function updateDisplay() {
-        document.getElementById('score-display').innerText = `分數: ${score}`;
-        const container = document.getElementById('syllable-boxes-container');
-        container.innerHTML = ''; 
-
-        for (let i = 0; i < parsedAnswer.length; i++) {
-            const box = document.createElement('div'); box.className = 'syllable-box';
-            if (i < currentSyllableIndex) {
-                box.innerHTML = applyToneToSyllable(inputBoxes[i].base, inputBoxes[i].tone);
-            } else if (i === currentSyllableIndex) {
-                box.classList.add('active-box');
-                box.innerHTML = `<span>${typedBase}</span><span class="cursor"></span>`;
-            } else { box.innerText = ''; }
-            container.appendChild(box);
         }
 
-        // 判斷是否啟動魔法師「詠唱煉成陣」特效
-        const playerWrapper = document.getElementById('player-wrapper');
-        if (playerWrapper) {
-            if (currentSyllableIndex > 0 || typedBase.length > 0) {
-                playerWrapper.classList.add('chanting');
-            } else {
-                playerWrapper.classList.remove('chanting');
-            }
-        }
-    }
-
-    function checkAnswer() {
-        let isCorrect = true;
-        for (let i = 0; i < parsedAnswer.length; i++) {
-            if (inputBoxes[i].base !== parsedAnswer[i].base || inputBoxes[i].tone !== parsedAnswer[i].tone) {
-                isCorrect = false; break;
-            }
-        }
-        if (isCorrect) handleSuccess(); else handleFail();
-    }
-
-    function spawnEffect(type) {
-        const arena = document.getElementById('rpg-arena');
-        const effect = document.createElement('div');
-        
-        if (type === 'light') {
-            effect.className = 'light-beam-effect';
-        } else if (type === 'enemyAttack') {
-            effect.className = 'combat-effect';
-            // 第1關蝙蝠使用黑暗音符濾鏡
-            if (!allEnemiesCleared && currentEnemyIdx === 0) {
-                effect.classList.add('dark-note');
-            }
-            effect.innerText = allEnemiesCleared ? '🦴' : enemyConfig[currentEnemyIdx].attack;
-            effect.style.right = '70px'; effect.style.bottom = '10px';
-            effect.style.animation = 'projFly 0.5s ease-out forwards';
-        }
-        arena.appendChild(effect);
-        setTimeout(() => { effect.remove(); }, 500);
-    }
-
-    function handleSuccess() {
-        stopTimer();
-        document.getElementById('player-wrapper').classList.remove('chanting');
-
-        // 只有第 1 次就答對才累積連勝加題
-        if (attempt === 1) {
-            streakCount++;
-            if (streakCount > 0 && streakCount % 2 === 0 && maxQuestions < 21) {
-                maxQuestions++;
-            }
-        } else {
-            streakCount = 0;
-        }
-        
-        const player = document.getElementById('player-sprite');
-        const enemyEl = document.getElementById('enemy-sprite');
-        
-        player.classList.add('player-cast');
-        spawnEffect('light');
-        
-        // 依答對次數計算基礎分：第1次20分、第2次12分、第3次6分（用救命丹則減半）
-        const currentAttempt = attempt;
-        let baseScore = (currentAttempt === 1) ? 20 : (currentAttempt === 2 ? 12 : 6);
-        if (usedGourdOnCurrentQ) {
-            baseScore = Math.floor(baseScore / 2);
-        }
-        
-        let coinBonus = 0;
-        
-        setTimeout(() => { 
-            player.classList.remove('player-cast'); 
-            
-            if (allEnemiesCleared) {
-                // 骷髏怪階段：每次成功攻擊都會受擊閃爍並獲得金幣 (+10分)
-                enemyEl.classList.add('enemy-hit-flash');
-                setTimeout(() => enemyEl.classList.remove('enemy-hit-flash'), 400);
-                spawnCoin();
-                coinBonus = 10;
-            } else {
-                // 前四隻妖魔（蝙蝠、蛇、蜘蛛、紅惡鬼）：死後不掉金幣
-                currentEnemyHp--;
-                updateEnemyHpUI();
-                if (currentEnemyHp <= 0) {
-                    enemyEl.classList.add('enemy-dead');
-                    
-                    setTimeout(() => {
-                        if (currentEnemyIdx < 3) {
-                            currentEnemyIdx++;
-                            currentEnemyHp = enemyConfig[currentEnemyIdx].maxHp;
-                            enemyEl.innerText = enemyConfig[currentEnemyIdx].sprite;
-                            enemyEl.classList.remove('enemy-dead');
-                            updateEnemyHpUI();
-                        } else {
-                            // 紅惡鬼死亡後，化為站立的骷髏怪登場
-                            allEnemiesCleared = true;
-                            enemyEl.innerText = '💀';
-                            enemyEl.classList.remove('enemy-dead');
-                            updateEnemyHpUI();
-                        }
-                    }, 700);
+        function toggleReverse() {
+            isReverse = document.getElementById('reverse-toggle').checked;
+            if (activeCards.length > 0) {
+                if (isFlashcard) {
+                    renderFlashcard();
                 } else {
-                    enemyEl.classList.add('enemy-hit-flash');
-                    setTimeout(() => enemyEl.classList.remove('enemy-hit-flash'), 400);
+                    startGame(currentSize);
                 }
             }
-            
-            score += baseScore + coinBonus;
-            updateDisplay();
-        }, 180);
-        
-        setTimeout(() => { currentQuestionIndex++; loadQuestion(); }, 900);
-    }
-
-    function handleFail() {
-        stopTimer();
-        streakCount = 0; 
-        recordWrongCurrentQuestion();
-        
-        const container = document.getElementById('syllable-boxes-container');
-        container.classList.add('shake', 'error-shake');
-        setTimeout(() => { container.classList.remove('shake', 'error-shake'); }, 400);
-        
-        const player = document.getElementById('player-sprite');
-        const enemy = document.getElementById('enemy-sprite');
-
-        if (attempt === 1 || attempt === 2) {
-            // 骷髏怪與一般妖魔皆會發動攻擊動作
-            enemy.classList.add('enemy-attack');
-            setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
-            spawnEffect('enemyAttack');
-            
-            setTimeout(() => { player.classList.add('player-dodge'); }, 150); 
-            setTimeout(() => { player.classList.remove('player-dodge'); }, 600); 
-            
-            const wordCount = parsedAnswer.length;
-            let nextTime = (attempt === 1) ? (wordCount * 7.5) : (wordCount * 5);
-            attempt++; 
-            resetInputBoxes(); 
-            playAudio(); // 答錯重試時自動再播一次音檔提示
-            startTimer(nextTime);
-        } else {
-            takeDamage();
         }
-    }
 
-    function handleSkip() {
-        if (hearts <= 0) return; 
-        stopTimer(); 
-        streakCount = 0; 
-        recordWrongCurrentQuestion();
-        
-        const container = document.getElementById('syllable-boxes-container');
-        container.classList.add('shake', 'error-shake');
-        setTimeout(() => { container.classList.remove('shake', 'error-shake'); }, 400);
-        
-        takeDamage();
-    }
-
-    function takeDamage() {
-        document.getElementById('player-wrapper').classList.remove('chanting');
-        const player = document.getElementById('player-sprite');
-        const enemy = document.getElementById('enemy-sprite');
-        
-        enemy.classList.add('enemy-attack');
-        setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
-        spawnEffect('enemyAttack');
-        
-        setTimeout(() => { player.classList.add('player-hit'); }, 200); 
-        setTimeout(() => { player.classList.remove('player-hit'); }, 700); 
-        
-        hearts--; updateHearts();
-        setTimeout(() => {
-            if (hearts <= 0) endGame(); else { currentQuestionIndex++; loadQuestion(); }
-        }, 1000);
-    }
-
-    function startTimer(seconds) {
-        const container = document.getElementById('timer-container');
-        const bar = document.getElementById('timer-bar');
-        const text = document.getElementById('timer-text');
-        
-        container.style.display = 'block'; 
-        const totalTime = seconds;
-        timeLeft = seconds;
-        
-        bar.style.transition = 'none'; 
-        bar.style.width = '100%'; 
-        bar.style.background = (attempt === 2) ? '#ff9800' : '#f44336';
-        text.innerText = Number.isInteger(timeLeft) ? `${timeLeft}秒` : `${timeLeft.toFixed(1)}秒`;
-        
-        bar.offsetHeight; 
-        bar.style.transition = 'width 0.1s linear';
-        
-        timer = setInterval(() => {
-            timeLeft = Math.round((timeLeft - 0.1) * 10) / 10;
-            if (timeLeft < 0) timeLeft = 0;
-            
-            bar.style.width = `${(timeLeft / totalTime) * 100}%`;
-            text.innerText = Number.isInteger(timeLeft) ? `${timeLeft}秒` : `${timeLeft.toFixed(1)}秒`;
-            
-            if (timeLeft <= 0) { 
-                stopTimer(); 
-                handleFail(); 
+        async function toggleLesson(lessonName, btnElement) {
+            const index = selectedLessons.indexOf(lessonName);
+            if (index > -1) {
+                selectedLessons.splice(index, 1);
+                btnElement.classList.remove('active');
+            } else {
+                selectedLessons.push(lessonName);
+                btnElement.classList.add('active');
             }
-        }, 100);
-    }
-
-    function stopTimer() {
-        clearInterval(timer); document.getElementById('timer-container').style.display = 'none';
-    }
-
-    function updateHearts() {
-        let hStr = "";
-        for(let i=0; i<3; i++) hStr += (i < hearts) ? "❤️" : "🖤";
-        document.getElementById('health-bar').innerText = hStr;
-    }
-
-    function spawnCoin() {
-        const arena = document.getElementById('rpg-arena');
-        const coin = document.createElement('div');
-        coin.className = 'coin'; coin.innerText = '🪙';
-        coin.style.right = '40px'; arena.appendChild(coin);
-        setTimeout(() => { coin.remove(); }, 1000);
-    }
-
-    function triggerVisualFeedback(key) {
-        const btn = document.querySelector(`[data-key="${key}"]`);
-        if(btn && !btn.classList.contains('disabled-key')) {
-            btn.style.background = '#00e5ff'; btn.style.color = '#000';
-            setTimeout(() => { btn.style.background = ''; btn.style.color = ''; }, 100);
+            
+            await fetchAndCombineLessons();
         }
-    }
 
-    window.addEventListener('keydown', e => {
-        if(document.getElementById('game-screen').style.display === 'flex') {
-            if (e.key === 'Control') {
-                if (!e.repeat) startSkip();
+        async function fetchAndCombineLessons() {
+            if (selectedLessons.length === 0) {
+                activeCards = [];
+                container.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding: 20px; font-size: 1.2em;">上無愛選一个課</p>';
+                flashcardControls.style.display = 'none';
                 return;
             }
-            const k = e.key.toLowerCase();
-            if (k === 'enter') handleInput('Enter');
-            else if (k === 'backspace') handleInput('Backspace');
-            else handleInput(k);
-        }
-    });
 
-    window.addEventListener('keyup', e => {
-        if(document.getElementById('game-screen').style.display === 'flex') {
-            if (e.key === 'Control') { cancelSkip(); }
-        }
-    });
+            try {
+                const fetchPromises = selectedLessons.map(sheetName => {
+                    // 對工作表名稱進行 encodeURI 處理，確保中文名稱讀取正常
+                    const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+                    return fetch(queryUrl).then(res => res.text());
+                });
 
-    function endGame() {
-        stopTimer();
-        document.getElementById('game-screen').style.display = 'none';
-        document.getElementById('game-over').style.display = 'flex';
-        document.getElementById('final-score').innerText = score;
-        
-        // 新制結局判定：結合「是否擊敗紅惡鬼(allEnemiesCleared)」與「總分門檻」
-        let endComment = ""; let commentColor = "";
-        if (allEnemiesCleared && score >= 360) { 
-            endComment = "拍倒惡鬼，光榮倒轉來！"; commentColor = "#4caf50"; 
-        } else if (allEnemiesCleared || score >= 160) { 
-            endComment = "Hiàm出惡鬼，繼續修行！"; commentColor = "#ff9800"; 
-        } else { 
-            endComment = "惡鬼koh teh作孽，毋通放棄！"; commentColor = "#f44336"; 
-        }
-        
-        const commentDiv = document.getElementById('end-comment');
-        commentDiv.innerText = endComment; commentDiv.style.color = commentColor;
+                const results = await Promise.all(fetchPromises);
+                
+                activeCards = [];
+                results.forEach(text => {
+                    const lines = text.split(/\r?\n/);
+                    const cards = lines.map(l => {
+                        let cleanLine = l.replace(/"/g, ''); 
+                        const p = cleanLine.replace(/，/g, ',').split(',');
+                        return p.length >= 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
+                    }).filter(c => c !== null && c.h !== "" && c.r !== "");
+                    
+                    activeCards = activeCards.concat(cards);
+                });
 
-        const treasureBox = document.getElementById('treasure-box');
-        const reviewList = document.getElementById('review-list');
-        const normalReturnBtn = document.getElementById('normal-return-btn');
+                if (activeCards.length > 0) {
+                    if (isFlashcard) {
+                        startFlashcardMode();
+                    } else {
+                        startGame(currentSize);
+                    }
+                } else {
+                    container.innerHTML = '<p style="grid-column:1/-1; text-align:center;">所選課程無資料。</p>';
+                }
 
-        reviewList.style.display = 'none';
-
-        if (wrongQuestions.length > 0) {
-            treasureBox.style.display = 'block';
-            normalReturnBtn.style.display = 'none';
-        } else {
-            treasureBox.style.display = 'none';
-            normalReturnBtn.style.display = 'block';
-        }
-    }
-
-    function showWrongReview() {
-        document.getElementById('treasure-box').style.display = 'none';
-        const reviewList = document.getElementById('review-list');
-        const container = document.getElementById('review-items-container');
-        container.innerHTML = '';
-
-        wrongQuestions.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'review-item';
-            row.innerHTML = `<span class="review-hanzi">🔊 ${item.h}</span><span class="review-tailo">${formatTailoDisplay(item.r)}</span>`;
-            if (item.a) {
-                row.onclick = () => playAudio(item.a);
+            } catch (e) {
+                console.error(e);
+                alert("讀取失敗：請檢查網路或 Spreadsheet ID 是否正確。");
             }
-            container.appendChild(row);
-        });
+        }
 
-        reviewList.style.display = 'block';
-    }
-</script>
+        function startGame(size) {
+            isFlashcard = false;
+            currentSize = size;
+            flashcardControls.style.display = 'none';
+            container.className = 'container'; 
+            container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            
+            if (activeCards.length === 0) {
+                fetchAndCombineLessons();
+                return;
+            }
+
+            if (activeCards.length < size*size) {
+                container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">目前累積詞彙不足 (${activeCards.length}/${size*size})，請多選幾個課程。</p>`;
+                return;
+            }
+
+            const deck = [...activeCards].sort(() => Math.random() - 0.5).slice(0, size*size);
+            
+            container.innerHTML = '';
+            deck.forEach(data => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                let frontText = isReverse ? data.h : data.r;
+                let backText = isReverse ? data.r : data.h;
+
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-face card-front">${frontText}</div>
+                        <div class="card-face card-back">${backText}</div>
+                    </div>
+                    <div class="mark-btn"></div>
+                `;
+                card.onclick = () => card.classList.toggle('flipped');
+                card.querySelector('.mark-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    e.target.classList.toggle('marked');
+                };
+                container.appendChild(card);
+            });
+        }
+
+        function startFlashcardMode() {
+            if (activeCards.length === 0) {
+                alert("目前無詞彙，請先選擇上方課程。");
+                return;
+            }
+            isFlashcard = true;
+            
+            flashcardDeck = [...activeCards].sort(() => Math.random() - 0.5);
+            flashcardIndex = 0;
+            
+            container.className = 'container flashcard-container';
+            container.style.gridTemplateColumns = '1fr'; 
+            flashcardControls.style.display = 'flex';
+            
+            renderFlashcard();
+        }
+
+        function renderFlashcard() {
+            container.innerHTML = '';
+            
+            if (flashcardIndex >= flashcardDeck.length) {
+                container.innerHTML = '<h2 style="text-align:center; color: var(--btn-color);">煞(suah)</h2>';
+                prevBtn.disabled = false;
+                nextBtn.disabled = true;
+                return;
+            }
+
+            const data = flashcardDeck[flashcardIndex];
+            const card = document.createElement('div');
+            card.className = 'card flashcard';
+            
+            let frontText = isReverse ? data.h : data.r;
+            let backText = isReverse ? data.r : data.h;
+
+            card.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <span class="card-counter">${flashcardIndex + 1} / ${flashcardDeck.length}</span>
+                        ${frontText}
+                    </div>
+                    <div class="card-face card-back">
+                        <span class="card-counter">${flashcardIndex + 1} / ${flashcardDeck.length}</span>
+                        ${backText}
+                    </div>
+                </div>
+            `;
+            
+            card.onclick = () => card.classList.toggle('flipped');
+            container.appendChild(card);
+
+            prevBtn.disabled = (flashcardIndex === 0);
+            nextBtn.disabled = false;
+        }
+
+        function navCard(direction) {
+            flashcardIndex += direction;
+            if (flashcardIndex < 0) flashcardIndex = 0;
+            renderFlashcard();
+        }
+
+        function applyStyle(s) { document.body.className = s; }
+        
+        document.getElementById('apply-btn').onclick = () => {
+            const lines = document.getElementById('custom-dictionary').value.trim().split('\n');
+            activeCards = lines.map(l => {
+                const p = l.replace(/，/g, ',').split(',');
+                return p.length === 2 ? { h: p[0].trim(), r: p[1].trim() } : null;
+            }).filter(c => c !== null);
+            
+            selectedLessons = [];
+            document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
+
+            if(isFlashcard) startFlashcardMode(); else startGame(currentSize);
+        };
+
+        window.onload = () => { 
+            initLessonButtons();
+            fetchAndCombineLessons();
+        };
+    </script>
 </body>
 </html>
