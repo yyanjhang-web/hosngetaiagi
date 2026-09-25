@@ -35,12 +35,20 @@
         #health-bar { font-size: 20px; letter-spacing: 3px; }
         .question-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
 
-        /* 喇叭與漢字併排 */
-        .question-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 8px; }
-        .audio-icon { font-size: 36px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; margin: 0; }
+        /* 葫蘆(救命丹)、喇叭與漢字併排 */
+        .question-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px; min-height: 46px; }
+        
+        /* 漢字救命丹（葫蘆按鈕） */
+        #gourd-btn { display: flex; align-items: center; gap: 5px; background: rgba(249, 168, 38, 0.15); border: 2px solid #f9a826; border-radius: 24px; padding: 4px 12px 4px 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(249, 168, 38, 0.35); }
+        #gourd-btn:active { transform: scale(0.92); }
+        #gourd-btn.gourd-disabled { opacity: 0.3; filter: grayscale(1); pointer-events: none; border-color: #555; box-shadow: none; }
+        .gourd-svg { width: 26px; height: 30px; display: block; filter: drop-shadow(0 0 4px rgba(249, 168, 38, 0.6)); }
+        #gourd-count { font-size: 18px; font-weight: bold; color: #ffd700; line-height: 1; }
+
+        .audio-icon { font-size: 36px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; margin: 0; line-height: 1; }
         .audio-icon:active { transform: scale(0.9); }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
-        #hanzi-hint { font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; }
+        #hanzi-hint { font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; display: none; }
         
         /* ==== RPG 戰鬥舞台與魔法詠唱特效 ==== */
         #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; box-sizing: border-box; margin-bottom: 6px; overflow: hidden; flex-shrink: 0;}
@@ -215,7 +223,10 @@
             #enemy-hp-ui { font-size: 9px; margin-bottom: 1px; }
             .combat-effect { font-size: 24px; }
             .coin { font-size: 20px; }
-            .question-row { gap: 10px; margin-bottom: 2px; }
+            .question-row { gap: 10px; margin-bottom: 2px; min-height: 32px; }
+            #gourd-btn { padding: 2px 8px 2px 6px; }
+            .gourd-svg { width: 18px; height: 22px; }
+            #gourd-count { font-size: 14px; }
             .audio-icon { font-size: 22px; }
             #hanzi-hint { font-size: 20px; }
             #syllable-boxes-container { margin-bottom: 2px; gap: 5px; }
@@ -249,15 +260,15 @@
         <div id="lessons" style="display:flex; flex-wrap:wrap; justify-content:center; max-width: 600px;"></div>
         
         <div class="toggle-container">
-            <p style="margin: 0 0 8px 0; font-size: 18px; color: #f9a826;">💡 漢字提示模式</p>
-            <label style="font-size: 16px; cursor: pointer;">
-                <input type="checkbox" id="hint-toggle" checked style="transform: scale(1.5); margin-right: 10px;">
-                開啟提示 (得分減半)
+            <label style="font-size: 18px; color: #f9a826; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <input type="checkbox" id="infinite-gourd-toggle" style="transform: scale(1.5); margin-right: 12px;">
+                漢字救命丹無限模式
             </label>
         </div>
         
-        <p style="color:#aaa; font-size:14px; line-height: 1.6; text-align: center; margin: 5px 0;">
+        <p style="color:#aaa; font-size:14px; line-height: 1.7; text-align: center; margin: 5px 0;">
             輸入台羅字母將啟動「詠唱煉成陣」，送出正確咒語即可發射除魔聖光！<br>
+            <span style="color:#ffd700;">使用漢字救命丹(圖示：葫蘆)，得分減半。</span><br>
             答錯將啟動字數限時倒數，長按 Ctrl 或左側按鈕 2.5 秒可耗血跳過。
         </p>
         <button class="start-btn" onclick="startGame()">開始降魔</button>
@@ -283,7 +294,7 @@
             <h3 style="color: #f9a826; margin: 0 0 12px 0; text-align: center; border-bottom: 1px solid #4a5c88; padding-bottom: 8px;">📖 魔咒秘訣</h3>
             <div id="review-items-container"></div>
             <div style="text-align: center;">
-                <button class="start-btn" onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; font-size: 18px;">修行完畢</button>
+                <button class="start-btn" onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; font-size: 18px;">修練完成</button>
             </div>
         </div>
 
@@ -318,7 +329,23 @@
                 <div id="timer-bar"></div>
             </div>
 
+            <!-- 葫蘆(左) + 喇叭(中) + 漢字(右) -->
             <div class="question-row">
+                <div id="gourd-btn" onclick="useGourd()" title="使用漢字救命丹">
+                    <svg class="gourd-svg" viewBox="0 0 32 38">
+                        <!-- 葫蘆蒂頭 -->
+                        <path d="M16 1 C16 1 18 4 16 6" stroke="#8d6e63" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                        <!-- 葫蘆上肚 -->
+                        <circle cx="16" cy="11" r="6.5" fill="#ffb300" stroke="#ffe082" stroke-width="1"/>
+                        <!-- 葫蘆下肚 -->
+                        <circle cx="16" cy="25.5" r="10" fill="#ffa000" stroke="#ffe082" stroke-width="1"/>
+                        <!-- 葫蘆腰際紅仙繩 -->
+                        <path d="M10.5 16.8 Q16 18.8 21.5 16.8" stroke="#e94560" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <!-- 葫蘆光澤 -->
+                        <ellipse cx="12.5" cy="23" rx="2" ry="3.5" fill="rgba(255,255,255,0.4)" transform="rotate(-15 12.5 23)"/>
+                    </svg>
+                    <span id="gourd-count">3</span>
+                </div>
                 <div class="audio-icon" onclick="playAudio()">🔊</div>
                 <div id="hanzi-hint"></div>
             </div>
@@ -339,6 +366,20 @@
 <script>
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
+    
+    // 各課對應的 GitHub 音檔資料夾名稱（當 C 欄空白時也能自動合成正確音檔網址）
+    const audioFolderMap = {
+        "B1L1": "育達B1L1音檔",
+        "B1L2": "育達B1L2音檔",
+        "B1L3": "育達B1L3音檔",
+        "B1L4": "育達B1L4音檔",
+        "B3L1": "康軒B3L1音檔",
+        "B3L2": "康軒B3L2音檔",
+        "B3L3": "康軒B3L3音檔",
+        "防災素一": "康軒防災素一音檔",
+        "拼音練習": "拼音練習音檔"
+    };
+
     let selectedLessons = [];
     let questionBank = [];
     
@@ -348,7 +389,12 @@
     // 遊戲狀態與計時器
     let score = 0; let hearts = 3; let currentQuestionIndex = 0; let maxQuestions = 14; 
     let streakCount = 0;
-    let attempt = 1; let timer = null; let timeLeft = 0; let isHintEnabled = true;
+    let attempt = 1; let timer = null; let timeLeft = 0;
+
+    // 漢字救命丹（葫蘆）狀態
+    let isInfiniteGourd = false;
+    let gourdsLeft = 3;
+    let usedGourdOnCurrentQ = false;
 
     // 錯題收集陣列
     let wrongQuestions = [];
@@ -374,25 +420,25 @@
     function getToneSvg(tone) {
         let markPath = '';
         switch(tone) {
-            case 2: // 第2聲 (´)：右上至左下斜線，緊貼圓圈上方
+            case 2:
                 markPath = `<line x1="12.5" y1="3.5" x2="8" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
                 break;
-            case 3: // 第3聲 (ˋ)：左上至右下斜線，緊貼圓圈上方
+            case 3:
                 markPath = `<line x1="7.5" y1="3.5" x2="12" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
                 break;
-            case 5: // 第5聲 (ˆ)：山形尖帽，緊貼圓圈上方
+            case 5:
                 markPath = `<path d="M 6.2 9 L 10 3.8 L 13.8 9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />`;
                 break;
-            case 6: // 第6聲 (✘)：停用叉號
+            case 6:
                 markPath = `<path d="M 7.2 3.8 L 12.8 9.2 M 12.8 3.8 L 7.2 9.2" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" />`;
                 break;
-            case 7: // 第7聲 (¯)：水平短橫線，緊貼圓圈上方
+            case 7:
                 markPath = `<line x1="6.2" y1="6.8" x2="13.8" y2="6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
                 break;
-            case 8: // 第8聲 (̍)：垂直短直線，緊貼圓圈上方
+            case 8:
                 markPath = `<line x1="10" y1="3" x2="10" y2="9.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />`;
                 break;
-            case 9: // 第9聲 (˝)：雙斜線，緊貼圓圈上方
+            case 9:
                 markPath = `<line x1="9.8" y1="3.5" x2="6.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                             <line x1="13.8" y1="3.5" x2="10.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />`;
                 break;
@@ -430,6 +476,42 @@
         let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>');
         res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
         return res.normalize('NFC');
+    }
+
+    // ==== 漢字救命丹（葫蘆）更新與點擊邏輯 ====
+    function updateGourdUI() {
+        const gourdBtn = document.getElementById('gourd-btn');
+        const gourdCount = document.getElementById('gourd-count');
+        if (isInfiniteGourd) {
+            gourdCount.innerText = '∞';
+            gourdBtn.classList.remove('gourd-disabled');
+        } else {
+            gourdCount.innerText = gourdsLeft;
+            if (gourdsLeft <= 0) {
+                gourdBtn.classList.add('gourd-disabled');
+            } else {
+                gourdBtn.classList.remove('gourd-disabled');
+            }
+        }
+    }
+
+    function useGourd() {
+        // 若此題已經顯示漢字，不重複扣丹
+        if (usedGourdOnCurrentQ) return;
+        if (!isInfiniteGourd && gourdsLeft <= 0) return;
+
+        if (!isInfiniteGourd) {
+            gourdsLeft--;
+        }
+        usedGourdOnCurrentQ = true;
+        updateGourdUI();
+
+        const currentQ = questionBank[currentQuestionIndex];
+        if (currentQ) {
+            const hintEl = document.getElementById('hanzi-hint');
+            hintEl.innerText = currentQ.h;
+            hintEl.style.display = 'block';
+        }
     }
 
     // ==== 長按跳過機制 ====
@@ -533,7 +615,7 @@
         ['q','w','e','r','t','y','u','i','o','p'].forEach(k => row1.appendChild(createKeyDiv(k)));
         kbContainer.appendChild(row1);
 
-        // 第 2 列：A ~ L (9鍵完整展開，不再受左右按鈕擠壓)
+        // 第 2 列：A ~ L (9鍵完整展開)
         const row2 = document.createElement('div');
         row2.className = 'kb-row kb-row-2';
         ['a','s','d','f','g','h','j','k','l'].forEach(k => row2.appendChild(createKeyDiv(k)));
@@ -548,28 +630,41 @@
 
     async function startGame() {
         if(selectedLessons.length === 0) return alert("請至少選擇一課！");
-        isHintEnabled = document.getElementById('hint-toggle').checked;
+        isInfiniteGourd = document.getElementById('infinite-gourd-toggle').checked;
+        gourdsLeft = 3;
+        updateGourdUI();
+
         document.getElementById('menu').style.display = 'none';
         document.getElementById('game-screen').style.display = 'flex';
         
         buildKeyboard();
-        document.getElementById('hanzi-hint').innerText = "載入中...";
+        const hintEl = document.getElementById('hanzi-hint');
+        hintEl.innerText = "載入中...";
+        hintEl.style.display = "block";
 
         const fetchPromises = selectedLessons.map(sheet => 
-            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`).then(res => res.text())
+            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
+                .then(res => res.text())
+                .then(text => ({ sheet, text }))
         );
 
         const results = await Promise.all(fetchPromises);
         questionBank = [];
-        results.forEach(text => {
+        results.forEach(({ sheet, text }) => {
+            let rowNumber = 0;
             text.split(/\r?\n/).forEach(l => {
                 const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
                 if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
-                    // 同時讀取 A欄(漢字)、B欄(台羅) 與 C欄(音檔網址)
+                    rowNumber++;
+                    const numStr = String(rowNumber).padStart(2, '0');
+                    const folderName = audioFolderMap[sheet] || `${sheet}音檔`;
+                    const fallbackAudioUrl = `https://yyanjhang-web.github.io/hosngetaiagi/${folderName}/-${numStr}.mp3`;
+                    const colCAudioUrl = (p.length >= 3 && p[2].trim() !== "") ? p[2].trim() : fallbackAudioUrl;
+
                     questionBank.push({ 
                         h: p[0].trim(), 
                         r: p[1].trim(),
-                        a: p.length >= 3 ? p[2].trim() : ""
+                        a: colCAudioUrl
                     });
                 }
             });
@@ -661,10 +756,15 @@
         }
         attempt = 1; 
         currentQuestionHasFailed = false;
+        usedGourdOnCurrentQ = false;
         stopTimer();
         
         const currentQ = questionBank[currentQuestionIndex];
-        document.getElementById('hanzi-hint').innerText = isHintEnabled ? currentQ.h : "???";
+        // 未按葫蘆前，不顯示漢字與 ???
+        const hintEl = document.getElementById('hanzi-hint');
+        hintEl.innerText = "";
+        hintEl.style.display = "none";
+
         document.getElementById('progress-display').innerText = `進度: ${currentQuestionIndex + 1} / ${maxQuestions}`;
         
         parsedAnswer = parseTaiLoAnswer(currentQ.r);
@@ -681,7 +781,6 @@
             return;
         }
         
-        // 若網址含有未編碼的中文字元（如「拼音練習音檔」），自動進行安全編碼
         const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
         audioPlayer.pause();
         audioPlayer.src = safeUrl;
@@ -821,7 +920,8 @@
                 }
             }
             
-            score += (isHintEnabled ? 10 : 20) + extraScore;
+            // 若該題使用了漢字救命丹（葫蘆），得分減半 (10分)，未使用則拿滿 20分
+            score += (usedGourdOnCurrentQ ? 10 : 20) + extraScore;
             updateDisplay();
         }, 180);
         
