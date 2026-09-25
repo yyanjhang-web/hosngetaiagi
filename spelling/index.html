@@ -95,7 +95,7 @@
         #timer-bar { height: 100%; width: 100%; background: #00e5ff; transition: width 0.1s linear, background 0.3s; }
         #timer-text { position: absolute; right: 5px; top: -16px; font-size: 12px; color: #fff; font-weight: bold; }
 
-        /* 輸入框 (移除 Courier New，改用完美支援台羅的字型) */
+        /* 輸入框 */
         #syllable-boxes-container { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 5px; width: 100%; }
         .syllable-box { min-width: 50px; height: 50px; padding: 0 12px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 8px; font-size: 26px; font-weight: bold; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; font-family: 'Charis SIL', 'Noto Sans', sans-serif; transition: 0.2s; }
         .syllable-box.active-box { border-color: #00e5ff; box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3); color: #00e5ff; }
@@ -103,8 +103,8 @@
         @keyframes blink { 50% { opacity: 0; } }
 
         /* ==== 永不破圖的第8聲、第9聲 CSS 獨立描繪樣式 ==== */
-        .t8, .t9 { position: relative; display: inline-block; line-height: 1; }
-        .t8::after {
+        .t8, .t8-i { position: relative; display: inline-block; line-height: 1; }
+        .t8::after, .t8-i::after {
             content: '';
             position: absolute;
             top: -0.16em;
@@ -116,23 +116,9 @@
             border-radius: 1px;
             pointer-events: none;
         }
-        /* 若母音是 i，將原本的點蓋掉或直接替換為無點 ı (U+0131) 加上直豎 */
-        .t8-i { position: relative; display: inline-block; line-height: 1; }
-        .t8-i::after {
-            content: '';
-            position: absolute;
-            top: -0.16em;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2.2px;
-            height: 0.25em;
-            background-color: currentColor;
-            border-radius: 1px;
-            pointer-events: none;
-        }
 
         /* ================================================= */
-        /* 虛擬鍵盤與「自製 SVG 聲調系統」 */
+        /* 虛擬鍵盤與「一體成形 SVG 聲調系統」 */
         /* ================================================= */
         #keyboard { display: flex; flex-direction: column; gap: 5px; width: 100%; flex-shrink: 0; padding-bottom: 5px; }
         .kb-row { display: flex; justify-content: center; gap: 4px; }
@@ -145,22 +131,18 @@
         /* 聲調按鍵專屬佈局 */
         .tone-num { position: absolute; top: 3px; left: 5px; font-size: 11px; color: #78909c; font-weight: bold; line-height: 1; }
         .key.active-key .tone-num { color: #00b8d4; }
-        .tone-symbol { font-size: 26px; line-height: 1; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding-top: 5px;}
+        .tone-symbol { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding-top: 4px; }
         
-        /* 純手工繪製的無破綻聲調系統 */
-        .custom-tone { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 26px; }
-        .c-mark { height: 12px; font-size: 16px; line-height: 12px; font-family: Arial, sans-serif; font-weight: bold; display: flex; align-items: flex-end; justify-content: center; }
-        .tone-svg { width: 14px; height: 14px; margin-top: 2px; overflow: visible;}
-        .mark-8 { width: 2.5px; height: 8px; background-color: currentColor; border-radius: 1px; margin-bottom: 2px;}
+        /* 一體成形的 SVG 畫布：確保所有聲調符號緊貼虛線圓圈正上方 */
+        .tone-svg-unified { width: 20px; height: 26px; overflow: visible; display: block; }
 
-        /* 入聲 (ptkh) 的 2x2 方塊排列 */
-        .checked-tone-group { display: flex; align-items: center; justify-content: center; line-height: 1;}
-        .checked-tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; font-size: 9px; margin-left: 4px; text-align: center; line-height: 0.9; font-family: Arial, sans-serif; color: #aaa;}
+        /* 入聲 (ptkh) 的 2x2 方塊排列，對齊下方虛線圓圈位置 */
+        .checked-tone-group { display: flex; align-items: flex-end; justify-content: center; line-height: 1; }
+        .checked-tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; font-size: 9px; margin-left: 2px; margin-bottom: 2px; text-align: center; line-height: 0.9; font-family: Arial, sans-serif; color: #aaa; }
         .key.active-key .checked-tone-grid { color: #00e5ff; }
 
         /* 針對第6聲按鍵微調 */
         .key[data-key="6"] { flex: 0.6; opacity: 0.5; pointer-events: none; }
-        .key[data-key="6"] .c-mark { font-size: 14px; color: #666; }
 
         .key-delete { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; flex: 1.4; font-size: 20px;}
         .key-delete:active { background: #ff6b81 !important; transform: scale(0.92); }
@@ -202,7 +184,6 @@
         .review-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 12px; border-bottom: 1px solid #2a3654; font-size: 20px; }
         .review-item:last-child { border-bottom: none; }
         .review-hanzi { color: #f9a826; font-weight: bold; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; }
-        /* 移除 Courier New，改用完美支援台羅與自製標調的字型 */
         .review-tailo { color: #00e5ff; font-family: 'Charis SIL', 'Noto Sans', sans-serif; font-weight: bold; letter-spacing: 1px; font-size: 22px; }
 
         /* ========================================================= */
@@ -238,10 +219,9 @@
             
             /* 壓縮模式下的聲調符號微調 */
             .tone-num { font-size: 9px; top: 1px; left: 3px; }
-            .c-mark { font-size: 13px; height: 10px; line-height: 10px; }
-            .tone-svg { width: 12px; height: 12px; margin-top: 1px; }
-            .mark-8 { height: 6px; margin-bottom: 1px;}
-            .checked-tone-grid { font-size: 7px; gap: 0; margin-left: 2px; }
+            .tone-symbol { padding-top: 2px; }
+            .tone-svg-unified { width: 16px; height: 21px; }
+            .checked-tone-grid { font-size: 7px; gap: 0; margin-left: 1px; margin-bottom: 1px; }
         }
     </style>
 </head>
@@ -366,12 +346,38 @@
     const validLetters = ['a','b','c','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
     const toneDigits = ['1','2','3','4','5','7','8','9'];
     
-    // ==== 手工繪製的 SVG + CSS 無破綻聲調系統 ====
-    const svgCircle = `<svg class="tone-svg" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2.5,2" /></svg>`;
-    
-    function getToneHtml(markStr, isTone8 = false) {
-        let markHtml = isTone8 ? `<div class="mark-8"></div>` : markStr;
-        return `<div class="custom-tone"><div class="c-mark">${markHtml}</div>${svgCircle}</div>`;
+    // ==== 一體成形 SVG 聲調繪製系統（所有符號皆緊貼虛線圓圈正上方，如第8聲般緊湊） ====
+    function getToneSvg(tone) {
+        let markPath = '';
+        switch(tone) {
+            case 2: // 第2聲 (´)：右上至左下斜線，緊貼圓圈上方
+                markPath = `<line x1="12.5" y1="3.5" x2="8" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
+                break;
+            case 3: // 第3聲 (ˋ)：左上至右下斜線，緊貼圓圈上方
+                markPath = `<line x1="7.5" y1="3.5" x2="12" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
+                break;
+            case 5: // 第5聲 (ˆ)：山形尖帽，緊貼圓圈上方
+                markPath = `<path d="M 6.2 9 L 10 3.8 L 13.8 9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />`;
+                break;
+            case 6: // 第6聲 (✘)：停用叉號
+                markPath = `<path d="M 7.2 3.8 L 12.8 9.2 M 12.8 3.8 L 7.2 9.2" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" />`;
+                break;
+            case 7: // 第7聲 (¯)：水平短橫線，緊貼圓圈上方
+                markPath = `<line x1="6.2" y1="6.8" x2="13.8" y2="6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
+                break;
+            case 8: // 第8聲 (̍)：垂直短直線，緊貼圓圈上方
+                markPath = `<line x1="10" y1="3" x2="10" y2="9.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />`;
+                break;
+            case 9: // 第9聲 (˝)：雙斜線，緊貼圓圈上方
+                markPath = `<line x1="9.8" y1="3.5" x2="6.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            <line x1="13.8" y1="3.5" x2="10.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />`;
+                break;
+        }
+        // 虛線圓圈頂端位於 y=12.2，所有聲調符號底部皆精準落在 y=9 左右，保持完美的 3px 貼合間距
+        return `<svg class="tone-svg-unified" viewBox="0 0 20 26">
+            ${markPath}
+            <circle cx="10" cy="18" r="5.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5,2" />
+        </svg>`;
     }
 
     const ptkhGridHtml = `
@@ -379,8 +385,8 @@
             <span>p</span><span>t</span>
             <span>k</span><span>h</span>
         </div>`;
-    const subTone4 = `<div class="checked-tone-group">${getToneHtml('')}${ptkhGridHtml}</div>`;
-    const subTone8 = `<div class="checked-tone-group">${getToneHtml('', true)}${ptkhGridHtml}</div>`;
+    const subTone4 = `<div class="checked-tone-group">${getToneSvg(4)}${ptkhGridHtml}</div>`;
+    const subTone8 = `<div class="checked-tone-group">${getToneSvg(8)}${ptkhGridHtml}</div>`;
 
     const lessonsDiv = document.getElementById('lessons');
     lessons.forEach(l => {
@@ -397,13 +403,9 @@
 
     // ==== 將台羅字串中的第8聲 (\u030D) 轉為永不破圖的 HTML 標籤 ====
     function formatTailoDisplay(str) {
-        // 先轉為 NFD 拆開母音與組合符號
         let nfd = str.normalize('NFD');
-        // 針對字母 i 加上第8聲，替換為無點 ı (U+0131) 搭配 CSS 短直線，避免點與線重疊
         let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>');
-        // 針對其他母音加上第8聲，替換為 CSS 短直線
         res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
-        // 其餘聲調 (2, 3, 5, 7) 轉回 NFC 標準合成字
         return res.normalize('NFC');
     }
 
@@ -445,7 +447,7 @@
         btn.dataset.key = val;
         
         let html = '';
-        if (toneDigits.includes(val)) {
+        if (toneDigits.includes(val) || val === '6') {
             html += `<div class="tone-num">${display}</div>`;
             html += `<div class="tone-symbol">${subText}</div>`;
         } else {
@@ -480,15 +482,15 @@
         const row0 = document.createElement('div');
         row0.className = 'kb-row';
         const numKeys = [
-            {val: '1', display: '1', sub: getToneHtml('')}, 
-            {val: '2', display: '2', sub: getToneHtml('´')}, 
-            {val: '3', display: '3', sub: getToneHtml('ˋ')},
+            {val: '1', display: '1', sub: getToneSvg(1)}, 
+            {val: '2', display: '2', sub: getToneSvg(2)}, 
+            {val: '3', display: '3', sub: getToneSvg(3)},
             {val: '4', display: '4', sub: subTone4}, 
-            {val: '5', display: '5', sub: getToneHtml('ˆ')}, 
-            {val: '6', display: '6', sub: getToneHtml('✘'), disabled: true}, 
-            {val: '7', display: '7', sub: getToneHtml('¯')}, 
+            {val: '5', display: '5', sub: getToneSvg(5)}, 
+            {val: '6', display: '6', sub: getToneSvg(6), disabled: true}, 
+            {val: '7', display: '7', sub: getToneSvg(7)}, 
             {val: '8', display: '8', sub: subTone8}, 
-            {val: '9', display: '9', sub: getToneHtml('˝')},
+            {val: '9', display: '9', sub: getToneSvg(9)},
             {val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'}
         ];
         numKeys.forEach(k => row0.appendChild(createKeyDiv(k)));
@@ -685,7 +687,6 @@
         for (let i = 0; i < parsedAnswer.length; i++) {
             const box = document.createElement('div'); box.className = 'syllable-box';
             if (i < currentSyllableIndex) {
-                // 使用 innerHTML 呈現無破綻的第8聲標記
                 box.innerHTML = applyToneToSyllable(inputBoxes[i].base, inputBoxes[i].tone);
             } else if (i === currentSyllableIndex) {
                 box.classList.add('active-box');
@@ -964,7 +965,6 @@
         wrongQuestions.forEach(item => {
             const row = document.createElement('div');
             row.className = 'review-item';
-            // 使用 formatTailoDisplay 確保魔咒秘訣中的第8聲永不破圖
             row.innerHTML = `<span class="review-hanzi">${item.h}</span><span class="review-tailo">${formatTailoDisplay(item.r)}</span>`;
             container.appendChild(row);
         });
