@@ -60,7 +60,7 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; background: #0f3460; border-bottom: 1px solid #4a5c88; flex-shrink: 0; }
         .modal-header h3 { margin: 0; font-size: 16px; color: #ffd700; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
         .modal-close { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; color: #fff; font-size: 16px; cursor: pointer; line-height: 1; padding: 4px 8px; }
-        .modal-body { padding: 12px 14px; overflow-y: auto; font-size: 13px; line-height: 1.6; color: #e0e0e0; flex-grow: 1; }
+        .modal-body { padding: 12px 12px; overflow-y: auto; font-size: 13px; line-height: 1.6; color: #e0e0e0; flex-grow: 1; }
         .modal-section { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.15); }
         .modal-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
         
@@ -81,7 +81,6 @@
         .sb-page { display: none; flex-direction: column; gap: 12px; }
         .sb-page.active { display: flex; }
         .sb-page-title { text-align: center; background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 8px; padding: 6px 10px; margin-bottom: 2px; }
-        .sb-page-title .sb-tailo-top { font-family: 'Charis SIL', sans-serif; font-size: 13px; color: #84ffff; display: block; line-height: 1.2; }
         .sb-page-title .sb-main-title { font-size: 19px; font-weight: bold; color: #ffd700; letter-spacing: 1px; }
 
         /* 3D 立體浮凸藍框發音大按鈕 */
@@ -90,7 +89,7 @@
             background: linear-gradient(180deg, #1e3c72 0%, #162850 100%);
             border: 2.5px solid #29b6f6;
             border-radius: 12px;
-            padding: 14px 12px 12px 12px;
+            padding: 14px 10px 12px 10px;
             color: #fff;
             cursor: pointer;
             box-shadow: 0 5px 0 #0b4f8a, 0 8px 16px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.35);
@@ -127,18 +126,23 @@
         .sb-tailo { font-family: 'Charis SIL', 'Noto Sans', sans-serif; font-weight: bold; color: #84ffff; }
         .sb-bopomo { font-size: 15px; color: #ffd54f; font-weight: bold; }
         .sb-bopomo-nowrap { font-size: 12.5px; color: #ffd54f; font-weight: bold; white-space: nowrap; letter-spacing: -0.5px; }
+        .bopomo-arrow { color: #ff80ab; font-weight: bold; margin: 0 1px; }
+        .bopomo-combined { color: #69f0ae; font-weight: bold; }
         .sb-hanzi { font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; color: #fff; }
-        .sb-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .sb-grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .sb-list-table { width: 100%; border-collapse: collapse; }
-        .sb-list-table td { padding: 6px 5px; border-bottom: 1px solid rgba(255,255,255,0.12); font-size: 17px; }
+        .sb-list-table td { padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,0.12); font-size: 17px; }
         .sb-list-table tr:last-child td { border-bottom: none; }
         
-        /* 第6頁 #13 正確羅馬字醒目標記 */
-        .sb-ans-correct { color: #ffd700; font-weight: bold; background: rgba(255, 215, 0, 0.18); border: 1px solid #ffd700; padding: 0px 5px; border-radius: 4px; box-shadow: 0 0 6px rgba(255, 215, 0, 0.25); }
-        .sb-ans-wrong { color: rgba(132, 255, 255, 0.45); }
+        /* 第6頁 #13 正確羅馬字醒目標記與強制單行 */
+        .sb-ans-row { white-space: nowrap; font-size: 14.5px; line-height: 1.95; letter-spacing: -0.2px; }
+        .sb-ans-correct { color: #ffd700; font-weight: bold; background: rgba(255, 215, 0, 0.18); border: 1px solid #ffd700; padding: 0px 4px; border-radius: 4px; box-shadow: 0 0 6px rgba(255, 215, 0, 0.25); margin: 0 1px; }
+        .sb-ans-wrong { color: rgba(132, 255, 255, 0.45); margin: 0 2px; }
+
+        /* 第7、8頁 多欄例字防斷行 */
+        .sb-ex-item { white-space: nowrap; letter-spacing: -0.3px; }
 
         .sb-section-label { text-align: center; margin: 4px 0 2px 0; }
-        .sb-section-label .ruby-tl { font-family: 'Charis SIL', sans-serif; font-size: 12px; color: #b0bec5; display: block; line-height: 1.1; }
         .sb-section-label .label-main { font-size: 16px; font-weight: bold; color: #ffb74d; }
 
         .sb-history-box { background: rgba(0, 0, 0, 0.35); border-left: 4px solid #f9a826; border-radius: 6px; padding: 10px 12px; font-size: 13px; line-height: 1.6; color: #ddd; }
@@ -489,7 +493,7 @@
     <div id="spellbook-modal" onclick="if(event.target === this) toggleSpellbookModal(false)">
         <div class="modal-card spellbook-card">
             <div class="modal-header">
-                <h3>📜 秘咒心法 <span style="font-size:12px; color:#84ffff; font-weight:normal;">(揤藍色浮凸框聽發音)</span></h3>
+                <h3>📜 秘咒心法</h3>
                 <button class="modal-close" onclick="toggleSpellbookModal(false)">✕</button>
             </div>
             
@@ -502,7 +506,6 @@
                 <!-- 第 1 頁：韻母(母音) -->
                 <div class="sb-page active" data-page="1">
                     <div class="sb-page-title">
-                        <span class="sb-tailo-top">ūn-bó (bó-im)</span>
                         <span class="sb-main-title">韻母 (母音)</span>
                     </div>
                     <!-- 按鈕 #01 -->
@@ -514,7 +517,7 @@
                             <tr><td class="sb-tailo" style="font-size:22px;">u</td><td class="sb-bopomo">ㄨ</td></tr>
                             <tr><td class="sb-tailo" style="font-size:22px;">oo</td><td class="sb-bopomo">ㄛ</td></tr>
                             <tr><td class="sb-tailo" style="font-size:22px;">e</td><td class="sb-bopomo">ㄝ</td></tr>
-                            <tr><td class="sb-tailo" style="font-size:22px;">o</td><td class="sb-bopomo">ㄜ <span style="font-size:12px; color:#ccc;">(中央元音)</span></td></tr>
+                            <tr><td class="sb-tailo" style="font-size:22px;">o</td><td class="sb-bopomo">ㄜ</td></tr>
                         </table>
                     </div>
                     <div class="sb-section-label"><span class="label-main">口訣</span></div>
@@ -529,30 +532,29 @@
                 <!-- 第 2 頁：複韻母 -->
                 <div class="sb-page" data-page="2">
                     <div class="sb-page-title">
-                        <span class="sb-tailo-top">h<span class="t8">o</span>k-ūn-bó</span>
                         <span class="sb-main-title">複韻母</span>
                     </div>
                     <div class="sb-grid-2col">
-                        <!-- 按鈕 #03（iau 右側單行緊湊呈現） -->
+                        <!-- 按鈕 #03（結合韻與箭頭雙色呈現、單行不換行） -->
                         <div class="voice-box-btn" data-voice="03" onclick="playSpellbookAudio('03', this)" style="padding:14px 8px 10px 8px;">
                             <span class="voice-badge">🔊 #03</span>
                             <table class="sb-list-table">
-                                <tr><td class="sb-tailo" style="padding:6px 2px;">ai</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄚㄧ➔ㄞ</td></tr>
+                                <tr><td class="sb-tailo" style="padding:6px 2px;">ai</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄚㄧ<span class="bopomo-arrow">➔</span><span class="bopomo-combined">ㄞ</span></td></tr>
                                 <tr><td class="sb-tailo" style="padding:6px 2px;">ia</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄧㄚ</td></tr>
-                                <tr><td class="sb-tailo" style="padding:6px 2px;">au</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄚㄨ➔ㄠ</td></tr>
+                                <tr><td class="sb-tailo" style="padding:6px 2px;">au</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄚㄨ<span class="bopomo-arrow">➔</span><span class="bopomo-combined">ㄠ</span></td></tr>
                                 <tr><td class="sb-tailo" style="padding:6px 2px;">ua</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄨㄚ</td></tr>
-                                <tr><td class="sb-tailo" style="padding:6px 2px;">iau</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄧㄚㄨ➔ㄧㄠ</td></tr>
+                                <tr><td class="sb-tailo" style="padding:6px 2px;">iau</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄧㄚㄨ<span class="bopomo-arrow">➔</span><span class="bopomo-combined">ㄧㄠ</span></td></tr>
                             </table>
                         </div>
-                        <!-- 按鈕 #04 -->
+                        <!-- 按鈕 #04（uai 改為 ㄨㄚㄧ➔ㄨㄞ 並套用相應配色） -->
                         <div class="voice-box-btn" data-voice="04" onclick="playSpellbookAudio('04', this)" style="padding:14px 8px 10px 8px;">
                             <span class="voice-badge">🔊 #04</span>
                             <table class="sb-list-table">
-                                <tr><td class="sb-tailo" style="padding:6px 4px;">ue</td><td class="sb-bopomo-nowrap" style="padding:6px 4px;">ㄨㄝ</td></tr>
-                                <tr><td class="sb-tailo" style="padding:6px 4px;">iu</td><td class="sb-bopomo-nowrap" style="padding:6px 4px;">ㄧㄨ</td></tr>
-                                <tr><td class="sb-tailo" style="padding:6px 4px;">ui</td><td class="sb-bopomo-nowrap" style="padding:6px 4px;">ㄨㄧ</td></tr>
-                                <tr><td class="sb-tailo" style="padding:6px 4px;">io</td><td class="sb-bopomo-nowrap" style="padding:6px 4px;">ㄧㄜ</td></tr>
-                                <tr><td class="sb-tailo" style="padding:6px 4px;">uai</td><td class="sb-bopomo-nowrap" style="padding:6px 4px;">ㄨㄞ</td></tr>
+                                <tr><td class="sb-tailo" style="padding:6px 2px;">ue</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄨㄝ</td></tr>
+                                <tr><td class="sb-tailo" style="padding:6px 2px;">iu</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄧㄨ</td></tr>
+                                <tr><td class="sb-tailo" style="padding:6px 2px;">ui</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄨㄧ</td></tr>
+                                <tr><td class="sb-tailo" style="padding:6px 2px;">io</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄧㄜ</td></tr>
+                                <tr><td class="sb-tailo" style="padding:6px 2px;">uai</td><td class="sb-bopomo-nowrap" style="padding:6px 2px;">ㄨㄚㄧ<span class="bopomo-arrow">➔</span><span class="bopomo-combined">ㄨㄞ</span></td></tr>
                             </table>
                         </div>
                     </div>
@@ -570,7 +572,6 @@
                 <!-- 第 3 頁：聲母(子音)之一 -->
                 <div class="sb-page" data-page="3">
                     <div class="sb-page-title">
-                        <span class="sb-tailo-top">siann-bó (tsú-im) tsi it</span>
                         <span class="sb-main-title">聲母 (子音) 之一</span>
                     </div>
                     <div class="sb-grid-2col">
@@ -596,7 +597,6 @@
                         </div>
                     </div>
                     <div class="sb-section-label">
-                        <span class="ruby-tl">th<span class="t8">a</span>k khuànn-māi</span>
                         <span class="label-main">讀看覓</span>
                     </div>
                     <!-- 按鈕 #07 -->
@@ -611,7 +611,6 @@
                 <!-- 第 4 頁：聲母(子音)之二 -->
                 <div class="sb-page" data-page="4">
                     <div class="sb-page-title">
-                        <span class="sb-tailo-top">siann-bó (tsú-im) tsi jī</span>
                         <span class="sb-main-title">聲母 (子音) 之二</span>
                     </div>
                     <!-- 按鈕 #08 -->
@@ -637,7 +636,6 @@
                 <!-- 第 5 頁：聲母(子音)之三 -->
                 <div class="sb-page" data-page="5">
                     <div class="sb-page-title">
-                        <span class="sb-tailo-top">siann-bó (tsú-im) tsi sann</span>
                         <span class="sb-main-title">聲母 (子音) 之三</span>
                     </div>
                     <!-- 按鈕 #09 -->
@@ -651,7 +649,6 @@
                         </table>
                     </div>
                     <div class="sb-section-label">
-                        <span class="ruby-tl">liām khuànn-māi</span>
                         <span class="label-main">念看覓</span>
                     </div>
                     <!-- 按鈕 #10 -->
@@ -663,7 +660,6 @@
                         </div>
                     </div>
                     <div class="sb-section-label">
-                        <span class="ruby-tl">siūnn khuànn-māi</span>
                         <span class="label-main">想看覓</span>
                     </div>
                     <!-- 按鈕 #11 -->
@@ -678,7 +674,6 @@
                 <!-- 第 6 頁：聲化韻母(單獨的m、ng) -->
                 <div class="sb-page" data-page="6">
                     <div class="sb-page-title">
-                        <span class="sb-tailo-top">siann-huà ūn-bó (tuann-t<span class="t8">o</span>k ê m, ng)</span>
                         <span class="sb-main-title">聲化韻母 (單獨的 m、ng)</span>
                     </div>
                     <!-- 按鈕 #12 -->
@@ -690,26 +685,25 @@
                         </table>
                     </div>
                     <div class="sb-section-label">
-                        <span class="ruby-tl">siūnn khuànn-māi, tó tsit ê lô-má-jī siá-huat sī tsiànn-khak ê?</span>
                         <span class="label-main">想看覓，佗一个羅馬字寫法是正確的？</span>
                     </div>
-                    <!-- 按鈕 #13（正解醒目標記） -->
-                    <div class="voice-box-btn" data-voice="13" onclick="playSpellbookAudio('13', this)">
+                    <!-- 按鈕 #13（移除頓號、強制單行對齊） -->
+                    <div class="voice-box-btn" data-voice="13" onclick="playSpellbookAudio('13', this)" style="padding:14px 8px 10px 8px;">
                         <span class="voice-badge">🔊 #13</span>
-                        <div class="sb-grid-2col" style="font-size:15.5px; line-height:1.9;">
+                        <div class="sb-grid-2col" style="gap:6px;">
                             <div>
-                                <div>飯【 <span class="sb-tailo sb-ans-wrong">pēng</span> 、 <span class="sb-tailo sb-ans-correct">pn̄g</span> 】</div>
-                                <div>光【 <span class="sb-tailo sb-ans-wrong">keng</span> 、 <span class="sb-tailo sb-ans-correct">kng</span> 】</div>
-                                <div>黃【 <span class="sb-tailo sb-ans-correct">n̂g</span> 、 <span class="sb-tailo sb-ans-wrong">êng</span> 】</div>
-                                <div>夢【 <span class="sb-tailo sb-ans-wrong">māng</span> 、 <span class="sb-tailo sb-ans-correct">bāng</span> 】</div>
-                                <div>查某【 <span class="sb-tailo sb-ans-correct">bóo</span> 、 <span class="sb-tailo sb-ans-wrong">móo</span> 】</div>
+                                <div class="sb-ans-row">飯【<span class="sb-tailo sb-ans-wrong">pēng</span><span class="sb-tailo sb-ans-correct">pn̄g</span>】</div>
+                                <div class="sb-ans-row">光【<span class="sb-tailo sb-ans-wrong">keng</span><span class="sb-tailo sb-ans-correct">kng</span>】</div>
+                                <div class="sb-ans-row">黃【<span class="sb-tailo sb-ans-correct">n̂g</span><span class="sb-tailo sb-ans-wrong">êng</span>】</div>
+                                <div class="sb-ans-row">夢【<span class="sb-tailo sb-ans-wrong">māng</span><span class="sb-tailo sb-ans-correct">bāng</span>】</div>
+                                <div class="sb-ans-row">查某【<span class="sb-tailo sb-ans-correct">bóo</span><span class="sb-tailo sb-ans-wrong">móo</span>】</div>
                             </div>
                             <div>
-                                <div>酸【 <span class="sb-tailo sb-ans-correct">sng</span> 、 <span class="sb-tailo sb-ans-wrong">seng</span> 】</div>
-                                <div>毋【 <span class="sb-tailo sb-ans-wrong">ēm</span> 、 <span class="sb-tailo sb-ans-correct">m̄</span> 】</div>
-                                <div>無【 <span class="sb-tailo sb-ans-correct">bô</span> 、 <span class="sb-tailo sb-ans-wrong">mô</span> 】</div>
-                                <div>米【 <span class="sb-tailo sb-ans-correct">bí</span> 、 <span class="sb-tailo sb-ans-wrong">mí</span> 】</div>
-                                <div>頭毛【 <span class="sb-tailo sb-ans-wrong">boo</span> 、 <span class="sb-tailo sb-ans-correct">moo</span> 】</div>
+                                <div class="sb-ans-row">酸【<span class="sb-tailo sb-ans-correct">sng</span><span class="sb-tailo sb-ans-wrong">seng</span>】</div>
+                                <div class="sb-ans-row">毋【<span class="sb-tailo sb-ans-wrong">ēm</span><span class="sb-tailo sb-ans-correct">m̄</span>】</div>
+                                <div class="sb-ans-row">無【<span class="sb-tailo sb-ans-correct">bô</span><span class="sb-tailo sb-ans-wrong">mô</span>】</div>
+                                <div class="sb-ans-row">米【<span class="sb-tailo sb-ans-correct">bí</span><span class="sb-tailo sb-ans-wrong">mí</span>】</div>
+                                <div class="sb-ans-row">頭毛【<span class="sb-tailo sb-ans-wrong">boo</span><span class="sb-tailo sb-ans-correct">moo</span>】</div>
                             </div>
                         </div>
                     </div>
@@ -721,7 +715,7 @@
                     </div>
                 </div>
 
-                <!-- 第 7 頁：鼻音韻尾、鼻化音（已移除標題上方羅馬字） -->
+                <!-- 第 7 頁：鼻音韻尾、鼻化音 -->
                 <div class="sb-page" data-page="7">
                     <div class="sb-page-title">
                         <span class="sb-main-title">鼻音韻尾、鼻化音 <span style="font-size:13px; color:#ccc;">(下跤是舉例，毋是全部)</span></span>
@@ -730,52 +724,52 @@
                     <div class="voice-box-btn" data-voice="14" onclick="playSpellbookAudio('14', this)">
                         <span class="voice-badge">🔊 #14</span>
                         <div style="color:#ffd700; font-weight:bold; margin-bottom:4px;">-m 雙唇鼻音</div>
-                        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; text-align:center;">
-                            <div><div class="sb-tailo">-im</div><div>音 im</div></div>
-                            <div><div class="sb-tailo">-am</div><div>罨 am</div></div>
-                            <div><div class="sb-tailo">-iam</div><div>鹹 kiâm</div></div>
-                            <div><div class="sb-tailo">-om</div><div>參 som</div></div>
+                        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; text-align:center;">
+                            <div class="sb-ex-item"><div class="sb-tailo">-im</div><div>音 im</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-am</div><div>罨 am</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-iam</div><div>鹹 kiâm</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-om</div><div>參 som</div></div>
                         </div>
                     </div>
-                    <!-- 按鈕 #15 (-n) -->
+                    <!-- 按鈕 #15 (-n：-uan 例字改為 彎 uan) -->
                     <div class="voice-box-btn" data-voice="15" onclick="playSpellbookAudio('15', this)">
                         <span class="voice-badge">🔊 #15</span>
                         <div style="color:#ffd700; font-weight:bold; margin-bottom:4px;">-n 舌尖鼻音</div>
-                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; text-align:center;">
-                            <div><div class="sb-tailo">-in</div><div>因 in</div></div>
-                            <div><div class="sb-tailo">-an</div><div>安 an</div></div>
-                            <div><div class="sb-tailo">-un</div><div>溫 un</div></div>
-                            <div><div class="sb-tailo">-ian</div><div>煙 ian</div></div>
-                            <div><div class="sb-tailo">-uan</div><div>冤 uan</div></div>
+                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:2px; text-align:center;">
+                            <div class="sb-ex-item"><div class="sb-tailo">-in</div><div>因 in</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-an</div><div>安 an</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-un</div><div>溫 un</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ian</div><div>煙 ian</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-uan</div><div>彎 uan</div></div>
                         </div>
                     </div>
                     <!-- 按鈕 #16 (-ng) -->
                     <div class="voice-box-btn" data-voice="16" onclick="playSpellbookAudio('16', this)">
                         <span class="voice-badge">🔊 #16</span>
                         <div style="color:#ffd700; font-weight:bold; margin-bottom:4px;">-ng 舌根鼻音</div>
-                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; text-align:center;">
-                            <div><div class="sb-tailo">-ing</div><div>英 ing</div></div>
-                            <div><div class="sb-tailo">-ang</div><div>翁 ang</div></div>
-                            <div><div class="sb-tailo">-ong</div><div>摸 bong</div></div>
-                            <div><div class="sb-tailo">-iang</div><div>雙 siang</div></div>
-                            <div><div class="sb-tailo">-iong</div><div>傷 siong</div></div>
+                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:2px; text-align:center;">
+                            <div class="sb-ex-item"><div class="sb-tailo">-ing</div><div>英 ing</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ang</div><div>翁 ang</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ong</div><div>摸 bong</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-iang</div><div>雙 siang</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-iong</div><div>傷 siong</div></div>
                         </div>
                     </div>
-                    <!-- 按鈕 #17 (-nn) -->
-                    <div class="voice-box-btn" data-voice="17" onclick="playSpellbookAudio('17', this)">
+                    <!-- 按鈕 #17 (-nn：-ainn 改為 偝 āinn，唱 tshiùnn 等強制單行不換行) -->
+                    <div class="voice-box-btn" data-voice="17" onclick="playSpellbookAudio('17', this)" style="padding:14px 6px 10px 6px;">
                         <span class="voice-badge">🔊 #17</span>
-                        <div style="color:#ffd700; font-weight:bold; margin-bottom:4px;">-nn 鼻化音</div>
-                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px 4px; text-align:center; font-size:13.5px;">
-                            <div><div class="sb-tailo">-ann</div><div>衫 sann</div></div>
-                            <div><div class="sb-tailo">-inn</div><div>圓 înn</div></div>
-                            <div><div class="sb-tailo">-enn</div><div>生 senn</div></div>
-                            <div><div class="sb-tailo">-onn</div><div>好 hònn</div></div>
-                            <div><div class="sb-tailo">-ainn</div><div>哼 hāinn</div></div>
-                            <div><div class="sb-tailo">-iann</div><div>影 iánn</div></div>
-                            <div><div class="sb-tailo">-iunn</div><div>唱 tshiùnn</div></div>
-                            <div><div class="sb-tailo">-uann</div><div>碗 uánn</div></div>
-                            <div><div class="sb-tailo">-uinn</div><div>關 kuinn</div></div>
-                            <div><div class="sb-tailo">-uainn</div><div>橫 huâinn</div></div>
+                        <div style="color:#ffd700; font-weight:bold; margin-bottom:4px; padding-left:4px;">-nn 鼻化音</div>
+                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px 2px; text-align:center; font-size:12.5px;">
+                            <div class="sb-ex-item"><div class="sb-tailo">-ann</div><div>衫 sann</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-inn</div><div>圓 înn</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-enn</div><div>生 senn</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-onn</div><div>好 hònn</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ainn</div><div>偝 āinn</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-iann</div><div>影 iánn</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-iunn</div><div>唱 tshiùnn</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-uann</div><div>碗 uánn</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-uinn</div><div>關 kuinn</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-uainn</div><div>橫 huâinn</div></div>
                         </div>
                     </div>
                 </div>
@@ -783,7 +777,6 @@
                 <!-- 第 8 頁：入聲韻尾(舉例) -->
                 <div class="sb-page" data-page="8">
                     <div class="sb-page-title">
-                        <span class="sb-tailo-top">j<span class="t8-i">ı</span>p-siann ūn-bué (kí-lē)</span>
                         <span class="sb-main-title">入聲韻尾 (舉例)</span>
                     </div>
                     <!-- 按鈕 #18 (-p) -->
@@ -791,51 +784,50 @@
                         <span class="voice-badge">🔊 #18</span>
                         <div style="color:#ffd700; font-weight:bold; margin-bottom:4px;">-p 雙唇入聲</div>
                         <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; text-align:center;">
-                            <div><div class="sb-tailo">-ip</div><div>入 <span class="sb-tailo">j<span class="t8-i">ı</span>p</span></div></div>
-                            <div><div class="sb-tailo">-ap</div><div>十 <span class="sb-tailo">ts<span class="t8">a</span>p</span></div></div>
-                            <div><div class="sb-tailo">-iap</div><div>汁 tsiap</div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ip</div><div>入 <span class="sb-tailo">j<span class="t8-i">ı</span>p</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ap</div><div>十 <span class="sb-tailo">ts<span class="t8">a</span>p</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-iap</div><div>汁 <span class="sb-tailo">tsiap</span></div></div>
                         </div>
                     </div>
-                    <!-- 按鈕 #19 (-t) -->
-                    <div class="voice-box-btn" data-voice="19" onclick="playSpellbookAudio('19', this)">
+                    <!-- 按鈕 #19 (-t：依原始PDF改為5格一列) -->
+                    <div class="voice-box-btn" data-voice="19" onclick="playSpellbookAudio('19', this)" style="padding:14px 6px 10px 6px;">
                         <span class="voice-badge">🔊 #19</span>
-                        <div style="color:#ffd700; font-weight:bold; margin-bottom:4px;">-t 舌尖入聲</div>
-                        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; text-align:center;">
-                            <div><div class="sb-tailo">-it</div><div>一 it</div></div>
-                            <div><div class="sb-tailo">-at</div><div>捌 bat</div></div>
-                            <div><div class="sb-tailo">-ut</div><div>熨 ut</div></div>
-                            <div><div class="sb-tailo">-iat</div><div>切 tshiat</div></div>
-                            <div><div class="sb-tailo">-ut</div><div>出 tshut</div></div>
-                            <div><div class="sb-tailo">-uat</div><div>越 <span class="sb-tailo">u<span class="t8">a</span>t</span></div></div>
+                        <div style="color:#ffd700; font-weight:bold; margin-bottom:4px; padding-left:4px;">-t 舌尖入聲</div>
+                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:2px; text-align:center; font-size:13px;">
+                            <div class="sb-ex-item"><div class="sb-tailo">-it</div><div>一 <span class="sb-tailo">it</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-at</div><div>捌 <span class="sb-tailo">bat</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-iat</div><div>切 <span class="sb-tailo">tshiat</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ut</div><div>出 <span class="sb-tailo">tshut</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-uat</div><div>越 <span class="sb-tailo">u<span class="t8">a</span>t</span></div></div>
                         </div>
                     </div>
                     <!-- 按鈕 #20 (-k) -->
-                    <div class="voice-box-btn" data-voice="20" onclick="playSpellbookAudio('20', this)">
+                    <div class="voice-box-btn" data-voice="20" onclick="playSpellbookAudio('20', this)" style="padding:14px 6px 10px 6px;">
                         <span class="voice-badge">🔊 #20</span>
-                        <div style="color:#ffd700; font-weight:bold; margin-bottom:4px;">-k 舌根入聲</div>
-                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; text-align:center;">
-                            <div><div class="sb-tailo">-ik</div><div>億 ik</div></div>
-                            <div><div class="sb-tailo">-ak</div><div>六 <span class="sb-tailo">l<span class="t8">a</span>k</span></div></div>
-                            <div><div class="sb-tailo">-iak</div><div>摔 siak</div></div>
-                            <div><div class="sb-tailo">-ok</div><div>國 kok</div></div>
-                            <div><div class="sb-tailo">-iok</div><div>育 <span class="sb-tailo">i<span class="t8">o</span>k</span></div></div>
+                        <div style="color:#ffd700; font-weight:bold; margin-bottom:4px; padding-left:4px;">-k 舌根入聲</div>
+                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:2px; text-align:center; font-size:13px;">
+                            <div class="sb-ex-item"><div class="sb-tailo">-ik</div><div>億 <span class="sb-tailo">ik</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ak</div><div>六 <span class="sb-tailo">l<span class="t8">a</span>k</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-iak</div><div>摔 <span class="sb-tailo">siak</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ok</div><div>國 <span class="sb-tailo">kok</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-iok</div><div>育 <span class="sb-tailo">i<span class="t8">o</span>k</span></div></div>
                         </div>
                     </div>
-                    <!-- 按鈕 #21 (-h) -->
-                    <div class="voice-box-btn" data-voice="21" onclick="playSpellbookAudio('21', this)">
+                    <!-- 按鈕 #21 (-h：依原始PDF修正例字順序與第8聲) -->
+                    <div class="voice-box-btn" data-voice="21" onclick="playSpellbookAudio('21', this)" style="padding:14px 6px 10px 6px;">
                         <span class="voice-badge">🔊 #21</span>
-                        <div style="color:#ffd700; font-weight:bold; margin-bottom:4px;">-h 短入聲</div>
-                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px 4px; text-align:center; font-size:13.5px;">
-                            <div><div class="sb-tailo">-ih</div><div>物 mih</div></div>
-                            <div><div class="sb-tailo">-ah</div><div>鴨 ah</div></div>
-                            <div><div class="sb-tailo">-uh</div><div>嗍 suh</div></div>
-                            <div><div class="sb-tailo">-eh</div><div>欲 beh</div></div>
-                            <div><div class="sb-tailo">-oh</div><div>學 <span class="sb-tailo"><span class="t8">o</span>h</span></div></div>
-                            <div><div class="sb-tailo">-ooh</div><div>膜 mooh</div></div>
-                            <div><div class="sb-tailo">-iah</div><div>掠 <span class="sb-tailo">li<span class="t8">a</span>h</span></div></div>
-                            <div><div class="sb-tailo">-ioh</div><div>借 tsioh</div></div>
-                            <div><div class="sb-tailo">-uah</div><div>活 <span class="sb-tailo">u<span class="t8">a</span>h</span></div></div>
-                            <div><div class="sb-tailo">-ueh</div><div>月 <span class="sb-tailo">gu<span class="t8">e</span>h</span></div></div>
+                        <div style="color:#ffd700; font-weight:bold; margin-bottom:4px; padding-left:4px;">-h 短入聲</div>
+                        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px 2px; text-align:center; font-size:12.5px;">
+                            <div class="sb-ex-item"><div class="sb-tailo">-ih</div><div>物 <span class="sb-tailo">m<span class="t8-i">ı</span>h</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ah</div><div>鴨 <span class="sb-tailo">ah</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-uh</div><div>欶 <span class="sb-tailo">suh</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-eh</div><div>欲 <span class="sb-tailo">beh</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-iah</div><div>掠 <span class="sb-tailo">li<span class="t8">a</span>h</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-oh</div><div>學 <span class="sb-tailo"><span class="t8">o</span>h</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ooh</div><div>膜 <span class="sb-tailo">m<span class="t8">o</span>oh</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ioh</div><div>借 <span class="sb-tailo">tsioh</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-uah</div><div>活 <span class="sb-tailo">u<span class="t8">a</span>h</span></div></div>
+                            <div class="sb-ex-item"><div class="sb-tailo">-ueh</div><div>月 <span class="sb-tailo">gu<span class="t8">e</span>h</span></div></div>
                         </div>
                     </div>
                 </div>
@@ -843,7 +835,6 @@
                 <!-- 第 9 頁：聲調表 -->
                 <div class="sb-page" data-page="9">
                     <div class="sb-page-title">
-                        <span class="sb-tailo-top">siann-tiāu</span>
                         <span class="sb-main-title">聲調</span>
                     </div>
                     <div class="tone-chart-wrap">
@@ -972,39 +963,39 @@
                 <!-- 第 11 頁：變調規則與練習 -->
                 <div class="sb-page" data-page="11">
                     <div class="sb-page-title">
-                        <span class="sb-tailo-top">piàn-tiāu kui-tsik</span>
                         <span class="sb-main-title">變調規則</span>
                     </div>
-                    <!-- 入聲變調上下合併為同一儲存格 -->
-                    <table class="sb-list-table" style="background:rgba(0,0,0,0.3); border-radius:8px; font-size:13.5px; margin-bottom:4px;">
+                    <!-- 非入聲變調上下垂直對齊、入聲變調合併儲存格 -->
+                    <table class="sb-list-table" style="background:rgba(0,0,0,0.3); border-radius:8px; font-size:12.5px; margin-bottom:4px;">
                         <tr style="color:#ffd700; font-weight:bold; border-bottom:1px solid #4a5c88;">
-                            <td style="width:23%;">腔口</td><td>非入聲變調</td><td>入聲變調</td>
+                            <td style="width:20%; white-space:nowrap;">腔口</td>
+                            <td style="white-space:nowrap;">非入聲變調</td>
+                            <td style="white-space:nowrap;">入聲變調</td>
                         </tr>
                         <tr>
-                            <td style="color:#84ffff; font-weight:bold;">上優勢腔</td>
-                            <td class="sb-tailo">5 ➔ 7 ➔ 3 ➔ 2 ➔ 1 ➔ 7</td>
-                            <td rowspan="2" class="sb-tailo" style="font-size:12.5px; vertical-align:middle; border-left:1px solid rgba(255,255,255,0.12); line-height:1.6;">
+                            <td style="color:#84ffff; font-weight:bold; white-space:nowrap;">上優勢腔</td>
+                            <td class="sb-tailo" style="white-space:nowrap; font-size:12.5px; letter-spacing:-0.3px;">5➔7➔3➔2➔1➔7</td>
+                            <td rowspan="2" class="sb-tailo" style="font-size:11.5px; vertical-align:middle; border-left:1px solid rgba(255,255,255,0.12); line-height:1.65; white-space:nowrap;">
                                 4ptk ⇄ 8ptk<br>
                                 4h ➔ 2 ｜ 8h ➔ 3<br>
                                 <span style="font-family:'Noto Sans TC',sans-serif; color:#e0e0e0; font-weight:normal;">一寡字：</span>4h ➔ 1
                             </td>
                         </tr>
                         <tr>
-                            <td style="color:#ffb74d; font-weight:bold;">次優勢腔</td>
-                            <td class="sb-tailo">5 ➔ 3 ➔ 2 ➔ 1 ➔ 7 ➔ 3</td>
+                            <td style="color:#ffb74d; font-weight:bold; white-space:nowrap;">次優勢腔</td>
+                            <td class="sb-tailo" style="white-space:nowrap; font-size:12.5px; letter-spacing:-0.3px;">5<span style="visibility:hidden;">➔7</span>➔3➔2➔1➔7➔3</td>
                         </tr>
                     </table>
 
                     <div class="sb-section-label">
-                        <span class="ruby-tl">liān-s<span class="t8-i">ı</span>p iōng âng-pit piau-kì piàn-tiāu (it)</span>
                         <span class="label-main">練習用紅筆標記變調 (一)</span>
                     </div>
 
-                    <!-- 按鈕 #25：疊字變調區（僅保留漢字疊字詞與變調數字規則） -->
+                    <!-- 按鈕 #25：疊字變調區 -->
                     <div style="display:flex; gap:12px; align-items:stretch; justify-content:center;">
                         <div class="voice-box-btn" data-voice="25" onclick="playSpellbookAudio('25', this)" style="flex:1; max-width:180px; display:flex; flex-direction:column; justify-content:space-between; text-align:center; padding:14px 10px 10px 10px; margin-bottom:0;">
                             <span class="voice-badge">🔊 #25</span>
-                            <div style="font-size:12px; color:#ffd700; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:3px;">詞語 (揤發音)</div>
+                            <div style="font-size:12px; color:#ffd700; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:3px;">詞語</div>
                             <div style="font-size:16px; font-weight:bold; line-height:1.75;">
                                 <div>甜甜</div><div>苦苦</div><div>細細</div><div>溼溼</div><div>赤赤</div><div>鹹鹹</div><div>𠕇𠕇</div><div>直直</div><div>白白</div>
                             </div>
@@ -1028,7 +1019,6 @@
                     </div>
 
                     <div class="sb-section-label" style="margin-top:6px;">
-                        <span class="ruby-tl">liān-s<span class="t8-i">ı</span>p iōng âng-pit piau-kì piàn-tiāu (jī)</span>
                         <span class="label-main">練習用紅筆標記變調 (二)</span>
                     </div>
                     <!-- 按鈕 #26 -->
