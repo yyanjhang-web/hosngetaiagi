@@ -15,29 +15,66 @@
         
         #app-container { position: relative; width: 100vw; height: 100vh; height: 100dvh; max-width: 800px; background-color: #16213e; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         
-        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f3460; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 25px 20px 15px 20px; box-sizing: border-box; overflow-y: auto; }
+        /* 主選單與結算畫面：緊湊化排版避免手機直向產生捲軸 */
+        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f3460; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 14px 14px 8px 14px; box-sizing: border-box; overflow-y: auto; }
         
-        h2 { color: #e94560; font-size: 34px; margin-bottom: 5px; text-shadow: 0 0 12px rgba(233, 69, 96, 0.6); letter-spacing: 2px; }
-        .subtitle { color: #00e5ff; font-size: 18px; font-weight: bold; margin-top: 0; margin-bottom: 15px; text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); letter-spacing: 1px; }
+        h2 { color: #e94560; font-size: 28px; margin: 0 0 2px 0; text-shadow: 0 0 12px rgba(233, 69, 96, 0.6); letter-spacing: 2px; }
+        .subtitle { color: #00e5ff; font-size: 15px; font-weight: bold; margin-top: 0; margin-bottom: 8px; text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); letter-spacing: 1px; }
         
-        .lesson-btn { padding: 10px 15px; margin: 5px; background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; font-family: inherit; }
-        .lesson-btn.active { background: #e94560; border-color: #ff6b81; box-shadow: 0 0 10px #e94560; }
+        /* 課次選擇區（緊湊排列） */
+        #lessons { display: flex; flex-wrap: wrap; justify-content: center; max-width: 600px; gap: 5px; margin-bottom: 8px; }
+        .lesson-btn { padding: 6px 11px; margin: 0; background: #2a3654; color: #fff; border: 1.5px solid #4a5c88; border-radius: 7px; font-size: 14px; cursor: pointer; transition: 0.2s; font-family: inherit; }
+        .lesson-btn.active { background: #e94560; border-color: #ff6b81; box-shadow: 0 0 8px #e94560; font-weight: bold; }
         
-        .toggle-container { margin: 12px 0; padding: 12px 15px; background: #1a1a2e; border-radius: 10px; border: 1px solid #e94560; width: 85%; max-width: 400px; text-align: center; }
-        
-        /* 主選單說明文字內嵌黃金葫蘆小圖示 */
-        .inline-gourd-svg { width: 15px; height: 18px; vertical-align: -3px; display: inline-block; margin: 0 2px; filter: drop-shadow(0 0 3px rgba(249, 168, 38, 0.6)); }
+        /* 難度選擇區（三欄並排） */
+        .difficulty-container { display: flex; gap: 6px; width: 96%; max-width: 500px; margin-bottom: 8px; }
+        .diff-btn { flex: 1; background: #1a1a2e; border: 1.5px solid #4a5c88; border-radius: 8px; padding: 6px 4px; color: #ccc; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: inherit; }
+        .diff-btn .diff-title { font-size: 15px; font-weight: bold; color: #fff; margin-bottom: 2px; }
+        .diff-btn .diff-sub { font-size: 11px; color: #90a4ae; }
+        .diff-btn.active { background: #162447; border-color: #00e5ff; box-shadow: 0 0 10px rgba(0, 229, 255, 0.4); }
+        .diff-btn.active .diff-title { color: #00e5ff; }
+        .diff-btn.active .diff-sub { color: #84ffff; }
 
-        button.start-btn { padding: 14px 40px; font-size: 22px; font-weight: bold; background: #0f3460; color: #00e5ff; border: 2px solid #00e5ff; border-radius: 10px; margin-top: 12px; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transition: 0.2s; font-family: inherit; flex-shrink: 0; }
+        /* 救命丹開關與遊戲紹介按鈕併排區 */
+        .menu-tools-row { display: flex; align-items: center; justify-content: center; gap: 8px; width: 96%; max-width: 500px; margin-bottom: 6px; flex-wrap: wrap; }
+        .toggle-container { flex: 1; min-width: 185px; padding: 7px 10px; background: #1a1a2e; border-radius: 8px; border: 1px solid #e94560; text-align: center; }
+        .info-open-btn { padding: 7px 12px; background: #2a3654; color: #ffd700; border: 1.5px solid #ffd700; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit; white-space: nowrap; box-shadow: 0 0 8px rgba(255, 215, 0, 0.25); }
+        .info-open-btn:active { transform: scale(0.95); }
+
+        /* 主選單說明文字與內嵌黃金葫蘆 */
+        .menu-desc { color: #ccc; font-size: 13px; line-height: 1.55; text-align: center; margin: 2px 0 6px 0; }
+        .inline-gourd-svg { width: 14px; height: 17px; vertical-align: -3px; display: inline-block; margin: 0 3px; filter: drop-shadow(0 0 3px rgba(249, 168, 38, 0.6)); }
+
+        button.start-btn { padding: 10px 36px; font-size: 20px; font-weight: bold; background: #0f3460; color: #00e5ff; border: 2px solid #00e5ff; border-radius: 10px; margin-top: 4px; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transition: 0.2s; font-family: inherit; flex-shrink: 0; }
         button.start-btn:active { transform: scale(0.95); }
 
+        /* 鍵盤佮遊戲紹介 彈出視窗 (精巧尺寸、醒目配色) */
+        #info-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); z-index: 50; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box; }
+        .modal-card { background: #16213e; border: 2px solid #00e5ff; border-radius: 12px; max-width: 440px; width: 95%; max-height: 82vh; display: flex; flex-direction: column; box-shadow: 0 0 25px rgba(0, 229, 255, 0.35); overflow: hidden; animation: popIn 0.2s ease-out; }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #0f3460; border-bottom: 1px solid #4a5c88; }
+        .modal-header h3 { margin: 0; font-size: 16px; color: #ffd700; letter-spacing: 1px; }
+        .modal-close { background: transparent; border: none; color: #fff; font-size: 20px; cursor: pointer; line-height: 1; padding: 0 4px; }
+        .modal-body { padding: 12px 15px; overflow-y: auto; font-size: 13px; line-height: 1.6; color: #e0e0e0; }
+        .modal-section { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.15); }
+        .modal-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        
+        /* 介紹視窗內的醒目顏色標記 */
+        .hl-key { color: #00e5ff; font-weight: bold; background: rgba(0, 229, 255, 0.12); padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(0, 229, 255, 0.35); }
+        .hl-func { color: #ffd700; font-weight: bold; }
+        .hl-skip { color: #ff6b81; font-weight: bold; }
+        .hl-enter { color: #4dd0e1; font-weight: bold; }
+        .hl-rank1 { color: #81c784; font-weight: bold; }
+        .hl-rank2 { color: #ffb74d; font-weight: bold; }
+        .hl-rank3 { color: #ce93d8; font-weight: bold; }
+
         /* 頁尾版權聲明與計數器（字體縮小、顏色淡化） */
-        .footer { margin-top: auto; padding-top: 24px; padding-bottom: 5px; text-align: center; width: 100%; font-size: 12px; color: rgba(255, 255, 255, 0.45); line-height: 1.5; flex-shrink: 0; }
+        .footer { margin-top: auto; padding-top: 10px; padding-bottom: 2px; text-align: center; width: 100%; font-size: 11px; color: rgba(255, 255, 255, 0.42); line-height: 1.35; flex-shrink: 0; }
         .footer p { margin: 0; }
-        .footer .copyright-text { font-size: 11px; color: rgba(255, 255, 255, 0.32); margin-top: 4px; line-height: 1.4; }
-        .counter-container { margin-top: 6px; opacity: 0.65; transition: opacity 0.2s; }
+        .footer .copyright-text { font-size: 10px; color: rgba(255, 255, 255, 0.3); margin-top: 2px; line-height: 1.3; }
+        .counter-container { margin-top: 4px; opacity: 0.65; transition: opacity 0.2s; }
         .counter-container:hover { opacity: 0.9; }
-        .counter-container img { height: 16px; width: auto; vertical-align: middle; }
+        .counter-container img { height: 14px; width: auto; vertical-align: middle; }
 
         /* 遊戲畫面 UI */
         #game-screen { display: none; flex-direction: column; height: 100%; padding: 10px 12px; box-sizing: border-box; justify-content: space-between; }
@@ -51,13 +88,13 @@
         
         /* 漢字救命丹（葫蘆按鈕） */
         #gourd-btn { display: flex; align-items: center; gap: 5px; background: rgba(249, 168, 38, 0.15); border: 2px solid #f9a826; border-radius: 24px; padding: 4px 12px 4px 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(249, 168, 38, 0.35); }
-        #gourd-btn:active { transform: scale(0.92); }
+        #gourd-btn:active, #gourd-btn.gourd-active-press { transform: scale(0.92); background: rgba(249, 168, 38, 0.35); }
         #gourd-btn.gourd-disabled { opacity: 0.3; filter: grayscale(1); pointer-events: none; border-color: #555; box-shadow: none; }
         .gourd-svg { width: 26px; height: 30px; display: block; filter: drop-shadow(0 0 4px rgba(249, 168, 38, 0.6)); }
         #gourd-count { font-size: 18px; font-weight: bold; color: #ffd700; line-height: 1; }
 
-        .audio-icon { font-size: 36px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; margin: 0; line-height: 1; }
-        .audio-icon:active { transform: scale(0.9); }
+        .audio-icon { font-size: 36px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; margin: 0; line-height: 1; transition: transform 0.1s; }
+        .audio-icon:active, .audio-icon.audio-playing-press { transform: scale(0.85); }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
         #hanzi-hint { font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; font-size: 30px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; display: none; }
         
@@ -105,10 +142,8 @@
         }
 
         .combat-effect { position: absolute; font-size: 40px; z-index: 3; opacity: 0; pointer-events: none; }
-        /* 蝙蝠專屬：黑暗音符濾鏡特效 */
         .dark-note { filter: brightness(0.25) sepia(1) hue-rotate(230deg) saturate(8) drop-shadow(0 0 8px #aa00ff) drop-shadow(0 0 12px #000); }
         
-        /* 敵人投擲物動態距離飛行特效（透過 --fly-x 精準飛抵玩家位置，命中瞬間才消散） */
         @keyframes projFly { 
             0% { transform: translate(0, 0) rotate(0deg) scale(0.85); opacity: 1; } 
             45% { transform: translate(calc(var(--fly-x, -240px) * 0.5), -22px) rotate(-180deg) scale(1.35); opacity: 1; } 
@@ -147,16 +182,16 @@
         }
 
         /* ================================================= */
-        /* 鍵盤上方獨立施法動作列（扣血前進 & 實施咒語） */
+        /* 鍵盤上方獨立施法動作列（忍辱進前 & 實施咒語） */
         /* ================================================= */
         #action-bar { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; padding: 0 2px; box-sizing: border-box; flex-shrink: 0; }
         
         .action-btn { width: 130px; height: 52px; border-radius: 12px; font-size: 18px; font-weight: bold; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.1s; box-sizing: border-box; letter-spacing: 1px; }
 
-        /* 長按扣血鍵特化與動畫 */
+        /* 長按忍辱進前鍵特化與 1.5 秒動畫 */
         .key-skip { position: relative; overflow: hidden; background: #d32f2f !important; border: 2px solid #ff5252 !important; color: white !important; box-shadow: 0 0 12px rgba(244, 67, 54, 0.45) !important; }
         .key-skip::before { content: ''; position: absolute; left: 0; bottom: 0; height: 100%; width: 0%; background: rgba(255, 255, 255, 0.35); z-index: 1; transition: width 0s; }
-        .key-skip.pressing::before { width: 100%; transition: width 2.5s linear; }
+        .key-skip.pressing::before { width: 100%; transition: width 1.5s linear; }
         .key-skip > div { position: relative; z-index: 2; pointer-events: none; }
         .key-skip:active { transform: scale(0.95); }
 
@@ -165,35 +200,48 @@
         .key-enter:active { background: #fff !important; transform: scale(0.95); }
 
         /* ================================================= */
-        /* 虛擬鍵盤與「一體成形 SVG 聲調系統」 */
+        /* 虛擬鍵盤、聲調鎖鏈與「一體成形 SVG 聲調系統」 */
         /* ================================================= */
         #keyboard { display: flex; flex-direction: column; gap: 6px; width: 100%; flex-shrink: 0; padding-bottom: 6px; }
         .kb-row { display: flex; justify-content: center; gap: 5px; width: 100%; box-sizing: border-box; }
         
-        /* 讓 A~L 與 Z~M 稍微向內縮排並放大單鍵寬度，符合人體工學且飽滿好按 */
+        /* 1~9 聲調鎖鏈群組容器 */
+        .tone-keys-group { position: relative; display: flex; flex: 8.6; gap: 5px; }
+        
+        /* 橫跨 1~9 聲的鎖鏈覆蓋層 */
+        #tone-chain-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; }
+        .tone-keys-group.chained #tone-chain-overlay { opacity: 1; }
+        .tone-keys-group.chained .key { border-color: #ffb300 !important; box-shadow: inset 0 0 8px rgba(255, 179, 0, 0.35), 0 0 6px rgba(255, 179, 0, 0.4) !important; background: #262338 !important; color: #ffd54f !important; }
+        .tone-keys-group.chained .key[data-key="6"] { opacity: 0.85; pointer-events: auto; }
+        .tone-keys-group.chained .checked-tone-grid { color: #ffd54f !important; }
+        .tone-keys-group.chained .tone-num { color: #ffb300 !important; }
+        .chain-svg-bar { width: 98%; height: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.85)); }
+
+        /* 讓 A~L 與 Z~M 稍微向內縮排並放大單鍵寬度 */
         .kb-row-2 { padding: 0 3%; }
         .kb-row-3 { padding: 0 11%; }
         
-        .key { position: relative; background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; min-height: 48px; min-width: 26px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; }
+        .key { position: relative; background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; min-height: 48px; min-width: 24px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.1s; box-sizing: border-box; padding: 0 1px; }
         .key.active-key { background: #0f3460; border-color: #00e5ff; box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); color: #00e5ff; }
         .key.active-key:active { background: #00e5ff; color: #000; transform: scale(0.92); }
         .key.disabled-key { background: #1a1a2e; border-color: #222; color: #444; pointer-events: none; }
         
         /* 聲調按鍵專屬佈局 */
-        .tone-num { position: absolute; top: 3px; left: 5px; font-size: 11px; color: #78909c; font-weight: bold; line-height: 1; }
+        .tone-num { position: absolute; top: 2px; left: 4px; font-size: 10px; color: #78909c; font-weight: bold; line-height: 1; }
         .key.active-key .tone-num { color: #00b8d4; }
         .tone-symbol { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding-top: 4px; }
         
-        /* 一體成形的 SVG 畫布：確保所有聲調符號緊貼虛線圓圈正上方 */
-        .tone-svg-unified { width: 20px; height: 26px; overflow: visible; display: block; }
+        /* 一體成形的 SVG 畫布 */
+        .tone-svg-unified { width: 18px; height: 25px; overflow: visible; display: block; }
 
-        /* 入聲 (ptkh) 的 2x2 方塊排列 */
-        .checked-tone-group { display: flex; align-items: flex-end; justify-content: center; line-height: 1; }
-        .checked-tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; font-size: 9px; margin-left: 2px; margin-bottom: 2px; text-align: center; line-height: 0.9; font-family: Arial, sans-serif; color: #aaa; }
+        /* 第4聲、第8聲入聲 (ptkh) 緊湊集中排列，避免手機直版碰到按鈕邊緣 */
+        .checked-tone-group { display: flex; align-items: flex-end; justify-content: center; line-height: 1; gap: 1px; }
+        .checked-tone-group .tone-svg-unified { width: 12px; height: 25px; }
+        .checked-tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0px 1px; font-size: 8.5px; margin-left: 0px; margin-bottom: 2px; text-align: center; line-height: 0.92; font-family: Arial, sans-serif; color: #aaa; letter-spacing: -0.3px; }
         .key.active-key .checked-tone-grid { color: #00e5ff; }
 
         /* 針對第6聲按鍵微調 */
-        .key[data-key="6"] { flex: 0.6; opacity: 0.5; pointer-events: none; }
+        .key[data-key="6"] { flex: 0.65; opacity: 0.5; pointer-events: none; }
 
         .key-delete { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; flex: 1.35; font-size: 20px;}
         .key-delete:active { background: #ff6b81 !important; transform: scale(0.92); }
@@ -202,30 +250,31 @@
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
         .error-shake .syllable-box { border-color: red !important; box-shadow: inset 0 0 15px red !important; }
 
-        #end-comment { font-size: 28px; font-weight: bold; margin-bottom: 15px; text-align: center; text-shadow: 0 0 15px rgba(0,0,0,0.8); }
+        #end-comment { font-size: 26px; font-weight: bold; margin-bottom: 10px; text-align: center; text-shadow: 0 0 15px rgba(0,0,0,0.8); }
+        #final-diff-badge { display: inline-block; font-size: 18px; padding: 3px 10px; border-radius: 20px; background: #1a1a2e; border: 1.5px solid #ffd700; color: #ffd700; vertical-align: middle; margin-left: 8px; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
 
         /* ========================================================= */
         /* 戰後掉落寶物（魔咒秘訣）與錯題檢視區 */
         /* ========================================================= */
-        #treasure-box { background: rgba(26, 26, 46, 0.9); border: 2px solid #f9a826; border-radius: 12px; padding: 22px 20px; text-align: center; max-width: 450px; width: 90%; margin-top: 10px; box-shadow: 0 0 20px rgba(249, 168, 38, 0.35); animation: dropTreasure 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #treasure-box { background: rgba(26, 26, 46, 0.9); border: 2px solid #f9a826; border-radius: 12px; padding: 18px 18px; text-align: center; max-width: 450px; width: 90%; margin-top: 6px; box-shadow: 0 0 20px rgba(249, 168, 38, 0.35); animation: dropTreasure 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes dropTreasure { 0% { transform: translateY(-40px) scale(0.8); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-        .treasure-icon { font-size: 56px; margin-bottom: 12px; display: inline-block; filter: drop-shadow(0 0 12px #f9a826); }
+        .treasure-icon { font-size: 48px; margin-bottom: 8px; display: inline-block; filter: drop-shadow(0 0 12px #f9a826); }
         
-        .golden-question { color: #ffd700; font-size: 20px; margin: 0 0 22px 0; font-weight: bold; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); letter-spacing: 1px; }
+        .golden-question { color: #ffd700; font-size: 19px; margin: 0 0 16px 0; font-weight: bold; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); letter-spacing: 1px; }
         
         .choice-btn-group { display: flex; justify-content: center; gap: 15px; }
-        .choice-btn { padding: 12px 36px; font-size: 20px; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; transition: 0.2s; font-family: inherit; }
+        .choice-btn { padding: 10px 32px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; transition: 0.2s; font-family: inherit; }
         .btn-yes { background: #f9a826; color: #000; box-shadow: 0 0 12px rgba(249, 168, 38, 0.5); }
         .btn-yes:active { transform: scale(0.95); }
         .btn-no { background: #2a3654; color: #ccc; border: 1px solid #4a5c88; }
         .btn-no:active { transform: scale(0.95); }
         
-        #review-list { display: none; width: 92%; max-width: 500px; background: #16213e; border: 2px solid #00e5ff; border-radius: 12px; padding: 15px; margin-top: 10px; max-height: 44vh; overflow-y: auto; box-sizing: border-box; box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); }
-        .review-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 12px; border-bottom: 1px solid #2a3654; font-size: 20px; cursor: pointer; transition: background 0.15s; border-radius: 6px; }
+        #review-list { display: none; width: 92%; max-width: 500px; background: #16213e; border: 2px solid #00e5ff; border-radius: 12px; padding: 12px; margin-top: 6px; max-height: 42vh; overflow-y: auto; box-sizing: border-box; box-shadow: 0 0 20px rgba(0, 229, 255, 0.2); }
+        .review-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 10px; border-bottom: 1px solid #2a3654; font-size: 19px; cursor: pointer; transition: background 0.15s; border-radius: 6px; }
         .review-item:active { background: rgba(0, 229, 255, 0.15); }
         .review-item:last-child { border-bottom: none; }
         .review-hanzi { color: #f9a826; font-weight: bold; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; }
-        .review-tailo { color: #00e5ff; font-family: 'Charis SIL', 'Noto Sans', sans-serif; font-weight: bold; letter-spacing: 1px; font-size: 22px; }
+        .review-tailo { color: #00e5ff; font-family: 'Charis SIL', 'Noto Sans', sans-serif; font-weight: bold; letter-spacing: 1px; font-size: 21px; }
 
         /* ========================================================= */
         /* 極致壓縮模式：手機橫向、小螢幕 */
@@ -260,14 +309,17 @@
 
             #keyboard { gap: 3px; padding-bottom: 2px; }
             .kb-row { gap: 3px; }
+            .tone-keys-group { gap: 3px; }
             .key { min-height: 32px; border-radius: 5px; font-size: 15px; border-width: 1px;}
             .key-delete { font-size: 15px; }
             
             /* 壓縮模式下的聲調符號微調 */
-            .tone-num { font-size: 9px; top: 1px; left: 3px; }
+            .tone-num { font-size: 8.5px; top: 1px; left: 2px; }
             .tone-symbol { padding-top: 2px; }
-            .tone-svg-unified { width: 15px; height: 19px; }
-            .checked-tone-grid { font-size: 7px; gap: 0; margin-left: 1px; margin-bottom: 1px; }
+            .tone-svg-unified { width: 14px; height: 19px; }
+            .checked-tone-group .tone-svg-unified { width: 10px; height: 19px; }
+            .checked-tone-grid { font-size: 7px; gap: 0; margin-left: 0; margin-bottom: 1px; }
+            .chain-svg-bar { height: 16px; }
         }
     </style>
 </head>
@@ -277,19 +329,42 @@
     <div id="menu">
         <h2>✨ 除魔咒術 ✨</h2>
         <p class="subtitle">緊念台語咒語降妖除魔</p>
-        <div id="lessons" style="display:flex; flex-wrap:wrap; justify-content:center; max-width: 600px;"></div>
         
-        <div class="toggle-container">
-            <label style="font-size: 18px; color: #f9a826; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                <input type="checkbox" id="infinite-gourd-toggle" style="transform: scale(1.5); margin-right: 12px;">
-                漢字救命丹無限模式
-            </label>
+        <!-- 課次選擇 -->
+        <div id="lessons"></div>
+        
+        <!-- 遊戲難度三選一 -->
+        <div class="difficulty-container">
+            <button class="diff-btn" data-diff="apprentice" onclick="selectDifficulty('apprentice')">
+                <span class="diff-title">咒術師仔</span>
+                <span class="diff-sub">袂曉聲調</span>
+            </button>
+            <button class="diff-btn" data-diff="master" onclick="selectDifficulty('master')">
+                <span class="diff-title">咒術師父</span>
+                <span class="diff-sub">袂曉變調</span>
+            </button>
+            <button class="diff-btn active" data-diff="grandmaster" onclick="selectDifficulty('grandmaster')">
+                <span class="diff-title">咒術宗師</span>
+                <span class="diff-sub">精通聲調</span>
+            </button>
+        </div>
+
+        <!-- 漢字救命丹無限模式開關 & 鍵盤佮遊戲紹介按鈕 -->
+        <div class="menu-tools-row">
+            <div class="toggle-container">
+                <label style="font-size: 15px; color: #f9a826; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <input type="checkbox" id="infinite-gourd-toggle" style="transform: scale(1.3); margin-right: 8px;">
+                    漢字救命丹無限模式
+                </label>
+            </div>
+            <button class="info-open-btn" onclick="toggleInfoModal(true)">📖 鍵盤佮遊戲紹介</button>
         </div>
         
-        <p style="color:#aaa; font-size:14px; line-height: 1.8; text-align: center; margin: 5px 0;">
+        <p class="menu-desc">
             利用台語羅馬字生成拍倒鬼怪的咒語<br>
-            <span style="color:#ffd700;">使用漢字救命丹(<svg class="inline-gourd-svg" viewBox="0 0 32 38"><path d="M16 1 C16 1 18 4 16 6" stroke="#8d6e63" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="11" r="6.5" fill="#ffb300" stroke="#ffe082" stroke-width="1"/><circle cx="16" cy="25.5" r="10" fill="#ffa000" stroke="#ffe082" stroke-width="1"/><path d="M10.5 16.8 Q16 18.8 21.5 16.8" stroke="#e94560" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse cx="12.5" cy="23" rx="2" ry="3.5" fill="rgba(255,255,255,0.4)" transform="rotate(-15 12.5 23)"/></svg>)得分減半。</span><br>
-            咒語毋著愛趕緊改正，若無會受著鬼怪的攻擊
+            <span style="color:#ffd700;">使用漢字救命丹<svg class="inline-gourd-svg" viewBox="0 0 32 38"><path d="M16 1 C16 1 18 4 16 6" stroke="#8d6e63" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="11" r="6.5" fill="#ffb300" stroke="#ffe082" stroke-width="1"/><circle cx="16" cy="25.5" r="10" fill="#ffa000" stroke="#ffe082" stroke-width="1"/><path d="M10.5 16.8 Q16 18.8 21.5 16.8" stroke="#e94560" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse cx="12.5" cy="23" rx="2" ry="3.5" fill="rgba(255,255,255,0.4)" transform="rotate(-15 12.5 23)"/></svg> 得分減半</span><br>
+            咒語毋著愛趕緊改正，若無會受著鬼怪的攻擊<br>
+            久揤 <span style="color:#ff5252; font-weight:bold; text-shadow:0 0 6px rgba(255,82,82,0.4);">忍辱進前</span> 會使扣血進行後一題
         </p>
         <button class="start-btn" onclick="startGame()">開始降魔</button>
 
@@ -309,9 +384,42 @@
         </div>
     </div>
 
+    <!-- 鍵盤佮遊戲紹介 彈出視窗 -->
+    <div id="info-modal" onclick="if(event.target === this) toggleInfoModal(false)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>📖 鍵盤佮遊戲紹介</h3>
+                <button class="modal-close" onclick="toggleInfoModal(false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <strong>1. 實體鍵盤操作：</strong><br>
+                    本遊戲嘛會使用<span class="hl-key">拍字盤(鍵盤)</span>操作。<span class="hl-key">字母鍵</span>對應<span class="hl-func">字母</span>、<span class="hl-key">數字鍵</span>對應<span class="hl-func">聲調</span>、<span class="hl-key">Ctrl鍵</span>對應<span class="hl-skip">忍辱進前</span>、<span class="hl-key">Enter鍵</span>對應<span class="hl-enter">實施咒語</span>、<span class="hl-key">空白鍵</span>對應<span class="hl-func">漢字救命丹</span>、<span class="hl-key">Q</span>對應<span class="hl-func">喇叭播音</span>。
+                </div>
+                <div class="modal-section">
+                    <strong>2. 語音與拼字訓練：</strong><br>
+                    本遊戲所輸入的<span class="hl-func">羅馬字</span>以播音的口音為主，主要是欲訓練使用者共<span class="hl-func">語音</span>佮<span class="hl-func">羅馬字</span>的結合練予熟手，請毋通傷計較方音差。
+                </div>
+                <div class="modal-section">
+                    <strong>3. 修行難度說明：</strong><br>
+                    • <span class="hl-rank1">咒術師仔</span>適合拄開始學羅馬字的學習者，提供<span class="hl-func">聲母韻母的拼合練習</span>。<br>
+                    • <span class="hl-rank2">咒術師父</span>適合拄知影台語聲調的學習者，因為台語尾字較上捷讀本調，所以佇<span class="hl-rank2">咒術師父</span>這个難度會使佇<span class="hl-func">尾字練習本調</span>。<br>
+                    • <span class="hl-rank3">咒術宗師</span>適合知影<span class="hl-func">台語變調</span>的學習者。
+                </div>
+                <div class="modal-section">
+                    <strong>4. 給<span class="hl-rank2">咒術師父</span>學習者的提醒：</strong><br>
+                    有話欲對選擇<span class="hl-rank2">咒術師父</span>這个難度的學習者講：因為台語的變調真複雜，譬如若拄著「行落來」這種有<span class="hl-func">輕聲</span>的狀況，就算做聽著的是輕聲，嘛是愛拍<span class="hl-func">本調</span>。你若聽無本調是正常的，因為這是台語的特殊狀況，這个遊戲無對這个問題特別做處理。
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="game-over" style="display: none;">
         <h2>除魔結束！</h2>
-        <p style="font-size: 22px; margin: 5px 0 10px 0;">總得分：<span id="final-score" style="color:#00e5ff; font-weight:bold; font-size: 38px;">0</span></p>
+        <p style="font-size: 22px; margin: 5px 0 10px 0; display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
+            <span>總得分：<span id="final-score" style="color:#00e5ff; font-weight:bold; font-size: 36px;">0</span></span>
+            <span id="final-diff-badge">咒術宗師</span>
+        </p>
         <div id="end-comment"></div>
 
         <!-- 掉落寶物：魔咒秘訣互動區 -->
@@ -326,15 +434,15 @@
 
         <!-- 錯題正解展開列表 -->
         <div id="review-list">
-            <h3 style="color: #f9a826; margin: 0 0 12px 0; text-align: center; border-bottom: 1px solid #4a5c88; padding-bottom: 8px;">📖 魔咒秘訣</h3>
+            <h3 style="color: #f9a826; margin: 0 0 10px 0; text-align: center; border-bottom: 1px solid #4a5c88; padding-bottom: 6px;">📖 魔咒秘訣</h3>
             <div id="review-items-container"></div>
             <div style="text-align: center;">
-                <button class="start-btn" onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; font-size: 18px;">修練完成</button>
+                <button class="start-btn" onclick="location.reload()" style="margin-top: 12px; padding: 8px 28px; font-size: 18px;">修練完成</button>
             </div>
         </div>
 
         <!-- 完美無錯題時的返回按鈕 -->
-        <button id="normal-return-btn" class="start-btn" onclick="location.reload()" style="margin-top: 25px; display: none;">回主選單</button>
+        <button id="normal-return-btn" class="start-btn" onclick="location.reload()" style="margin-top: 18px; display: none;">回主選單</button>
 
         <!-- 遊戲結束頁面底部版權聲明與計數器 -->
         <div class="footer">
@@ -381,7 +489,7 @@
 
             <!-- 葫蘆(左) + 喇叭(中) + 漢字(右) -->
             <div class="question-row">
-                <div id="gourd-btn" onclick="useGourd()" title="使用漢字救命丹">
+                <div id="gourd-btn" onclick="useGourd()" title="使用漢字救命丹 (空白鍵)">
                     <svg class="gourd-svg" viewBox="0 0 32 38">
                         <!-- 葫蘆蒂頭 -->
                         <path d="M16 1 C16 1 18 4 16 6" stroke="#8d6e63" stroke-width="2.5" stroke-linecap="round" fill="none"/>
@@ -396,7 +504,7 @@
                     </svg>
                     <span id="gourd-count">3</span>
                 </div>
-                <div class="audio-icon" onclick="playAudio()">🔊</div>
+                <div class="audio-icon" id="speaker-btn" onclick="playAudio()" title="播放語音 (Q鍵)">🔊</div>
                 <div id="hanzi-hint"></div>
             </div>
 
@@ -405,7 +513,7 @@
 
         <!-- 位於鍵盤上方兩側的獨立動作列（不會遮擋輸入框） -->
         <div id="action-bar">
-            <div class="action-btn key-skip" id="btn-skip" data-key="Skip"><div>扣血前進</div></div>
+            <div class="action-btn key-skip" id="btn-skip" data-key="Skip"><div>忍辱進前</div></div>
             <div class="action-btn key-enter" id="btn-enter" data-key="Enter"><div>實施咒語</div></div>
         </div>
 
@@ -417,7 +525,7 @@
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
     
-    // 各課對應的 GitHub 音檔資料夾名稱（當 C 欄空白時也能自動合成正確音檔網址）
+    // 各課對應的 GitHub 音檔資料夾名稱
     const audioFolderMap = {
         "B1L1": "育達B1L1音檔",
         "B1L2": "育達B1L2音檔",
@@ -429,6 +537,25 @@
         "防災素一": "康軒防災素一音檔",
         "拼音練習": "拼音練習音檔"
     };
+
+    // 難度設定：apprentice(咒術師仔)、master(咒術師父)、grandmaster(咒術宗師)
+    let selectedDifficulty = 'grandmaster';
+    const difficultyNames = {
+        'apprentice': '咒術師仔',
+        'master': '咒術師父',
+        'grandmaster': '咒術宗師'
+    };
+
+    function selectDifficulty(diff) {
+        selectedDifficulty = diff;
+        document.querySelectorAll('.diff-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.diff === diff);
+        });
+    }
+
+    function toggleInfoModal(show) {
+        document.getElementById('info-modal').style.display = show ? 'flex' : 'none';
+    }
 
     let selectedLessons = [];
     let questionBank = [];
@@ -450,7 +577,7 @@
     let wrongQuestions = [];
     let currentQuestionHasFailed = false;
 
-    // 敵人系統設定：第1關改為蝙蝠與黑暗音符
+    // 敵人系統設定：第1關蝙蝠與黑暗音符
     const enemyConfig = [
         { sprite: '🦇', maxHp: 1, attack: '🎵' },
         { sprite: '🐍', maxHp: 2, attack: '💧' },
@@ -459,15 +586,15 @@
     ];
     let currentEnemyIdx = 0;
     let currentEnemyHp = 1;
-    let allEnemiesCleared = false; // true 代表紅惡鬼已死，進入骷髏怪賞金階段
+    let allEnemiesCleared = false;
 
     // 拼音解析系統
     let parsedAnswer = []; let inputBoxes = []; let currentSyllableIndex = 0; let typedBase = "";    
     const validLetters = ['a','b','c','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
     const toneDigits = ['1','2','3','4','5','7','8','9'];
     
-    // ==== 一體成形 SVG 聲調繪製系統 ====
-    function getToneSvg(tone) {
+    // ==== 一體成形 SVG 聲調繪製系統（第4聲與第8聲採用窄版畫布讓圓圈與 ptkh 緊密靠攏） ====
+    function getToneSvg(tone, isChecked = false) {
         let markPath = '';
         switch(tone) {
             case 2:
@@ -493,9 +620,10 @@
                             <line x1="13.8" y1="3.5" x2="10.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />`;
                 break;
         }
-        return `<svg class="tone-svg-unified" viewBox="0 0 20 26">
+        const vb = isChecked ? "3.5 0 13 26" : "0 0 20 26";
+        return `<svg class="tone-svg-unified" viewBox="${vb}">
             ${markPath}
-            <circle cx="10" cy="18" r="5.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5,2" />
+            <circle cx="10" cy="18" r="5.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5,2" />
         </svg>`;
     }
 
@@ -504,8 +632,8 @@
             <span>p</span><span>t</span>
             <span>k</span><span>h</span>
         </div>`;
-    const subTone4 = `<div class="checked-tone-group">${getToneSvg(4)}${ptkhGridHtml}</div>`;
-    const subTone8 = `<div class="checked-tone-group">${getToneSvg(8)}${ptkhGridHtml}</div>`;
+    const subTone4 = `<div class="checked-tone-group">${getToneSvg(4, true)}${ptkhGridHtml}</div>`;
+    const subTone8 = `<div class="checked-tone-group">${getToneSvg(8, true)}${ptkhGridHtml}</div>`;
 
     const lessonsDiv = document.getElementById('lessons');
     lessons.forEach(l => {
@@ -519,6 +647,17 @@
         };
         lessonsDiv.appendChild(btn);
     });
+
+    // ==== 判斷當前音節是否處於「聲調鎖鏈鎖定（自動給聲調）」狀態 ====
+    function isCurrentSyllableToneChained() {
+        if (!parsedAnswer || currentSyllableIndex >= parsedAnswer.length) return false;
+        if (selectedDifficulty === 'apprentice') return true; // 咒術師仔：全部音節鎖鏈條
+        if (selectedDifficulty === 'master') {
+            // 咒術師父：非末字鎖鏈條，末字（含單一字詞）解開鏈條需選聲調
+            return currentSyllableIndex < parsedAnswer.length - 1;
+        }
+        return false; // 咒術宗師：全部音節皆需選聲調
+    }
 
     // ==== 將台羅字串中的第8聲 (\u030D) 轉為永不破圖的 HTML 標籤 ====
     function formatTailoDisplay(str) {
@@ -555,6 +694,12 @@
         usedGourdOnCurrentQ = true;
         updateGourdUI();
 
+        const gourdBtn = document.getElementById('gourd-btn');
+        if (gourdBtn) {
+            gourdBtn.classList.add('gourd-active-press');
+            setTimeout(() => gourdBtn.classList.remove('gourd-active-press'), 150);
+        }
+
         const currentQ = questionBank[currentQuestionIndex];
         if (currentQ) {
             const hintEl = document.getElementById('hanzi-hint');
@@ -563,7 +708,7 @@
         }
     }
 
-    // ==== 長按跳過機制 ====
+    // ==== 長按跳過機制（縮短為 1.5 秒） ====
     let skipTimer = null;
     let isPressingSkip = false;
 
@@ -577,7 +722,7 @@
             isPressingSkip = false;
             if (btn) btn.classList.remove('pressing');
             handleSkip(); 
-        }, 2500);
+        }, 1500);
     }
 
     function cancelSkip() {
@@ -630,6 +775,11 @@
             btn.classList.add('active-key');
             btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
             btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
+        } else if (val === '6') {
+            // 當處於鎖鏈狀態時，點擊第 6 聲同樣可觸發自動聲調
+            btn.classList.add('disabled-key');
+            btn.addEventListener('mousedown', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); });
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); }, {passive: false});
         } else {
             btn.classList.add('disabled-key');
         }
@@ -640,10 +790,31 @@
         const kbContainer = document.getElementById('keyboard');
         kbContainer.innerHTML = '';
 
-        // 第 0 列：聲調數字 1~9 + 刪
+        // 第 0 列：聲調數字 1~9（包裹於鎖鏈群組容器內） + 刪
         const row0 = document.createElement('div');
         row0.className = 'kb-row';
-        const numKeys = [
+
+        const toneGroup = document.createElement('div');
+        toneGroup.className = 'tone-keys-group';
+        toneGroup.id = 'tone-keys-group';
+
+        // 繪製貫穿 1~9 聲的鎖鏈 SVG 圖層
+        const chainOverlay = document.createElement('div');
+        chainOverlay.id = 'tone-chain-overlay';
+        chainOverlay.innerHTML = `
+            <svg class="chain-svg-bar" viewBox="0 0 360 24" preserveAspectRatio="none">
+                <defs>
+                    <pattern id="chainPattern" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                        <rect x="2" y="6" width="14" height="12" rx="5" fill="none" stroke="#ffd54f" stroke-width="2.5"/>
+                        <line x1="13" y1="12" x2="25" y2="12" stroke="#ffb300" stroke-width="3.2" stroke-linecap="round"/>
+                    </pattern>
+                </defs>
+                <rect x="0" y="0" width="360" height="24" fill="url(#chainPattern)" opacity="0.88" />
+            </svg>
+        `;
+        toneGroup.appendChild(chainOverlay);
+
+        const toneKeys = [
             {val: '1', display: '1', sub: getToneSvg(1)}, 
             {val: '2', display: '2', sub: getToneSvg(2)}, 
             {val: '3', display: '3', sub: getToneSvg(3)},
@@ -652,10 +823,13 @@
             {val: '6', display: '6', sub: getToneSvg(6), disabled: true}, 
             {val: '7', display: '7', sub: getToneSvg(7)}, 
             {val: '8', display: '8', sub: subTone8}, 
-            {val: '9', display: '9', sub: getToneSvg(9)},
-            {val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'}
+            {val: '9', display: '9', sub: getToneSvg(9)}
         ];
-        numKeys.forEach(k => row0.appendChild(createKeyDiv(k)));
+        toneKeys.forEach(k => toneGroup.appendChild(createKeyDiv(k)));
+        row0.appendChild(toneGroup);
+
+        // 刪除鍵獨立於鎖鏈之外
+        row0.appendChild(createKeyDiv({val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'}));
         kbContainer.appendChild(row0);
 
         // 第 1 列：Q ~ P (10鍵滿版)
@@ -741,7 +915,6 @@
     function updateEnemyHpUI() {
         const hpDiv = document.getElementById('enemy-hp-ui');
         if (allEnemiesCleared) {
-            // 骷髏怪階段顯示無限金幣賞金圖示
             hpDiv.innerText = "🪙 ♾️";
             return;
         }
@@ -823,6 +996,12 @@
 
     // 播放當前題目的音檔（或指定網址的音檔）
     function playAudio(customUrl) {
+        const speakerBtn = document.getElementById('speaker-btn');
+        if (speakerBtn && !customUrl) {
+            speakerBtn.classList.add('audio-playing-press');
+            setTimeout(() => speakerBtn.classList.remove('audio-playing-press'), 150);
+        }
+
         const currentQ = questionBank[currentQuestionIndex];
         const rawUrl = customUrl || (currentQ ? currentQ.a : "");
         if (!rawUrl) {
@@ -844,6 +1023,7 @@
 
     function handleInput(key) {
         if (key === 'Skip') return;
+        const chained = isCurrentSyllableToneChained();
         
         if (key === 'Backspace') {
             if (typedBase.length > 0) {
@@ -857,9 +1037,11 @@
         else if (key === 'Enter') {
             if (currentSyllableIndex === parsedAnswer.length) checkAnswer();
         } 
-        else if (toneDigits.includes(key)) {
+        else if (toneDigits.includes(key) || (key === '6' && chained)) {
             if (typedBase.length > 0 && currentSyllableIndex < parsedAnswer.length) {
-                inputBoxes[currentSyllableIndex] = { base: typedBase, tone: key };
+                // 若當前音節處於鎖鏈鎖定狀態，不論按哪一聲皆自動填入正確聲調
+                const finalTone = chained ? parsedAnswer[currentSyllableIndex].tone : key;
+                inputBoxes[currentSyllableIndex] = { base: typedBase, tone: finalTone };
                 currentSyllableIndex++; typedBase = "";
             }
         } 
@@ -883,6 +1065,16 @@
                 box.innerHTML = `<span>${typedBase}</span><span class="cursor"></span>`;
             } else { box.innerText = ''; }
             container.appendChild(box);
+        }
+
+        // 更新鍵盤 1~9 聲的鎖鏈狀態
+        const toneGroup = document.getElementById('tone-keys-group');
+        if (toneGroup) {
+            if (isCurrentSyllableToneChained()) {
+                toneGroup.classList.add('chained');
+            } else {
+                toneGroup.classList.remove('chained');
+            }
         }
 
         // 判斷是否啟動魔法師「詠唱煉成陣」特效
@@ -914,13 +1106,11 @@
             effect.className = 'light-beam-effect';
         } else if (type === 'enemyAttack') {
             effect.className = 'combat-effect';
-            // 第1關蝙蝠使用黑暗音符濾鏡
             if (!allEnemiesCleared && currentEnemyIdx === 0) {
                 effect.classList.add('dark-note');
             }
             effect.innerText = allEnemiesCleared ? '🦴' : enemyConfig[currentEnemyIdx].attack;
             
-            // 動態計算「敵人」與「魔法師」在當下螢幕（直屏或橫屏）的實際距離，確保精準命中玩家
             const arenaRect = arena.getBoundingClientRect();
             const playerRect = document.getElementById('player-wrapper').getBoundingClientRect();
             const enemyRect = document.getElementById('enemy-wrapper').getBoundingClientRect();
@@ -942,7 +1132,6 @@
         stopTimer();
         document.getElementById('player-wrapper').classList.remove('chanting');
 
-        // 只有第 1 次就答對才累積連勝加題
         if (attempt === 1) {
             streakCount++;
             if (streakCount > 0 && streakCount % 2 === 0 && maxQuestions < 21) {
@@ -958,7 +1147,6 @@
         player.classList.add('player-cast');
         spawnEffect('light');
         
-        // 依答對次數計算基礎分：第1次20分、第2次12分、第3次6分（用救命丹則減半）
         const currentAttempt = attempt;
         let baseScore = (currentAttempt === 1) ? 20 : (currentAttempt === 2 ? 12 : 6);
         if (usedGourdOnCurrentQ) {
@@ -971,13 +1159,11 @@
             player.classList.remove('player-cast'); 
             
             if (allEnemiesCleared) {
-                // 骷髏怪階段：每次成功攻擊都會受擊閃爍並獲得金幣 (+10分)
                 enemyEl.classList.add('enemy-hit-flash');
                 setTimeout(() => enemyEl.classList.remove('enemy-hit-flash'), 400);
                 spawnCoin();
                 coinBonus = 10;
             } else {
-                // 前四隻妖魔（蝙蝠、蛇、蜘蛛、紅惡鬼）：死後不掉金幣
                 currentEnemyHp--;
                 updateEnemyHpUI();
                 if (currentEnemyHp <= 0) {
@@ -991,7 +1177,6 @@
                             enemyEl.classList.remove('enemy-dead');
                             updateEnemyHpUI();
                         } else {
-                            // 紅惡鬼死亡後，化為站立的骷髏怪登場
                             allEnemiesCleared = true;
                             enemyEl.innerText = '💀';
                             enemyEl.classList.remove('enemy-dead');
@@ -1024,7 +1209,6 @@
         const enemy = document.getElementById('enemy-sprite');
 
         if (attempt === 1 || attempt === 2) {
-            // 骷髏怪與一般妖魔皆會發動攻擊動作
             enemy.classList.add('enemy-attack');
             setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
             spawnEffect('enemyAttack');
@@ -1036,7 +1220,7 @@
             let nextTime = (attempt === 1) ? (wordCount * 7.5) : (wordCount * 5);
             attempt++; 
             resetInputBoxes(); 
-            playAudio(); // 答錯重試時自動再播一次音檔提示
+            playAudio();
             startTimer(nextTime);
         } else {
             takeDamage();
@@ -1125,7 +1309,7 @@
 
     function triggerVisualFeedback(key) {
         const btn = document.querySelector(`[data-key="${key}"]`);
-        if(btn && !btn.classList.contains('disabled-key')) {
+        if(btn && (!btn.classList.contains('disabled-key') || isCurrentSyllableToneChained())) {
             btn.style.background = '#00e5ff'; btn.style.color = '#000';
             setTimeout(() => { btn.style.background = ''; btn.style.color = ''; }, 100);
         }
@@ -1137,8 +1321,17 @@
                 if (!e.repeat) startSkip();
                 return;
             }
+            if (e.code === 'Space' || e.key === ' ') {
+                e.preventDefault();
+                useGourd();
+                return;
+            }
             const k = e.key.toLowerCase();
-            if (k === 'enter') handleInput('Enter');
+            if (k === 'q') {
+                e.preventDefault();
+                playAudio();
+            }
+            else if (k === 'enter') handleInput('Enter');
             else if (k === 'backspace') handleInput('Backspace');
             else handleInput(k);
         }
@@ -1155,8 +1348,8 @@
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
         document.getElementById('final-score').innerText = score;
+        document.getElementById('final-diff-badge').innerText = difficultyNames[selectedDifficulty];
         
-        // 新制結局判定：結合「是否擊敗紅惡鬼(allEnemiesCleared)」與「總分門檻」
         let endComment = ""; let commentColor = "";
         if (allEnemiesCleared && score >= 360) { 
             endComment = "拍倒惡鬼，光榮倒轉來！"; commentColor = "#4caf50"; 
