@@ -406,9 +406,9 @@
     };
 
     // =========================================================
-    // ⚖️ 公平性核心常數：限制砲管最大扇形仰角（正上方左右各 25°）與統一最高轉速
+    // ⚖️ 公平性核心常數：限制砲管最大扇形仰角（正上方左右各 15°）與統一最高轉速
     // =========================================================
-    const MAX_TILT_RAD = (25 * Math.PI) / 180; // 左右各 25 度
+    const MAX_TILT_RAD = (15 * Math.PI) / 180; // 不論何種模式皆限制為左右各 15 度
     const MIN_AIM_ANGLE = -Math.PI / 2 - MAX_TILT_RAD;
     const MAX_AIM_ANGLE = -Math.PI / 2 + MAX_TILT_RAD;
     const MAX_ROT_SPEED = 0.038; // 每幀最大旋轉弧度（滑鼠與手把完全一致）
@@ -1677,7 +1677,7 @@
                 }
             }
 
-            // 滑鼠目標角度平滑追隨（限制最高轉速與手把相同，且不超出 ±25°）
+            // 滑鼠目標角度平滑追隨（限制最高轉速與手把相同，且不超出 ±15°）
             if (!isFrozen && p.usingPointerAim) {
                 const diff = p.targetAngle - p.angle;
                 if (Math.abs(diff) <= MAX_ROT_SPEED) {
@@ -1851,7 +1851,7 @@
                 }
             });
 
-            // 2. 繪製 ±25° 扇形射角邊界微光刻度、瞄準虛線（觸控模式不繪製）與 雷射箭矢
+            // 2. 繪製 ±15° 扇形射角邊界微光刻度、瞄準虛線（觸控模式不繪製）與 雷射箭矢
             const pivotX = p.offsetX + p.x;
             const pivotY = p.y - 20;
             const isFrozen = (now < p.frozenUntil);
@@ -2252,7 +2252,7 @@
     window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
     
     // =========================================================
-    // 🖱️ 滑鼠水平微調瞄準 & 📱 單人觸控「隨點隨射」立即對準機制
+    // 🖱️ 滑鼠水平微調瞄準（限制 ±15°）& 📱 單人觸控「隨點隨射」立即對準機制（限制 ±15°）
     // =========================================================
     function updateMouseHorizontalTilt(p, clientX) {
         if (!p || Date.now() < p.frozenUntil) return;
@@ -2266,7 +2266,7 @@
         p.usingPointerAim = true;
     }
 
-    // 單人平板/觸控模式：點擊時立即將砲管實際角度 (p.angle) 對準目標方向，確保隨點隨射不延遲
+    // 單人平板/觸控模式：點擊時立即將砲管實際角度 (p.angle) 對準目標方向（同樣受 ±15° 限制），確保隨點隨射不延遲
     function updateTouchAimFor1P(p, clientX, clientY) {
         if (!p || Date.now() < p.frozenUntil) return;
         const rect = canvas.getBoundingClientRect();
@@ -2294,7 +2294,7 @@
     canvas.addEventListener('pointerdown', e => {
         if (!isGameRunning) return;
 
-        // 若為單人平板/觸控模式（支援手指觸控、觸控筆或電腦模擬測試點擊）：立即轉向目標角度並開火
+        // 若為單人平板/觸控模式（支援手指觸控、觸控筆或電腦模擬測試點擊）：立即轉向目標角度（受 ±15° 限制）並開火
         if (playerCount === 1 && players[0] && players[0].controlType === 'touch') {
             e.preventDefault();
             updateTouchAimFor1P(players[0], e.clientX, e.clientY);
