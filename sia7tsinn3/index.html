@@ -7,7 +7,7 @@
     <!-- 引入彩帶特效函式庫 -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+        body { font-family: Arial, 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
         
         #app-container { position: relative; width: 100vw; height: 100vh; background-color: #222; overflow: hidden; display: flex; flex-direction: column; }
         
@@ -31,6 +31,49 @@
         .counter-container { margin-top: 8px; display: flex; justify-content: center; align-items: center; }
 
         #damage-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 60px 30px red; pointer-events: none; z-index: 5; }
+
+        /* 遊戲內左上角音效開關按鈕 與 主選單內嵌鈴噹圖示 */
+        #sfx-toggle-btn {
+            display: none;
+            position: absolute;
+            top: 46px;
+            left: 15px;
+            z-index: 8;
+            background: rgba(255, 255, 255, 0.18);
+            border: 2px solid rgba(255, 255, 255, 0.55);
+            border-radius: 8px;
+            padding: 3px 9px;
+            font-size: 18px;
+            line-height: 1.2;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+        #sfx-toggle-btn:active { transform: scale(0.9); }
+        #sfx-toggle-btn.muted { opacity: 0.5; border-color: #777; background: rgba(0, 0, 0, 0.35); }
+
+        .menu-sfx-tip {
+            margin: 6px 0 2px 0;
+            font-size: 15px;
+            color: #1e293b;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .inline-bell-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #222;
+            border: 2px solid rgba(255, 255, 255, 0.75);
+            border-radius: 7px;
+            padding: 2px 7px;
+            font-size: 15px;
+            line-height: 1.1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+        }
 
         /* 觸控虛擬按鍵 UI：左鍵在左下，右鍵在右下 */
         #touch-controls { display: none; position: absolute; bottom: 100px; left: 0; width: 100%; justify-content: space-between; padding: 0 30px; box-sizing: border-box; z-index: 99; pointer-events: none; }
@@ -57,6 +100,10 @@
                 <label><input type="radio" name="ctrl" value="keyboard" id="ctrl-keyboard" checked> ⌨️ 鍵盤 / 🎮 手把</label>
                 <label style="margin-left: 10px;"><input type="radio" name="ctrl" value="touch" id="ctrl-touch"> 📱 平板 / 觸控螢幕</label>
             </div>
+
+            <p class="menu-sfx-tip">
+                揤鈃仔 <span class="inline-bell-icon">🔔</span> 會使開關音效
+            </p>
             
             <button class="start-btn" onclick="startGame()">開始遊戲</button>
         </div>
@@ -99,6 +146,9 @@
         </div>
     </div>
 
+    <!-- 遊戲中音效開關按鈕（預設開啟） -->
+    <div id="sfx-toggle-btn" title="開關音效">🔔</div>
+
     <canvas id="game-canvas"></canvas>
     
     <!-- 虛擬按鍵 UI：左鍵在左下，右鍵在右下 -->
@@ -123,6 +173,234 @@
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
     
+    // =========================================================
+    // 🎵 Web Audio API 合成音效系統（預設開啟，遊戲中可隨時切換）
+    // =========================================================
+    let sfxCtx = null;
+    let sfxMuted = false;
+
+    function getSfxCtx() {
+        if (!sfxCtx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) sfxCtx = new AudioCtx();
+        }
+        if (sfxCtx && sfxCtx.state === 'suspended') {
+            sfxCtx.resume();
+        }
+        return sfxCtx;
+    }
+
+    function playToneNode(freqStart, freqEnd, duration, type = 'sine', maxGain = 0.2, delay = 0) {
+        if (sfxMuted) return;
+        const audioCtx = getSfxCtx();
+        if (!audioCtx) return;
+        const t0 = audioCtx.currentTime + delay;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freqStart, t0);
+        if (freqEnd !== freqStart) {
+            osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
+        }
+        gain.gain.setValueAtTime(0.001, t0);
+        gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2));
+        gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t0);
+        osc.stop(t0 + duration + 0.02);
+    }
+
+    // a. 射到正確答案音效
+    function sfxHitCorrect(isCombo = false) {
+        playToneNode(587.33, 880, 0.1, 'sine', 0.24, 0);       // D5 -> A5
+        playToneNode(880, 1174.66, 0.18, 'triangle', 0.26, 0.07); // A5 -> D6
+        if (isCombo) {
+            // Combo 限時加成額外高音獎勵聲
+            playToneNode(1318.51, 1760, 0.2, 'sine', 0.22, 0.14);
+        }
+    }
+
+    // b. 射到錯誤答案音效
+    function sfxHitWrong() {
+        playToneNode(160, 55, 0.26, 'sawtooth', 0.3, 0);
+        playToneNode(115, 42, 0.3, 'square', 0.24, 0.04);
+    }
+
+    // c. 正確答案落地音效
+    function sfxMissedCorrect() {
+        playToneNode(380, 120, 0.22, 'triangle', 0.26, 0);
+        playToneNode(140, 45, 0.28, 'sawtooth', 0.28, 0.12);
+    }
+
+    // d-1. 砲台發射雷射箭矢音效
+    function sfxShoot() {
+        playToneNode(920, 240, 0.09, 'sine', 0.15, 0);
+        playToneNode(600, 160, 0.08, 'triangle', 0.1, 0.01);
+    }
+
+    // d-2. 連對 3 題獲得 +2 秒獎勵音效
+    function sfxTimeBonus() {
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((n, idx) => {
+            playToneNode(n, n, 0.12, 'sine', 0.18, idx * 0.05);
+        });
+    }
+
+    // d-3. 每 6 秒全場加速提示音
+    function sfxSpeedUp() {
+        playToneNode(330, 660, 0.14, 'sine', 0.12, 0);
+        playToneNode(440, 880, 0.14, 'triangle', 0.1, 0.06);
+    }
+
+    // d-4. 最後 5 秒急促倒數滴答聲
+    function sfxTick() {
+        playToneNode(900, 700, 0.045, 'triangle', 0.16, 0);
+    }
+
+    // d-5. 遊戲結束結算音效
+    function sfxGameOver(isHigh) {
+        if (isHigh) {
+            const fanfare = [
+                { f: 523.25, d: 0.12, t: 0 },
+                { f: 659.25, d: 0.12, t: 0.13 },
+                { f: 783.99, d: 0.12, t: 0.26 },
+                { f: 1046.50, d: 0.36, t: 0.39 }
+            ];
+            fanfare.forEach(n => playToneNode(n.f, n.f, n.d, 'triangle', 0.24, n.t));
+        } else {
+            const notes = [
+                { f: 329.63, d: 0.18, t: 0 },
+                { f: 293.66, d: 0.18, t: 0.19 },
+                { f: 261.63, d: 0.3, t: 0.38 }
+            ];
+            notes.forEach(n => playToneNode(n.f, n.f * 0.96, n.d, 'sine', 0.2, n.t));
+        }
+    }
+
+    // 綁定音效開關按鈕（防止點擊穿透至畫布觸發射擊）
+    const sfxBtn = document.getElementById('sfx-toggle-btn');
+    function toggleSfx(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        sfxMuted = !sfxMuted;
+        sfxBtn.innerText = sfxMuted ? '🔕' : '🔔';
+        sfxBtn.classList.toggle('muted', sfxMuted);
+        if (!sfxMuted) {
+            playToneNode(659.25, 880, 0.1, 'sine', 0.15, 0);
+        }
+    }
+    sfxBtn.addEventListener('mousedown', toggleSfx);
+    sfxBtn.addEventListener('touchstart', toggleSfx, { passive: false });
+
+    // =========================================================
+    // 📐 方塊文字智慧多行排版系統（最多 3 行，維持方塊尺寸不變）
+    // =========================================================
+    function tokenizeOptionText(text) {
+        // 針對台羅音節（含連字號 -）、空白或單一漢字進行切分，避免把同一個音節拆斷
+        const rawTokens = text.match(/[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\u0300-\u036F]+-?|\s+|./gu);
+        return rawTokens ? rawTokens : [text];
+    }
+
+    function splitLongTokenIntoGraphemes(token) {
+        const graphemes = token.normalize('NFC').match(/.\u0300-\u036F*/gu);
+        return graphemes ? graphemes : Array.from(token);
+    }
+
+    function computeOptionTextLayout(ctx, text, boxWidth, boxHeight) {
+        const maxWidth = boxWidth - 8;   // 左右各留 4px 邊距
+        const maxHeight = boxHeight - 4; // 上下各留 2px 邊距
+        const maxLines = 3;
+        const baseTokens = tokenizeOptionText(text);
+
+        for (let fontSize = 20; fontSize >= 9; fontSize--) {
+            ctx.font = `bold ${fontSize}px Arial, 'Microsoft JhengHei', sans-serif`;
+
+            // 1. 若單行即可完整放入，優先以單行大字呈現
+            if (ctx.measureText(text).width <= maxWidth && fontSize <= maxHeight) {
+                return { fontSize, lines: [text], lineHeight: fontSize };
+            }
+
+            // 2. 檢查是否有單一音節超過方塊寬度
+            let hasOversizedToken = false;
+            for (let t of baseTokens) {
+                if (t.trim() !== '' && ctx.measureText(t).width > maxWidth) {
+                    hasOversizedToken = true;
+                    break;
+                }
+            }
+            // 在字體還夠大時（>= 12px），優先微縮字體以保持單一音節完整不斷裂
+            if (hasOversizedToken && fontSize >= 12) {
+                continue;
+            }
+
+            // 若字體已縮至 11px 以下仍有超長單一音節，才拆解為字母單元
+            let tokens = [];
+            if (hasOversizedToken) {
+                baseTokens.forEach(t => {
+                    if (ctx.measureText(t).width > maxWidth) {
+                        tokens.push(...splitLongTokenIntoGraphemes(t));
+                    } else {
+                        tokens.push(t);
+                    }
+                });
+            } else {
+                tokens = baseTokens;
+            }
+
+            // 3. 進行多行換行排入
+            let lines = [];
+            let currentLine = "";
+            for (let tok of tokens) {
+                if (currentLine === "" && tok.trim() === "") continue;
+                let testLine = currentLine + tok;
+                if (ctx.measureText(testLine).width <= maxWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine !== "") lines.push(currentLine.trimEnd());
+                    currentLine = tok.trimStart();
+                }
+            }
+            if (currentLine !== "") lines.push(currentLine.trimEnd());
+
+            // 4. 若為 2 行且由多個字詞組成，自動平衡上下兩行長度讓視覺更美觀
+            if (lines.length === 2 && tokens.length >= 3) {
+                let bestSplit = null;
+                let minDiff = Infinity;
+                for (let i = 1; i < tokens.length; i++) {
+                    const l1 = tokens.slice(0, i).join('').trim();
+                    const l2 = tokens.slice(i).join('').trim();
+                    if (!l1 || !l2) continue;
+                    const w1 = ctx.measureText(l1).width;
+                    const w2 = ctx.measureText(l2).width;
+                    if (w1 <= maxWidth && w2 <= maxWidth) {
+                        const diff = Math.abs(w1 - w2);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            bestSplit = [l1, l2];
+                        }
+                    }
+                }
+                if (bestSplit) lines = bestSplit;
+            }
+
+            // 5. 檢查行數（最多 3 行）與總高度是否能完美塞入 50px 高的方塊中
+            if (lines.length <= maxLines) {
+                const lineRatio = lines.length === 1 ? 1 : (lines.length === 2 ? 1.12 : 1.05);
+                const lineHeight = fontSize * lineRatio;
+                const totalHeight = lines.length * lineHeight;
+                if (totalHeight <= maxHeight) {
+                    return { fontSize, lines, lineHeight };
+                }
+            }
+        }
+
+        // 保底回傳（最多 3 行）
+        return { fontSize: 9, lines: [text.slice(0, 12), text.slice(12, 24), text.slice(24)].filter(Boolean), lineHeight: 10 };
+    }
+
     let time = 50, score = 0, hearts = 4;
     let globalSpeedBonus = 0;
     let elapsedTime = 0;
@@ -154,6 +432,16 @@
         } else {
             player.x = Math.max(30, Math.min(player.x, canvas.width - 30));
         }
+
+        // 若視窗尺寸改變，同步更新下落方塊的 X 座標與寬度並重新計算文字排版
+        if (fallingOptions.length > 0) {
+            const colWidth = canvas.width / 4;
+            fallingOptions.forEach((opt, index) => {
+                opt.x = colWidth * index + colWidth / 2;
+                opt.width = Math.min(colWidth * 0.9, 140);
+                opt.layout = computeOptionTextLayout(ctx, opt.text, opt.width, opt.height);
+            });
+        }
     }
     window.addEventListener('resize', resizeCanvas);
 
@@ -180,11 +468,13 @@
 
     async function startGame() {
         if(selectedLessons.length === 0) return alert("請至少選擇一課！");
+        getSfxCtx(); // 解鎖瀏覽器音效引擎
         currentMode = document.querySelector('input[name="mode"]:checked').value;
         controlMode = document.querySelector('input[name="ctrl"]:checked').value;
         
         document.getElementById('menu').style.display = 'none';
         canvas.style.display = 'block';
+        sfxBtn.style.display = 'block';
         
         if (controlMode === 'touch') {
             document.getElementById('touch-controls').style.display = 'flex';
@@ -230,8 +520,13 @@
         time--;
         elapsedTime++;
         
+        if (time > 0 && time <= 5) {
+            sfxTick();
+        }
+
         if(elapsedTime > 0 && elapsedTime % 6 === 0) {
             globalSpeedBonus += 0.3;
+            sfxSpeedUp();
             canvas.style.boxShadow = "inset 0 0 40px 20px #00e5ff";
             setTimeout(() => { canvas.style.boxShadow = "none"; }, 300);
         }
@@ -261,14 +556,17 @@
             if(delay > maxDly) maxDly = delay;
             
             let baseSpeed = 0.5 + Math.random() * 0.7; 
+            let boxW = Math.min(colWidth * 0.9, 140);
+            let boxH = 50;
             
             fallingOptions.push({
                 text: text,
                 isCorrect: isCorrect,
                 x: colWidth * index + colWidth / 2,
                 y: -60,
-                width: Math.min(colWidth * 0.9, 140), 
-                height: 50,
+                width: boxW, 
+                height: boxH,
+                layout: computeOptionTextLayout(ctx, text, boxW, boxH),
                 delay: delay,
                 speed: baseSpeed,
                 active: true,
@@ -299,6 +597,7 @@
             speed: 15,
             active: true
         });
+        sfxShoot();
         player.cooldown = 500; 
     }
 
@@ -357,6 +656,7 @@
             if(opt.y > canvas.height) {
                 opt.active = false;
                 if(opt.isCorrect) {
+                    sfxMissedCorrect(); // c. 正確答案落地音效
                     takeDamage(); 
                     if(!isSpawning) {
                         isSpawning = true;
@@ -397,13 +697,16 @@
                         else if(yRatio < 0.66) score += 20;
                         else score += 10;
 
-                        if(waveData.comboActive && waveData.comboTimeLeft > 0) {
+                        const isComboHit = (waveData.comboActive && waveData.comboTimeLeft > 0);
+                        if(isComboHit) {
                             score += 15; 
                         }
+                        sfxHitCorrect(isComboHit); // a. 射到正確答案音效
 
                         streakCount++;
                         if(streakCount > 0 && streakCount % 3 === 0) {
                             time += 2;
+                            sfxTimeBonus(); // 連對 3 題加秒獎勵音效
                         }
 
                         const rect = canvas.getBoundingClientRect();
@@ -419,6 +722,7 @@
                         
                     } else {
                         opt.active = false; 
+                        sfxHitWrong(); // b. 射到錯誤答案音效
                         takeDamage();
                         player.cooldown = 1000; 
                     }
@@ -435,7 +739,7 @@
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.fillStyle = "yellow";
-        ctx.font = "bold 28px Arial";
+        ctx.font = "bold 28px Arial, 'Microsoft JhengHei', sans-serif";
         ctx.textAlign = "center";
         ctx.fillText(currentQuestionText, canvas.width / 2, 50);
 
@@ -466,6 +770,7 @@
             ctx.fillText("Combo 倒數", canvas.width/2, 105);
         }
 
+        // 繪製下落方塊與自動多行文字（最多 3 行）
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         fallingOptions.forEach(opt => {
@@ -478,13 +783,15 @@
             ctx.strokeRect(opt.x - opt.width/2, opt.y - opt.height/2, opt.width, opt.height);
             
             ctx.fillStyle = "black";
-            let fontSize = 20;
-            ctx.font = `bold ${fontSize}px Arial`;
-            while(ctx.measureText(opt.text).width > opt.width - 10 && fontSize > 10) {
-                fontSize--;
-                ctx.font = `bold ${fontSize}px Arial`;
+            const layout = opt.layout || computeOptionTextLayout(ctx, opt.text, opt.width, opt.height);
+            ctx.font = `bold ${layout.fontSize}px Arial, 'Microsoft JhengHei', sans-serif`;
+            
+            const lines = layout.lines;
+            const lineHeight = layout.lineHeight;
+            const startY = opt.y - ((lines.length - 1) * lineHeight) / 2;
+            for (let i = 0; i < lines.length; i++) {
+                ctx.fillText(lines[i], opt.x, startY + i * lineHeight);
             }
-            ctx.fillText(opt.text, opt.x, opt.y);
         });
 
         // 定義砲台旋轉的 Y 軸中心點
@@ -569,6 +876,7 @@
         cancelAnimationFrame(gameLoop);
         clearInterval(secondInterval);
         canvas.style.display = 'none';
+        sfxBtn.style.display = 'none';
         document.getElementById('touch-controls').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
         
@@ -577,12 +885,16 @@
         let comment = "";
         if (score >= 400) {
             comment = "真gâu";
+            sfxGameOver(true);
         } else if (score >= 300) {
             comment = "袂bái";
+            sfxGameOver(true);
         } else if (score >= 200) {
             comment = "Beh出師矣";
+            sfxGameOver(true);
         } else {
             comment = "繼續phah piànn";
+            sfxGameOver(false);
         }
         document.getElementById('score-comment').innerText = comment;
     }
