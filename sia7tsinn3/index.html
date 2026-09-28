@@ -956,7 +956,6 @@
             btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
             if (gp.axes.length > 9) {
                 const hat = gp.axes[9];
-                // Raw DS4 Hat Switch 8方向解碼（閒置值約 1.2857 或 > 1.1）
                 if (hat <= 1.05) {
                     if (hat <= -0.65 || hat >= 0.9) navUp = true;
                     if (hat >= -0.2 && hat <= 0.5) navDown = true;
@@ -1003,7 +1002,6 @@
     function drawNextTargetCard() {
         if (questionDeck.length === 0) {
             questionDeck = shuffleArray([...activeCards]);
-            // 若新洗好的牌組第一張剛好跟上一題相同，強制與後面不同詞的牌交換
             if (lastTargetCard && questionDeck.length > 1) {
                 if (questionDeck[0].h === lastTargetCard.h || questionDeck[0].r === lastTargetCard.r) {
                     const swapIdx = questionDeck.findIndex(c => c.h !== lastTargetCard.h && c.r !== lastTargetCard.r);
@@ -1014,7 +1012,6 @@
             }
         }
 
-        // 雙重保險：若因課次內有重複列導致下一張與上一題相同，優先挑出不同的一張
         if (lastTargetCard && questionDeck.length > 1) {
             if (questionDeck[0].h === lastTargetCard.h || questionDeck[0].r === lastTargetCard.r) {
                 const diffIdx = questionDeck.findIndex(c => c.h !== lastTargetCard.h && c.r !== lastTargetCard.r);
@@ -1046,7 +1043,6 @@
                 if (wrongs.length === 3) break;
             }
         }
-        // 萬一題庫同音或同字極多不足 3 個，才從剩餘候選補齊
         let idx = 0;
         while (wrongs.length < 3 && idx < candidates.length) {
             if (!wrongs.includes(candidates[idx])) wrongs.push(candidates[idx]);
@@ -1160,11 +1156,11 @@
     // =========================================================
     // 🎮 主選單與結算畫面（含「敢欲複習？」）全手把導覽系統
     // =========================================================
-    let menuRowIdx = hasRestoredLessons ? 99 : 0; // 若已記憶課次，游標直接停在「開始遊戲」方便一鍵開局
+    let menuRowIdx = hasRestoredLessons ? 99 : 0;
     let menuColIdx = 0;
-    let promptColIdx = 0; // 0 = 欲, 1 = 無愛
-    let reviewRowIdx = -1; // -1 = 回主選單按鈕, >=0 = 錯題項目
-    let reviewPanelIdx = 0; // 0 = P1清單, 1 = P2清單
+    let promptColIdx = 0;
+    let reviewRowIdx = -1;
+    let reviewPanelIdx = 0;
     let lastNavMoveTime = 0;
     let gpPrevButtonA = [false, false, false, false];
     let gpPrevButtonB = [false, false, false, false];
@@ -1257,7 +1253,6 @@
                 if (input.onchange) input.onchange();
             }
         } else if (el.tagName === 'SELECT') {
-            // 手把在雙人控制裝置選單按 A/✕ 或左右鍵時，直接切換「鍵盤+滑鼠」與「遊戲手把」
             el.value = (el.value === 'kb_mouse') ? 'gamepad' : 'kb_mouse';
             sync2PControls(el.id === 'p1-ctrl-select' ? 'p1' : 'p2');
         } else if (el.id === 'main-start-btn') {
@@ -1347,7 +1342,6 @@
                 const promptBox = document.getElementById('review-prompt-box');
                 const reviewSec = document.getElementById('review-section');
 
-                // 1. 操控「敢欲複習？」的「欲」與「無愛」
                 if (promptBox.style.display !== 'none') {
                     if (now - lastNavMoveTime > 180 && (anyLeft || anyRight)) {
                         promptColIdx = (promptColIdx === 0) ? 1 : 0;
@@ -1364,7 +1358,6 @@
                         location.reload();
                     }
                 }
-                // 2. 操控「錯題複習清單」與「回主選單」按鈕
                 else if (reviewSec.style.display !== 'none') {
                     const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item'));
                     const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
@@ -1384,7 +1377,7 @@
                             if (reviewRowIdx >= 0 && reviewRowIdx < activeList.length - 1) {
                                 reviewRowIdx++;
                             } else {
-                                reviewRowIdx = -1; // 回到下方「回主選單」按鈕
+                                reviewRowIdx = -1;
                             }
                             lastNavMoveTime = now;
                             sfxUiMove();
@@ -1684,7 +1677,7 @@
                 }
             }
 
-            // 滑鼠或觸控目標角度平滑追隨（限制最高轉速與手把相同，且不超出 ±25°）
+            // 滑鼠目標角度平滑追隨（限制最高轉速與手把相同，且不超出 ±25°）
             if (!isFrozen && p.usingPointerAim) {
                 const diff = p.targetAngle - p.angle;
                 if (Math.abs(diff) <= MAX_ROT_SPEED) {
@@ -1824,7 +1817,7 @@
         ctx.fillStyle = "#222";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 瞄準虛線固定維持 2/3 長度且全程顯示，不消失
+        // 瞄準虛線固定維持 2/3 長度（僅鍵鼠與手把模式顯示；單人平板/觸控模式全程不顯示瞄準線）
         const fullAimDist = Math.min(800, canvas.height - 90);
         const fixedShortenedAimEnd = 45 + (fullAimDist - 45) * (2 / 3);
 
@@ -1858,7 +1851,7 @@
                 }
             });
 
-            // 2. 繪製 ±25° 扇形射角邊界微光刻度、2/3 固定長度瞄準虛線 與 雷射箭矢
+            // 2. 繪製 ±25° 扇形射角邊界微光刻度、瞄準虛線（觸控模式不繪製）與 雷射箭矢
             const pivotX = p.offsetX + p.x;
             const pivotY = p.y - 20;
             const isFrozen = (now < p.frozenUntil);
@@ -1874,14 +1867,17 @@
             });
             ctx.restore();
 
-            ctx.beginPath();
-            ctx.setLineDash([10, 8]);
-            ctx.moveTo(pivotX + Math.cos(p.angle) * 45, pivotY + Math.sin(p.angle) * 45);
-            ctx.lineTo(pivotX + Math.cos(p.angle) * fixedShortenedAimEnd, pivotY + Math.sin(p.angle) * fixedShortenedAimEnd);
-            ctx.strokeStyle = isFrozen ? "rgba(125, 211, 252, 0.25)" : "rgba(255, 255, 255, 0.42)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.setLineDash([]);
+            // 單人平板/觸控模式取消瞄準線，遊戲一開始便沒有瞄準線
+            if (p.controlType !== 'touch') {
+                ctx.beginPath();
+                ctx.setLineDash([10, 8]);
+                ctx.moveTo(pivotX + Math.cos(p.angle) * 45, pivotY + Math.sin(p.angle) * 45);
+                ctx.lineTo(pivotX + Math.cos(p.angle) * fixedShortenedAimEnd, pivotY + Math.sin(p.angle) * fixedShortenedAimEnd);
+                ctx.strokeStyle = isFrozen ? "rgba(125, 211, 252, 0.25)" : "rgba(255, 255, 255, 0.42)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
 
             p.arrows.forEach(arrow => {
                 if(!arrow.active) return;
@@ -2103,7 +2099,6 @@
         document.getElementById('touch-controls').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
 
-        // 每次結束時先顯示「敢欲複習？」詢問框，並將手把預設焦點放在「欲」
         document.getElementById('review-prompt-box').style.display = 'block';
         document.getElementById('review-section').style.display = 'none';
         promptColIdx = 0;
@@ -2233,7 +2228,7 @@
         }
 
         reviewSec.style.display = 'flex';
-        reviewRowIdx = -1; // 預設聚焦在下方「回主選單」按鈕（按上方向鍵可瀏覽錯題聽發音）
+        reviewRowIdx = -1;
         updateMenuGpFocusVisual();
     }
 
@@ -2257,7 +2252,7 @@
     window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
     
     // =========================================================
-    // 🖱️ 滑鼠水平微調瞄準（與砲台走位座標分離、限制 ±25°）& 🚫 封鎖非授權觸控
+    // 🖱️ 滑鼠水平微調瞄準 & 📱 單人觸控「隨點隨射」立即對準機制
     // =========================================================
     function updateMouseHorizontalTilt(p, clientX) {
         if (!p || Date.now() < p.frozenUntil) return;
@@ -2271,6 +2266,7 @@
         p.usingPointerAim = true;
     }
 
+    // 單人平板/觸控模式：點擊時立即將砲管實際角度 (p.angle) 對準目標方向，確保隨點隨射不延遲
     function updateTouchAimFor1P(p, clientX, clientY) {
         if (!p || Date.now() < p.frozenUntil) return;
         const rect = canvas.getBoundingClientRect();
@@ -2282,8 +2278,9 @@
         const dy = canvasY - (p.y - 20);
         let a = Math.atan2(dy, dx);
         if (a >= 0) a = (dx < 0) ? MIN_AIM_ANGLE : MAX_AIM_ANGLE;
-        p.targetAngle = clampAimAngle(a);
-        p.usingPointerAim = true;
+        p.angle = clampAimAngle(a);
+        p.targetAngle = p.angle;
+        p.usingPointerAim = false;
     }
 
     canvas.addEventListener('pointermove', e => {
@@ -2291,23 +2288,23 @@
         if (e.pointerType === 'mouse') {
             const kbPlayer = players.find(p => p.controlType === 'kb_mouse' || p.controlType === 'kb_and_gp');
             if (kbPlayer) updateMouseHorizontalTilt(kbPlayer, e.clientX);
-        } else if (playerCount === 1 && players[0] && players[0].controlType === 'touch') {
-            updateTouchAimFor1P(players[0], e.clientX, e.clientY);
         }
     });
 
     canvas.addEventListener('pointerdown', e => {
         if (!isGameRunning) return;
 
+        // 若為單人平板/觸控模式（支援手指觸控、觸控筆或電腦模擬測試點擊）：立即轉向目標角度並開火
+        if (playerCount === 1 && players[0] && players[0].controlType === 'touch') {
+            e.preventDefault();
+            updateTouchAimFor1P(players[0], e.clientX, e.clientY);
+            shootForPlayer(players[0]);
+            return;
+        }
+
+        // 雙人對戰與單人鍵鼠模式：封鎖手指觸控與觸控筆
         if (e.pointerType !== 'mouse') {
-            if (playerCount === 1 && players[0] && players[0].controlType === 'touch') {
-                e.preventDefault();
-                updateTouchAimFor1P(players[0], e.clientX, e.clientY);
-                shootForPlayer(players[0]);
-            } else {
-                e.preventDefault();
-                return;
-            }
+            e.preventDefault();
             return;
         }
 
@@ -2339,9 +2336,15 @@
     
     btnLeft.addEventListener('touchstart', (e) => { e.stopPropagation(); e.preventDefault(); keys.a = true; });
     btnLeft.addEventListener('touchend', (e) => { e.stopPropagation(); e.preventDefault(); keys.a = false; });
+    btnLeft.addEventListener('mousedown', (e) => { e.stopPropagation(); e.preventDefault(); keys.a = true; });
+    btnLeft.addEventListener('mouseup', (e) => { e.stopPropagation(); e.preventDefault(); keys.a = false; });
+    btnLeft.addEventListener('mouseleave', () => { keys.a = false; });
     
     btnRight.addEventListener('touchstart', (e) => { e.stopPropagation(); e.preventDefault(); keys.d = true; });
-    btnRight.addEventListener('touchend', (e) => { e.stopPropagation(); e.stopPropagation(); keys.d = false; });
+    btnRight.addEventListener('touchend', (e) => { e.stopPropagation(); e.preventDefault(); keys.d = false; });
+    btnRight.addEventListener('mousedown', (e) => { e.stopPropagation(); e.preventDefault(); keys.d = true; });
+    btnRight.addEventListener('mouseup', (e) => { e.stopPropagation(); e.preventDefault(); keys.d = false; });
+    btnRight.addEventListener('mouseleave', () => { keys.d = false; });
 </script>
 </body>
 </html>
