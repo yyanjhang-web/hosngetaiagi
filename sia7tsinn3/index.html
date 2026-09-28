@@ -65,7 +65,8 @@
         .counter-container { margin-top: 4px; display: flex; justify-content: center; align-items: center; }
         .counter-container img { height: 14px; }
 
-        #game-canvas { display: none; width: 100%; height: 100%; background: #222; touch-action: none; }
+        /* 遊戲畫布隱藏系統滑鼠游標，避免直接用游標點擊方塊秒答 */
+        #game-canvas { display: none; width: 100%; height: 100%; background: #222; touch-action: none; cursor: none; }
 
         /* 遊戲內左上角音效開關按鈕 */
         #sfx-toggle-btn {
@@ -382,6 +383,14 @@
         "防災素一": "康軒防災素一音檔",
         "拼音練習": "拼音練習音檔"
     };
+
+    // =========================================================
+    // ⚖️ 公平性核心常數：限制砲管最大扇形仰角（正上方左右各 25°）與統一最高轉速
+    // =========================================================
+    const MAX_TILT_RAD = (25 * Math.PI) / 180; // 左右各 25 度
+    const MIN_AIM_ANGLE = -Math.PI / 2 - MAX_TILT_RAD;
+    const MAX_AIM_ANGLE = -Math.PI / 2 + MAX_TILT_RAD;
+    const MAX_ROT_SPEED = 0.038; // 每幀最大旋轉弧度（滑鼠與手把完全一致）
 
     let selectedLessons = [];
     let activeCards = [];
@@ -726,7 +735,6 @@
         }
 
         if (fillState >= 1) {
-            // 完整點亮狀態（已累積 2 題）
             traceHexPath();
             ctx.shadowBlur = 10;
             ctx.shadowColor = "#00e5ff";
@@ -753,10 +761,8 @@
             ctx.fillStyle = "#7dd3fc";
             ctx.fill();
         } else if (fillState >= 0.5) {
-            // 半格充能狀態（已答對 1 題，下半部亮起冰藍並伴隨呼吸閃爍）
             const pulse = 0.55 + 0.45 * Math.sin(Date.now() / 140);
 
-            // 1. 先畫暗色底框與暗色雪花線條
             traceHexPath();
             ctx.fillStyle = "#16191d";
             ctx.fill();
@@ -772,7 +778,6 @@
                 ctx.stroke();
             }
 
-            // 2. 裁切下半部（y >= 0），注入發光冰藍能量與下半部亮雪花
             ctx.save();
             ctx.beginPath();
             ctx.rect(-radius - 2, 0, (radius + 2) * 2, radius + 2);
@@ -794,7 +799,6 @@
             }
             ctx.restore();
 
-            // 3. 中央半格能量水平分界亮線與呼吸外框
             ctx.beginPath();
             ctx.moveTo(-radius * 0.82, 0);
             ctx.lineTo(radius * 0.82, 0);
@@ -809,7 +813,6 @@
             ctx.strokeStyle = `rgba(56, 189, 248, ${0.5 + 0.5 * pulse})`;
             ctx.stroke();
         } else {
-            // 灰黑剪影狀態（0 題）
             traceHexPath();
             ctx.fillStyle = "#16191d";
             ctx.fill();
@@ -892,6 +895,10 @@
     let waveData = { spawnTime: 0, maxDelay: 0, comboDuration: 3000, comboActive: false, comboTimeLeft: 0 };
     let keys = { a: false, A: false, d: false, D: false, ArrowLeft: false, ArrowRight: false };
 
+    function clampAimAngle(angle) {
+        return Math.max(MIN_AIM_ANGLE, Math.min(MAX_AIM_ANGLE, angle));
+    }
+
     function createPlayer(id, controlType, gpIndex = 0) {
         const arenaW = (playerCount === 2) ? (canvas.width / 2) : canvas.width;
         const offsetX = (playerCount === 2 && id === 1) ? (canvas.width / 2) : 0;
@@ -903,6 +910,8 @@
             y: canvas.height - 50,
             speed: 8,
             angle: -Math.PI / 2,
+            targetAngle: -Math.PI / 2,
+            usingPointerAim: false,
             cooldown: 0,
             score: 0,
             hearts: 4,
@@ -916,7 +925,7 @@
             gpPrevReplay: false,
             arrows: [],
             fallingOptions: [],
-            wrongQuestions: [] // 記錄該玩家的錯題與未搶答題目清單
+            wrongQuestions: []
         };
     }
 
@@ -1214,9 +1223,9 @@
                         if (state.moveLeft) p.x -= p.speed;
                         if (state.moveRight) p.x += p.speed;
                         if (state.aimAxis !== 0) {
-                            p.angle += state.aimAxis * 0.038;
-                            if (p.angle > -0.08) p.angle = -0.08;
-                            if (p.angle < -Math.PI + 0.08) p.angle = -Math.PI + 0.08;
+                            p.usingPointerAim = false;
+                            p.angle = clampAimAngle(p.angle + state.aimAxis * MAX_ROT_SPEED);
+                            p.targetAngle = p.angle;
                         }
                         if (state.btnShoot) shootForPlayer(p);
                     }
@@ -1230,6 +1239,16 @@
                         playQuestionAudio();
                     }
                     p.gpPrevReplay = state.btnReplay;
+                }
+            }
+
+            // 滑鼠或觸控目標角度平滑追隨（限制最高轉速與手把相同，且不超出 ±25°）
+            if (!isFrozen && p.usingPointerAim) {
+                const diff = p.targetAngle - p.angle;
+                if (Math.abs(diff) <= MAX_ROT_SPEED) {
+                    p.angle = clampAimAngle(p.targetAngle);
+                } else {
+                    p.angle = clampAimAngle(p.angle + Math.sign(diff) * MAX_ROT_SPEED);
                 }
             }
 
@@ -1367,11 +1386,9 @@
         ctx.fillStyle = "#222";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 每一題從出題起算 4.5 秒內，瞄準線由 2/3 初始長度逐漸縮短退回砲口 (45px) 消失
+        // 瞄準虛線固定維持 2/3 長度且全程顯示，不消失
         const fullAimDist = Math.min(800, canvas.height - 90);
-        const initialShortenedLen = (fullAimDist - 45) * (2 / 3);
-        const aimRemainRatio = Math.max(0, 1 - (now - waveData.spawnTime) / 4500);
-        const currentAimLen = initialShortenedLen * aimRemainRatio;
+        const fixedShortenedAimEnd = 45 + (fullAimDist - 45) * (2 / 3);
 
         players.forEach((p, idx) => {
             ctx.save();
@@ -1403,22 +1420,32 @@
                 }
             });
 
-            // 2. 繪製在 4.5 秒內逐漸縮回砲口消失的虛線瞄準線 與 雷射箭矢
+            // 2. 繪製 ±25° 扇形射角邊界微光刻度、2/3 固定長度瞄準虛線 與 雷射箭矢
             const pivotX = p.offsetX + p.x;
             const pivotY = p.y - 20;
             const isFrozen = (now < p.frozenUntil);
 
-            if (currentAimLen > 1) {
-                const aimEndDist = 45 + currentAimLen;
+            // 繪製砲台 ±25° 扇形邊界指示短線，讓玩家直覺看出最大射角範圍
+            ctx.save();
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.22)";
+            ctx.lineWidth = 1.5;
+            [MIN_AIM_ANGLE, MAX_AIM_ANGLE].forEach(limAng => {
                 ctx.beginPath();
-                ctx.setLineDash([10, 8]);
-                ctx.moveTo(pivotX + Math.cos(p.angle) * 45, pivotY + Math.sin(p.angle) * 45);
-                ctx.lineTo(pivotX + Math.cos(p.angle) * aimEndDist, pivotY + Math.sin(p.angle) * aimEndDist);
-                ctx.strokeStyle = isFrozen ? "rgba(125, 211, 252, 0.25)" : "rgba(255, 255, 255, 0.38)";
-                ctx.lineWidth = 2;
+                ctx.moveTo(pivotX + Math.cos(limAng) * 48, pivotY + Math.sin(limAng) * 48);
+                ctx.lineTo(pivotX + Math.cos(limAng) * 68, pivotY + Math.sin(limAng) * 68);
                 ctx.stroke();
-                ctx.setLineDash([]);
-            }
+            });
+            ctx.restore();
+
+            // 繪製 2/3 長度瞄準虛線（全程顯示不消失）
+            ctx.beginPath();
+            ctx.setLineDash([10, 8]);
+            ctx.moveTo(pivotX + Math.cos(p.angle) * 45, pivotY + Math.sin(p.angle) * 45);
+            ctx.lineTo(pivotX + Math.cos(p.angle) * fixedShortenedAimEnd, pivotY + Math.sin(p.angle) * fixedShortenedAimEnd);
+            ctx.strokeStyle = isFrozen ? "rgba(125, 211, 252, 0.25)" : "rgba(255, 255, 255, 0.42)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
 
             p.arrows.forEach(arrow => {
                 if(!arrow.active) return;
@@ -1814,32 +1841,68 @@
     });
     window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
     
-    // 滑鼠瞄準與左右鍵事件（左鍵射擊、右鍵發動凍結道具）
-    function updateAimForPlayer(p, clientX, clientY) {
+    // =========================================================
+    // 🖱️ 滑鼠水平微調瞄準（與砲台走位座標分離、限制 ±25°）& 🚫 封鎖非授權觸控
+    // =========================================================
+    function updateMouseHorizontalTilt(p, clientX) {
+        if (!p || Date.now() < p.frozenUntil) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const canvasX = (clientX - rect.left) * scaleX;
+
+        // 依據滑鼠在該玩家半場內的水平位置對應至 [-25°, +25°] 傾角，與砲台 x 位置獨立，走位時不亂飄
+        const localRatio = (canvasX - p.offsetX) / p.arenaWidth;
+        const normalized = Math.max(-1, Math.min(1, (localRatio - 0.5) * 2.2));
+        p.targetAngle = clampAimAngle(-Math.PI / 2 + normalized * MAX_TILT_RAD);
+        p.usingPointerAim = true;
+    }
+
+    function updateTouchAimFor1P(p, clientX, clientY) {
         if (!p || Date.now() < p.frozenUntil) return;
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
         const canvasX = (clientX - rect.left) * scaleX;
         const canvasY = (clientY - rect.top) * scaleY;
-        let dx = canvasX - (p.offsetX + p.x);
-        let dy = canvasY - (p.y - 20);
+        const dx = canvasX - (p.offsetX + p.x);
+        const dy = canvasY - (p.y - 20);
         let a = Math.atan2(dy, dx);
-        if(a < -0.05 && a > -Math.PI + 0.05) p.angle = a;
+        if (a >= 0) a = (dx < 0) ? MIN_AIM_ANGLE : MAX_AIM_ANGLE;
+        p.targetAngle = clampAimAngle(a);
+        p.usingPointerAim = true;
     }
 
-    canvas.addEventListener('mousemove', e => {
+    canvas.addEventListener('pointermove', e => {
         if (!isGameRunning) return;
-        const kbPlayer = players.find(p => p.controlType === 'kb_mouse' || p.controlType === 'kb_and_gp');
-        if (kbPlayer) updateAimForPlayer(kbPlayer, e.clientX, e.clientY);
+        // 僅允許實體滑鼠 (mouse) 控制鍵鼠玩家，完全忽略手指觸控 (touch) 與觸控筆
+        if (e.pointerType === 'mouse') {
+            const kbPlayer = players.find(p => p.controlType === 'kb_mouse' || p.controlType === 'kb_and_gp');
+            if (kbPlayer) updateMouseHorizontalTilt(kbPlayer, e.clientX);
+        } else if (playerCount === 1 && players[0] && players[0].controlType === 'touch') {
+            updateTouchAimFor1P(players[0], e.clientX, e.clientY);
+        }
     });
-    
-    canvas.addEventListener('mousedown', e => { 
+
+    canvas.addEventListener('pointerdown', e => {
         if (!isGameRunning) return;
+
+        // 1. 若為手指觸控或觸控筆：雙人對戰與單人鍵鼠模式完全封鎖，防止直接戳螢幕方塊秒答
+        if (e.pointerType !== 'mouse') {
+            if (playerCount === 1 && players[0] && players[0].controlType === 'touch') {
+                e.preventDefault();
+                updateTouchAimFor1P(players[0], e.clientX, e.clientY);
+                shootForPlayer(players[0]);
+            } else {
+                e.preventDefault();
+                return;
+            }
+            return;
+        }
+
+        // 2. 實體滑鼠點擊：左鍵僅往當前砲管方向開火（不瞬移砲管），右鍵發動凍結道具
         const kbPlayer = players.find(p => p.controlType === 'kb_mouse' || p.controlType === 'kb_and_gp');
         if (!kbPlayer) return;
         if (e.button === 0) {
-            updateAimForPlayer(kbPlayer, e.clientX, e.clientY);
             shootForPlayer(kbPlayer);
         } else if (e.button === 2) {
             e.preventDefault();
@@ -1847,22 +1910,20 @@
         }
     });
 
+    // 攔截畫布上所有原生 touchstart，避免舊瀏覽器觸發合成滑鼠點擊
+    canvas.addEventListener('touchstart', e => {
+        if (!isGameRunning) return;
+        if (!(playerCount === 1 && players[0] && players[0].controlType === 'touch')) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, { passive: false });
+
     canvas.addEventListener('contextmenu', e => {
         e.preventDefault();
     });
-    
-    // 觸控：點擊畫布即瞄準並射擊
-    canvas.addEventListener('touchstart', e => {
-        if (!isGameRunning || playerCount !== 1) return;
-        const touchPlayer = players[0];
-        if (touchPlayer && touchPlayer.controlType === 'touch') { 
-            e.preventDefault(); 
-            updateAimForPlayer(touchPlayer, e.changedTouches[0].clientX, e.changedTouches[0].clientY); 
-            shootForPlayer(touchPlayer);
-        }
-    }, {passive: false});
 
-    // 虛擬方向鍵事件
+    // 虛擬方向鍵事件（僅供單人平板觸控模式移動砲台）
     const btnLeft = document.getElementById('btn-left');
     const btnRight = document.getElementById('btn-right');
     
