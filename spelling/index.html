@@ -16,38 +16,39 @@
         #app-container { position: relative; width: 100vw; height: 100vh; height: 100dvh; max-width: 800px; background-color: #16213e; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         
         /* 主選單與結算畫面：緊湊化排版避免手機直向產生捲軸 */
-        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f3460; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 12px 14px 6px 14px; box-sizing: border-box; overflow-y: auto; }
+        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #0f3460; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 10px 14px 6px 14px; box-sizing: border-box; overflow-y: auto; }
         
-        h2 { color: #e94560; font-size: 26px; margin: 0 0 2px 0; text-shadow: 0 0 12px rgba(233, 69, 96, 0.6); letter-spacing: 2px; }
-        .subtitle { color: #00e5ff; font-size: 14px; font-weight: bold; margin-top: 0; margin-bottom: 6px; text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); letter-spacing: 1px; }
+        h2 { color: #e94560; font-size: 25px; margin: 0 0 2px 0; text-shadow: 0 0 12px rgba(233, 69, 96, 0.6); letter-spacing: 2px; }
+        .subtitle { color: #00e5ff; font-size: 13.5px; font-weight: bold; margin-top: 0; margin-bottom: 5px; text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); letter-spacing: 1px; }
         
         /* 課次選擇區（緊湊排列） */
-        #lessons { display: flex; flex-wrap: wrap; justify-content: center; max-width: 600px; gap: 5px; margin-bottom: 6px; }
-        .lesson-btn { padding: 5px 10px; margin: 0; background: #2a3654; color: #fff; border: 1.5px solid #4a5c88; border-radius: 7px; font-size: 14px; cursor: pointer; transition: 0.2s; font-family: inherit; }
+        #lessons { display: flex; flex-wrap: wrap; justify-content: center; max-width: 600px; gap: 5px; margin-bottom: 5px; }
+        .lesson-btn { padding: 4px 10px; margin: 0; background: #2a3654; color: #fff; border: 1.5px solid #4a5c88; border-radius: 7px; font-size: 13.5px; cursor: pointer; transition: 0.2s; font-family: inherit; }
         .lesson-btn.active { background: #e94560; border-color: #ff6b81; box-shadow: 0 0 8px #e94560; font-weight: bold; }
         
         /* 難度選擇區（三欄並排） */
-        .difficulty-container { display: flex; gap: 6px; width: 96%; max-width: 500px; margin-bottom: 6px; }
-        .diff-btn { flex: 1; background: #1a1a2e; border: 1.5px solid #4a5c88; border-radius: 8px; padding: 5px 4px; color: #ccc; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: inherit; }
-        .diff-btn .diff-title { font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 1px; }
+        .difficulty-container { display: flex; gap: 6px; width: 96%; max-width: 500px; margin-bottom: 5px; }
+        .diff-btn { flex: 1; background: #1a1a2e; border: 1.5px solid #4a5c88; border-radius: 8px; padding: 4px 4px; color: #ccc; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: inherit; }
+        .diff-btn .diff-title { font-size: 13.5px; font-weight: bold; color: #fff; margin-bottom: 1px; }
         .diff-btn .diff-sub { font-size: 11px; color: #90a4ae; }
         .diff-btn.active { background: #162447; border-color: #00e5ff; box-shadow: 0 0 10px rgba(0, 229, 255, 0.4); }
         .diff-btn.active .diff-title { color: #00e5ff; }
         .diff-btn.active .diff-sub { color: #84ffff; }
 
         /* 救命丹開關與雙秘笈按鈕區 */
-        .menu-tools-row { display: flex; flex-direction: column; gap: 5px; width: 96%; max-width: 500px; margin-bottom: 5px; }
-        .toggle-container { width: 100%; padding: 5px 10px; background: #1a1a2e; border-radius: 8px; border: 1px solid #e94560; text-align: center; box-sizing: border-box; }
+        .menu-tools-row { display: flex; flex-direction: column; gap: 5px; width: 96%; max-width: 500px; margin-bottom: 4px; }
+        .toggle-container { width: 100%; padding: 4px 10px; background: #1a1a2e; border-radius: 8px; border: 1px solid #e94560; text-align: center; box-sizing: border-box; }
         .guide-btns-row { display: flex; gap: 6px; width: 100%; }
-        .info-open-btn { flex: 1; padding: 6px 8px; background: #2a3654; color: #ffd700; border: 1.5px solid #ffd700; border-radius: 8px; font-size: 13.5px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit; white-space: nowrap; box-shadow: 0 0 8px rgba(255, 215, 0, 0.2); }
+        .info-open-btn { flex: 1; padding: 5px 8px; background: #2a3654; color: #ffd700; border: 1.5px solid #ffd700; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit; white-space: nowrap; box-shadow: 0 0 8px rgba(255, 215, 0, 0.2); }
         .info-open-btn.spellbook-open-btn { background: linear-gradient(135deg, #1f305e, #3b1d5e); color: #84ffff; border-color: #00e5ff; box-shadow: 0 0 10px rgba(0, 229, 255, 0.3); }
         .info-open-btn:active { transform: scale(0.95); }
 
-        /* 主選單說明文字與內嵌黃金葫蘆 */
-        .menu-desc { color: #ccc; font-size: 12.5px; line-height: 1.5; text-align: center; margin: 2px 0 5px 0; }
-        .inline-gourd-svg { width: 14px; height: 17px; vertical-align: -3px; display: inline-block; margin: 0 3px; filter: drop-shadow(0 0 3px rgba(249, 168, 38, 0.6)); }
+        /* 主選單說明文字、內嵌黃金葫蘆與內嵌鈴噹圖示 */
+        .menu-desc { color: #ccc; font-size: 12px; line-height: 1.48; text-align: center; margin: 2px 0 4px 0; }
+        .inline-gourd-svg { width: 13px; height: 16px; vertical-align: -3px; display: inline-block; margin: 0 2px; filter: drop-shadow(0 0 3px rgba(249, 168, 38, 0.6)); }
+        .inline-bell-icon { display: inline-block; background: rgba(0, 229, 255, 0.12); border: 1.5px solid #4a5c88; border-radius: 5px; padding: 0px 5px; font-size: 12px; line-height: 1.25; margin: 0 3px; vertical-align: 0px; box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); }
 
-        button.start-btn { padding: 9px 36px; font-size: 19px; font-weight: bold; background: #0f3460; color: #00e5ff; border: 2px solid #00e5ff; border-radius: 10px; margin-top: 2px; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transition: 0.2s; font-family: inherit; flex-shrink: 0; }
+        button.start-btn { padding: 8px 34px; font-size: 18px; font-weight: bold; background: #0f3460; color: #00e5ff; border: 2px solid #00e5ff; border-radius: 10px; margin-top: 2px; cursor: pointer; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); transition: 0.2s; font-family: inherit; flex-shrink: 0; }
         button.start-btn:active { transform: scale(0.95); }
 
         /* ========================================================= */
@@ -169,7 +170,7 @@
         .sb-nav-btn:disabled { opacity: 0.35; border-color: #555; color: #888; pointer-events: none; }
 
         /* 頁尾版權聲明與計數器（字體縮小、顏色淡化） */
-        .footer { margin-top: auto; padding-top: 8px; padding-bottom: 2px; text-align: center; width: 100%; font-size: 11px; color: rgba(255, 255, 255, 0.42); line-height: 1.35; flex-shrink: 0; }
+        .footer { margin-top: auto; padding-top: 6px; padding-bottom: 2px; text-align: center; width: 100%; font-size: 11px; color: rgba(255, 255, 255, 0.42); line-height: 1.35; flex-shrink: 0; }
         .footer p { margin: 0; }
         .footer .copyright-text { font-size: 10px; color: rgba(255, 255, 255, 0.3); margin-top: 2px; line-height: 1.3; }
         .counter-container { margin-top: 3px; opacity: 0.65; transition: opacity 0.2s; }
@@ -461,7 +462,7 @@
         <!-- 漢字救命丹無限模式開關 & 秘咒心法 / 鍵盤佮遊戲紹介按鈕 -->
         <div class="menu-tools-row">
             <div class="toggle-container">
-                <label style="font-size: 14.5px; color: #f9a826; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                <label style="font-size: 14px; color: #f9a826; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                     <input type="checkbox" id="infinite-gourd-toggle" style="transform: scale(1.25); margin-right: 8px;">
                     漢字救命丹無限模式
                 </label>
@@ -476,7 +477,9 @@
             利用台語羅馬字生成拍倒鬼怪的咒語<br>
             <span style="color:#ffd700;">使用漢字救命丹<svg class="inline-gourd-svg" viewBox="0 0 32 38"><path d="M16 1 C16 1 18 4 16 6" stroke="#8d6e63" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="16" cy="11" r="6.5" fill="#ffb300" stroke="#ffe082" stroke-width="1"/><circle cx="16" cy="25.5" r="10" fill="#ffa000" stroke="#ffe082" stroke-width="1"/><path d="M10.5 16.8 Q16 18.8 21.5 16.8" stroke="#e94560" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse cx="12.5" cy="23" rx="2" ry="3.5" fill="rgba(255,255,255,0.4)" transform="rotate(-15 12.5 23)"/></svg> 得分減半</span><br>
             咒語毋著愛趕緊改正，若無會受著鬼怪的攻擊<br>
-            久揤 <span style="color:#ff5252; font-weight:bold; text-shadow:0 0 6px rgba(255,82,82,0.4);">忍辱進前</span> 會使扣血進行後一題
+            久揤 <span style="color:#ff5252; font-weight:bold; text-shadow:0 0 6px rgba(255,82,82,0.4);">忍辱進前</span> 會使扣血進行後一題<br>
+            揤鈃仔<span class="inline-bell-icon">🔔</span>會使開關音效<br>
+            <span style="color:#84ffff;">本遊戲會自動播送語音，請毋通吵著別人</span>
         </p>
         <button class="start-btn" onclick="startGame()">開始降魔</button>
 
@@ -1832,7 +1835,7 @@
     function updateEnemyHpUI() {
         const hpDiv = document.getElementById('enemy-hp-ui');
         if (allEnemiesCleared) {
-            hpDiv.innerText = "🪙 ♾️";
+            hpDiv.innerText = "🪙";
             return;
         }
         const max = enemyConfig[currentEnemyIdx].maxHp;
@@ -2133,7 +2136,8 @@
         const player = document.getElementById('player-sprite');
         const enemy = document.getElementById('enemy-sprite');
 
-        if (attempt === 1 || attempt === 2) {
+        // 若已進入最後骷髏頭階段 (allEnemiesCleared)，答錯一次即直接扣心並進入下一題
+        if (!allEnemiesCleared && (attempt === 1 || attempt === 2)) {
             enemy.classList.add('enemy-attack');
             setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
             spawnEffect('enemyAttack');
