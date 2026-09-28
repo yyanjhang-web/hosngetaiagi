@@ -326,7 +326,7 @@
                         <div id="review-p1-list"></div>
                     </div>
                     <div class="review-player-panel p2-panel" id="review-p2-panel" style="display: none;">
-                        <div class="review-panel-header">👉 玩家 2 (右) 錯題 (揤詞語聽發音)</div>
+                        <div class="review-panel-header">👉 玩家 2 (右) 複習清單 (揤詞語聽發音)</div>
                         <div id="review-p2-list"></div>
                     </div>
                 </div>
@@ -854,7 +854,7 @@
             gpPrevReplay: false,
             arrows: [],
             fallingOptions: [],
-            wrongQuestions: [] // 記錄該玩家個人的錯題清單
+            wrongQuestions: [] // 記錄該玩家的錯題與未搶答題目清單
         };
     }
 
@@ -1061,7 +1061,7 @@
                 p.fallingOptions.push({
                     text: text,
                     isCorrect: isCorrect,
-                    targetCard: target, // 綁定當前正解答卡，供答錯或漏接時記錄錯題
+                    targetCard: target,
                     x: p.offsetX + colWidth * index + colWidth / 2,
                     y: -60,
                     width: boxW,
@@ -1209,7 +1209,7 @@
                 if(opt.y > canvas.height) {
                     opt.active = false;
                     if(opt.isCorrect) {
-                        // 正確答案落地：記錄至該玩家的錯題清單
+                        // 正確答案落地：記錄至該玩家的複習清單
                         recordPlayerWrongQuestion(p, opt.targetCard);
                         sfxMissedCorrect();
                         applyWrongPenalty(p);
@@ -1259,6 +1259,12 @@
                                 sfxTimeBonus();
                             }
 
+                            // 雙人對戰方案 A：當一方射中正解，未搶到分的另一方自動將該題收錄至複習清單
+                            if (playerCount === 2) {
+                                const otherPlayer = players[1 - p.id];
+                                recordPlayerWrongQuestion(otherPlayer, opt.targetCard);
+                            }
+
                             const rect = canvas.getBoundingClientRect();
                             const confettiX = (rect.left + (opt.x / canvas.width) * rect.width) / window.innerWidth;
                             const confettiY = (rect.top + (opt.y / canvas.height) * rect.height) / window.innerHeight;
@@ -1270,7 +1276,7 @@
                                 setTimeout(spawnWave, 500);
                             }
                         } else {
-                            // 射到錯誤答案：記錄該波題目至該玩家的錯題清單
+                            // 射到錯誤答案：記錄該波題目至該玩家的複習清單
                             opt.active = false;
                             recordPlayerWrongQuestion(p, opt.targetCard);
                             sfxHitWrong();
@@ -1298,9 +1304,11 @@
         ctx.fillStyle = "#222";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 瞄準虛線縮短為原本長度的 2/3
+        // 每一題從出題起算 3.5 秒內，瞄準線由 2/3 初始長度逐漸縮短退回砲口 (45px) 消失
         const fullAimDist = Math.min(800, canvas.height - 90);
-        const shortenedAimEnd = 45 + (fullAimDist - 45) * (2 / 3);
+        const initialShortenedLen = (fullAimDist - 45) * (2 / 3);
+        const aimRemainRatio = Math.max(0, 1 - (now - waveData.spawnTime) / 3500);
+        const currentAimLen = initialShortenedLen * aimRemainRatio;
 
         players.forEach((p, idx) => {
             ctx.save();
@@ -1332,19 +1340,22 @@
                 }
             });
 
-            // 2. 繪製縮短為 2/3 的虛線瞄準線與雷射箭矢
+            // 2. 繪製在 3.5 秒內逐漸縮回砲口消失的虛線瞄準線 與 雷射箭矢
             const pivotX = p.offsetX + p.x;
             const pivotY = p.y - 20;
             const isFrozen = (now < p.frozenUntil);
 
-            ctx.beginPath();
-            ctx.setLineDash([10, 8]);
-            ctx.moveTo(pivotX + Math.cos(p.angle) * 45, pivotY + Math.sin(p.angle) * 45);
-            ctx.lineTo(pivotX + Math.cos(p.angle) * shortenedAimEnd, pivotY + Math.sin(p.angle) * shortenedAimEnd);
-            ctx.strokeStyle = isFrozen ? "rgba(125, 211, 252, 0.25)" : "rgba(255, 255, 255, 0.38)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.setLineDash([]);
+            if (currentAimLen > 1) {
+                const aimEndDist = 45 + currentAimLen;
+                ctx.beginPath();
+                ctx.setLineDash([10, 8]);
+                ctx.moveTo(pivotX + Math.cos(p.angle) * 45, pivotY + Math.sin(p.angle) * 45);
+                ctx.lineTo(pivotX + Math.cos(p.angle) * aimEndDist, pivotY + Math.sin(p.angle) * aimEndDist);
+                ctx.strokeStyle = isFrozen ? "rgba(125, 211, 252, 0.25)" : "rgba(255, 255, 255, 0.38)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
 
             p.arrows.forEach(arrow => {
                 if(!arrow.active) return;
@@ -1649,7 +1660,7 @@
         }
     }
 
-    // 填充單一玩家的錯題列表
+    // 填充單一玩家的錯題與未搶答列表
     function renderPlayerWrongList(containerEl, wrongList) {
         containerEl.innerHTML = '';
         if (!wrongList || wrongList.length === 0) {
@@ -1673,7 +1684,6 @@
         sfxTimeBonus();
         document.getElementById('review-prompt-box').style.display = 'none';
         const reviewSec = document.getElementById('review-section');
-        const p1Panel = document.getElementById('review-p1-panel');
         const p2Panel = document.getElementById('review-p2-panel');
         const p1Header = document.getElementById('review-p1-header');
 
@@ -1682,7 +1692,7 @@
             p2Panel.style.display = 'none';
             renderPlayerWrongList(document.getElementById('review-p1-list'), players[0] ? players[0].wrongQuestions : []);
         } else {
-            p1Header.innerText = "👈 玩家 1 (左) 錯題 (揤詞語聽發音)";
+            p1Header.innerText = "👈 玩家 1 (左) 複習清單 (揤詞語聽發音)";
             p2Panel.style.display = 'block';
             renderPlayerWrongList(document.getElementById('review-p1-list'), players[0] ? players[0].wrongQuestions : []);
             renderPlayerWrongList(document.getElementById('review-p2-list'), players[1] ? players[1].wrongQuestions : []);
