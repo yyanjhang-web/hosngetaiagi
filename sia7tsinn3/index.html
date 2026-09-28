@@ -93,7 +93,7 @@
         .touch-btn:active { background: rgba(255, 255, 255, 0.6); transform: scale(0.95); }
 
         /* ========================================================= */
-        /* 雙人對戰結算畫面（勝利獎盃 vs 落葉吹拂孤寂感） */
+        /* 雙人對戰結算畫面（勝利獎盃 vs 落葉吹拂） */
         /* ========================================================= */
         #gameover-2p-box { display: none; width: 100%; max-width: 860px; flex-direction: column; align-items: center; margin-bottom: 8px; }
         #gameover-2p-title { font-size: 25px; font-weight: bold; color: #0f172a; margin: 0 0 8px 0; }
@@ -124,7 +124,7 @@
         .loser-card .result-status-text { color: #94a3b8; }
         .result-score-text { font-size: 19px; font-weight: bold; z-index: 2; }
 
-        /* 落葉吹拂孤寂動畫 */
+        /* 落葉吹拂動畫 */
         .falling-leaf {
             position: absolute; top: -30px; font-size: 24px; pointer-events: none; z-index: 1; opacity: 0.85;
             animation: leafBlow linear infinite;
@@ -297,13 +297,13 @@
                     <div id="p1-result-card" class="p2-result-card">
                         <div class="result-player-tag">玩家 1 (左)</div>
                         <div class="result-main-icon" id="p1-result-icon">🏆</div>
-                        <div class="result-status-text" id="p1-result-status">勝利！</div>
+                        <div class="result-status-text" id="p1-result-status">台語小博士</div>
                         <div class="result-score-text">分數：<span id="p1-final-score">0</span></div>
                     </div>
                     <div id="p2-result-card" class="p2-result-card">
                         <div class="result-player-tag">玩家 2 (右)</div>
                         <div class="result-main-icon" id="p2-result-icon">🍂</div>
-                        <div class="result-status-text" id="p2-result-status">惜敗...</div>
+                        <div class="result-status-text" id="p2-result-status">繼續拍拚</div>
                         <div class="result-score-text">分數：<span id="p2-final-score">0</span></div>
                     </div>
                 </div>
@@ -1259,7 +1259,7 @@
                                 sfxTimeBonus();
                             }
 
-                            // 雙人對戰方案 A：當一方射中正解，未搶到分的另一方自動將該題收錄至複習清單
+                            // 雙人對戰：當一方射中正解，未搶到分的另一方自動將該題收錄至複習清單
                             if (playerCount === 2) {
                                 const otherPlayer = players[1 - p.id];
                                 recordPlayerWrongQuestion(otherPlayer, opt.targetCard);
@@ -1304,10 +1304,10 @@
         ctx.fillStyle = "#222";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 每一題從出題起算 3.5 秒內，瞄準線由 2/3 初始長度逐漸縮短退回砲口 (45px) 消失
+        // 每一題從出題起算 4.5 秒內，瞄準線由 2/3 初始長度逐漸縮短退回砲口 (45px) 消失
         const fullAimDist = Math.min(800, canvas.height - 90);
         const initialShortenedLen = (fullAimDist - 45) * (2 / 3);
-        const aimRemainRatio = Math.max(0, 1 - (now - waveData.spawnTime) / 3500);
+        const aimRemainRatio = Math.max(0, 1 - (now - waveData.spawnTime) / 4500);
         const currentAimLen = initialShortenedLen * aimRemainRatio;
 
         players.forEach((p, idx) => {
@@ -1340,7 +1340,7 @@
                 }
             });
 
-            // 2. 繪製在 3.5 秒內逐漸縮回砲口消失的虛線瞄準線 與 雷射箭矢
+            // 2. 繪製在 4.5 秒內逐漸縮回砲口消失的虛線瞄準線 與 雷射箭矢
             const pivotX = p.offsetX + p.x;
             const pivotY = p.y - 20;
             const isFrozen = (now < p.frozenUntil);
@@ -1546,7 +1546,7 @@
         }
     }
 
-    // 產生落葉吹拂孤寂特效
+    // 產生落葉吹拂動畫
     function spawnAutumnLeaves(cardEl) {
         cardEl.querySelectorAll('.falling-leaf').forEach(el => el.remove());
         const leafIcons = ['🍂', '🍁', '🍃'];
@@ -1624,11 +1624,11 @@
                 title2P.innerText = "🏆 玩家 1 獲勝！ 🏆";
                 c1.className = "p2-result-card winner-card";
                 i1.innerText = "🏆";
-                st1.innerText = "勝利！";
+                st1.innerText = "台語小博士";
 
                 c2.className = "p2-result-card loser-card";
                 i2.innerText = "🍂";
-                st2.innerText = "秋風孤寂...";
+                st2.innerText = "繼續拍拚";
                 spawnAutumnLeaves(c2);
                 sfxGameOver(true);
                 confetti({ particleCount: 90, spread: 70, origin: { x: 0.3, y: 0.5 } });
@@ -1636,11 +1636,11 @@
                 title2P.innerText = "🏆 玩家 2 獲勝！ 🏆";
                 c2.className = "p2-result-card winner-card";
                 i2.innerText = "🏆";
-                st2.innerText = "勝利！";
+                st2.innerText = "台語小博士";
 
                 c1.className = "p2-result-card loser-card";
                 i1.innerText = "🍂";
-                st1.innerText = "秋風孤寂...";
+                st1.innerText = "繼續拍拚";
                 spawnAutumnLeaves(c1);
                 sfxGameOver(true);
                 confetti({ particleCount: 90, spread: 70, origin: { x: 0.7, y: 0.5 } });
@@ -1648,12 +1648,12 @@
                 title2P.innerText = "🍂 平手 🍂";
                 c1.className = "p2-result-card loser-card";
                 i1.innerText = "🍂";
-                st1.innerText = "平手";
+                st1.innerText = "繼續拍拚";
                 spawnAutumnLeaves(c1);
 
                 c2.className = "p2-result-card loser-card";
                 i2.innerText = "🍂";
-                st2.innerText = "平手";
+                st2.innerText = "繼續拍拚";
                 spawnAutumnLeaves(c2);
                 sfxGameOver(false);
             }
