@@ -708,22 +708,26 @@
         return { fontSize: 9, lines: [text.slice(0, 12), text.slice(12, 24), text.slice(24)].filter(Boolean), lineHeight: 10 };
     }
 
-    // 繪製凍結道具圖示（支援灰黑剪影與點亮彩色狀態）
-    function drawFreezeItemSlot(ctx, cx, cy, radius, isActive) {
+    // 繪製凍結道具圖示（fillState: 0 = 灰黑剪影, 0.5 = 答對一題亮起半格充能中, 1 = 累計兩題完整點亮）
+    function drawFreezeItemSlot(ctx, cx, cy, radius, fillState) {
         ctx.save();
         ctx.translate(cx, cy);
 
-        ctx.beginPath();
-        for (let i = 0; i < 6; i++) {
-            const ang = (Math.PI / 3) * i - Math.PI / 2;
-            const px = Math.cos(ang) * radius;
-            const py = Math.sin(ang) * radius;
-            if (i === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
+        function traceHexPath() {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const ang = (Math.PI / 3) * i - Math.PI / 2;
+                const px = Math.cos(ang) * radius;
+                const py = Math.sin(ang) * radius;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
         }
-        ctx.closePath();
 
-        if (isActive) {
+        if (fillState >= 1) {
+            // 完整點亮狀態（已累積 2 題）
+            traceHexPath();
             ctx.shadowBlur = 10;
             ctx.shadowColor = "#00e5ff";
             ctx.fillStyle = "#0284c7";
@@ -748,7 +752,65 @@
             ctx.arc(0, 0, radius * 0.2, 0, Math.PI * 2);
             ctx.fillStyle = "#7dd3fc";
             ctx.fill();
+        } else if (fillState >= 0.5) {
+            // 半格充能狀態（已答對 1 題，下半部亮起冰藍並伴隨呼吸閃爍）
+            const pulse = 0.55 + 0.45 * Math.sin(Date.now() / 140);
+
+            // 1. 先畫暗色底框與暗色雪花線條
+            traceHexPath();
+            ctx.fillStyle = "#16191d";
+            ctx.fill();
+
+            ctx.strokeStyle = "#2c323b";
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 3; i++) {
+                const ang = (Math.PI / 3) * i;
+                const rIn = radius * 0.55;
+                ctx.beginPath();
+                ctx.moveTo(-Math.cos(ang) * rIn, -Math.sin(ang) * rIn);
+                ctx.lineTo(Math.cos(ang) * rIn, Math.sin(ang) * rIn);
+                ctx.stroke();
+            }
+
+            // 2. 裁切下半部（y >= 0），注入發光冰藍能量與下半部亮雪花
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(-radius - 2, 0, (radius + 2) * 2, radius + 2);
+            ctx.clip();
+
+            traceHexPath();
+            ctx.fillStyle = `rgba(2, 132, 199, ${0.7 + 0.3 * pulse})`;
+            ctx.fill();
+
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.65 + 0.35 * pulse})`;
+            ctx.lineWidth = 1.7;
+            for (let i = 0; i < 3; i++) {
+                const ang = (Math.PI / 3) * i;
+                const rIn = radius * 0.6;
+                ctx.beginPath();
+                ctx.moveTo(-Math.cos(ang) * rIn, -Math.sin(ang) * rIn);
+                ctx.lineTo(Math.cos(ang) * rIn, Math.sin(ang) * rIn);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // 3. 中央半格能量水平分界亮線與呼吸外框
+            ctx.beginPath();
+            ctx.moveTo(-radius * 0.82, 0);
+            ctx.lineTo(radius * 0.82, 0);
+            ctx.strokeStyle = `rgba(125, 211, 252, ${0.6 + 0.4 * pulse})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            traceHexPath();
+            ctx.shadowBlur = 6 * pulse;
+            ctx.shadowColor = "#00e5ff";
+            ctx.lineWidth = 1.8;
+            ctx.strokeStyle = `rgba(56, 189, 248, ${0.5 + 0.5 * pulse})`;
+            ctx.stroke();
         } else {
+            // 灰黑剪影狀態（0 題）
+            traceHexPath();
             ctx.fillStyle = "#16191d";
             ctx.fill();
             ctx.lineWidth = 1.5;
@@ -845,7 +907,7 @@
             score: 0,
             hearts: 4,
             streakCount: 0,
-            freezeItems: 0,
+            freezeCharges: 0, // 每答對1題+1充能（半格），滿2點充能=1顆完整凍結道具，上限4點（2顆）
             frozenUntil: 0,
             damageFlashUntil: 0,
             controlType: controlType,
@@ -1108,15 +1170,15 @@
         p.cooldown = 500;
     }
 
-    // 發動凍結道具攻擊對手（持續 2.5 秒）
+    // 發動凍結道具攻擊對手（需至少累積 2 點充能＝1 顆完整道具，持續 2.5 秒）
     function useFreezeItemForPlayer(p) {
         if (!isGameRunning || playerCount !== 2) return;
         const now = Date.now();
         if (now < p.frozenUntil) return;
-        if (p.freezeItems <= 0) return;
+        if (p.freezeCharges < 2) return;
 
         const opponent = players[1 - p.id];
-        p.freezeItems--;
+        p.freezeCharges -= 2; // 消耗 1 顆完整道具（2 點充能），保留剩餘半格進度
         sfxFreezeAttack();
 
         flyingIceEffects.push({
@@ -1247,9 +1309,10 @@
                             const isComboHit = (waveData.comboActive && waveData.comboTimeLeft > 0);
                             if(isComboHit) {
                                 p.score += 15;
-                                if (playerCount === 2) {
-                                    p.freezeItems = Math.min(2, p.freezeItems + 1);
-                                }
+                            }
+                            // 雙人對戰時，每答對 1 題累積 1 點凍結能量（亮半格），累計答對 2 題亮起 1 顆完整道具（上限 4 點＝2 顆）
+                            if (playerCount === 2) {
+                                p.freezeCharges = Math.min(4, p.freezeCharges + 1);
                             }
                             sfxHitCorrect(isComboHit);
 
@@ -1424,7 +1487,7 @@
 
             ctx.restore();
 
-            // 4. 繪製玩家分數、愛心（單人）或凍結道具槽（雙人）
+            // 4. 繪製玩家分數、愛心（單人）或凍結道具槽（雙人，支援半格充能與全亮顯示）
             ctx.textBaseline = "alphabetic";
             if (playerCount === 1) {
                 ctx.fillStyle = "white";
@@ -1438,6 +1501,9 @@
                 }
                 ctx.fillText(heartStr, canvas.width - 15, 60);
             } else {
+                const slot1State = p.freezeCharges >= 2 ? 1 : (p.freezeCharges === 1 ? 0.5 : 0);
+                const slot2State = p.freezeCharges >= 4 ? 1 : (p.freezeCharges === 3 ? 0.5 : 0);
+
                 if (idx === 0) {
                     const leftX = 58;
                     ctx.fillStyle = "#38bdf8";
@@ -1448,8 +1514,8 @@
                     ctx.fillStyle = "white";
                     ctx.fillText(`分數: ${p.score}`, leftX + 34, 28);
 
-                    drawFreezeItemSlot(ctx, leftX + 12, 54, 13, p.freezeItems >= 1);
-                    drawFreezeItemSlot(ctx, leftX + 42, 54, 13, p.freezeItems >= 2);
+                    drawFreezeItemSlot(ctx, leftX + 12, 54, 13, slot1State);
+                    drawFreezeItemSlot(ctx, leftX + 42, 54, 13, slot2State);
                 } else {
                     const rightX = canvas.width - 16;
                     ctx.fillStyle = "white";
@@ -1462,8 +1528,8 @@
                     ctx.fillStyle = "#fbbf24";
                     ctx.fillText(`P2`, rightX - scoreW - 10, 28);
 
-                    drawFreezeItemSlot(ctx, rightX - 42, 54, 13, p.freezeItems >= 1);
-                    drawFreezeItemSlot(ctx, rightX - 12, 54, 13, p.freezeItems >= 2);
+                    drawFreezeItemSlot(ctx, rightX - 42, 54, 13, slot1State);
+                    drawFreezeItemSlot(ctx, rightX - 12, 54, 13, slot2State);
                 }
             }
 
@@ -1497,7 +1563,7 @@
             const progress = Math.min(1, (now - ef.startTime) / ef.duration);
             const curX = ef.startX + (ef.targetX - ef.startX) * progress;
             const curY = ef.startY + (ef.targetY - ef.startY) * progress - Math.sin(progress * Math.PI) * 90;
-            drawFreezeItemSlot(ctx, curX, curY, 16, true);
+            drawFreezeItemSlot(ctx, curX, curY, 16, 1);
         });
 
         // 繪製時間與中央題目/Combo條
@@ -1542,7 +1608,7 @@
             ctx.font = `bold 11px ${CANVAS_FONT_FAMILY}`;
             ctx.textAlign = "center";
             ctx.textBaseline = "alphabetic";
-            ctx.fillText(playerCount === 2 ? "Combo 倒數 (+15分 & ❄️道具)" : "Combo 倒數", canvas.width / 2, 76);
+            ctx.fillText(playerCount === 2 ? "Combo 倒數 (+15分)" : "Combo 倒數", canvas.width / 2, 76);
         }
     }
 
