@@ -479,10 +479,11 @@
     // =========================================================
     const CANVAS_FONT_FAMILY = "'Charis SIL', 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', 'Microsoft JhengHei', sans-serif";
 
-    // 將第8聲字元解析為無點 ı 與標記索引，確保第8聲短直線緊貼於字母正上方
+    // 修正正則表達式：補上中括號 [.[\u0300-\u036F]*]，確保所有字元正常顯示並精準描繪第 8 聲
     function parseEighthToneLine(str) {
+        if (!str) return { cleanStr: "", cleanChars: [], t8Indices: [] };
         const nfd = str.normalize('NFD');
-        const graphemes = nfd.match(/.\u0300-\u036F*/gu) || [];
+        const graphemes = nfd.match(/.[\u0300-\u036F]*/gu) || Array.from(str);
         let cleanChars = [];
         let t8Indices = [];
 
@@ -532,8 +533,8 @@
     }
 
     function splitLongTokenIntoGraphemes(token) {
-        const graphemes = token.normalize('NFC').match(/.\u0300-\u036F*/gu);
-        return graphemes ? graphemes : Array.from(token);
+        const graphemes = token.normalize('NFD').match(/.[\u0300-\u036F]*/gu);
+        return graphemes ? graphemes.map(g => g.normalize('NFC')) : Array.from(token);
     }
 
     function computeOptionTextLayout(ctx, text, boxWidth, boxHeight) {
@@ -827,6 +828,8 @@
         document.getElementById('menu').style.display = 'none';
         canvas.style.display = 'block';
         sfxBtn.style.display = 'block';
+        // 雙人模式將音效按鈕置於左上角 (top: 10px)，單人模式維持在時間下方 (top: 44px)
+        sfxBtn.style.top = (playerCount === 2) ? '10px' : '44px';
 
         // 設定玩家與控制器配置
         players = [];
@@ -1005,13 +1008,17 @@
         const pivotY = p.y - 20;
         p.arrows.push({
             x: pivotX + Math.cos(p.angle) * 45,
-            y: pivotY + Math.sin(p.angle) * 45,
+            y: pivotY + Math.sin(playerAngleSafe(p)) * 45,
             angle: p.angle,
             speed: 15,
             active: true
         });
         sfxShoot();
         p.cooldown = 500;
+    }
+
+    function playerAngleSafe(p) {
+        return p.angle;
     }
 
     // 發動凍結道具攻擊對手（持續 2.5 秒）
@@ -1326,12 +1333,13 @@
 
             ctx.restore();
 
-            // 4. 繪製玩家分數、愛心（單人）或凍結道具槽（雙人）
+            // 4. 繪製玩家分數、愛心（單人）或凍結道具槽（雙人，固定於左右兩側外角避免與中央題目框重疊）
+            ctx.textBaseline = "alphabetic";
             if (playerCount === 1) {
                 ctx.fillStyle = "white";
                 ctx.font = `bold 18px ${CANVAS_FONT_FAMILY}`;
                 ctx.textAlign = "right";
-                ctx.fillText(`分數: ${p.score}`, p.ArenaWidth ? p.arenaWidth - 15 : canvas.width - 15, 30);
+                ctx.fillText(`分數: ${p.score}`, canvas.width - 15, 30);
 
                 let heartStr = "";
                 for(let i = 0; i < 4; i++) {
@@ -1339,22 +1347,37 @@
                 }
                 ctx.fillText(heartStr, canvas.width - 15, 60);
             } else {
-                // 雙人對戰各別頂部資訊列
-                const padX = (idx === 0) ? (p.offsetX + p.arenaWidth - 14) : (p.offsetX + p.arenaWidth - 14);
-                ctx.fillStyle = (idx === 0) ? "#38bdf8" : "#fbbf24";
-                ctx.font = `bold 16px ${CANVAS_FONT_FAMILY}`;
-                ctx.textAlign = "left";
-                const tagX = (idx === 0) ? (p.offsetX + 52) : (p.offsetX + 14);
-                ctx.fillText(`P${idx + 1}`, tagX, 28);
+                if (idx === 0) {
+                    // P1 資訊置於左上角（避開鈴噹與中央題目框）
+                    const leftX = 58;
+                    ctx.fillStyle = "#38bdf8";
+                    ctx.font = `bold 18px ${CANVAS_FONT_FAMILY}`;
+                    ctx.textAlign = "left";
+                    ctx.fillText(`P1`, leftX, 28);
 
-                ctx.fillStyle = "white";
-                ctx.font = `bold 18px ${CANVAS_FONT_FAMILY}`;
-                ctx.textAlign = "right";
-                ctx.fillText(`分數: ${p.score}`, padX, 28);
+                    ctx.fillStyle = "white";
+                    ctx.fillText(`分數: ${p.score}`, leftX + 34, 28);
 
-                // 繪製 2 顆凍結道具槽（先顯示灰黑剪影，獲得後亮起彩色）
-                drawFreezeItemSlot(ctx, padX - 38, 56, 13, p.freezeItems >= 1);
-                drawFreezeItemSlot(ctx, padX - 10, 56, 13, p.freezeItems >= 2);
+                    // P1 的 2 顆凍結道具槽
+                    drawFreezeItemSlot(ctx, leftX + 12, 54, 13, p.freezeItems >= 1);
+                    drawFreezeItemSlot(ctx, leftX + 42, 54, 13, p.freezeItems >= 2);
+                } else {
+                    // P2 資訊置於右上角（避開中央題目框）
+                    const rightX = canvas.width - 16;
+                    ctx.fillStyle = "white";
+                    ctx.font = `bold 18px ${CANVAS_FONT_FAMILY}`;
+                    ctx.textAlign = "right";
+                    const scoreText = `分數: ${p.score}`;
+                    ctx.fillText(scoreText, rightX, 28);
+
+                    const scoreW = ctx.measureText(scoreText).width;
+                    ctx.fillStyle = "#fbbf24";
+                    ctx.fillText(`P2`, rightX - scoreW - 10, 28);
+
+                    // P2 的 2 顆凍結道具槽
+                    drawFreezeItemSlot(ctx, rightX - 42, 54, 13, p.freezeItems >= 1);
+                    drawFreezeItemSlot(ctx, rightX - 12, 54, 13, p.freezeItems >= 2);
+                }
             }
 
             // 5. 答錯或漏接時的紅框閃爍回饋
@@ -1390,29 +1413,34 @@
             drawFreezeItemSlot(ctx, curX, curY, 16, true);
         });
 
-        // 繪製全場共用時間與題目/Combo條
-        ctx.fillStyle = "white";
-        ctx.font = `bold 18px ${CANVAS_FONT_FAMILY}`;
-        ctx.textAlign = "left";
-        ctx.fillText(`時間: ${time}`, 12, 28);
+        // 繪製時間與中央題目/Combo條
+        ctx.textBaseline = "alphabetic";
+        if (playerCount === 1) {
+            ctx.fillStyle = "white";
+            ctx.font = `bold 18px ${CANVAS_FONT_FAMILY}`;
+            ctx.textAlign = "left";
+            ctx.fillText(`時間: ${time}`, 12, 28);
+        }
 
-        if (currentQuestionText !== "") {
+        if (currentQuestionText !== "" || playerCount === 2) {
             ctx.save();
-            // 雙人模式在中央上方加底框讓題目更醒目
-            ctx.font = `bold 26px ${CANVAS_FONT_FAMILY}`;
-            const qWidth = ctx.measureText(currentQuestionText).width + 28;
-            ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+            ctx.font = `bold 24px ${CANVAS_FONT_FAMILY}`;
+            const displayTitle = (playerCount === 2)
+                ? `⏱️ ${time}s ｜ ${currentQuestionText}`
+                : currentQuestionText;
+            const qWidth = ctx.measureText(displayTitle).width + 30;
+            ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
             ctx.strokeStyle = "#facc15";
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.roundRect(canvas.width / 2 - qWidth / 2, 8, qWidth, 40, 10);
+            ctx.roundRect(canvas.width / 2 - qWidth / 2, 8, qWidth, 38, 10);
             ctx.fill();
             ctx.stroke();
 
             ctx.fillStyle = "#fde047";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            drawFormattedLine(ctx, currentQuestionText, canvas.width / 2, 28, 26);
+            drawFormattedLine(ctx, displayTitle, canvas.width / 2, 27, 24);
             ctx.restore();
         }
 
@@ -1420,13 +1448,14 @@
             let barWidth = Math.min(canvas.width * 0.5, 320);
             let ratio = waveData.comboTimeLeft / waveData.comboDuration;
             ctx.fillStyle = "#475569";
-            ctx.fillRect(canvas.width / 2 - barWidth / 2, 56, barWidth, 9);
+            ctx.fillRect(canvas.width / 2 - barWidth / 2, 54, barWidth, 9);
             ctx.fillStyle = ratio > 0.5 ? "#4caf50" : (ratio > 0.2 ? "#ff9800" : "#f44336");
-            ctx.fillRect(canvas.width / 2 - barWidth / 2, 56, barWidth * ratio, 9);
+            ctx.fillRect(canvas.width / 2 - barWidth / 2, 54, barWidth * ratio, 9);
             ctx.fillStyle = "white";
             ctx.font = `bold 11px ${CANVAS_FONT_FAMILY}`;
             ctx.textAlign = "center";
-            ctx.fillText(playerCount === 2 ? "Combo 倒數 (+15分 & ❄️道具)" : "Combo 倒數", canvas.width / 2, 78);
+            ctx.textBaseline = "alphabetic";
+            ctx.fillText(playerCount === 2 ? "Combo 倒數 (+15分 & ❄️道具)" : "Combo 倒數", canvas.width / 2, 76);
         }
     }
 
