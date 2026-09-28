@@ -3,114 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
-    <title>台語跑酷 - 狙擊模式</title>
+    <title>台語狙擊手 - 單人/雙人對戰</title>
+    <!-- 引入 Google Fonts：Noto Sans TC、霞鶩文楷 (LXGW WenKai TC 支援台語擴展罕見字) 與 Charis SIL (支援台羅聲調) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Charis+SIL:wght@400;700&family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
     <!-- 引入彩帶特效函式庫 -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: Arial, 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+        body { font-family: 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
         
-        #app-container { position: relative; width: 100vw; height: 100vh; background-color: #222; overflow: hidden; display: flex; flex-direction: column; }
+        #app-container { position: relative; width: 100vw; height: 100vh; height: 100dvh; background-color: #222; overflow: hidden; display: flex; flex-direction: column; transition: width 0.25s ease, max-width 0.25s ease; }
         
+        /* 單人模式維持直向窄版比例 */
         @media (min-aspect-ratio: 1/1) {
-            #app-container { width: 56.25vh; max-width: 600px; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+            #app-container.mode-1p { width: 56.25vh; max-width: 600px; box-shadow: 0 0 25px rgba(255,255,255,0.2); }
+            /* 雙人對戰模式自動展寬為雙拼戰場 */
+            #app-container.mode-2p { width: 96vw; max-width: 1180px; box-shadow: 0 0 30px rgba(0, 229, 255, 0.25); }
         }
 
-        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 12px 14px; box-sizing: border-box; overflow-y: auto; }
         
-        .menu-content { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; margin-bottom: 20px; text-align: center; }
+        .menu-content { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; width: 100%; max-width: 540px; margin-bottom: 8px; text-align: center; }
         
-        .lesson-btn { padding: 10px; margin: 5px; background: #ccc; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
-        .lesson-btn.active { background: #20b2aa; color: white; }
+        h2.game-title { margin: 0 0 6px 0; font-size: 26px; color: #0f172a; letter-spacing: 1px; }
+
+        #lessons { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 6px; }
+        .lesson-btn { padding: 6px 11px; margin: 0; background: #cbd5e1; color: #1e293b; border: 1.5px solid #94a3b8; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.15s; }
+        .lesson-btn.active { background: #0d9488; color: white; border-color: #0f766e; box-shadow: 0 0 8px rgba(13, 148, 136, 0.4); }
         
+        .menu-card { width: 100%; margin: 4px 0; padding: 8px 10px; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        .card-player-cnt { background: #e0e7ff; border: 1.5px solid #818cf8; }
+        .card-mode { background: #d0e8f2; border: 1.5px solid #38bdf8; }
+        .card-ctrl { background: #fff3cd; border: 1.5px solid #fbbf24; }
+        .menu-card-title { margin: 0 0 5px 0; font-weight: bold; font-size: 14.5px; color: #0f172a; }
+
+        .radio-grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 8px; text-align: left; max-width: 360px; margin: 0 auto; }
+        .radio-label { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: bold; color: #1e293b; font-size: 13.5px; }
+
+        .p2-ctrl-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 4px 0; font-size: 13.5px; font-weight: bold; color: #1e293b; flex-wrap: wrap; }
+        .p2-ctrl-select { padding: 4px 8px; border-radius: 6px; border: 1.5px solid #d97706; background: #fff; font-family: inherit; font-size: 13px; font-weight: bold; color: #0f172a; cursor: pointer; }
+
+        /* 主選單提示說明與內嵌圖示 */
+        .menu-tips-box { margin: 6px 0 4px 0; font-size: 12.5px; color: #1e293b; font-weight: bold; line-height: 1.65; text-align: center; }
+        .inline-bell-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #222; border: 1.5px solid rgba(255, 255, 255, 0.8); border-radius: 6px;
+            padding: 1px 6px; font-size: 13px; line-height: 1.1; vertical-align: middle; margin: 0 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .inline-freeze-svg {
+            width: 20px; height: 20px; vertical-align: -4px; display: inline-block; margin: 0 2px;
+            filter: drop-shadow(0 1px 3px rgba(0, 180, 216, 0.5));
+        }
+
+        button.start-btn { padding: 10px 32px; font-size: 19px; font-weight: bold; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 6px; cursor: pointer; font-family: inherit; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35); transition: 0.15s; }
+        button.start-btn:active { transform: scale(0.95); }
+        
+        .footer { text-align: center; padding-top: 8px; border-top: 1px solid #cbd5e1; width: 100%; max-width: 600px; color: #475569; flex-shrink: 0; }
+        .footer p { margin: 2px 0; font-size: 11px; line-height: 1.35; }
+        .counter-container { margin-top: 4px; display: flex; justify-content: center; align-items: center; }
+        .counter-container img { height: 14px; }
+
         #game-canvas { display: none; width: 100%; height: 100%; background: #222; touch-action: none; }
-        
-        button.start-btn { padding: 15px 30px; font-size: 20px; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 15px; cursor: pointer; }
-        
-        .footer { text-align: center; padding-top: 15px; border-top: 1px solid #ccc; width: 100%; max-width: 600px; color: #444; }
-        .footer p { margin: 3px 0; font-size: 0.9em; }
-        .counter-container { margin-top: 8px; display: flex; justify-content: center; align-items: center; }
 
-        #damage-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 60px 30px red; pointer-events: none; z-index: 5; }
-
-        /* 遊戲內左上角音效開關按鈕 與 主選單內嵌鈴噹圖示 */
+        /* 遊戲內左上角音效開關按鈕 */
         #sfx-toggle-btn {
-            display: none;
-            position: absolute;
-            top: 46px;
-            left: 15px;
-            z-index: 8;
-            background: rgba(255, 255, 255, 0.18);
-            border: 2px solid rgba(255, 255, 255, 0.55);
-            border-radius: 8px;
-            padding: 3px 9px;
-            font-size: 18px;
-            line-height: 1.2;
-            cursor: pointer;
-            transition: 0.15s;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+            display: none; position: absolute; top: 44px; left: 12px; z-index: 8;
+            background: rgba(255, 255, 255, 0.18); border: 2px solid rgba(255, 255, 255, 0.55);
+            border-radius: 8px; padding: 2px 8px; font-size: 17px; line-height: 1.2;
+            cursor: pointer; transition: 0.15s; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
         #sfx-toggle-btn:active { transform: scale(0.9); }
         #sfx-toggle-btn.muted { opacity: 0.5; border-color: #777; background: rgba(0, 0, 0, 0.35); }
 
-        .menu-sfx-tip {
-            margin: 6px 0 2px 0;
-            font-size: 15px;
-            color: #1e293b;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
+        /* 單人聽音模式重聽按鈕 */
+        #replay-audio-btn {
+            display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 8;
+            background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff;
+            border: 2px solid #38bdf8; border-radius: 20px; padding: 5px 14px;
+            font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+            white-space: nowrap; transition: transform 0.1s;
         }
-        .inline-bell-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #222;
-            border: 2px solid rgba(255, 255, 255, 0.75);
-            border-radius: 7px;
-            padding: 2px 7px;
-            font-size: 15px;
-            line-height: 1.1;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-        }
+        #replay-audio-btn:active { transform: translateX(-50%) scale(0.93); }
 
         /* 觸控虛擬按鍵 UI：左鍵在左下，右鍵在右下 */
-        #touch-controls { display: none; position: absolute; bottom: 100px; left: 0; width: 100%; justify-content: space-between; padding: 0 30px; box-sizing: border-box; z-index: 99; pointer-events: none; }
-        .touch-btn { pointer-events: auto; background: rgba(255, 255, 255, 0.25); border: 2px solid rgba(255, 255, 255, 0.6); color: white; font-size: 28px; font-weight: bold; width: 75px; height: 75px; border-radius: 50%; display: flex; justify-content: center; align-items: center; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+        #touch-controls { display: none; position: absolute; bottom: 90px; left: 0; width: 100%; justify-content: space-between; padding: 0 25px; box-sizing: border-box; z-index: 99; pointer-events: none; }
+        .touch-btn { pointer-events: auto; background: rgba(255, 255, 255, 0.25); border: 2px solid rgba(255, 255, 255, 0.6); color: white; font-size: 28px; font-weight: bold; width: 72px; height: 72px; border-radius: 50%; display: flex; justify-content: center; align-items: center; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
         .touch-btn:active { background: rgba(255, 255, 255, 0.6); transform: scale(0.95); }
+
+        /* ========================================================= */
+        /* 雙人對戰結算畫面（勝利獎盃 vs 落葉吹拂孤寂感） */
+        /* ========================================================= */
+        #gameover-2p-box { display: none; width: 100%; max-width: 820px; flex-direction: column; align-items: center; margin-bottom: 10px; }
+        #gameover-2p-title { font-size: 26px; font-weight: bold; color: #0f172a; margin: 0 0 10px 0; }
+        .p2-results-grid { display: flex; gap: 14px; width: 100%; justify-content: center; align-items: stretch; }
+        .p2-result-card {
+            position: relative; flex: 1; border-radius: 14px; padding: 18px 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden; min-height: 210px; box-sizing: border-box;
+        }
+        .p2-result-card.winner-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #f59e0b;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
+            color: #78350f;
+        }
+        .p2-result-card.loser-card {
+            background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+            border: 3px solid #64748b;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6);
+            color: #cbd5e1;
+        }
+        .result-player-tag { font-size: 18px; font-weight: bold; margin-bottom: 4px; z-index: 2; }
+        .result-main-icon { font-size: 62px; line-height: 1.1; margin: 6px 0; z-index: 2; }
+        .winner-card .result-main-icon { animation: trophyBounce 1s ease-in-out infinite alternate; filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.8)); }
+        @keyframes trophyBounce { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-8px) scale(1.08); } }
+        .result-status-text { font-size: 24px; font-weight: bold; margin: 4px 0; z-index: 2; }
+        .winner-card .result-status-text { color: #d97706; }
+        .loser-card .result-status-text { color: #94a3b8; }
+        .result-score-text { font-size: 20px; font-weight: bold; z-index: 2; }
+
+        /* 落葉吹拂孤寂動畫 */
+        .falling-leaf {
+            position: absolute; top: -30px; font-size: 24px; pointer-events: none; z-index: 1; opacity: 0.85;
+            animation: leafBlow linear infinite;
+        }
+        @keyframes leafBlow {
+            0% { transform: translate(0, -20px) rotate(0deg); opacity: 0; }
+            15% { opacity: 0.85; }
+            85% { opacity: 0.85; }
+            100% { transform: translate(-120px, 250px) rotate(320deg); opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
-<div id="app-container">
+<div id="app-container" class="mode-1p">
     <div id="menu">
         <div class="menu-content">
-            <h2 style="margin-top: 0;">台語狙擊手</h2>
+            <h2 class="game-title">🎯 台語狙擊手</h2>
+            
+            <!-- 課次選擇（含拼音練習共9課） -->
             <div id="lessons"></div>
             
-            <div style="margin: 10px 0; padding: 10px; background: #d0e8f2; border-radius: 10px;">
-                <p style="margin: 0 0 5px 0; font-weight: bold;">出題模式</p>
-                <label><input type="radio" name="mode" value="hanzi" checked> 看漢字選發音</label>
-                <label style="margin-left: 10px;"><input type="radio" name="mode" value="roma"> 看發音選漢字</label>
+            <!-- 1. 先選單人遊玩或雙人對戰 -->
+            <div class="menu-card card-player-cnt">
+                <p class="menu-card-title">遊玩模式</p>
+                <label class="radio-label"><input type="radio" name="pcount" value="1" checked onchange="onPlayerCountChange()"> 👤 單人遊玩</label>
+                <label class="radio-label" style="margin-left: 16px;"><input type="radio" name="pcount" value="2" onchange="onPlayerCountChange()"> ⚔️ 雙人對戰</label>
             </div>
 
-            <div style="margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 10px;">
-                <p style="margin: 0 0 5px 0; font-weight: bold;">操作裝置</p>
-                <label><input type="radio" name="ctrl" value="keyboard" id="ctrl-keyboard" checked> ⌨️ 鍵盤 / 🎮 手把</label>
-                <label style="margin-left: 10px;"><input type="radio" name="ctrl" value="touch" id="ctrl-touch"> 📱 平板 / 觸控螢幕</label>
+            <!-- 2. 出題模式（預設：聽音選羅馬字） -->
+            <div class="menu-card card-mode">
+                <p class="menu-card-title">出題模式</p>
+                <div class="radio-grid-2x2">
+                    <label class="radio-label"><input type="radio" name="mode" value="audio_roma" checked> 🔊 聽音選羅馬字</label>
+                    <label class="radio-label"><input type="radio" name="mode" value="audio_hanzi"> 🔊 聽音選漢字</label>
+                    <label class="radio-label"><input type="radio" name="mode" value="hanzi_roma"> 👀 看漢字選羅馬字</label>
+                    <label class="radio-label"><input type="radio" name="mode" value="roma_hanzi"> 👀 看羅馬字選漢字</label>
+                </div>
             </div>
 
-            <p class="menu-sfx-tip">
-                揤鈃仔 <span class="inline-bell-icon">🔔</span> 會使開關音效
-            </p>
+            <!-- 3. 操作裝置設定（依單人/雙人動態切換） -->
+            <div class="menu-card card-ctrl">
+                <p class="menu-card-title">操作裝置</p>
+                <!-- 單人操作選項 -->
+                <div id="ctrl-1p-box">
+                    <label class="radio-label"><input type="radio" name="ctrl1p" value="keyboard" id="ctrl-keyboard" checked> ⌨️ 鍵盤 / 🖱️ 滑鼠 / 🎮 手把</label>
+                    <label class="radio-label" style="margin-left: 12px;"><input type="radio" name="ctrl1p" value="touch" id="ctrl-touch"> 📱 平板 / 觸控螢幕</label>
+                </div>
+                <!-- 雙人操作選項 -->
+                <div id="ctrl-2p-box" style="display: none;">
+                    <div class="p2-ctrl-row">
+                        <span>👈 玩家 1 (左)：</span>
+                        <select id="p1-ctrl-select" class="p2-ctrl-select" onchange="sync2PControls('p1')">
+                            <option value="kb_mouse" selected>⌨️ 鍵盤 + 🖱️ 滑鼠</option>
+                            <option value="gamepad">🎮 遊戲手把</option>
+                        </select>
+                    </div>
+                    <div class="p2-ctrl-row">
+                        <span>👉 玩家 2 (右)：</span>
+                        <select id="p2-ctrl-select" class="p2-ctrl-select" onchange="sync2PControls('p2')">
+                            <option value="gamepad" selected>🎮 遊戲手把</option>
+                            <option value="kb_mouse">⌨️ 鍵盤 + 🖱️ 滑鼠</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主選單說明文字（內嵌遊戲圖示） -->
+            <div class="menu-tips-box">
+                <div>揤鈃仔 <span class="inline-bell-icon">🔔</span> 會使開關音效</div>
+                <div>
+                    揤右鍵/手把B鍵使用凍結道具
+                    <svg class="inline-freeze-svg" viewBox="0 0 32 32">
+                        <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="#0284c7" stroke="#e0f2fe" stroke-width="2"/>
+                        <path d="M16 6 V26 M7 11 L25 21 M25 11 L7 21" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+                        <circle cx="16" cy="16" r="3.5" fill="#7dd3fc"/>
+                    </svg>
+                    ，對手凍結2.5秒
+                </div>
+                <div style="color: #b45309;">雙人對戰時，上無愛有一个人使用遊戲手把</div>
+                <div style="color: #0369a1;">本遊戲會自動播送語音，請毋通吵著別人</div>
+            </div>
             
             <button class="start-btn" onclick="startGame()">開始遊戲</button>
         </div>
         
         <div class="footer">
             <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
-            <p style="font-size: 0.85em; color: #777; margin-top: 5px;">
+            <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
                 Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
                 本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
                 未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
@@ -124,16 +227,39 @@
     </div>
 
     <div id="game-over" style="display: none;">
-        <div class="menu-content">
-            <h2 style="margin-top: 0;">遊戲結束！</h2>
-            <p style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">總分：<span id="final-score">0</span></p>
-            <h3 id="score-comment" style="color: #d97706; font-size: 32px; margin-top: 0; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);"></h3>
+        <div class="menu-content" style="max-width: 780px;">
+            <!-- 單人結算畫面 -->
+            <div id="gameover-1p-box">
+                <h2 style="margin-top: 0; font-size: 28px;">遊戲結束！</h2>
+                <p style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">總分：<span id="final-score">0</span></p>
+                <h3 id="score-comment" style="color: #d97706; font-size: 32px; margin-top: 0; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);"></h3>
+            </div>
+
+            <!-- 雙人對戰結算畫面（左 P1、右 P2） -->
+            <div id="gameover-2p-box">
+                <h2 id="gameover-2p-title">⚔️ 對戰結果 ⚔️</h2>
+                <div class="p2-results-grid">
+                    <div id="p1-result-card" class="p2-result-card">
+                        <div class="result-player-tag">玩家 1 (左)</div>
+                        <div class="result-main-icon" id="p1-result-icon">🏆</div>
+                        <div class="result-status-text" id="p1-result-status">勝利！</div>
+                        <div class="result-score-text">分數：<span id="p1-final-score">0</span></div>
+                    </div>
+                    <div id="p2-result-card" class="p2-result-card">
+                        <div class="result-player-tag">玩家 2 (右)</div>
+                        <div class="result-main-icon" id="p2-result-icon">🍂</div>
+                        <div class="result-status-text" id="p2-result-status">惜敗...</div>
+                        <div class="result-score-text">分數：<span id="p2-final-score">0</span></div>
+                    </div>
+                </div>
+            </div>
+
             <button class="start-btn" onclick="location.reload()">回主選單</button>
         </div>
         
         <div class="footer">
             <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
-            <p style="font-size: 0.85em; color: #777; margin-top: 5px;">
+            <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
                 Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
                 本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
                 未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
@@ -149,6 +275,9 @@
     <!-- 遊戲中音效開關按鈕（預設開啟） -->
     <div id="sfx-toggle-btn" title="開關音效">🔔</div>
 
+    <!-- 單人聽音模式重聽按鈕 -->
+    <button id="replay-audio-btn" title="重播題目語音 (Q鍵 / 手把X或□鍵)">🔊 揤重聽</button>
+
     <canvas id="game-canvas"></canvas>
     
     <!-- 虛擬按鍵 UI：左鍵在左下，右鍵在右下 -->
@@ -156,23 +285,57 @@
         <div class="touch-btn" id="btn-left">◀</div>
         <div class="touch-btn" id="btn-right">▶</div>
     </div>
-
-    <div id="damage-overlay"></div>
 </div>
 
 <script>
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
-    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一"];
+    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
+    
+    // 各課對應的 GitHub 音檔資料夾名稱
+    const audioFolderMap = {
+        "B1L1": "育達B1L1音檔",
+        "B1L2": "育達B1L2音檔",
+        "B1L3": "育達B1L3音檔",
+        "B1L4": "育達B1L4音檔",
+        "B3L1": "康軒B3L1音檔",
+        "B3L2": "康軒B3L2音檔",
+        "B3L3": "康軒B3L3音檔",
+        "防災素一": "康軒防災素一音檔",
+        "拼音練習": "拼音練習音檔"
+    };
+
     let selectedLessons = [];
     let activeCards = [];
-    
+    const questionAudio = new Audio();
+    let currentQuestionAudioUrl = "";
+
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
         document.getElementById('ctrl-touch').checked = true;
     }
 
+    const appContainer = document.getElementById('app-container');
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
-    
+    const replayBtn = document.getElementById('replay-audio-btn');
+
+    // 單/雙人模式選單切換與雙人控制器防衝突
+    function onPlayerCountChange() {
+        const pCount = parseInt(document.querySelector('input[name="pcount"]:checked').value, 10);
+        document.getElementById('ctrl-1p-box').style.display = (pCount === 1) ? 'block' : 'none';
+        document.getElementById('ctrl-2p-box').style.display = (pCount === 2) ? 'block' : 'none';
+        appContainer.className = (pCount === 2) ? 'mode-2p' : 'mode-1p';
+    }
+
+    function sync2PControls(changedWho) {
+        const p1Sel = document.getElementById('p1-ctrl-select');
+        const p2Sel = document.getElementById('p2-ctrl-select');
+        // 雙人對戰時，至少要有一人使用遊戲手把（不可兩人同時選鍵盤滑鼠）
+        if (p1Sel.value === 'kb_mouse' && p2Sel.value === 'kb_mouse') {
+            if (changedWho === 'p1') p2Sel.value = 'gamepad';
+            else p1Sel.value = 'gamepad';
+        }
+    }
+
     // =========================================================
     // 🎵 Web Audio API 合成音效系統（預設開啟，遊戲中可隨時切換）
     // =========================================================
@@ -213,30 +376,29 @@
 
     // a. 射到正確答案音效
     function sfxHitCorrect(isCombo = false) {
-        playToneNode(587.33, 880, 0.1, 'sine', 0.24, 0);       // D5 -> A5
-        playToneNode(880, 1174.66, 0.18, 'triangle', 0.26, 0.07); // A5 -> D6
+        playToneNode(587.33, 880, 0.1, 'sine', 0.22, 0);
+        playToneNode(880, 1174.66, 0.18, 'triangle', 0.24, 0.07);
         if (isCombo) {
-            // Combo 限時加成額外高音獎勵聲
             playToneNode(1318.51, 1760, 0.2, 'sine', 0.22, 0.14);
         }
     }
 
     // b. 射到錯誤答案音效
     function sfxHitWrong() {
-        playToneNode(160, 55, 0.26, 'sawtooth', 0.3, 0);
-        playToneNode(115, 42, 0.3, 'square', 0.24, 0.04);
+        playToneNode(160, 55, 0.24, 'sawtooth', 0.26, 0);
+        playToneNode(115, 42, 0.28, 'square', 0.2, 0.04);
     }
 
     // c. 正確答案落地音效
     function sfxMissedCorrect() {
-        playToneNode(380, 120, 0.22, 'triangle', 0.26, 0);
-        playToneNode(140, 45, 0.28, 'sawtooth', 0.28, 0.12);
+        playToneNode(380, 120, 0.22, 'triangle', 0.24, 0);
+        playToneNode(140, 45, 0.26, 'sawtooth', 0.24, 0.12);
     }
 
     // d-1. 砲台發射雷射箭矢音效
     function sfxShoot() {
-        playToneNode(920, 240, 0.09, 'sine', 0.15, 0);
-        playToneNode(600, 160, 0.08, 'triangle', 0.1, 0.01);
+        playToneNode(920, 240, 0.08, 'sine', 0.13, 0);
+        playToneNode(600, 160, 0.07, 'triangle', 0.09, 0.01);
     }
 
     // d-2. 連對 3 題獲得 +2 秒獎勵音效
@@ -258,7 +420,14 @@
         playToneNode(900, 700, 0.045, 'triangle', 0.16, 0);
     }
 
-    // d-5. 遊戲結束結算音效
+    // d-5. 雙人對戰發動「凍結道具」冰晶結冰音效
+    function sfxFreezeAttack() {
+        playToneNode(1200, 420, 0.16, 'sine', 0.25, 0);
+        playToneNode(1567.98, 2093, 0.12, 'triangle', 0.22, 0.1);
+        playToneNode(1046.5, 523.25, 0.22, 'sine', 0.24, 0.18);
+    }
+
+    // d-6. 遊戲結束結算音效
     function sfxGameOver(isHigh) {
         if (isHigh) {
             const fanfare = [
@@ -278,13 +447,10 @@
         }
     }
 
-    // 綁定音效開關按鈕（防止點擊穿透至畫布觸發射擊）
+    // 綁定音效開關按鈕
     const sfxBtn = document.getElementById('sfx-toggle-btn');
     function toggleSfx(e) {
-        if (e) {
-            e.stopPropagation();
-            e.preventDefault();
-        }
+        if (e) { e.stopPropagation(); e.preventDefault(); }
         sfxMuted = !sfxMuted;
         sfxBtn.innerText = sfxMuted ? '🔕' : '🔔';
         sfxBtn.classList.toggle('muted', sfxMuted);
@@ -295,11 +461,72 @@
     sfxBtn.addEventListener('mousedown', toggleSfx);
     sfxBtn.addEventListener('touchstart', toggleSfx, { passive: false });
 
+    // 播放當前題目語音
+    function playQuestionAudio() {
+        if (!currentQuestionAudioUrl) return;
+        const safeUrl = currentQuestionAudioUrl.includes('%') ? currentQuestionAudioUrl : encodeURI(currentQuestionAudioUrl);
+        questionAudio.pause();
+        questionAudio.src = safeUrl;
+        questionAudio.currentTime = 0;
+        questionAudio.play().catch(err => console.warn("語音播放失敗:", err));
+    }
+
+    replayBtn.addEventListener('mousedown', (e) => { e.stopPropagation(); e.preventDefault(); playQuestionAudio(); });
+    replayBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); e.preventDefault(); playQuestionAudio(); }, { passive: false });
+
     // =========================================================
-    // 📐 方塊文字智慧多行排版系統（最多 3 行，維持方塊尺寸不變）
+    // 📐 方塊文字智慧多行排版系統（最多 3 行）與第 8 聲精準繪製
     // =========================================================
+    const CANVAS_FONT_FAMILY = "'Charis SIL', 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', 'Microsoft JhengHei', sans-serif";
+
+    // 將第8聲字元解析為無點 ı 與標記索引，確保第8聲短直線緊貼於字母正上方
+    function parseEighthToneLine(str) {
+        const nfd = str.normalize('NFD');
+        const graphemes = nfd.match(/.\u0300-\u036F*/gu) || [];
+        let cleanChars = [];
+        let t8Indices = [];
+
+        graphemes.forEach(g => {
+            if (g.includes('\u030D')) {
+                let removed = g.replace(/\u030D/g, '');
+                if (removed.startsWith('i')) removed = '\u0131' + removed.slice(1);
+                cleanChars.push(removed.normalize('NFC'));
+                t8Indices.push(cleanChars.length - 1);
+            } else {
+                cleanChars.push(g.normalize('NFC'));
+            }
+        });
+        return { cleanStr: cleanChars.join(''), cleanChars, t8Indices };
+    }
+
+    function drawFormattedLine(ctx, text, centerX, centerY, fontSize) {
+        const parsed = parseEighthToneLine(text);
+        ctx.fillText(parsed.cleanStr, centerX, centerY);
+
+        if (parsed.t8Indices.length > 0) {
+            const totalW = ctx.measureText(parsed.cleanStr).width;
+            const leftX = centerX - totalW / 2;
+            ctx.save();
+            ctx.strokeStyle = ctx.fillStyle;
+            ctx.lineWidth = Math.max(1.6, fontSize * 0.095);
+            ctx.lineCap = "round";
+
+            parsed.t8Indices.forEach(idx => {
+                const prefix = parsed.cleanChars.slice(0, idx).join('');
+                const ch = parsed.cleanChars[idx];
+                const charCenterX = leftX + ctx.measureText(prefix).width + ctx.measureText(ch).width / 2;
+                const barTop = centerY - fontSize * 0.49;
+                const barBottom = centerY - fontSize * 0.30;
+                ctx.beginPath();
+                ctx.moveTo(charCenterX, barTop);
+                ctx.lineTo(charCenterX, barBottom);
+                ctx.stroke();
+            });
+            ctx.restore();
+        }
+    }
+
     function tokenizeOptionText(text) {
-        // 針對台羅音節（含連字號 -）、空白或單一漢字進行切分，避免把同一個音節拆斷
         const rawTokens = text.match(/[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\u0300-\u036F]+-?|\s+|./gu);
         return rawTokens ? rawTokens : [text];
     }
@@ -310,20 +537,18 @@
     }
 
     function computeOptionTextLayout(ctx, text, boxWidth, boxHeight) {
-        const maxWidth = boxWidth - 8;   // 左右各留 4px 邊距
-        const maxHeight = boxHeight - 4; // 上下各留 2px 邊距
+        const maxWidth = boxWidth - 8;
+        const maxHeight = boxHeight - 4;
         const maxLines = 3;
         const baseTokens = tokenizeOptionText(text);
 
         for (let fontSize = 20; fontSize >= 9; fontSize--) {
-            ctx.font = `bold ${fontSize}px Arial, 'Microsoft JhengHei', sans-serif`;
+            ctx.font = `bold ${fontSize}px ${CANVAS_FONT_FAMILY}`;
 
-            // 1. 若單行即可完整放入，優先以單行大字呈現
             if (ctx.measureText(text).width <= maxWidth && fontSize <= maxHeight) {
                 return { fontSize, lines: [text], lineHeight: fontSize };
             }
 
-            // 2. 檢查是否有單一音節超過方塊寬度
             let hasOversizedToken = false;
             for (let t of baseTokens) {
                 if (t.trim() !== '' && ctx.measureText(t).width > maxWidth) {
@@ -331,12 +556,10 @@
                     break;
                 }
             }
-            // 在字體還夠大時（>= 12px），優先微縮字體以保持單一音節完整不斷裂
             if (hasOversizedToken && fontSize >= 12) {
                 continue;
             }
 
-            // 若字體已縮至 11px 以下仍有超長單一音節，才拆解為字母單元
             let tokens = [];
             if (hasOversizedToken) {
                 baseTokens.forEach(t => {
@@ -350,7 +573,6 @@
                 tokens = baseTokens;
             }
 
-            // 3. 進行多行換行排入
             let lines = [];
             let currentLine = "";
             for (let tok of tokens) {
@@ -365,7 +587,6 @@
             }
             if (currentLine !== "") lines.push(currentLine.trimEnd());
 
-            // 4. 若為 2 行且由多個字詞組成，自動平衡上下兩行長度讓視覺更美觀
             if (lines.length === 2 && tokens.length >= 3) {
                 let bestSplit = null;
                 let minDiff = Infinity;
@@ -386,7 +607,6 @@
                 if (bestSplit) lines = bestSplit;
             }
 
-            // 5. 檢查行數（最多 3 行）與總高度是否能完美塞入 50px 高的方塊中
             if (lines.length <= maxLines) {
                 const lineRatio = lines.length === 1 ? 1 : (lines.length === 2 ? 1.12 : 1.05);
                 const lineHeight = fontSize * lineRatio;
@@ -397,51 +617,182 @@
             }
         }
 
-        // 保底回傳（最多 3 行）
         return { fontSize: 9, lines: [text.slice(0, 12), text.slice(12, 24), text.slice(24)].filter(Boolean), lineHeight: 10 };
     }
 
-    let time = 50, score = 0, hearts = 4;
+    // 繪製凍結道具圖示（支援灰黑剪影與點亮彩色狀態）
+    function drawFreezeItemSlot(ctx, cx, cy, radius, isActive) {
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        // 六角冰晶外框
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const ang = (Math.PI / 3) * i - Math.PI / 2;
+            const px = Math.cos(ang) * radius;
+            const py = Math.sin(ang) * radius;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+
+        if (isActive) {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#00e5ff";
+            ctx.fillStyle = "#0284c7";
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#e0f2fe";
+            ctx.stroke();
+
+            // 內部雪花結晶線條
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1.8;
+            ctx.lineCap = "round";
+            for (let i = 0; i < 3; i++) {
+                const ang = (Math.PI / 3) * i;
+                const rIn = radius * 0.62;
+                ctx.beginPath();
+                ctx.moveTo(-Math.cos(ang) * rIn, -Math.sin(ang) * rIn);
+                ctx.lineTo(Math.cos(ang) * rIn, Math.sin(ang) * rIn);
+                ctx.stroke();
+            }
+            ctx.beginPath();
+            ctx.arc(0, 0, radius * 0.2, 0, Math.PI * 2);
+            ctx.fillStyle = "#7dd3fc";
+            ctx.fill();
+        } else {
+            // 灰黑剪影狀態
+            ctx.fillStyle = "#16191d";
+            ctx.fill();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = "#3f4752";
+            ctx.stroke();
+
+            ctx.strokeStyle = "#2c323b";
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 3; i++) {
+                const ang = (Math.PI / 3) * i;
+                const rIn = radius * 0.55;
+                ctx.beginPath();
+                ctx.moveTo(-Math.cos(ang) * rIn, -Math.sin(ang) * rIn);
+                ctx.lineTo(Math.cos(ang) * rIn, Math.sin(ang) * rIn);
+                ctx.stroke();
+            }
+        }
+
+        ctx.restore();
+    }
+
+    // =========================================================
+    // 🎮 PS4 (DualShock 4 / DualSense) 與 Xbox 手把雙規格讀取器
+    // =========================================================
+    function readGamepadState(gp) {
+        if (!gp) return null;
+        const id = (gp.id || '').toLowerCase();
+        const isRawDS4 = (gp.mapping === '' && (id.includes('054c') || id.includes('wireless controller') || id.includes('dualshock')));
+        const deadzone = 0.2;
+
+        let moveLeft = false, moveRight = false;
+        let aimAxis = 0;
+        let btnShoot = false, btnFreeze = false, btnReplay = false;
+
+        // 左蘑菇頭
+        if (gp.axes[0] < -deadzone) moveLeft = true;
+        if (gp.axes[0] > deadzone) moveRight = true;
+
+        // 右蘑菇頭水平軸
+        if (gp.axes.length > 2 && Math.abs(gp.axes[2]) > deadzone) {
+            aimAxis = gp.axes[2];
+        }
+
+        if (isRawDS4) {
+            // Sony 原生非標準映射：□=0, ✕=1, ○=2, △=3，十字鍵在 axes[9]
+            btnShoot = !!(gp.buttons[1] && gp.buttons[1].pressed);  // PS4 ✕
+            btnFreeze = !!(gp.buttons[2] && gp.buttons[2].pressed); // PS4 ○
+            btnReplay = !!(gp.buttons[0] && gp.buttons[0].pressed) || !!(gp.buttons[3] && gp.buttons[3].pressed); // PS4 □ 或 △
+            if (gp.axes.length > 9) {
+                const hat = gp.axes[9];
+                if (hat >= 0.4 && hat <= 1.0) moveLeft = true;
+                if (hat >= -0.75 && hat <= -0.1) moveRight = true;
+            }
+        } else {
+            // 標準映射 (Xbox 與主流瀏覽器下的 PS4 手把)：A/✕=0, B/○=1, X/□=2, Y/△=3
+            btnShoot = !!(gp.buttons[0] && gp.buttons[0].pressed);  // Xbox A / PS4 ✕
+            btnFreeze = !!(gp.buttons[1] && gp.buttons[1].pressed); // Xbox B / PS4 ○
+            btnReplay = !!(gp.buttons[2] && gp.buttons[2].pressed) || !!(gp.buttons[3] && gp.buttons[3].pressed); // Xbox X/Y / PS4 □/△
+            if (gp.buttons[14] && gp.buttons[14].pressed) moveLeft = true;
+            if (gp.buttons[15] && gp.buttons[15].pressed) moveRight = true;
+        }
+
+        return { moveLeft, moveRight, aimAxis, btnShoot, btnFreeze, btnReplay };
+    }
+
+    // =========================================================
+    // 遊戲核心變數與玩家陣列（支援 1P 與 2P 分割畫面）
+    // =========================================================
+    let playerCount = 1;
+    let players = [];
+    let flyingIceEffects = [];
+    let time = 50;
     let globalSpeedBonus = 0;
     let elapsedTime = 0;
-    let gameLoop, secondInterval;
-    let currentMode = 'hanzi';
-    let controlMode = 'keyboard';
+    let gameLoop = null, secondInterval = null;
+    let currentMode = 'audio_roma';
     let isSpawning = false;
-    
-    let player = { x: 0, y: 0, speed: 8, angle: -Math.PI / 2, cooldown: 0 };
-    let arrows = [];
-    let fallingOptions = [];
-    
-    let streakCount = 0;
+    let isGameRunning = false;
     let currentQuestionText = "";
     
     let waveData = { spawnTime: 0, maxDelay: 0, comboDuration: 3000, comboActive: false, comboTimeLeft: 0 };
-
     let keys = { a: false, A: false, d: false, D: false, ArrowLeft: false, ArrowRight: false };
-    let mouseX = 0, mouseY = 0;
+
+    function createPlayer(id, controlType, gpIndex = 0) {
+        const arenaW = (playerCount === 2) ? (canvas.width / 2) : canvas.width;
+        const offsetX = (playerCount === 2 && id === 1) ? (canvas.width / 2) : 0;
+        return {
+            id: id,
+            offsetX: offsetX,
+            arenaWidth: arenaW,
+            x: arenaW / 2,
+            y: canvas.height - 50,
+            speed: 8,
+            angle: -Math.PI / 2,
+            cooldown: 0,
+            score: 0,
+            hearts: 4,
+            streakCount: 0,
+            freezeItems: 0,
+            frozenUntil: 0,
+            damageFlashUntil: 0,
+            controlType: controlType, // 'kb_mouse', 'touch', 'gamepad'
+            gpIndex: gpIndex,
+            gpPrevFreeze: false,
+            gpPrevReplay: false,
+            arrows: [],
+            fallingOptions: []
+        };
+    }
 
     function resizeCanvas() {
-        const container = document.getElementById('app-container');
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
-        player.y = canvas.height - 50;
-        
-        if(player.x === 0 || player.x > canvas.width) {
-            player.x = canvas.width / 2;
-        } else {
-            player.x = Math.max(30, Math.min(player.x, canvas.width - 30));
-        }
+        canvas.width = appContainer.clientWidth;
+        canvas.height = appContainer.clientHeight;
 
-        // 若視窗尺寸改變，同步更新下落方塊的 X 座標與寬度並重新計算文字排版
-        if (fallingOptions.length > 0) {
-            const colWidth = canvas.width / 4;
-            fallingOptions.forEach((opt, index) => {
-                opt.x = colWidth * index + colWidth / 2;
-                opt.width = Math.min(colWidth * 0.9, 140);
-                opt.layout = computeOptionTextLayout(ctx, opt.text, opt.width, opt.height);
-            });
-        }
+        players.forEach((p, idx) => {
+            p.arenaWidth = (playerCount === 2) ? (canvas.width / 2) : canvas.width;
+            p.offsetX = (playerCount === 2 && idx === 1) ? (canvas.width / 2) : 0;
+            p.y = canvas.height - 50;
+            p.x = Math.max(30, Math.min(p.x || p.arenaWidth / 2, p.arenaWidth - 30));
+
+            if (p.fallingOptions.length > 0) {
+                const colWidth = p.arenaWidth / 4;
+                p.fallingOptions.forEach((opt, colIdx) => {
+                    opt.x = p.offsetX + colWidth * colIdx + colWidth / 2;
+                    opt.width = Math.min(colWidth * 0.9, 140);
+                    opt.layout = computeOptionTextLayout(ctx, opt.text, opt.width, opt.height);
+                });
+            }
+        });
     }
     window.addEventListener('resize', resizeCanvas);
 
@@ -468,47 +819,87 @@
 
     async function startGame() {
         if(selectedLessons.length === 0) return alert("請至少選擇一課！");
-        getSfxCtx(); // 解鎖瀏覽器音效引擎
+        getSfxCtx();
+        playerCount = parseInt(document.querySelector('input[name="pcount"]:checked').value, 10);
         currentMode = document.querySelector('input[name="mode"]:checked').value;
-        controlMode = document.querySelector('input[name="ctrl"]:checked').value;
-        
+        appContainer.className = (playerCount === 2) ? 'mode-2p' : 'mode-1p';
+
         document.getElementById('menu').style.display = 'none';
         canvas.style.display = 'block';
         sfxBtn.style.display = 'block';
-        
-        if (controlMode === 'touch') {
-            document.getElementById('touch-controls').style.display = 'flex';
+
+        // 設定玩家與控制器配置
+        players = [];
+        if (playerCount === 1) {
+            const ctrl1p = document.querySelector('input[name="ctrl1p"]:checked').value;
+            players.push(createPlayer(0, ctrl1p === 'touch' ? 'touch' : 'kb_and_gp', 0));
+            document.getElementById('touch-controls').style.display = (ctrl1p === 'touch') ? 'flex' : 'none';
+        } else {
+            document.getElementById('touch-controls').style.display = 'none';
+            const p1Ctrl = document.getElementById('p1-ctrl-select').value;
+            const p2Ctrl = document.getElementById('p2-ctrl-select').value;
+            if (p1Ctrl === 'gamepad' && p2Ctrl === 'gamepad') {
+                players.push(createPlayer(0, 'gamepad', 0));
+                players.push(createPlayer(1, 'gamepad', 1));
+            } else if (p1Ctrl === 'kb_mouse' && p2Ctrl === 'gamepad') {
+                players.push(createPlayer(0, 'kb_mouse', -1));
+                players.push(createPlayer(1, 'gamepad', 0));
+            } else {
+                players.push(createPlayer(0, 'gamepad', 0));
+                players.push(createPlayer(1, 'kb_mouse', -1));
+            }
         }
-        
+
+        // 單人聽音模式顯示重聽按鈕，雙人模式不開放重聽
+        if (playerCount === 1 && currentMode.startsWith('audio_')) {
+            replayBtn.style.display = 'block';
+        } else {
+            replayBtn.style.display = 'none';
+        }
+
         resizeCanvas();
-        
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "white";
-        ctx.font = "30px Arial";
+        ctx.font = `bold 28px ${CANVAS_FONT_FAMILY}`;
         ctx.textAlign = "center";
-        ctx.fillText("載入題庫中...", canvas.width/2, canvas.height/2);
+        ctx.fillText("載入題庫與音檔中...", canvas.width / 2, canvas.height / 2);
 
         const fetchPromises = selectedLessons.map(sheet => 
-            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}`).then(res => res.text())
+            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
+                .then(res => res.text())
+                .then(text => ({ sheet, text }))
         );
 
         const results = await Promise.all(fetchPromises);
         activeCards = [];
-        results.forEach(text => {
+        results.forEach(({ sheet, text }) => {
+            let rowNumber = 0;
             text.split(/\r?\n/).forEach(l => {
                 const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
                 if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
-                    activeCards.push({ h: p[0].trim(), r: p[1].trim() });
+                    rowNumber++;
+                    const numStr = String(rowNumber).padStart(2, '0');
+                    const folderName = audioFolderMap[sheet] || `${sheet}音檔`;
+                    const fallbackAudioUrl = `https://yyanjhang-web.github.io/hosngetaiagi/${folderName}/-${numStr}.mp3`;
+                    const colCAudioUrl = (p.length >= 3 && p[2].trim() !== "") ? p[2].trim() : fallbackAudioUrl;
+
+                    activeCards.push({
+                        h: p[0].trim(),
+                        r: p[1].trim().split('(')[0].trim(),
+                        a: colCAudioUrl
+                    });
                 }
             });
         });
 
         if(activeCards.length < 4) return alert("詞庫不足，每題需要 4 個選項，請多選幾課！");
         
-        time = 50; score = 0; hearts = 4; globalSpeedBonus = 0; elapsedTime = 0; streakCount = 0;
-        player.x = canvas.width / 2;
-        arrows = [];
-        fallingOptions = [];
+        time = 50; globalSpeedBonus = 0; elapsedTime = 0;
+        flyingIceEffects = [];
         isSpawning = false;
+        isGameRunning = true;
         
         spawnWave();
         gameLoop = requestAnimationFrame(update);
@@ -516,7 +907,7 @@
     }
 
     function timerTick() {
-        if(hearts <= 0) return;
+        if(!isGameRunning) return;
         time--;
         elapsedTime++;
         
@@ -530,111 +921,180 @@
             canvas.style.boxShadow = "inset 0 0 40px 20px #00e5ff";
             setTimeout(() => { canvas.style.boxShadow = "none"; }, 300);
         }
-        if(time <= 0 && hearts > 0) endGame();
+        if(time <= 0) endGame();
     }
 
     function spawnWave() {
+        if (!isGameRunning) return;
         isSpawning = false;
-        fallingOptions = [];
-        arrows = []; 
         waveData.spawnTime = Date.now();
         waveData.comboActive = false;
         
         let deck = shuffleArray([...activeCards]);
         const target = deck[0];
-        const wrongs = deck.slice(1, 4); 
-        currentQuestionText = currentMode === 'hanzi' ? target.h : target.r;
-        
-        let options = shuffleArray([target, ...wrongs]);
-        let colWidth = canvas.width / 4; 
+        const wrongs = deck.slice(1, 4);
+
+        currentQuestionAudioUrl = target.a;
+        if (currentMode === 'hanzi_roma') {
+            currentQuestionText = target.h;
+        } else if (currentMode === 'roma_hanzi') {
+            currentQuestionText = target.r;
+        } else {
+            currentQuestionText = (playerCount === 2) ? "🔊 聽音搶答" : "";
+            playQuestionAudio();
+        }
+
+        const answerProducesRoma = (currentMode === 'audio_roma' || currentMode === 'hanzi_roma');
         let maxDly = 0;
 
-        options.forEach((opt, index) => {
-            const isCorrect = (opt === target);
-            const text = currentMode === 'hanzi' ? opt.r : opt.h;
-            let delay = Math.random() * 2000;
-            if(delay > maxDly) maxDly = delay;
-            
-            let baseSpeed = 0.5 + Math.random() * 0.7; 
-            let boxW = Math.min(colWidth * 0.9, 140);
-            let boxH = 50;
-            
-            fallingOptions.push({
-                text: text,
-                isCorrect: isCorrect,
-                x: colWidth * index + colWidth / 2,
-                y: -60,
-                width: boxW, 
-                height: boxH,
-                layout: computeOptionTextLayout(ctx, text, boxW, boxH),
-                delay: delay,
-                speed: baseSpeed,
-                active: true,
-                hasStartedFalling: false
+        players.forEach(p => {
+            p.arrows = [];
+            p.fallingOptions = [];
+            let options = shuffleArray([target, ...wrongs]);
+            let colWidth = p.arenaWidth / 4;
+
+            options.forEach((opt, index) => {
+                const isCorrect = (opt === target);
+                const text = answerProducesRoma ? opt.r : opt.h;
+                let delay = Math.random() * 1800;
+                if(delay > maxDly) maxDly = delay;
+                
+                let baseSpeed = 0.5 + Math.random() * 0.65;
+                let boxW = Math.min(colWidth * 0.9, 140);
+                let boxH = 50;
+                
+                p.fallingOptions.push({
+                    text: text,
+                    isCorrect: isCorrect,
+                    x: p.offsetX + colWidth * index + colWidth / 2,
+                    y: -60,
+                    width: boxW,
+                    height: boxH,
+                    layout: computeOptionTextLayout(ctx, text, boxW, boxH),
+                    delay: delay,
+                    speed: baseSpeed,
+                    active: true,
+                    hasStartedFalling: false
+                });
             });
         });
         
         waveData.maxDelay = maxDly;
     }
 
-    function takeDamage() {
-        hearts--;
-        streakCount = 0;
-        const overlay = document.getElementById('damage-overlay');
-        overlay.style.display = 'block';
-        setTimeout(() => { overlay.style.display = 'none'; }, 200);
-        if(hearts <= 0) endGame();
+    function applyWrongPenalty(p) {
+        p.streakCount = 0;
+        p.damageFlashUntil = Date.now() + 250;
+        if (playerCount === 1) {
+            p.hearts--;
+            if (p.hearts <= 0) endGame();
+        } else {
+            // 雙人對戰無愛心上限，答錯或漏接扣 15 分
+            p.score = Math.max(0, p.score - 15);
+        }
     }
 
-    function shoot() {
-        if(player.cooldown > 0 || hearts <= 0) return;
-        const pivotY = player.y - 20; // 砲台旋轉中心
-        arrows.push({
-            // 箭矢直接從砲口位置產生，精準出擊
-            x: player.x + Math.cos(player.angle) * 45,
-            y: pivotY + Math.sin(player.angle) * 45,
-            angle: player.angle,
+    function shootForPlayer(p) {
+        if (!isGameRunning) return;
+        const now = Date.now();
+        // 結冰期間鎖死發射
+        if (now < p.frozenUntil) return;
+        if (p.cooldown > 0) return;
+
+        const pivotX = p.offsetX + p.x;
+        const pivotY = p.y - 20;
+        p.arrows.push({
+            x: pivotX + Math.cos(p.angle) * 45,
+            y: pivotY + Math.sin(p.angle) * 45,
+            angle: p.angle,
             speed: 15,
             active: true
         });
         sfxShoot();
-        player.cooldown = 500; 
+        p.cooldown = 500;
     }
 
-    function handleInput() {
-        if (keys.a || keys.A || keys.ArrowLeft) player.x -= player.speed;
-        if (keys.d || keys.D || keys.ArrowRight) player.x += player.speed;
+    // 發動凍結道具攻擊對手（持續 2.5 秒）
+    function useFreezeItemForPlayer(p) {
+        if (!isGameRunning || playerCount !== 2) return;
+        const now = Date.now();
+        if (now < p.frozenUntil) return; // 自身被凍結時無法操作
+        if (p.freezeItems <= 0) return;
 
+        const opponent = players[1 - p.id];
+        p.freezeItems--;
+        sfxFreezeAttack();
+
+        // 產生飛向對手砲台的冰晶特效並凍結對手 2.5 秒
+        flyingIceEffects.push({
+            startX: p.offsetX + p.x,
+            startY: p.y - 40,
+            targetX: opponent.offsetX + opponent.x,
+            targetY: opponent.y - 20,
+            startTime: now,
+            duration: 220
+        });
+        opponent.frozenUntil = Math.max(now, opponent.frozenUntil) + 2500;
+    }
+
+    function handlePlayerInputs() {
+        const now = Date.now();
         const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-        if (gamepads[0]) {
-            const gp = gamepads[0];
-            const deadzone = 0.2;
-            
-            // 左搖桿或十字鍵移動
-            if (gp.axes[0] < -deadzone || (gp.buttons[14] && gp.buttons[14].pressed)) player.x -= player.speed;
-            if (gp.axes[0] > deadzone || (gp.buttons[15] && gp.buttons[15].pressed)) player.x += player.speed;
-            
-            // 右搖桿左右推動進行相對旋轉
-            if (Math.abs(gp.axes[2]) > deadzone) {
-                player.angle += gp.axes[2] * 0.035; 
-                if (player.angle > 0) player.angle = 0;
-                if (player.angle < -Math.PI) player.angle = -Math.PI;
-            }
-            
-            // A鍵射擊
-            if (gp.buttons[0] && gp.buttons[0].pressed) shoot();
-        }
 
-        player.x = Math.max(30, Math.min(player.x, canvas.width - 30));
+        players.forEach(p => {
+            const isFrozen = (now < p.frozenUntil);
+
+            // 1. 鍵盤與觸控方向移動（結冰時鎖死移動）
+            if (p.controlType === 'kb_mouse' || p.controlType === 'kb_and_gp' || p.controlType === 'touch') {
+                if (!isFrozen) {
+                    if (keys.a || keys.A || keys.ArrowLeft) p.x -= p.speed;
+                    if (keys.d || keys.D || keys.ArrowRight) p.x += p.speed;
+                }
+            }
+
+            // 2. 遊戲手把控制（自動相容 Xbox 與 PS4 手把）
+            if (p.controlType === 'gamepad' || p.controlType === 'kb_and_gp') {
+                const gp = gamepads[p.gpIndex];
+                const state = readGamepadState(gp);
+                if (state) {
+                    if (!isFrozen) {
+                        if (state.moveLeft) p.x -= p.speed;
+                        if (state.moveRight) p.x += p.speed;
+                        if (state.aimAxis !== 0) {
+                            p.angle += state.aimAxis * 0.038;
+                            if (p.angle > -0.08) p.angle = -0.08;
+                            if (p.angle < -Math.PI + 0.08) p.angle = -Math.PI + 0.08;
+                        }
+                        if (state.btnShoot) shootForPlayer(p);
+                    }
+
+                    // 單次按壓偵測：B鍵 / PS4 ○鍵 發動凍結道具
+                    if (state.btnFreeze && !p.gpPrevFreeze) {
+                        useFreezeItemForPlayer(p);
+                    }
+                    p.gpPrevFreeze = state.btnFreeze;
+
+                    // 單次按壓偵測：X鍵 / PS4 □鍵 單人模式重聽語音
+                    if (state.btnReplay && !p.gpPrevReplay && playerCount === 1 && currentMode.startsWith('audio_')) {
+                        playQuestionAudio();
+                    }
+                    p.gpPrevReplay = state.btnReplay;
+                }
+            }
+
+            p.x = Math.max(30, Math.min(p.x, p.arenaWidth - 30));
+        });
     }
 
     function update() {
-        if(hearts <= 0) return;
+        if(!isGameRunning) return;
         
         const now = Date.now();
-        if(player.cooldown > 0) player.cooldown -= 16; 
+        players.forEach(p => {
+            if (p.cooldown > 0) p.cooldown -= 16;
+        });
 
-        handleInput();
+        handlePlayerInputs();
 
         let comboStartTime = waveData.spawnTime + waveData.maxDelay + 1000;
         if(now > comboStartTime) {
@@ -643,300 +1103,509 @@
             if(waveData.comboTimeLeft < 0) waveData.comboTimeLeft = 0;
         }
 
-        let allOptionsMissed = true; 
-        fallingOptions.forEach(opt => {
-            if(!opt.active) return;
-            allOptionsMissed = false;
-            
-            if(now - waveData.spawnTime > opt.delay) {
-                opt.hasStartedFalling = true;
-                opt.y += (opt.speed + globalSpeedBonus);
-            }
+        let anyCorrectStillAvailable = false;
+        let anyOptionStillActive = false;
 
-            if(opt.y > canvas.height) {
-                opt.active = false;
-                if(opt.isCorrect) {
-                    sfxMissedCorrect(); // c. 正確答案落地音效
-                    takeDamage(); 
-                    if(!isSpawning) {
-                        isSpawning = true;
-                        setTimeout(spawnWave, 500); 
-                    }
-                }
-            }
-        });
-
-        if(allOptionsMissed && fallingOptions.length > 0 && !isSpawning) {
-            isSpawning = true;
-            spawnWave();
-        }
-
-        arrows.forEach(arrow => {
-            if(!arrow.active) return;
-            arrow.x += Math.cos(arrow.angle) * arrow.speed;
-            arrow.y += Math.sin(arrow.angle) * arrow.speed;
-
-            if(arrow.x < 0 || arrow.x > canvas.width || arrow.y < 0 || arrow.y > canvas.height) {
-                arrow.active = false;
-            }
-
-            fallingOptions.forEach(opt => {
-                if(!opt.active || !opt.hasStartedFalling || !arrow.active) return;
+        players.forEach(p => {
+            p.fallingOptions.forEach(opt => {
+                if(!opt.active) return;
+                anyOptionStillActive = true;
+                if (opt.isCorrect) anyCorrectStillAvailable = true;
                 
-                let left = opt.x - opt.width/2;
-                let right = opt.x + opt.width/2;
-                let top = opt.y - opt.height/2;
-                let bottom = opt.y + opt.height/2;
+                if(now - waveData.spawnTime > opt.delay) {
+                    opt.hasStartedFalling = true;
+                    opt.y += (opt.speed + globalSpeedBonus);
+                }
 
-                if(arrow.x > left && arrow.x < right && arrow.y > top && arrow.y < bottom) {
-                    arrow.active = false;
-                    
+                if(opt.y > canvas.height) {
+                    opt.active = false;
                     if(opt.isCorrect) {
-                        let yRatio = opt.y / canvas.height;
-                        if(yRatio < 0.33) score += 30;
-                        else if(yRatio < 0.66) score += 20;
-                        else score += 10;
-
-                        const isComboHit = (waveData.comboActive && waveData.comboTimeLeft > 0);
-                        if(isComboHit) {
-                            score += 15; 
-                        }
-                        sfxHitCorrect(isComboHit); // a. 射到正確答案音效
-
-                        streakCount++;
-                        if(streakCount > 0 && streakCount % 3 === 0) {
-                            time += 2;
-                            sfxTimeBonus(); // 連對 3 題加秒獎勵音效
-                        }
-
-                        const rect = canvas.getBoundingClientRect();
-                        const confettiX = (rect.left + opt.x) / window.innerWidth;
-                        const confettiY = (rect.top + opt.y) / window.innerHeight;
-                        confetti({ particleCount: 100, spread: 70, origin: { x: confettiX, y: confettiY } });
-                        
-                        fallingOptions.forEach(o => o.active = false); 
-                        if(!isSpawning) {
-                            isSpawning = true;
-                            setTimeout(spawnWave, 500);
-                        }
-                        
-                    } else {
-                        opt.active = false; 
-                        sfxHitWrong(); // b. 射到錯誤答案音效
-                        takeDamage();
-                        player.cooldown = 1000; 
+                        sfxMissedCorrect();
+                        applyWrongPenalty(p);
                     }
                 }
             });
+
+            // 更新雷射箭矢與碰撞判定
+            p.arrows.forEach(arrow => {
+                if(!arrow.active) return;
+                arrow.x += Math.cos(arrow.angle) * arrow.speed;
+                arrow.y += Math.sin(arrow.angle) * arrow.speed;
+
+                // 限制箭矢在各自玩家的戰場範圍內
+                if(arrow.x < p.offsetX || arrow.x > p.offsetX + p.arenaWidth || arrow.y < 0 || arrow.y > canvas.height) {
+                    arrow.active = false;
+                }
+
+                p.fallingOptions.forEach(opt => {
+                    if(!opt.active || !opt.hasStartedFalling || !arrow.active) return;
+                    
+                    let left = opt.x - opt.width / 2;
+                    let right = opt.x + opt.width / 2;
+                    let top = opt.y - opt.height / 2;
+                    let bottom = opt.y + opt.height / 2;
+
+                    if(arrow.x > left && arrow.x < right && arrow.y > top && arrow.y < bottom) {
+                        arrow.active = false;
+                        
+                        if(opt.isCorrect) {
+                            let yRatio = opt.y / canvas.height;
+                            if(yRatio < 0.33) p.score += 30;
+                            else if(yRatio < 0.66) p.score += 20;
+                            else p.score += 10;
+
+                            const isComboHit = (waveData.comboActive && waveData.comboTimeLeft > 0);
+                            if(isComboHit) {
+                                p.score += 15;
+                                // 雙人對戰時，Combo 成功可獲得 1 顆凍結道具（上限 2 顆）
+                                if (playerCount === 2) {
+                                    p.freezeItems = Math.min(2, p.freezeItems + 1);
+                                }
+                            }
+                            sfxHitCorrect(isComboHit);
+
+                            p.streakCount++;
+                            if(playerCount === 1 && p.streakCount > 0 && p.streakCount % 3 === 0) {
+                                time += 2;
+                                sfxTimeBonus();
+                            }
+
+                            const rect = canvas.getBoundingClientRect();
+                            const confettiX = (rect.left + (opt.x / canvas.width) * rect.width) / window.innerWidth;
+                            const confettiY = (rect.top + (opt.y / canvas.height) * rect.height) / window.innerHeight;
+                            confetti({ particleCount: 75, spread: 65, origin: { x: confettiX, y: confettiY } });
+                            
+                            // 同步搶答：只要有一方射中正解，雙方同時清空並進入下一題
+                            players.forEach(pl => pl.fallingOptions.forEach(o => o.active = false));
+                            if(!isSpawning) {
+                                isSpawning = true;
+                                setTimeout(spawnWave, 500);
+                            }
+                        } else {
+                            opt.active = false;
+                            sfxHitWrong();
+                            applyWrongPenalty(p);
+                            p.cooldown = 1000;
+                        }
+                    }
+                });
+            });
         });
 
+        // 若雙方的正確答案皆已落地或無任何活動方塊，自動切換下一波題目
+        if ((!anyCorrectStillAvailable || !anyOptionStillActive) && !isSpawning && isGameRunning) {
+            isSpawning = true;
+            setTimeout(spawnWave, 500);
+        }
+
         draw();
-        gameLoop = requestAnimationFrame(update);
+        if (isGameRunning) {
+            gameLoop = requestAnimationFrame(update);
+        }
     }
 
     function draw() {
+        const now = Date.now();
         ctx.fillStyle = "#222";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.fillStyle = "yellow";
-        ctx.font = "bold 28px Arial, 'Microsoft JhengHei', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(currentQuestionText, canvas.width / 2, 50);
-
-        ctx.fillStyle = "white";
-        ctx.font = "18px Arial";
-        ctx.textAlign = "left";
-        ctx.fillText(`時間: ${time}`, 15, 35);
-        
-        ctx.textAlign = "right";
-        ctx.fillText(`分數: ${score}`, canvas.width - 15, 35);
-        
-        let heartStr = "";
-        for(let i=0; i<4; i++) {
-            heartStr += (i < hearts) ? "❤️" : "🖤";
-        }
-        ctx.fillText(heartStr, canvas.width - 15, 65);
-
-        if(waveData.comboActive) {
-            let barWidth = canvas.width * 0.6;
-            let ratio = waveData.comboTimeLeft / waveData.comboDuration;
-            ctx.fillStyle = "#555";
-            ctx.fillRect(canvas.width/2 - barWidth/2, 80, barWidth, 10);
-            ctx.fillStyle = ratio > 0.5 ? "#4caf50" : (ratio > 0.2 ? "#ff9800" : "#f44336");
-            ctx.fillRect(canvas.width/2 - barWidth/2, 80, barWidth * ratio, 10);
-            ctx.fillStyle = "white";
-            ctx.font = "12px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText("Combo 倒數", canvas.width/2, 105);
-        }
-
-        // 繪製下落方塊與自動多行文字（最多 3 行）
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        fallingOptions.forEach(opt => {
-            if(!opt.active || !opt.hasStartedFalling) return;
-            
-            ctx.fillStyle = "white";
-            ctx.fillRect(opt.x - opt.width/2, opt.y - opt.height/2, opt.width, opt.height);
-            ctx.strokeStyle = "#ccc";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(opt.x - opt.width/2, opt.y - opt.height/2, opt.width, opt.height);
-            
-            ctx.fillStyle = "black";
-            const layout = opt.layout || computeOptionTextLayout(ctx, opt.text, opt.width, opt.height);
-            ctx.font = `bold ${layout.fontSize}px Arial, 'Microsoft JhengHei', sans-serif`;
-            
-            const lines = layout.lines;
-            const lineHeight = layout.lineHeight;
-            const startY = opt.y - ((lines.length - 1) * lineHeight) / 2;
-            for (let i = 0; i < lines.length; i++) {
-                ctx.fillText(lines[i], opt.x, startY + i * lineHeight);
-            }
-        });
-
-        // 定義砲台旋轉的 Y 軸中心點
-        const pivotY = player.y - 20;
-
-        // 畫虛線瞄準輔助線 (從砲管尖端出發)
-        ctx.beginPath();
-        ctx.setLineDash([10, 8]);
-        ctx.moveTo(player.x + Math.cos(player.angle) * 45, pivotY + Math.sin(player.angle) * 45);
-        ctx.lineTo(player.x + Math.cos(player.angle) * 800, pivotY + Math.sin(player.angle) * 800);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.setLineDash([]); 
-
-        // 畫發射出的雷射箭矢
-        arrows.forEach(arrow => {
-            if(!arrow.active) return;
+        // 繪製各別玩家的戰場、下落方塊與砲塔
+        players.forEach((p, idx) => {
             ctx.save();
-            ctx.translate(arrow.x, arrow.y);
-            ctx.rotate(arrow.angle);
-            ctx.fillStyle = "#00e5ff"; 
-            ctx.fillRect(0, -3, 30, 6);
+            // 裁切保護：確保左右玩家畫面不互相溢出
+            ctx.beginPath();
+            ctx.rect(p.offsetX, 0, p.arenaWidth, canvas.height);
+            ctx.clip();
+
+            // 1. 繪製下落方塊與最多 3 行的自適應文字（含第 8 聲精準描繪）
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            p.fallingOptions.forEach(opt => {
+                if(!opt.active || !opt.hasStartedFalling) return;
+                
+                ctx.fillStyle = "white";
+                ctx.fillRect(opt.x - opt.width / 2, opt.y - opt.height / 2, opt.width, opt.height);
+                ctx.strokeStyle = "#cbd5e1";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(opt.x - opt.width / 2, opt.y - opt.height / 2, opt.width, opt.height);
+                
+                ctx.fillStyle = "#0f172a";
+                const layout = opt.layout || computeOptionTextLayout(ctx, opt.text, opt.width, opt.height);
+                ctx.font = `bold ${layout.fontSize}px ${CANVAS_FONT_FAMILY}`;
+                
+                const lines = layout.lines;
+                const lineHeight = layout.lineHeight;
+                const startY = opt.y - ((lines.length - 1) * lineHeight) / 2;
+                for (let i = 0; i < lines.length; i++) {
+                    drawFormattedLine(ctx, lines[i], opt.x, startY + i * lineHeight, layout.fontSize);
+                }
+            });
+
+            // 2. 繪製虛線瞄準線與雷射箭矢
+            const pivotX = p.offsetX + p.x;
+            const pivotY = p.y - 20;
+            const isFrozen = (now < p.frozenUntil);
+
+            ctx.beginPath();
+            ctx.setLineDash([10, 8]);
+            ctx.moveTo(pivotX + Math.cos(p.angle) * 45, pivotY + Math.sin(p.angle) * 45);
+            ctx.lineTo(pivotX + Math.cos(p.angle) * 800, pivotY + Math.sin(p.angle) * 800);
+            ctx.strokeStyle = isFrozen ? "rgba(125, 211, 252, 0.25)" : "rgba(255, 255, 255, 0.38)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            p.arrows.forEach(arrow => {
+                if(!arrow.active) return;
+                ctx.save();
+                ctx.translate(arrow.x, arrow.y);
+                ctx.rotate(arrow.angle);
+                ctx.fillStyle = "#00e5ff";
+                ctx.fillRect(0, -3, 30, 6);
+                ctx.restore();
+            });
+
+            // 3. 繪製玩家科技砲台
+            ctx.save();
+            ctx.translate(pivotX, pivotY);
+
+            // 砲管
+            ctx.save();
+            ctx.rotate(p.angle);
+            ctx.fillStyle = isFrozen ? "#38bdf8" : ((p.cooldown > 0) ? "#ef5350" : "#78909c");
+            ctx.fillRect(0, -10, 45, 20);
+            ctx.fillStyle = isFrozen ? "#0284c7" : ((p.cooldown > 0) ? "#b71c1c" : "#29b6f6");
+            ctx.fillRect(35, -13, 12, 26);
+            ctx.restore();
+
+            // 砲台基座
+            ctx.beginPath();
+            ctx.arc(0, 20, 35, Math.PI, 0);
+            ctx.lineTo(35, 40);
+            ctx.lineTo(-35, 40);
+            ctx.closePath();
+            ctx.fillStyle = (idx === 0) ? "#37474f" : "#312e81";
+            ctx.fill();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#1e293b";
+            ctx.stroke();
+
+            // 轉軸中心與指示燈
+            ctx.beginPath();
+            ctx.arc(0, 0, 16, 0, Math.PI * 2);
+            ctx.fillStyle = "#cfd8dc";
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#455a64";
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 6, 0, Math.PI * 2);
+            ctx.fillStyle = isFrozen ? "#7dd3fc" : ((p.cooldown > 0) ? "#ff5252" : "#00e5ff");
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // 若處於結冰狀態，繪製半透明冰封結晶與倒數秒數
+            if (isFrozen) {
+                const remainSec = ((p.frozenUntil - now) / 1000).toFixed(1);
+                ctx.fillStyle = "rgba(125, 211, 252, 0.48)";
+                ctx.strokeStyle = "#e0f2fe";
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.roundRect(-44, -36, 88, 78, 10);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = `bold 15px ${CANVAS_FONT_FAMILY}`;
+                ctx.textAlign = "center";
+                ctx.fillText(`❄️ 結冰 ${remainSec}s`, 0, -46);
+            }
+
+            ctx.restore();
+
+            // 4. 繪製玩家分數、愛心（單人）或凍結道具槽（雙人）
+            if (playerCount === 1) {
+                ctx.fillStyle = "white";
+                ctx.font = `bold 18px ${CANVAS_FONT_FAMILY}`;
+                ctx.textAlign = "right";
+                ctx.fillText(`分數: ${p.score}`, p.ArenaWidth ? p.arenaWidth - 15 : canvas.width - 15, 30);
+
+                let heartStr = "";
+                for(let i = 0; i < 4; i++) {
+                    heartStr += (i < p.hearts) ? "❤️" : "🖤";
+                }
+                ctx.fillText(heartStr, canvas.width - 15, 60);
+            } else {
+                // 雙人對戰各別頂部資訊列
+                const padX = (idx === 0) ? (p.offsetX + p.arenaWidth - 14) : (p.offsetX + p.arenaWidth - 14);
+                ctx.fillStyle = (idx === 0) ? "#38bdf8" : "#fbbf24";
+                ctx.font = `bold 16px ${CANVAS_FONT_FAMILY}`;
+                ctx.textAlign = "left";
+                const tagX = (idx === 0) ? (p.offsetX + 52) : (p.offsetX + 14);
+                ctx.fillText(`P${idx + 1}`, tagX, 28);
+
+                ctx.fillStyle = "white";
+                ctx.font = `bold 18px ${CANVAS_FONT_FAMILY}`;
+                ctx.textAlign = "right";
+                ctx.fillText(`分數: ${p.score}`, padX, 28);
+
+                // 繪製 2 顆凍結道具槽（先顯示灰黑剪影，獲得後亮起彩色）
+                drawFreezeItemSlot(ctx, padX - 38, 56, 13, p.freezeItems >= 1);
+                drawFreezeItemSlot(ctx, padX - 10, 56, 13, p.freezeItems >= 2);
+            }
+
+            // 5. 答錯或漏接時的紅框閃爍回饋
+            if (now < p.damageFlashUntil) {
+                ctx.strokeStyle = "rgba(239, 68, 68, 0.85)";
+                ctx.lineWidth = 10;
+                ctx.strokeRect(p.offsetX + 5, 5, p.arenaWidth - 10, canvas.height - 10);
+            }
+
             ctx.restore();
         });
 
-        // ==========================================
-        // 畫玩家：全新動態科技砲台
-        // ==========================================
-        ctx.save();
-        ctx.translate(player.x, pivotY);
+        // 雙人對戰中央分隔線
+        if (playerCount === 2) {
+            ctx.save();
+            ctx.strokeStyle = "#00e5ff";
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#00e5ff";
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            ctx.restore();
+        }
 
-        // 1. 畫砲管 (跟著角度旋轉)
-        ctx.save();
-        ctx.rotate(player.angle);
-        
-        // 砲管主體
-        ctx.fillStyle = (player.cooldown > 0) ? "#ef5350" : "#78909c"; // 過熱時燒紅
-        ctx.fillRect(0, -10, 45, 20); 
-        
-        // 砲口端 (加粗裝飾)
-        ctx.fillStyle = (player.cooldown > 0) ? "#b71c1c" : "#29b6f6";
-        ctx.fillRect(35, -13, 12, 26);
-        ctx.restore();
+        // 繪製飛行中的凍結冰晶投擲物
+        flyingIceEffects = flyingIceEffects.filter(ef => now - ef.startTime <= ef.duration);
+        flyingIceEffects.forEach(ef => {
+            const progress = Math.min(1, (now - ef.startTime) / ef.duration);
+            const curX = ef.startX + (ef.targetX - ef.startX) * progress;
+            const curY = ef.startY + (ef.targetY - ef.startY) * progress - Math.sin(progress * Math.PI) * 90;
+            drawFreezeItemSlot(ctx, curX, curY, 16, true);
+        });
 
-        // 2. 畫砲台基座 (固定不動)
-        ctx.beginPath();
-        ctx.arc(0, 20, 35, Math.PI, 0); // 上半圓基座
-        ctx.lineTo(35, 40); // 往下延伸貼地
-        ctx.lineTo(-35, 40);
-        ctx.closePath();
-        ctx.fillStyle = "#37474f";
-        ctx.fill();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = "#263238";
-        ctx.stroke();
+        // 繪製全場共用時間與題目/Combo條
+        ctx.fillStyle = "white";
+        ctx.font = `bold 18px ${CANVAS_FONT_FAMILY}`;
+        ctx.textAlign = "left";
+        ctx.fillText(`時間: ${time}`, 12, 28);
 
-        // 3. 轉軸中心
-        ctx.beginPath();
-        ctx.arc(0, 0, 16, 0, Math.PI * 2);
-        ctx.fillStyle = "#cfd8dc";
-        ctx.fill();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = "#455a64";
-        ctx.stroke();
+        if (currentQuestionText !== "") {
+            ctx.save();
+            // 雙人模式在中央上方加底框讓題目更醒目
+            ctx.font = `bold 26px ${CANVAS_FONT_FAMILY}`;
+            const qWidth = ctx.measureText(currentQuestionText).width + 28;
+            ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+            ctx.strokeStyle = "#facc15";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(canvas.width / 2 - qWidth / 2, 8, qWidth, 40, 10);
+            ctx.fill();
+            ctx.stroke();
 
-        // 4. 轉軸發光指示燈 (冷卻狀態回饋)
-        ctx.beginPath();
-        ctx.arc(0, 0, 6, 0, Math.PI * 2);
-        ctx.fillStyle = (player.cooldown > 0) ? "#ff5252" : "#00e5ff";
-        
-        // 加上光暈特效
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = (player.cooldown > 0) ? "#ff5252" : "#00e5ff";
-        ctx.fill();
+            ctx.fillStyle = "#fde047";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            drawFormattedLine(ctx, currentQuestionText, canvas.width / 2, 28, 26);
+            ctx.restore();
+        }
 
-        ctx.restore();
-        // ==========================================
+        if(waveData.comboActive) {
+            let barWidth = Math.min(canvas.width * 0.5, 320);
+            let ratio = waveData.comboTimeLeft / waveData.comboDuration;
+            ctx.fillStyle = "#475569";
+            ctx.fillRect(canvas.width / 2 - barWidth / 2, 56, barWidth, 9);
+            ctx.fillStyle = ratio > 0.5 ? "#4caf50" : (ratio > 0.2 ? "#ff9800" : "#f44336");
+            ctx.fillRect(canvas.width / 2 - barWidth / 2, 56, barWidth * ratio, 9);
+            ctx.fillStyle = "white";
+            ctx.font = `bold 11px ${CANVAS_FONT_FAMILY}`;
+            ctx.textAlign = "center";
+            ctx.fillText(playerCount === 2 ? "Combo 倒數 (+15分 & ❄️道具)" : "Combo 倒數", canvas.width / 2, 78);
+        }
+    }
+
+    // 產生落葉吹拂孤寂特效
+    function spawnAutumnLeaves(cardEl) {
+        cardEl.querySelectorAll('.falling-leaf').forEach(el => el.remove());
+        const leafIcons = ['🍂', '🍁', '🍃'];
+        for (let i = 0; i < 8; i++) {
+            const leaf = document.createElement('div');
+            leaf.className = 'falling-leaf';
+            leaf.innerText = leafIcons[i % leafIcons.length];
+            leaf.style.left = `${15 + Math.random() * 80}%`;
+            leaf.style.animationDuration = `${2.4 + Math.random() * 1.8}s`;
+            leaf.style.animationDelay = `${Math.random() * 2}s`;
+            cardEl.appendChild(leaf);
+        }
     }
 
     function endGame() {
+        isGameRunning = false;
         cancelAnimationFrame(gameLoop);
         clearInterval(secondInterval);
+        questionAudio.pause();
+
         canvas.style.display = 'none';
         sfxBtn.style.display = 'none';
+        replayBtn.style.display = 'none';
         document.getElementById('touch-controls').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
-        
-        document.getElementById('final-score').innerText = score;
-        
-        let comment = "";
-        if (score >= 400) {
-            comment = "真gâu";
-            sfxGameOver(true);
-        } else if (score >= 300) {
-            comment = "袂bái";
-            sfxGameOver(true);
-        } else if (score >= 200) {
-            comment = "Beh出師矣";
-            sfxGameOver(true);
+
+        const box1P = document.getElementById('gameover-1p-box');
+        const box2P = document.getElementById('gameover-2p-box');
+
+        if (playerCount === 1) {
+            box1P.style.display = 'block';
+            box2P.style.display = 'none';
+            const finalScore = players[0].score;
+            document.getElementById('final-score').innerText = finalScore;
+            
+            let comment = "";
+            if (finalScore >= 400) {
+                comment = "真gâu";
+                sfxGameOver(true);
+            } else if (finalScore >= 300) {
+                comment = "袂bái";
+                sfxGameOver(true);
+            } else if (finalScore >= 200) {
+                comment = "Beh出師矣";
+                sfxGameOver(true);
+            } else {
+                comment = "繼續phah piànn";
+                sfxGameOver(false);
+            }
+            document.getElementById('score-comment').innerText = comment;
         } else {
-            comment = "繼續phah piànn";
-            sfxGameOver(false);
+            box1P.style.display = 'none';
+            box2P.style.display = 'flex';
+            const s1 = players[0].score;
+            const s2 = players[1].score;
+            document.getElementById('p1-final-score').innerText = s1;
+            document.getElementById('p2-final-score').innerText = s2;
+
+            const c1 = document.getElementById('p1-result-card');
+            const c2 = document.getElementById('p2-result-card');
+            const i1 = document.getElementById('p1-result-icon');
+            const i2 = document.getElementById('p2-result-icon');
+            const st1 = document.getElementById('p1-result-status');
+            const st2 = document.getElementById('p2-result-status');
+            const title2P = document.getElementById('gameover-2p-title');
+
+            c1.querySelectorAll('.falling-leaf').forEach(el => el.remove());
+            c2.querySelectorAll('.falling-leaf').forEach(el => el.remove());
+
+            if (s1 > s2) {
+                title2P.innerText = "🏆 玩家 1 獲勝！ 🏆";
+                c1.className = "p2-result-card winner-card";
+                i1.innerText = "🏆";
+                st1.innerText = "勝利！";
+
+                c2.className = "p2-result-card loser-card";
+                i2.innerText = "🍂";
+                st2.innerText = "秋風孤寂...";
+                spawnAutumnLeaves(c2);
+                sfxGameOver(true);
+                confetti({ particleCount: 90, spread: 70, origin: { x: 0.3, y: 0.5 } });
+            } else if (s2 > s1) {
+                title2P.innerText = "🏆 玩家 2 獲勝！ 🏆";
+                c2.className = "p2-result-card winner-card";
+                i2.innerText = "🏆";
+                st2.innerText = "勝利！";
+
+                c1.className = "p2-result-card loser-card";
+                i1.innerText = "🍂";
+                st1.innerText = "秋風孤寂...";
+                spawnAutumnLeaves(c1);
+                sfxGameOver(true);
+                confetti({ particleCount: 90, spread: 70, origin: { x: 0.7, y: 0.5 } });
+            } else {
+                // 同分平手：顯示「平手」且雙方都是落葉吹拂的戰敗畫面
+                title2P.innerText = "🍂 平手 🍂";
+                c1.className = "p2-result-card loser-card";
+                i1.innerText = "🍂";
+                st1.innerText = "平手";
+                spawnAutumnLeaves(c1);
+
+                c2.className = "p2-result-card loser-card";
+                i2.innerText = "🍂";
+                st2.innerText = "平手";
+                spawnAutumnLeaves(c2);
+                sfxGameOver(false);
+            }
         }
-        document.getElementById('score-comment').innerText = comment;
     }
 
-    // 鍵盤與滑鼠事件
+    // 鍵盤事件：空白鍵射擊、Enter鍵使用凍結道具、Q鍵單人重聽
     window.addEventListener('keydown', e => { 
         if(keys.hasOwnProperty(e.key)) keys[e.key] = true; 
-        if(e.code === "Space" && document.getElementById('game-canvas').style.display === 'block') {
-            shoot();
+        if (!isGameRunning) return;
+
+        const kbPlayer = players.find(p => p.controlType === 'kb_mouse' || p.controlType === 'kb_and_gp');
+        if (e.code === "Space" && kbPlayer) {
             e.preventDefault();
+            shootForPlayer(kbPlayer);
+        } else if (e.key === "Enter" && kbPlayer) {
+            e.preventDefault();
+            useFreezeItemForPlayer(kbPlayer);
+        } else if ((e.key === "q" || e.key === "Q") && playerCount === 1 && currentMode.startsWith('audio_')) {
+            e.preventDefault();
+            playQuestionAudio();
         }
     });
     window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
     
-    // 游標與觸控瞄準及射擊更新
-    function updateAim(clientX, clientY) {
+    // 滑鼠瞄準與左右鍵事件（左鍵射擊、右鍵發動凍結道具）
+    function updateAimForPlayer(p, clientX, clientY) {
+        if (!p || Date.now() < p.frozenUntil) return; // 結冰期間鎖死轉向
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-        mouseX = (clientX - rect.left) * scaleX;
-        mouseY = (clientY - rect.top) * scaleY;
-        let dx = mouseX - player.x;
-        // 將瞄準圓心校準到砲台的樞紐 (pivotY)
-        let dy = mouseY - (player.y - 20);
+        const canvasX = (clientX - rect.left) * scaleX;
+        const canvasY = (clientY - rect.top) * scaleY;
+        let dx = canvasX - (p.offsetX + p.x);
+        let dy = canvasY - (p.y - 20);
         let a = Math.atan2(dy, dx);
-        if(a < 0) player.angle = a;
+        if(a < -0.05 && a > -Math.PI + 0.05) p.angle = a;
     }
+
+    canvas.addEventListener('mousemove', e => {
+        if (!isGameRunning) return;
+        const kbPlayer = players.find(p => p.controlType === 'kb_mouse' || p.controlType === 'kb_and_gp');
+        if (kbPlayer) updateAimForPlayer(kbPlayer, e.clientX, e.clientY);
+    });
     
-    // 滑鼠：點擊自動瞄準並射擊
     canvas.addEventListener('mousedown', e => { 
-        if(e.button === 0) {
-            updateAim(e.clientX, e.clientY);
-            shoot();
+        if (!isGameRunning) return;
+        const kbPlayer = players.find(p => p.controlType === 'kb_mouse' || p.controlType === 'kb_and_gp');
+        if (!kbPlayer) return;
+        if (e.button === 0) {
+            updateAimForPlayer(kbPlayer, e.clientX, e.clientY);
+            shootForPlayer(kbPlayer);
+        } else if (e.button === 2) {
+            e.preventDefault();
+            useFreezeItemForPlayer(kbPlayer);
         }
+    });
+
+    // 攔截畫布右鍵選單以支援右鍵發射凍結道具
+    canvas.addEventListener('contextmenu', e => {
+        e.preventDefault();
     });
     
     // 觸控：點擊畫布即瞄準並射擊
     canvas.addEventListener('touchstart', e => {
-        if(controlMode === 'touch') { 
+        if (!isGameRunning || playerCount !== 1) return;
+        const touchPlayer = players[0];
+        if (touchPlayer && touchPlayer.controlType === 'touch') { 
             e.preventDefault(); 
-            updateAim(e.changedTouches[0].clientX, e.changedTouches[0].clientY); 
-            shoot();
+            updateAimForPlayer(touchPlayer, e.changedTouches[0].clientX, e.changedTouches[0].clientY); 
+            shootForPlayer(touchPlayer);
         }
     }, {passive: false});
 
@@ -949,7 +1618,6 @@
     
     btnRight.addEventListener('touchstart', (e) => { e.stopPropagation(); e.preventDefault(); keys.d = true; });
     btnRight.addEventListener('touchend', (e) => { e.stopPropagation(); e.preventDefault(); keys.d = false; });
-
 </script>
 </body>
 </html>
