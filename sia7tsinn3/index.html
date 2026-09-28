@@ -39,10 +39,31 @@
         .menu-card-title { margin: 0 0 5px 0; font-weight: bold; font-size: 14.5px; color: #0f172a; }
 
         .radio-grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 8px; text-align: left; max-width: 360px; margin: 0 auto; }
-        .radio-label { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: bold; color: #1e293b; font-size: 13.5px; }
+        .radio-label { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: bold; color: #1e293b; font-size: 13.5px; padding: 3px 6px; border-radius: 6px; transition: 0.15s; }
 
         .p2-ctrl-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 4px 0; font-size: 13.5px; font-weight: bold; color: #1e293b; flex-wrap: wrap; }
-        .p2-ctrl-select { padding: 4px 8px; border-radius: 6px; border: 1.5px solid #d97706; background: #fff; font-family: inherit; font-size: 13px; font-weight: bold; color: #0f172a; cursor: pointer; }
+        .p2-ctrl-select { padding: 4px 8px; border-radius: 6px; border: 1.5px solid #d97706; background: #fff; font-family: inherit; font-size: 13px; font-weight: bold; color: #0f172a; cursor: pointer; transition: 0.15s; }
+
+        /* ========================================================= */
+        /* 🎮 手把選單導覽高亮聚焦樣式 (.gp-focus) */
+        /* ========================================================= */
+        .gp-focus {
+            outline: 3px solid #0284c7 !important;
+            outline-offset: 2px !important;
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.45), 0 0 14px rgba(2, 132, 199, 0.75) !important;
+            transform: scale(1.04);
+            z-index: 5;
+        }
+        .choice-btn.gp-focus, .review-item.gp-focus, #return-menu-btn.gp-focus {
+            outline: 3px solid #ffffff !important;
+            outline-offset: 2px !important;
+            box-shadow: 0 0 0 4px rgba(0, 229, 255, 0.7), 0 0 18px #00e5ff !important;
+            transform: scale(1.06);
+        }
+        .review-item.gp-focus {
+            background: rgba(56, 189, 248, 0.28) !important;
+            transform: scale(1.01);
+        }
 
         /* 主選單提示說明與內嵌圖示 */
         .menu-tips-box { margin: 6px 0 4px 0; font-size: 12.5px; color: #1e293b; font-weight: bold; line-height: 1.65; text-align: center; }
@@ -206,18 +227,18 @@
             <!-- 1. 先選單人遊玩或雙人對戰 -->
             <div class="menu-card card-player-cnt">
                 <p class="menu-card-title">遊玩模式</p>
-                <label class="radio-label"><input type="radio" name="pcount" value="1" checked onchange="onPlayerCountChange()"> 👤 單人遊玩</label>
-                <label class="radio-label" style="margin-left: 16px;"><input type="radio" name="pcount" value="2" onchange="onPlayerCountChange()"> ⚔️ 雙人對戰</label>
+                <label class="radio-label" id="lbl-pcount-1"><input type="radio" name="pcount" value="1" checked onchange="onPlayerCountChange()"> 👤 單人遊玩</label>
+                <label class="radio-label" id="lbl-pcount-2" style="margin-left: 16px;"><input type="radio" name="pcount" value="2" onchange="onPlayerCountChange()"> ⚔️ 雙人對戰</label>
             </div>
 
             <!-- 2. 出題模式（預設：聽音選羅馬字） -->
             <div class="menu-card card-mode">
                 <p class="menu-card-title">出題模式</p>
                 <div class="radio-grid-2x2">
-                    <label class="radio-label"><input type="radio" name="mode" value="audio_roma" checked> 🔊 聽音選羅馬字</label>
-                    <label class="radio-label"><input type="radio" name="mode" value="audio_hanzi"> 🔊 聽音選漢字</label>
-                    <label class="radio-label"><input type="radio" name="mode" value="hanzi_roma"> 👀 看漢字選羅馬字</label>
-                    <label class="radio-label"><input type="radio" name="mode" value="roma_hanzi"> 👀 看羅馬字選漢字</label>
+                    <label class="radio-label" id="lbl-mode-ar"><input type="radio" name="mode" value="audio_roma" checked onchange="saveMenuSettings()"> 🔊 聽音選羅馬字</label>
+                    <label class="radio-label" id="lbl-mode-ah"><input type="radio" name="mode" value="audio_hanzi" onchange="saveMenuSettings()"> 🔊 聽音選漢字</label>
+                    <label class="radio-label" id="lbl-mode-hr"><input type="radio" name="mode" value="hanzi_roma" onchange="saveMenuSettings()"> 👀 看漢字選羅馬字</label>
+                    <label class="radio-label" id="lbl-mode-rh"><input type="radio" name="mode" value="roma_hanzi" onchange="saveMenuSettings()"> 👀 看羅馬字選漢字</label>
                 </div>
             </div>
 
@@ -226,8 +247,8 @@
                 <p class="menu-card-title">操作裝置</p>
                 <!-- 單人操作選項 -->
                 <div id="ctrl-1p-box">
-                    <label class="radio-label"><input type="radio" name="ctrl1p" value="keyboard" id="ctrl-keyboard" checked> ⌨️ 鍵盤 / 🖱️ 滑鼠 / 🎮 手把</label>
-                    <label class="radio-label" style="margin-left: 12px;"><input type="radio" name="ctrl1p" value="touch" id="ctrl-touch"> 📱 平板 / 觸控螢幕</label>
+                    <label class="radio-label" id="lbl-ctrl-kb"><input type="radio" name="ctrl1p" value="keyboard" id="ctrl-keyboard" checked onchange="saveMenuSettings()"> ⌨️ 鍵盤 / 🖱️ 滑鼠 / 🎮 手把</label>
+                    <label class="radio-label" id="lbl-ctrl-tc" style="margin-left: 12px;"><input type="radio" name="ctrl1p" value="touch" id="ctrl-touch" onchange="saveMenuSettings()"> 📱 平板 / 觸控螢幕</label>
                 </div>
                 <!-- 雙人操作選項 -->
                 <div id="ctrl-2p-box" style="display: none;">
@@ -264,7 +285,7 @@
                 <div style="color: #0369a1;">本遊戲會自動播送語音，請毋通吵著別人</div>
             </div>
             
-            <button class="start-btn" onclick="startGame()">開始遊戲</button>
+            <button class="start-btn" id="main-start-btn" onclick="startGame()">開始遊戲</button>
         </div>
         
         <div class="footer">
@@ -314,8 +335,8 @@
             <div id="review-prompt-box">
                 <p class="review-prompt-title">敢欲複習？</p>
                 <div class="choice-btn-group">
-                    <button class="choice-btn btn-yes" onclick="showReviewSection()">欲</button>
-                    <button class="choice-btn btn-no" onclick="location.reload()">無愛</button>
+                    <button class="choice-btn btn-yes" id="btn-review-yes" onclick="showReviewSection()">欲</button>
+                    <button class="choice-btn btn-no" id="btn-review-no" onclick="location.reload()">無愛</button>
                 </div>
             </div>
 
@@ -394,6 +415,10 @@
 
     let selectedLessons = [];
     let activeCards = [];
+    // 不放回抽題牌組與上一題記錄（杜絕重複與連續出題）
+    let questionDeck = [];
+    let lastTargetCard = null;
+
     const questionAudio = new Audio();
     let currentQuestionAudioUrl = "";
 
@@ -412,6 +437,7 @@
         document.getElementById('ctrl-1p-box').style.display = (pCount === 1) ? 'block' : 'none';
         document.getElementById('ctrl-2p-box').style.display = (pCount === 2) ? 'block' : 'none';
         appContainer.className = (pCount === 2) ? 'mode-2p' : 'mode-1p';
+        saveMenuSettings();
     }
 
     function sync2PControls(changedWho) {
@@ -421,6 +447,56 @@
         if (p1Sel.value === 'kb_mouse' && p2Sel.value === 'kb_mouse') {
             if (changedWho === 'p1') p2Sel.value = 'gamepad';
             else p1Sel.value = 'gamepad';
+        }
+        saveMenuSettings();
+    }
+
+    // =========================================================
+    // 💾 自動記憶主選單設定（讓手把玩家回主選單時免重選課次）
+    // =========================================================
+    function saveMenuSettings() {
+        try {
+            const settings = {
+                lessons: selectedLessons,
+                pcount: document.querySelector('input[name="pcount"]:checked')?.value || '1',
+                mode: document.querySelector('input[name="mode"]:checked')?.value || 'audio_roma',
+                ctrl1p: document.querySelector('input[name="ctrl1p"]:checked')?.value || 'keyboard',
+                p1Ctrl: document.getElementById('p1-ctrl-select')?.value || 'kb_mouse',
+                p2Ctrl: document.getElementById('p2-ctrl-select')?.value || 'gamepad'
+            };
+            sessionStorage.setItem('taigi_sniper_settings', JSON.stringify(settings));
+        } catch (e) {}
+    }
+
+    function restoreMenuSettings() {
+        try {
+            const raw = sessionStorage.getItem('taigi_sniper_settings');
+            if (!raw) return false;
+            const s = JSON.parse(raw);
+            if (Array.isArray(s.lessons) && s.lessons.length > 0) {
+                selectedLessons = [...s.lessons];
+                document.querySelectorAll('#lessons .lesson-btn').forEach(btn => {
+                    btn.classList.toggle('active', selectedLessons.includes(btn.innerText));
+                });
+            }
+            if (s.pcount) {
+                const r = document.querySelector(`input[name="pcount"][value="${s.pcount}"]`);
+                if (r) r.checked = true;
+            }
+            if (s.mode) {
+                const r = document.querySelector(`input[name="mode"][value="${s.mode}"]`);
+                if (r) r.checked = true;
+            }
+            if (s.ctrl1p) {
+                const r = document.querySelector(`input[name="ctrl1p"][value="${s.ctrl1p}"]`);
+                if (r) r.checked = true;
+            }
+            if (s.p1Ctrl) document.getElementById('p1-ctrl-select').value = s.p1Ctrl;
+            if (s.p2Ctrl) document.getElementById('p2-ctrl-select').value = s.p2Ctrl;
+            onPlayerCountChange();
+            return selectedLessons.length > 0;
+        } catch (e) {
+            return false;
         }
     }
 
@@ -460,6 +536,14 @@
         gain.connect(audioCtx.destination);
         osc.start(t0);
         osc.stop(t0 + duration + 0.02);
+    }
+
+    // 選單游標移動與確認輕響
+    function sfxUiMove() {
+        playToneNode(520, 620, 0.045, 'sine', 0.1, 0);
+    }
+    function sfxUiConfirm() {
+        playToneNode(660, 880, 0.08, 'triangle', 0.16, 0);
     }
 
     // a. 射到正確答案音效
@@ -568,7 +652,6 @@
     // =========================================================
     const CANVAS_FONT_FAMILY = "'Charis SIL', 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', 'Microsoft JhengHei', sans-serif";
 
-    // HTML 複習列表專用的第 8 聲格式化函式
     function formatTailoHtml(str) {
         let nfd = str.normalize('NFD');
         let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>');
@@ -836,45 +919,140 @@
     }
 
     // =========================================================
-    // 🎮 PS4 (DualShock 4 / DualSense) 與 Xbox 手把雙規格讀取器
+    // 🎮 PS4 (DualShock 4 / DualSense) 與 Xbox 手把雙規格讀取器（含上下左右與選單控制）
     // =========================================================
     function readGamepadState(gp) {
         if (!gp) return null;
         const id = (gp.id || '').toLowerCase();
         const isRawDS4 = (gp.mapping === '' && (id.includes('054c') || id.includes('wireless controller') || id.includes('dualshock')));
         const deadzone = 0.2;
+        const menuDeadzone = 0.48;
 
         let moveLeft = false, moveRight = false;
+        let navUp = false, navDown = false, navLeft = false, navRight = false;
         let aimAxis = 0;
-        let btnShoot = false, btnFreeze = false, btnReplay = false;
+        let btnShoot = false, btnFreeze = false, btnReplay = false, btnStart = false;
 
+        // 左蘑菇頭（戰鬥移動與選單上下左右導覽）
         if (gp.axes[0] < -deadzone) moveLeft = true;
         if (gp.axes[0] > deadzone) moveRight = true;
+        if (gp.axes[0] < -menuDeadzone) navLeft = true;
+        if (gp.axes[0] > menuDeadzone) navRight = true;
+        if (gp.axes.length > 1) {
+            if (gp.axes[1] < -menuDeadzone) navUp = true;
+            if (gp.axes[1] > menuDeadzone) navDown = true;
+        }
 
+        // 右蘑菇頭水平軸
         if (gp.axes.length > 2 && Math.abs(gp.axes[2]) > deadzone) {
             aimAxis = gp.axes[2];
         }
 
         if (isRawDS4) {
-            // Sony 原生非標準映射：□=0, ✕=1, ○=2, △=3，十字鍵在 axes[9]
+            // Sony 原生非標準映射：□=0, ✕=1, ○=2, △=3, Options=9, 十字鍵在 axes[9]
             btnShoot = !!(gp.buttons[1] && gp.buttons[1].pressed);  // PS4 ✕
             btnFreeze = !!(gp.buttons[2] && gp.buttons[2].pressed); // PS4 ○
             btnReplay = !!(gp.buttons[0] && gp.buttons[0].pressed) || !!(gp.buttons[3] && gp.buttons[3].pressed);
+            btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
             if (gp.axes.length > 9) {
                 const hat = gp.axes[9];
-                if (hat >= 0.4 && hat <= 1.0) moveLeft = true;
-                if (hat >= -0.75 && hat <= -0.1) moveRight = true;
+                // Raw DS4 Hat Switch 8方向解碼（閒置值約 1.2857 或 > 1.1）
+                if (hat <= 1.05) {
+                    if (hat <= -0.65 || hat >= 0.9) navUp = true;
+                    if (hat >= -0.2 && hat <= 0.5) navDown = true;
+                    if (hat >= 0.35 && hat <= 1.05) { moveLeft = true; navLeft = true; }
+                    if (hat >= -0.8 && hat <= -0.1) { moveRight = true; navRight = true; }
+                }
             }
         } else {
-            // 標準映射 (Xbox 與主流瀏覽器下的 PS4 手把)：A/✕=0, B/○=1, X/□=2, Y/△=3
+            // 標準映射 (Xbox 與主流瀏覽器下的 PS4 手把)：A/✕=0, B/○=1, X/□=2, Y/△=3, Start=9
             btnShoot = !!(gp.buttons[0] && gp.buttons[0].pressed);  // Xbox A / PS4 ✕
             btnFreeze = !!(gp.buttons[1] && gp.buttons[1].pressed); // Xbox B / PS4 ○
             btnReplay = !!(gp.buttons[2] && gp.buttons[2].pressed) || !!(gp.buttons[3] && gp.buttons[3].pressed);
-            if (gp.buttons[14] && gp.buttons[14].pressed) moveLeft = true;
-            if (gp.buttons[15] && gp.buttons[15].pressed) moveRight = true;
+            btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
+            if (gp.buttons[12] && gp.buttons[12].pressed) navUp = true;
+            if (gp.buttons[13] && gp.buttons[13].pressed) navDown = true;
+            if (gp.buttons[14] && gp.buttons[14].pressed) { moveLeft = true; navLeft = true; }
+            if (gp.buttons[15] && gp.buttons[15].pressed) { moveRight = true; navRight = true; }
         }
 
-        return { moveLeft, moveRight, aimAxis, btnShoot, btnFreeze, btnReplay };
+        return { moveLeft, moveRight, navUp, navDown, navLeft, navRight, aimAxis, btnShoot, btnFreeze, btnReplay, btnStart };
+    }
+
+    // =========================================================
+    // 🎲 高強度亂數洗牌 (Crypto Fisher-Yates) 與「不放回抽題袋」機制
+    // =========================================================
+    function cryptoRandomInt(maxExclusive) {
+        if (window.crypto && window.crypto.getRandomValues) {
+            const arr = new Uint32Array(1);
+            window.crypto.getRandomValues(arr);
+            return arr[0] % maxExclusive;
+        }
+        return Math.floor(Math.random() * maxExclusive);
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = cryptoRandomInt(i + 1);
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // 從題庫袋中抽取下一題（保證同一輪不重複，且跨輪次重洗時絕對不與上一題連續重複）
+    function drawNextTargetCard() {
+        if (questionDeck.length === 0) {
+            questionDeck = shuffleArray([...activeCards]);
+            // 若新洗好的牌組第一張剛好跟上一題相同，強制與後面不同詞的牌交換
+            if (lastTargetCard && questionDeck.length > 1) {
+                if (questionDeck[0].h === lastTargetCard.h || questionDeck[0].r === lastTargetCard.r) {
+                    const swapIdx = questionDeck.findIndex(c => c.h !== lastTargetCard.h && c.r !== lastTargetCard.r);
+                    if (swapIdx > 0) {
+                        [questionDeck[0], questionDeck[swapIdx]] = [questionDeck[swapIdx], questionDeck[0]];
+                    }
+                }
+            }
+        }
+
+        // 雙重保險：若因課次內有重複列導致下一張與上一題相同，優先挑出不同的一張
+        if (lastTargetCard && questionDeck.length > 1) {
+            if (questionDeck[0].h === lastTargetCard.h || questionDeck[0].r === lastTargetCard.r) {
+                const diffIdx = questionDeck.findIndex(c => c.h !== lastTargetCard.h && c.r !== lastTargetCard.r);
+                if (diffIdx > 0) {
+                    [questionDeck[0], questionDeck[diffIdx]] = [questionDeck[diffIdx], questionDeck[0]];
+                }
+            }
+        }
+
+        const target = questionDeck.shift();
+        lastTargetCard = target;
+        return target;
+    }
+
+    // 挑選 3 個與正解不重複且彼此不重複的干擾選項
+    function pickThreeWrongCards(target) {
+        const candidates = shuffleArray(
+            activeCards.filter(c => c.h !== target.h && c.r !== target.r)
+        );
+        const wrongs = [];
+        const usedH = new Set([target.h]);
+        const usedR = new Set([target.r]);
+
+        for (let c of candidates) {
+            if (!usedH.has(c.h) && !usedR.has(c.r)) {
+                wrongs.push(c);
+                usedH.add(c.h);
+                usedR.add(c.r);
+                if (wrongs.length === 3) break;
+            }
+        }
+        // 萬一題庫同音或同字極多不足 3 個，才從剩餘候選補齊
+        let idx = 0;
+        while (wrongs.length < 3 && idx < candidates.length) {
+            if (!wrongs.includes(candidates[idx])) wrongs.push(candidates[idx]);
+            idx++;
+        }
+        return wrongs;
     }
 
     // =========================================================
@@ -886,11 +1064,12 @@
     let time = 50;
     let globalSpeedBonus = 0;
     let elapsedTime = 0;
-    let gameLoop = null, secondInterval = null, reviewGamepadLoop = null;
+    let gameLoop = null, secondInterval = null;
     let currentMode = 'audio_roma';
     let isSpawning = false;
     let isGameRunning = false;
     let currentQuestionText = "";
+    let gameOverOpenedAt = 0;
     
     let waveData = { spawnTime: 0, maxDelay: 0, comboDuration: 3000, comboActive: false, comboTimeLeft: 0 };
     let keys = { a: false, A: false, d: false, D: false, ArrowLeft: false, ArrowRight: false };
@@ -916,7 +1095,7 @@
             score: 0,
             hearts: 4,
             streakCount: 0,
-            freezeCharges: 0, // 每答對1題+1充能（半格），滿2點充能=1顆完整凍結道具，上限4點（2顆）
+            freezeCharges: 0,
             frozenUntil: 0,
             damageFlashUntil: 0,
             controlType: controlType,
@@ -962,6 +1141,7 @@
     }
     window.addEventListener('resize', resizeCanvas);
 
+    // 建立課次按鈕並還原上次記憶的設定
     const lessonsDiv = document.getElementById('lessons');
     lessons.forEach(l => {
         const btn = document.createElement('button');
@@ -971,20 +1151,278 @@
             btn.classList.toggle('active');
             if(selectedLessons.includes(l)) selectedLessons = selectedLessons.filter(x => x !== l);
             else selectedLessons.push(l);
+            saveMenuSettings();
         };
         lessonsDiv.appendChild(btn);
     });
+    const hasRestoredLessons = restoreMenuSettings();
 
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
+    // =========================================================
+    // 🎮 主選單與結算畫面（含「敢欲複習？」）全手把導覽系統
+    // =========================================================
+    let menuRowIdx = hasRestoredLessons ? 99 : 0; // 若已記憶課次，游標直接停在「開始遊戲」方便一鍵開局
+    let menuColIdx = 0;
+    let promptColIdx = 0; // 0 = 欲, 1 = 無愛
+    let reviewRowIdx = -1; // -1 = 回主選單按鈕, >=0 = 錯題項目
+    let reviewPanelIdx = 0; // 0 = P1清單, 1 = P2清單
+    let lastNavMoveTime = 0;
+    let gpPrevButtonA = [false, false, false, false];
+    let gpPrevButtonB = [false, false, false, false];
+    let gpPrevButtonStart = [false, false, false, false];
+
+    function clearAllGpFocus() {
+        document.querySelectorAll('.gp-focus').forEach(el => el.classList.remove('gp-focus'));
     }
+
+    function getMenuNavigationRows() {
+        const lessonBtns = Array.from(document.querySelectorAll('#lessons .lesson-btn'));
+        const rows = [
+            lessonBtns.slice(0, 5),
+            lessonBtns.slice(5, 9),
+            [document.getElementById('lbl-pcount-1'), document.getElementById('lbl-pcount-2')],
+            [document.getElementById('lbl-mode-ar'), document.getElementById('lbl-mode-ah')],
+            [document.getElementById('lbl-mode-hr'), document.getElementById('lbl-mode-rh')]
+        ];
+        const pCount = parseInt(document.querySelector('input[name="pcount"]:checked').value, 10);
+        if (pCount === 1) {
+            rows.push([document.getElementById('lbl-ctrl-kb'), document.getElementById('lbl-ctrl-tc')]);
+        } else {
+            rows.push([document.getElementById('p1-ctrl-select')]);
+            rows.push([document.getElementById('p2-ctrl-select')]);
+        }
+        rows.push([document.getElementById('main-start-btn')]);
+        return rows;
+    }
+
+    function updateMenuGpFocusVisual() {
+        clearAllGpFocus();
+        if (isGameRunning) return;
+
+        const menuEl = document.getElementById('menu');
+        const gameOverEl = document.getElementById('game-over');
+
+        if (menuEl.style.display !== 'none') {
+            const rows = getMenuNavigationRows();
+            menuRowIdx = Math.max(0, Math.min(menuRowIdx, rows.length - 1));
+            const curRow = rows[menuRowIdx];
+            menuColIdx = Math.max(0, Math.min(menuColIdx, curRow.length - 1));
+            const targetEl = curRow[menuColIdx];
+            if (targetEl) {
+                targetEl.classList.add('gp-focus');
+                targetEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        } else if (gameOverEl.style.display !== 'none') {
+            const promptBox = document.getElementById('review-prompt-box');
+            const reviewSec = document.getElementById('review-section');
+            if (promptBox.style.display !== 'none') {
+                const btns = [document.getElementById('btn-review-yes'), document.getElementById('btn-review-no')];
+                promptColIdx = Math.max(0, Math.min(promptColIdx, 1));
+                if (btns[promptColIdx]) btns[promptColIdx].classList.add('gp-focus');
+            } else if (reviewSec.style.display !== 'none') {
+                const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item'));
+                const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
+                const activeList = (playerCount === 2 && reviewPanelIdx === 1) ? p2Items : p1Items;
+
+                if (reviewRowIdx < 0 || activeList.length === 0) {
+                    reviewRowIdx = -1;
+                    const retBtn = document.getElementById('return-menu-btn');
+                    if (retBtn) retBtn.classList.add('gp-focus');
+                } else {
+                    reviewRowIdx = Math.min(reviewRowIdx, activeList.length - 1);
+                    const itemEl = activeList[reviewRowIdx];
+                    if (itemEl) {
+                        itemEl.classList.add('gp-focus');
+                        itemEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    }
+                }
+            }
+        }
+    }
+
+    function activateMenuFocusedElement() {
+        const rows = getMenuNavigationRows();
+        menuRowIdx = Math.max(0, Math.min(menuRowIdx, rows.length - 1));
+        const curRow = rows[menuRowIdx];
+        menuColIdx = Math.max(0, Math.min(menuColIdx, curRow.length - 1));
+        const el = curRow[menuColIdx];
+        if (!el) return;
+
+        sfxUiConfirm();
+        if (el.classList.contains('lesson-btn')) {
+            el.click();
+        } else if (el.classList.contains('radio-label')) {
+            const input = el.querySelector('input[type="radio"]');
+            if (input && !input.checked) {
+                input.checked = true;
+                if (input.onchange) input.onchange();
+            }
+        } else if (el.tagName === 'SELECT') {
+            // 手把在雙人控制裝置選單按 A/✕ 或左右鍵時，直接切換「鍵盤+滑鼠」與「遊戲手把」
+            el.value = (el.value === 'kb_mouse') ? 'gamepad' : 'kb_mouse';
+            sync2PControls(el.id === 'p1-ctrl-select' ? 'p1' : 'p2');
+        } else if (el.id === 'main-start-btn') {
+            startGame();
+        }
+        updateMenuGpFocusVisual();
+    }
+
+    function pollUiGamepadNavigation() {
+        if (!isGameRunning) {
+            const now = Date.now();
+            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            let anyUp = false, anyDown = false, anyLeft = false, anyRight = false;
+            let trigA = false, trigB = false, trigStart = false;
+
+            for (let i = 0; i < gamepads.length; i++) {
+                const gp = gamepads[i];
+                if (!gp) {
+                    gpPrevButtonA[i] = false;
+                    gpPrevButtonB[i] = false;
+                    gpPrevButtonStart[i] = false;
+                    continue;
+                }
+                const st = readGamepadState(gp);
+                if (!st) continue;
+
+                if (st.navUp) anyUp = true;
+                if (st.navDown) anyDown = true;
+                if (st.navLeft) anyLeft = true;
+                if (st.navRight) anyRight = true;
+
+                if (st.btnShoot && !gpPrevButtonA[i]) trigA = true;
+                if (st.btnFreeze && !gpPrevButtonB[i]) trigB = true;
+                if (st.btnStart && !gpPrevButtonStart[i]) trigStart = true;
+
+                gpPrevButtonA[i] = st.btnShoot;
+                gpPrevButtonB[i] = st.btnFreeze;
+                gpPrevButtonStart[i] = st.btnStart;
+            }
+
+            const menuEl = document.getElementById('menu');
+            const gameOverEl = document.getElementById('game-over');
+
+            if (menuEl.style.display !== 'none') {
+                const rows = getMenuNavigationRows();
+                if (now - lastNavMoveTime > 185) {
+                    if (anyUp) {
+                        menuRowIdx = (menuRowIdx > 0) ? menuRowIdx - 1 : rows.length - 1;
+                        lastNavMoveTime = now;
+                        sfxUiMove();
+                        updateMenuGpFocusVisual();
+                    } else if (anyDown) {
+                        menuRowIdx = (menuRowIdx < rows.length - 1) ? menuRowIdx + 1 : 0;
+                        lastNavMoveTime = now;
+                        sfxUiMove();
+                        updateMenuGpFocusVisual();
+                    } else if (anyLeft) {
+                        const curRow = rows[Math.min(menuRowIdx, rows.length - 1)];
+                        if (curRow.length === 1 && curRow[0].tagName === 'SELECT') {
+                            activateMenuFocusedElement();
+                        } else if (curRow.length > 1) {
+                            menuColIdx = (menuColIdx > 0) ? menuColIdx - 1 : curRow.length - 1;
+                            sfxUiMove();
+                            updateMenuGpFocusVisual();
+                        }
+                        lastNavMoveTime = now;
+                    } else if (anyRight) {
+                        const curRow = rows[Math.min(menuRowIdx, rows.length - 1)];
+                        if (curRow.length === 1 && curRow[0].tagName === 'SELECT') {
+                            activateMenuFocusedElement();
+                        } else if (curRow.length > 1) {
+                            menuColIdx = (menuColIdx < curRow.length - 1) ? menuColIdx + 1 : 0;
+                            sfxUiMove();
+                            updateMenuGpFocusVisual();
+                        }
+                        lastNavMoveTime = now;
+                    }
+                }
+
+                if (trigA) {
+                    activateMenuFocusedElement();
+                } else if (trigStart && selectedLessons.length > 0) {
+                    sfxUiConfirm();
+                    startGame();
+                }
+            } else if (gameOverEl.style.display !== 'none' && (now - gameOverOpenedAt > 350)) {
+                const promptBox = document.getElementById('review-prompt-box');
+                const reviewSec = document.getElementById('review-section');
+
+                // 1. 操控「敢欲複習？」的「欲」與「無愛」
+                if (promptBox.style.display !== 'none') {
+                    if (now - lastNavMoveTime > 180 && (anyLeft || anyRight)) {
+                        promptColIdx = (promptColIdx === 0) ? 1 : 0;
+                        lastNavMoveTime = now;
+                        sfxUiMove();
+                        updateMenuGpFocusVisual();
+                    }
+                    if (trigA) {
+                        sfxUiConfirm();
+                        if (promptColIdx === 0) showReviewSection();
+                        else location.reload();
+                    } else if (trigB) {
+                        sfxUiConfirm();
+                        location.reload();
+                    }
+                }
+                // 2. 操控「錯題複習清單」與「回主選單」按鈕
+                else if (reviewSec.style.display !== 'none') {
+                    const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item'));
+                    const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
+                    const activeList = (playerCount === 2 && reviewPanelIdx === 1) ? p2Items : p1Items;
+
+                    if (now - lastNavMoveTime > 180) {
+                        if (anyUp) {
+                            if (reviewRowIdx === -1 && activeList.length > 0) {
+                                reviewRowIdx = activeList.length - 1;
+                            } else if (reviewRowIdx > 0) {
+                                reviewRowIdx--;
+                            }
+                            lastNavMoveTime = now;
+                            sfxUiMove();
+                            updateMenuGpFocusVisual();
+                        } else if (anyDown) {
+                            if (reviewRowIdx >= 0 && reviewRowIdx < activeList.length - 1) {
+                                reviewRowIdx++;
+                            } else {
+                                reviewRowIdx = -1; // 回到下方「回主選單」按鈕
+                            }
+                            lastNavMoveTime = now;
+                            sfxUiMove();
+                            updateMenuGpFocusVisual();
+                        } else if ((anyLeft || anyRight) && playerCount === 2) {
+                            reviewPanelIdx = (reviewPanelIdx === 0) ? 1 : 0;
+                            const nextList = (reviewPanelIdx === 1) ? p2Items : p1Items;
+                            if (nextList.length === 0) reviewRowIdx = -1;
+                            else if (reviewRowIdx >= nextList.length) reviewRowIdx = nextList.length - 1;
+                            lastNavMoveTime = now;
+                            sfxUiMove();
+                            updateMenuGpFocusVisual();
+                        }
+                    }
+
+                    if (trigA) {
+                        if (reviewRowIdx === -1 || activeList.length === 0) {
+                            sfxUiConfirm();
+                            location.reload();
+                        } else if (activeList[reviewRowIdx]) {
+                            activeList[reviewRowIdx].click();
+                        }
+                    } else if (trigB || trigStart) {
+                        sfxUiConfirm();
+                        location.reload();
+                    }
+                }
+            }
+        }
+        requestAnimationFrame(pollUiGamepadNavigation);
+    }
+    updateMenuGpFocusVisual();
+    requestAnimationFrame(pollUiGamepadNavigation);
 
     async function startGame() {
         if(selectedLessons.length === 0) return alert("請至少選擇一課！");
+        saveMenuSettings();
+        clearAllGpFocus();
         getSfxCtx();
         playerCount = parseInt(document.querySelector('input[name="pcount"]:checked').value, 10);
         currentMode = document.querySelector('input[name="mode"]:checked').value;
@@ -1062,6 +1500,10 @@
 
         if(activeCards.length < 4) return alert("詞庫不足，每題需要 4 個選項，請多選幾課！");
         
+        // 初始化不放回抽題袋，重置上一題記錄
+        questionDeck = shuffleArray([...activeCards]);
+        lastTargetCard = null;
+
         time = 50; globalSpeedBonus = 0; elapsedTime = 0;
         flyingIceEffects = [];
         isSpawning = false;
@@ -1096,9 +1538,9 @@
         waveData.spawnTime = Date.now();
         waveData.comboActive = false;
         
-        let deck = shuffleArray([...activeCards]);
-        const target = deck[0];
-        const wrongs = deck.slice(1, 4);
+        // 使用「不放回抽題袋」抽取本題正解，並確保不與上一題連續相同
+        const target = drawNextTargetCard();
+        const wrongs = pickThreeWrongCards(target);
 
         currentQuestionAudioUrl = target.a;
         if (currentMode === 'hanzi_roma') {
@@ -1187,7 +1629,7 @@
         if (p.freezeCharges < 2) return;
 
         const opponent = players[1 - p.id];
-        p.freezeCharges -= 2; // 消耗 1 顆完整道具（2 點充能），保留剩餘半格進度
+        p.freezeCharges -= 2;
         sfxFreezeAttack();
 
         flyingIceEffects.push({
@@ -1290,7 +1732,6 @@
                 if(opt.y > canvas.height) {
                     opt.active = false;
                     if(opt.isCorrect) {
-                        // 正確答案落地：記錄至該玩家的複習清單
                         recordPlayerWrongQuestion(p, opt.targetCard);
                         sfxMissedCorrect();
                         applyWrongPenalty(p);
@@ -1329,7 +1770,6 @@
                             if(isComboHit) {
                                 p.score += 15;
                             }
-                            // 雙人對戰時，每答對 1 題累積 1 點凍結能量（亮半格），累計答對 2 題亮起 1 顆完整道具（上限 4 點＝2 顆）
                             if (playerCount === 2) {
                                 p.freezeCharges = Math.min(4, p.freezeCharges + 1);
                             }
@@ -1341,7 +1781,6 @@
                                 sfxTimeBonus();
                             }
 
-                            // 雙人對戰：當一方射中正解，未搶到分的另一方自動將該題收錄至複習清單
                             if (playerCount === 2) {
                                 const otherPlayer = players[1 - p.id];
                                 recordPlayerWrongQuestion(otherPlayer, opt.targetCard);
@@ -1358,7 +1797,6 @@
                                 setTimeout(spawnWave, 500);
                             }
                         } else {
-                            // 射到錯誤答案：記錄該波題目至該玩家的複習清單
                             opt.active = false;
                             recordPlayerWrongQuestion(p, opt.targetCard);
                             sfxHitWrong();
@@ -1425,7 +1863,6 @@
             const pivotY = p.y - 20;
             const isFrozen = (now < p.frozenUntil);
 
-            // 繪製砲台 ±25° 扇形邊界指示短線，讓玩家直覺看出最大射角範圍
             ctx.save();
             ctx.strokeStyle = "rgba(56, 189, 248, 0.22)";
             ctx.lineWidth = 1.5;
@@ -1437,7 +1874,6 @@
             });
             ctx.restore();
 
-            // 繪製 2/3 長度瞄準虛線（全程顯示不消失）
             ctx.beginPath();
             ctx.setLineDash([10, 8]);
             ctx.moveTo(pivotX + Math.cos(p.angle) * 45, pivotY + Math.sin(p.angle) * 45);
@@ -1514,7 +1950,7 @@
 
             ctx.restore();
 
-            // 4. 繪製玩家分數、愛心（單人）或凍結道具槽（雙人，支援半格充能與全亮顯示）
+            // 4. 繪製玩家分數、愛心（單人）或凍結道具槽（雙人）
             ctx.textBaseline = "alphabetic";
             if (playerCount === 1) {
                 ctx.fillStyle = "white";
@@ -1656,6 +2092,7 @@
 
     function endGame() {
         isGameRunning = false;
+        gameOverOpenedAt = Date.now();
         cancelAnimationFrame(gameLoop);
         clearInterval(secondInterval);
         questionAudio.pause();
@@ -1666,9 +2103,13 @@
         document.getElementById('touch-controls').style.display = 'none';
         document.getElementById('game-over').style.display = 'flex';
 
-        // 每次結束時先顯示「敢欲複習？」詢問框，隱藏下方錯題面板
+        // 每次結束時先顯示「敢欲複習？」詢問框，並將手把預設焦點放在「欲」
         document.getElementById('review-prompt-box').style.display = 'block';
         document.getElementById('review-section').style.display = 'none';
+        promptColIdx = 0;
+        reviewRowIdx = -1;
+        reviewPanelIdx = 0;
+        updateMenuGpFocusVisual();
 
         const box1P = document.getElementById('gameover-1p-box');
         const box2P = document.getElementById('gameover-2p-box');
@@ -1772,7 +2213,7 @@
         });
     }
 
-    // 點擊「欲」展開錯題複習，並啟動手把 A 鍵 / PS4 ✕ 鍵返回主選單監聽
+    // 點擊「欲」展開錯題複習
     function showReviewSection() {
         sfxTimeBonus();
         document.getElementById('review-prompt-box').style.display = 'none';
@@ -1792,34 +2233,8 @@
         }
 
         reviewSec.style.display = 'flex';
-        startReviewGamepadListener();
-    }
-
-    // 在複習畫面監聽玩家 1 或玩家 2 手把按下 A 鍵（或 PS4 ✕ 鍵）返回主選單
-    function startReviewGamepadListener() {
-        if (reviewGamepadLoop) cancelAnimationFrame(reviewGamepadLoop);
-        let prevPressed = [true, true, true, true];
-
-        function pollGamepadReturn() {
-            if (document.getElementById('review-section').style.display === 'none') return;
-            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            for (let i = 0; i < gamepads.length; i++) {
-                const gp = gamepads[i];
-                if (!gp) {
-                    prevPressed[i] = false;
-                    continue;
-                }
-                const state = readGamepadState(gp);
-                const isPressed = state ? state.btnShoot : false; // Xbox A / PS4 ✕
-                if (isPressed && !prevPressed[i]) {
-                    location.reload();
-                    return;
-                }
-                prevPressed[i] = isPressed;
-            }
-            reviewGamepadLoop = requestAnimationFrame(pollGamepadReturn);
-        }
-        reviewGamepadLoop = requestAnimationFrame(pollGamepadReturn);
+        reviewRowIdx = -1; // 預設聚焦在下方「回主選單」按鈕（按上方向鍵可瀏覽錯題聽發音）
+        updateMenuGpFocusVisual();
     }
 
     // 鍵盤事件：空白鍵射擊、Enter鍵使用凍結道具、Q鍵單人重聽
@@ -1850,7 +2265,6 @@
         const scaleX = canvas.width / rect.width;
         const canvasX = (clientX - rect.left) * scaleX;
 
-        // 依據滑鼠在該玩家半場內的水平位置對應至 [-25°, +25°] 傾角，與砲台 x 位置獨立，走位時不亂飄
         const localRatio = (canvasX - p.offsetX) / p.arenaWidth;
         const normalized = Math.max(-1, Math.min(1, (localRatio - 0.5) * 2.2));
         p.targetAngle = clampAimAngle(-Math.PI / 2 + normalized * MAX_TILT_RAD);
@@ -1874,7 +2288,6 @@
 
     canvas.addEventListener('pointermove', e => {
         if (!isGameRunning) return;
-        // 僅允許實體滑鼠 (mouse) 控制鍵鼠玩家，完全忽略手指觸控 (touch) 與觸控筆
         if (e.pointerType === 'mouse') {
             const kbPlayer = players.find(p => p.controlType === 'kb_mouse' || p.controlType === 'kb_and_gp');
             if (kbPlayer) updateMouseHorizontalTilt(kbPlayer, e.clientX);
@@ -1886,7 +2299,6 @@
     canvas.addEventListener('pointerdown', e => {
         if (!isGameRunning) return;
 
-        // 1. 若為手指觸控或觸控筆：雙人對戰與單人鍵鼠模式完全封鎖，防止直接戳螢幕方塊秒答
         if (e.pointerType !== 'mouse') {
             if (playerCount === 1 && players[0] && players[0].controlType === 'touch') {
                 e.preventDefault();
@@ -1899,7 +2311,6 @@
             return;
         }
 
-        // 2. 實體滑鼠點擊：左鍵僅往當前砲管方向開火（不瞬移砲管），右鍵發動凍結道具
         const kbPlayer = players.find(p => p.controlType === 'kb_mouse' || p.controlType === 'kb_and_gp');
         if (!kbPlayer) return;
         if (e.button === 0) {
@@ -1910,7 +2321,6 @@
         }
     });
 
-    // 攔截畫布上所有原生 touchstart，避免舊瀏覽器觸發合成滑鼠點擊
     canvas.addEventListener('touchstart', e => {
         if (!isGameRunning) return;
         if (!(playerCount === 1 && players[0] && players[0].controlType === 'touch')) {
@@ -1931,7 +2341,7 @@
     btnLeft.addEventListener('touchend', (e) => { e.stopPropagation(); e.preventDefault(); keys.a = false; });
     
     btnRight.addEventListener('touchstart', (e) => { e.stopPropagation(); e.preventDefault(); keys.d = true; });
-    btnRight.addEventListener('touchend', (e) => { e.stopPropagation(); e.preventDefault(); keys.d = false; });
+    btnRight.addEventListener('touchend', (e) => { e.stopPropagation(); e.stopPropagation(); keys.d = false; });
 </script>
 </body>
 </html>
