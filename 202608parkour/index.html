@@ -3,86 +3,422 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
-    <title>台語跑酷</title>
+    <title>台語跑酷 - 單人/雙人拔刀搶答版</title>
+    <!-- 引入 Google Fonts：Noto Sans TC、霞鶩文楷 (LXGW WenKai TC 支援台語擴展罕見字) 與 Charis SIL (完美支援台羅聲調) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Charis+SIL:wght@400;700&family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
     <!-- 引入彩帶特效函式庫 -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; overflow: hidden; background-color: #f0f9ff; touch-action: none; }
+        body { font-family: 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; overflow: hidden; background-color: #0f172a; touch-action: none; user-select: none; -webkit-user-select: none; }
         
-        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 10; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 20; padding: 10px 14px; box-sizing: border-box; overflow-y: auto; }
         
-        .menu-content { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; margin-bottom: 20px; }
+        .menu-content { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; width: 100%; max-width: 580px; margin-bottom: 6px; text-align: center; }
         
-        .lesson-btn { padding: 10px; margin: 5px; background: #ccc; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
-        .lesson-btn.active { background: #20b2aa; color: white; }
+        h2.game-title { margin: 0 0 6px 0; font-size: 26px; color: #0f172a; letter-spacing: 1px; }
         
-        #game-board { display: none; width: 100vw; height: 100vh; position: relative; background: #333; overflow: hidden; box-sizing: border-box; }
+        #lessons { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 6px; }
+        .lesson-btn { padding: 5px 11px; margin: 0; background: #cbd5e1; color: #1e293b; border: 1.5px solid #94a3b8; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.15s; }
+        .lesson-btn.active { background: #0d9488; color: white; border-color: #0f766e; box-shadow: 0 0 8px rgba(13, 148, 136, 0.4); }
+
+        .menu-card { width: 100%; margin: 3px 0; padding: 7px 10px; border-radius: 10px; box-sizing: border-box; font-size: 13.5px; }
+        .card-player-cnt { background: #e0e7ff; border: 1.5px solid #818cf8; }
+        .card-mode { background: #d0e8f2; border: 1.5px solid #38bdf8; }
+        .card-ctrl { background: #fff3cd; border: 1.5px solid #fbbf24; }
+        .menu-card-title { margin: 0 0 4px 0; font-weight: bold; font-size: 14px; color: #0f172a; }
+
+        .radio-row-wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; }
+        .radio-label { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: bold; color: #1e293b; font-size: 13.5px; padding: 2px 6px; border-radius: 6px; transition: 0.15s; }
+        
+        .hanzi-toggle-row { margin-top: 5px; padding-top: 5px; border-top: 1px dashed #7dd3fc; display: flex; justify-content: center; }
+
+        .p2-ctrl-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 3px 0; font-size: 13px; font-weight: bold; color: #1e293b; flex-wrap: wrap; }
+        .p2-ctrl-select { padding: 3px 8px; border-radius: 6px; border: 1.5px solid #d97706; background: #fff; font-family: inherit; font-size: 13px; font-weight: bold; color: #0f172a; cursor: pointer; }
+
+        /* 手把選單導覽高亮聚焦樣式 (.gp-focus) */
+        .gp-focus {
+            outline: 3px solid #0284c7 !important;
+            outline-offset: 2px !important;
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.45), 0 0 14px rgba(2, 132, 199, 0.75) !important;
+            transform: scale(1.04);
+            z-index: 5;
+        }
+        .choice-btn.gp-focus, .review-item.gp-focus, #return-menu-btn.gp-focus {
+            outline: 3px solid #ffffff !important;
+            outline-offset: 2px !important;
+            box-shadow: 0 0 0 4px rgba(0, 229, 255, 0.7), 0 0 18px #00e5ff !important;
+            transform: scale(1.06);
+        }
+        .review-item.gp-focus { background: rgba(56, 189, 248, 0.28) !important; transform: scale(1.01); }
+
+        .menu-tips-box { margin: 4px 0 3px 0; font-size: 12px; color: #1e293b; font-weight: bold; line-height: 1.55; text-align: center; }
+        .inline-bell-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #222; border: 1.5px solid rgba(255, 255, 255, 0.8); border-radius: 6px;
+            padding: 1px 6px; font-size: 12px; line-height: 1.1; vertical-align: middle; margin: 0 2px;
+        }
+
+        button.start-btn { padding: 9px 30px; font-size: 18px; font-weight: bold; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 4px; cursor: pointer; font-family: inherit; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35); transition: 0.15s; }
+        button.start-btn:active { transform: scale(0.95); }
+        
+        .footer { text-align: center; padding-top: 6px; border-top: 1px solid #cbd5e1; width: 100%; max-width: 600px; color: #475569; flex-shrink: 0; }
+        .footer p { margin: 2px 0; font-size: 10.5px; line-height: 1.3; }
+        .counter-container { margin-top: 3px; display: flex; justify-content: center; align-items: center; }
+        .counter-container img { height: 14px; }
+
+        /* ========================================================= */
+        /* 遊戲主舞台與跑道樣式 */
+        /* ========================================================= */
+        #game-board {
+            display: none; width: 100vw; height: 100vh; height: 100dvh; position: relative;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            overflow: hidden; box-sizing: border-box;
+        }
+        /* 三條水平跑道分隔虛線 */
+        .lane-divider {
+            position: absolute; left: 0; width: 100%; height: 0;
+            border-top: 2px dashed rgba(255, 255, 255, 0.14); pointer-events: none; z-index: 1;
+        }
         
         /* 錯誤閃爍特效 */
         @keyframes flashRed {
-            0% { box-shadow: inset 0 0 0 0 red; }
-            25% { box-shadow: inset 0 0 40px 20px red; }
-            50% { box-shadow: inset 0 0 0 0 red; }
-            75% { box-shadow: inset 0 0 40px 20px red; }
-            100% { box-shadow: inset 0 0 0 0 red; }
+            0%, 50%, 100% { box-shadow: inset 0 0 0 0 red; }
+            25%, 75% { box-shadow: inset 0 0 40px 20px red; }
         }
         .flash-error { animation: flashRed 0.5s; }
 
         /* 加速閃爍特效 (藍/青色) */
         @keyframes flashSpeed {
-            0% { box-shadow: inset 0 0 0 0 #00e5ff; }
-            25% { box-shadow: inset 0 0 40px 20px #00e5ff; }
-            50% { box-shadow: inset 0 0 0 0 #00e5ff; }
-            75% { box-shadow: inset 0 0 40px 20px #00e5ff; }
-            100% { box-shadow: inset 0 0 0 0 #00e5ff; }
+            0%, 50%, 100% { box-shadow: inset 0 0 0 0 #00e5ff; }
+            25%, 75% { box-shadow: inset 0 0 40px 20px #00e5ff; }
         }
         .flash-speed-up { animation: flashSpeed 0.5s; }
+
+        /* 拔刀決鬥時舞台金色警戒邊框 */
+        .duel-stage-glow { box-shadow: inset 0 0 55px 15px rgba(245, 158, 11, 0.55) !important; }
         
-        #hud { position: absolute; top: 10px; left: 20px; right: 20px; color: white; font-size: 20px; display: flex; justify-content: space-between; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
-        #question-display { position: absolute; top: 10px; width: 100%; text-align: center; color: yellow; font-size: 32px; font-weight: bold; z-index: 2; text-shadow: 2px 2px 4px #000; pointer-events: none; }
+        /* 頂部 HUD 與題目橫幅 */
+        #hud {
+            position: absolute; top: 10px; left: 16px; right: 16px; color: white;
+            font-size: 19px; font-weight: bold; display: flex; justify-content: space-between; align-items: flex-start;
+            z-index: 6; text-shadow: 2px 2px 4px #000; pointer-events: none;
+        }
+        .hud-left-col { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: auto; }
+        .hud-right-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .p1-score-badge { color: #38bdf8; background: rgba(15, 23, 42, 0.75); padding: 2px 10px; border-radius: 8px; border: 1.5px solid #38bdf8; }
+        .p2-score-badge { color: #fbbf24; background: rgba(15, 23, 42, 0.75); padding: 2px 10px; border-radius: 8px; border: 1.5px solid #fbbf24; }
+
+        #sfx-toggle-btn {
+            background: rgba(255, 255, 255, 0.18); border: 2px solid rgba(255, 255, 255, 0.55);
+            border-radius: 8px; padding: 2px 8px; font-size: 17px; line-height: 1.2;
+            cursor: pointer; transition: 0.15s; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+        #sfx-toggle-btn.muted { opacity: 0.5; border-color: #777; background: rgba(0, 0, 0, 0.35); }
+
+        #top-center-bar {
+            position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+            display: flex; align-items: center; gap: 10px; z-index: 6;
+            background: rgba(15, 23, 42, 0.88); border: 2px solid #facc15; border-radius: 14px;
+            padding: 5px 18px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); max-width: 68vw;
+        }
+        #question-display {
+            color: #fde047; font-size: clamp(20px, 3vw, 30px); font-weight: bold;
+            font-family: 'Charis SIL', 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', sans-serif;
+            text-shadow: 1px 1px 3px #000; letter-spacing: 0.5px; text-align: center;
+        }
+        .blank-slot {
+            display: inline-block; min-width: 42px; border-bottom: 3px solid #38bdf8;
+            color: #38bdf8; padding: 0 4px; margin: 0 2px; text-align: center;
+        }
+        .tone-target-box {
+            display: inline-block; background: rgba(56, 189, 248, 0.22); border: 2px solid #38bdf8;
+            color: #7dd3fc; border-radius: 8px; padding: 0 8px; margin: 0 2px;
+        }
+        .hanzi-prompt-tag {
+            color: #fb923c; margin-right: 10px; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif;
+        }
+        #replay-audio-btn {
+            background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff;
+            border: 1.5px solid #7dd3fc; border-radius: 16px; padding: 4px 10px;
+            font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+        }
+        #replay-audio-btn:active { transform: scale(0.92); }
+
+        /* 拔刀決鬥中央橫幅提示 */
+        #duel-banner {
+            display: none; position: absolute; top: 68px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(90deg, #b91c1c, #d97706, #b91c1c); color: #fff;
+            border: 2px solid #fde047; border-radius: 20px; padding: 6px 22px;
+            font-size: clamp(16px, 2.3vw, 22px); font-weight: bold; z-index: 12;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.8); text-shadow: 1px 1px 3px #000;
+            white-space: nowrap; animation: pulseBanner 0.6s ease-in-out infinite alternate;
+        }
+        @keyframes pulseBanner { 0% { transform: translateX(-50%) scale(1); } 100% { transform: translateX(-50%) scale(1.06); } }
+
+        /* ========================================================= */
+        /* 玩家角色 (UFO + 標籤 + 暈眩特效 + 拔刀決鬥血條與刀光) */
+        /* ========================================================= */
+        .player-entity {
+            position: absolute; width: 64px; height: 64px; z-index: 8;
+            display: flex; align-items: center; justify-content: center; pointer-events: none;
+        }
+        .player-ufo-sprite {
+            font-size: 52px; line-height: 1; transform: scaleX(-1);
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.8)); transition: filter 0.15s;
+        }
+        #player2 .player-ufo-sprite {
+            filter: hue-rotate(145deg) saturate(1.8) drop-shadow(0 0 8px rgba(251, 191, 36, 0.9));
+        }
+        .player-tag-badge {
+            position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%);
+            font-size: 11px; font-weight: bold; padding: 1px 6px; border-radius: 8px;
+            background: #0284c7; color: #fff; border: 1px solid #bae6fd; white-space: nowrap;
+        }
+        #player2 .player-tag-badge { background: #d97706; border-color: #fde68a; }
+
+        /* 撞錯彈飛暈眩狀態 */
+        .player-stunned .player-ufo-sprite {
+            animation: dizzySpin 0.35s linear infinite;
+            filter: grayscale(0.5) brightness(0.8) drop-shadow(0 0 10px #ef4444) !important;
+        }
+        @keyframes dizzySpin { 0% { transform: scaleX(-1) rotate(0deg); } 100% { transform: scaleX(-1) rotate(360deg); } }
+        .player-stun-stars {
+            display: none; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+            font-size: 20px; white-space: nowrap; filter: drop-shadow(0 0 4px #000);
+        }
+        .player-stunned .player-stun-stars { display: block; }
+
+        /* 拔刀決鬥模式：頭頂血條、手持大刀與揮砍刀光 */
+        .duel-hp-bar {
+            display: none; position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
+            width: 58px; height: 9px; background: #1e293b; border: 1.5px solid #fff;
+            border-radius: 5px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.6);
+        }
+        .duel-hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, #22c55e); transition: width 0.1s; }
+        .in-duel .duel-hp-bar { display: block; }
+
+        .duel-sword-icon {
+            display: none; position: absolute; right: -18px; top: 4px; font-size: 32px;
+            transform: rotate(25deg); transform-origin: bottom left;
+            filter: drop-shadow(0 0 6px #fde047); transition: transform 0.08s ease-out;
+        }
+        .in-duel .duel-sword-icon { display: block; }
+        .slashing .duel-sword-icon { transform: rotate(115deg) scale(1.35) !important; }
+
+        .slash-arc-fx {
+            display: none; position: absolute; width: 130px; height: 130px;
+            left: -33px; top: -33px; border-radius: 50%;
+            border: 5px solid transparent; border-right-color: #fde047; border-top-color: #38bdf8;
+            filter: drop-shadow(0 0 12px #fde047); pointer-events: none;
+        }
+        #player2 .slash-arc-fx { border-top-color: #fb923c; }
+        .slashing .slash-arc-fx { display: block; animation: slashSpin 0.16s ease-out forwards; }
+        @keyframes slashSpin {
+            0% { transform: rotate(-60deg) scale(0.7); opacity: 1; }
+            100% { transform: rotate(90deg) scale(1.18); opacity: 0; }
+        }
+
+        /* ========================================================= */
+        /* 跑道選項卡片、聲調圖示與火箭/星星 */
+        /* ========================================================= */
+        .obstacle { position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center; }
         
-        /* 玩家圖示 (UFO) */
-        #player { position: absolute; width: 60px; height: 60px; z-index: 2; text-align: center; line-height: 60px; font-size: 55px; pointer-events: none; transform: scaleX(-1); }
-        
-        .obstacle { position: absolute; z-index: 1; display: flex; align-items: center; justify-content: center; }
-        
-        /* 一般選項卡片 */
-        .text-card { width: 250px; height: 33.34vh; background: white; font-weight: bold; font-size: clamp(16px, 3vw, 24px); box-shadow: inset 0 0 0 2px #ccc; color: #333; box-sizing: border-box; margin: 0; transition: opacity 0.2s, box-shadow 0.2s; }
-        
+        .text-card {
+            width: 220px; height: 33.34vh; background: rgba(255, 255, 255, 0.96);
+            font-weight: bold; font-size: clamp(24px, 3.6vw, 36px);
+            font-family: 'Charis SIL', 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', sans-serif;
+            box-shadow: inset 0 0 0 3px #94a3b8, -4px 0 15px rgba(0,0,0,0.35);
+            color: #0f172a; box-sizing: border-box; margin: 0; border-radius: 12px 0 0 12px;
+            transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+
+        /* 考聲調時的卡片內容佈局 (仿除魔咒術 1~9 聲調鍵) */
+        .tone-card-box {
+            position: relative; width: 96px; height: 96px; background: #0f3460;
+            border: 3px solid #00e5ff; border-radius: 16px; color: #00e5ff;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+        }
+        .tone-card-num {
+            position: absolute; top: 5px; left: 9px; font-size: 18px; font-weight: bold;
+            color: #84ffff; line-height: 1; font-family: Arial, sans-serif;
+        }
+        .tone-svg-unified { width: 42px; height: 56px; overflow: visible; display: block; margin-top: 6px; }
+        .checked-tone-group { display: flex; align-items: flex-end; justify-content: center; gap: 3px; margin-top: 6px; }
+        .checked-tone-group .tone-svg-unified { width: 28px; height: 54px; margin-top: 0; }
+        .checked-tone-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px;
+            font-size: 14px; font-weight: bold; color: #84ffff; font-family: Arial, sans-serif;
+            line-height: 0.95; margin-bottom: 4px;
+        }
+
         /* 火箭與星星 */
         .bonus, .rocket { height: 16.67vh; width: 120px; font-size: min(10vh, 70px); box-sizing: border-box; margin: 0; transition: opacity 0.2s; }
-        
         .star-icon { display: inline-block; animation: pulse 1s infinite; }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+
+        /* 緊貼字母正上方的第8聲 CSS 獨立描繪樣式 */
+        .t8, .t8-i { position: relative; display: inline-block; line-height: 1; }
+        .t8::after, .t8-i::after {
+            content: ''; position: absolute; top: 0.03em; left: 50%; transform: translateX(-50%);
+            width: 2.2px; height: 0.22em; background-color: currentColor; border-radius: 1px; pointer-events: none;
         }
-        
-        button.start-btn { padding: 15px 30px; font-size: 20px; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer; }
-        
-        /* 頁尾版權與計數器樣式設定 */
-        .footer { text-align: center; padding-top: 15px; border-top: 1px solid #ccc; width: 100%; max-width: 600px; color: #444; }
-        .footer p { margin: 3px 0; font-size: 0.9em; }
-        .counter-container { margin-top: 8px; display: flex; justify-content: center; align-items: center; }
+
+        /* ========================================================= */
+        /* 雙人對戰結算畫面（勝利獎盃 vs 落葉吹拂）與複習視窗 */
+        /* ========================================================= */
+        #gameover-2p-box { display: none; width: 100%; max-width: 860px; flex-direction: column; align-items: center; margin-bottom: 8px; }
+        #gameover-2p-title { font-size: 25px; font-weight: bold; color: #0f172a; margin: 0 0 8px 0; }
+        .p2-results-grid { display: flex; gap: 12px; width: 100%; justify-content: center; align-items: stretch; }
+        .p2-result-card {
+            position: relative; flex: 1; border-radius: 14px; padding: 14px 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden; min-height: 165px; box-sizing: border-box;
+        }
+        .p2-result-card.winner-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #f59e0b; box-shadow: 0 0 25px rgba(245, 158, 11, 0.5); color: #78350f;
+        }
+        .p2-result-card.loser-card {
+            background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+            border: 3px solid #64748b; box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6); color: #cbd5e1;
+        }
+        .result-player-tag { font-size: 17px; font-weight: bold; margin-bottom: 2px; z-index: 2; }
+        .result-main-icon { font-size: 50px; line-height: 1.1; margin: 4px 0; z-index: 2; }
+        .winner-card .result-main-icon { animation: trophyBounce 1s ease-in-out infinite alternate; filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.8)); }
+        @keyframes trophyBounce { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-8px) scale(1.08); } }
+        .result-status-text { font-size: 22px; font-weight: bold; margin: 2px 0; z-index: 2; }
+        .winner-card .result-status-text { color: #d97706; }
+        .loser-card .result-status-text { color: #94a3b8; }
+        .result-score-text { font-size: 19px; font-weight: bold; z-index: 2; }
+
+        .falling-leaf {
+            position: absolute; top: -30px; font-size: 24px; pointer-events: none; z-index: 1; opacity: 0.85;
+            animation: leafBlow linear infinite;
+        }
+        @keyframes leafBlow {
+            0% { transform: translate(0, -20px) rotate(0deg); opacity: 0; }
+            15%, 85% { opacity: 0.85; }
+            100% { transform: translate(-120px, 250px) rotate(320deg); opacity: 0; }
+        }
+
+        #review-prompt-box {
+            background: #1e293b; border: 2px solid #f59e0b; border-radius: 12px;
+            padding: 12px 20px; margin-top: 6px; text-align: center; width: 92%; max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+        }
+        .review-prompt-title { color: #fbbf24; font-size: 22px; font-weight: bold; margin: 0 0 10px 0; letter-spacing: 1px; }
+        .choice-btn-group { display: flex; justify-content: center; gap: 16px; }
+        .choice-btn {
+            padding: 8px 28px; font-size: 18px; font-weight: bold; border-radius: 8px;
+            cursor: pointer; border: none; font-family: inherit; transition: 0.15s;
+        }
+        .btn-yes { background: #f59e0b; color: #0f172a; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+        .btn-no { background: #475569; color: #f8fafc; border: 1px solid #94a3b8; }
+
+        #review-section { display: none; width: 100%; max-width: 860px; flex-direction: column; align-items: center; margin-top: 4px; }
+        .review-columns-wrap { display: flex; gap: 12px; width: 100%; justify-content: center; align-items: stretch; }
+        .review-player-panel {
+            flex: 1; background: #0f172a; border: 2px solid #0284c7; border-radius: 12px;
+            padding: 10px 12px; max-height: 30vh; overflow-y: auto; box-sizing: border-box;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); text-align: left;
+        }
+        .review-player-panel.p2-panel { border-color: #f59e0b; }
+        .review-panel-header {
+            font-size: 16px; font-weight: bold; color: #38bdf8; text-align: center;
+            padding-bottom: 6px; margin-bottom: 6px; border-bottom: 1px solid #334155;
+        }
+        .review-player-panel.p2-panel .review-panel-header { color: #fbbf24; }
+        .review-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 7px 8px; border-bottom: 1px solid #1e293b; border-radius: 6px;
+            cursor: pointer; transition: background 0.15s; gap: 8px;
+        }
+        .review-item:hover, .review-item:active { background: rgba(56, 189, 248, 0.18); }
+        .review-item:last-child { border-bottom: none; }
+        .review-hanzi { color: #fbbf24; font-size: 18px; font-weight: bold; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; }
+        .review-tailo { color: #38bdf8; font-size: 19px; font-weight: bold; font-family: 'Charis SIL', 'Noto Sans', sans-serif; letter-spacing: 0.5px; }
+        .review-empty-msg { color: #4ade80; font-size: 16px; font-weight: bold; text-align: center; padding: 18px 6px; }
     </style>
 </head>
 <body>
 
 <div id="menu">
     <div class="menu-content">
-        <h2 style="margin-top: 0;">台語跑酷</h2>
+        <h2 class="game-title">🛸 台語跑酷</h2>
+        
+        <!-- 課次選擇（含拼音練習共9課） -->
         <div id="lessons"></div>
-        <div style="margin: 15px 0;">
-            <label><input type="radio" name="mode" value="hanzi" checked> 看漢字選發音</label>
-            <label><input type="radio" name="mode" value="roma"> 看發音選漢字</label>
+        
+        <!-- 1. 遊玩模式 -->
+        <div class="menu-card card-player-cnt">
+            <p class="menu-card-title">遊玩模式</p>
+            <div class="radio-row-wrap">
+                <label class="radio-label" id="lbl-pcount-1"><input type="radio" name="pcount" value="1" checked onchange="onPlayerCountChange()"> 👤 單人遊玩</label>
+                <label class="radio-label" id="lbl-pcount-2"><input type="radio" name="pcount" value="2" onchange="onPlayerCountChange()"> ⚔️ 雙人對戰 (同起點搶答)</label>
+            </div>
         </div>
-        <button class="start-btn" onclick="startGame()">開始遊戲</button>
+
+        <!-- 2. 出題類型與顯示漢字開關 -->
+        <div class="menu-card card-mode">
+            <p class="menu-card-title">出題類型 (聽音補齊羅馬字結構)</p>
+            <div class="radio-row-wrap">
+                <label class="radio-label" id="lbl-qtype-rnd"><input type="radio" name="qtype" value="random" checked onchange="saveMenuSettings()"> 🎲 綜合隨機</label>
+                <label class="radio-label" id="lbl-qtype-ini"><input type="radio" name="qtype" value="initial" onchange="saveMenuSettings()"> 🔤 聲母</label>
+                <label class="radio-label" id="lbl-qtype-fin"><input type="radio" name="qtype" value="final" onchange="saveMenuSettings()"> 🎵 韻母</label>
+                <label class="radio-label" id="lbl-qtype-ton"><input type="radio" name="qtype" value="tone" onchange="saveMenuSettings()"> 📈 聲調</label>
+            </div>
+            <div class="hanzi-toggle-row">
+                <label class="radio-label" id="lbl-show-hanzi" style="color: #0369a1;">
+                    <input type="checkbox" id="show-hanzi-toggle" onchange="saveMenuSettings()" style="transform: scale(1.2); margin-right: 4px;">
+                    👀 題目同時顯示漢字
+                </label>
+            </div>
+        </div>
+
+        <!-- 3. 操作裝置設定 -->
+        <div class="menu-card card-ctrl">
+            <p class="menu-card-title">操作裝置</p>
+            <div id="ctrl-1p-box">
+                <div class="radio-row-wrap">
+                    <label class="radio-label" id="lbl-ctrl-kb"><input type="radio" name="ctrl1p" value="keyboard" id="ctrl-keyboard" checked onchange="saveMenuSettings()"> ⌨️ 鍵盤 / 🎮 手把</label>
+                    <label class="radio-label" id="lbl-ctrl-tc"><input type="radio" name="ctrl1p" value="touch" id="ctrl-touch" onchange="saveMenuSettings()"> 📱 平板 / 觸控螢幕</label>
+                </div>
+            </div>
+            <div id="ctrl-2p-box" style="display: none;">
+                <div class="p2-ctrl-row">
+                    <span>🛸 玩家 1 (藍)：</span>
+                    <select id="p1-ctrl-select" class="p2-ctrl-select" onchange="sync2PControls('p1')">
+                        <option value="keyboard" selected>⌨️ 鍵盤 (WASD/方向鍵 + 空白鍵揮刀)</option>
+                        <option value="gamepad">🎮 遊戲手把 (搖桿/十字鍵 + A/✕揮刀)</option>
+                    </select>
+                </div>
+                <div class="p2-ctrl-row">
+                    <span>🛸 玩家 2 (金)：</span>
+                    <select id="p2-ctrl-select" class="p2-ctrl-select" onchange="sync2PControls('p2')">
+                        <option value="gamepad" selected>🎮 遊戲手把 (搖桿/十字鍵 + A/✕揮刀)</option>
+                        <option value="keyboard">⌨️ 鍵盤 (WASD/方向鍵 + 空白鍵揮刀)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主選單說明文字 -->
+        <div class="menu-tips-box">
+            <div>揤鈃仔 <span class="inline-bell-icon">🔔</span> 會使開關音效</div>
+            <div style="color: #991b1b;">⚔️ 雙人同時搶著答案時跑道暫停，揤 空白鍵 / 手把A(✕) 抽刀決鬥！</div>
+            <div style="color: #b45309;">雙人對戰時，上無愛有一个人使用遊戲手把</div>
+            <div style="color: #0369a1;">本遊戲會自動播送語音，請毋通吵著別人</div>
+        </div>
+
+        <button class="start-btn" id="main-start-btn" onclick="startGame()">開始遊戲</button>
     </div>
     
     <div class="footer">
         <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
-        <p style="font-size: 0.85em; color: #777; margin-top: 5px;">
+        <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
             Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
             本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
             未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
@@ -96,16 +432,63 @@
 </div>
 
 <div id="game-over" style="display: none;">
-    <div class="menu-content">
-        <h2 style="margin-top: 0;">時間到！</h2>
-        <p style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">總分：<span id="final-score">0</span></p>
-        <h3 id="score-comment" style="color: #d97706; font-size: 32px; margin-top: 0; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);"></h3>
-        <button class="start-btn" onclick="location.reload()">回主選單</button>
+    <div class="menu-content" style="max-width: 860px;">
+        <!-- 單人結算畫面 -->
+        <div id="gameover-1p-box">
+            <h2 style="margin: 0 0 4px 0; font-size: 26px; color: #0f172a;">時間到！</h2>
+            <p style="font-size: 22px; font-weight: bold; margin: 0 0 4px 0; color: #1e293b;">總分：<span id="final-score">0</span></p>
+            <h3 id="score-comment" style="color: #d97706; font-size: 28px; margin: 0 0 8px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);"></h3>
+        </div>
+
+        <!-- 雙人對戰結算畫面 -->
+        <div id="gameover-2p-box">
+            <h2 id="gameover-2p-title">⚔️ 對戰結果 ⚔️️</h2>
+            <div class="p2-results-grid">
+                <div id="p1-result-card" class="p2-result-card">
+                    <div class="result-player-tag">玩家 1 (藍 UFO)</div>
+                    <div class="result-main-icon" id="p1-result-icon">🏆</div>
+                    <div class="result-status-text" id="p1-result-status">台語小博士</div>
+                    <div class="result-score-text">分數：<span id="p1-final-score">0</span></div>
+                </div>
+                <div id="p2-result-card" class="p2-result-card">
+                    <div class="result-player-tag">玩家 2 (金 UFO)</div>
+                    <div class="result-main-icon" id="p2-result-icon">🍂</div>
+                    <div class="result-status-text" id="p2-result-status">繼續拍拚</div>
+                    <div class="result-score-text">分數：<span id="p2-final-score">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 敢欲複習？ 詢問區塊 -->
+        <div id="review-prompt-box">
+            <p class="review-prompt-title">敢欲複習？</p>
+            <div class="choice-btn-group">
+                <button class="choice-btn btn-yes" id="btn-review-yes" onclick="showReviewSection()">欲</button>
+                <button class="choice-btn btn-no" id="btn-review-no" onclick="location.reload()">無愛</button>
+            </div>
+        </div>
+
+        <!-- 錯題複習展示區塊 -->
+        <div id="review-section">
+            <div class="review-columns-wrap">
+                <div class="review-player-panel" id="review-p1-panel">
+                    <div class="review-panel-header" id="review-p1-header">📖 錯題複習 (揤詞語聽發音)</div>
+                    <div id="review-p1-list"></div>
+                </div>
+                <div class="review-player-panel p2-panel" id="review-p2-panel" style="display: none;">
+                    <div class="review-panel-header">🛸 玩家 2 複習清單 (揤詞語聽發音)</div>
+                    <div id="review-p2-list"></div>
+                </div>
+            </div>
+            <button id="return-menu-btn" class="start-btn" onclick="location.reload()" style="margin-top: 10px;">
+                回主選單 (滑鼠左鍵 / 手把A)
+            </button>
+        </div>
     </div>
     
     <div class="footer">
         <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
-        <p style="font-size: 0.85em; color: #777; margin-top: 5px;">
+        <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
             Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
             本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
             未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
@@ -118,39 +501,664 @@
     </div>
 </div>
 
+<!-- 遊戲跑道主畫面 -->
 <div id="game-board">
+    <div class="lane-divider" style="top: 33.33vh;"></div>
+    <div class="lane-divider" style="top: 66.66vh;"></div>
+
     <div id="hud">
-        <span id="time-display">時間: 30</span>
-        <span id="score-display">分數: 0</span>
+        <div class="hud-left-col">
+            <span id="time-display">時間: 50</span>
+            <div id="sfx-toggle-btn" title="開關音效">🔔</div>
+        </div>
+        <div class="hud-right-col">
+            <span id="p1-score-display" class="p1-score-badge">P1 分數: 0</span>
+            <span id="p2-score-display" class="p2-score-badge" style="display: none;">P2 分數: 0</span>
+        </div>
     </div>
-    <div id="question-display">題目</div>
-    <div id="player">🛸</div>
+
+    <div id="top-center-bar">
+        <div id="question-display">載入中...</div>
+        <button id="replay-audio-btn" title="重播語音 (Q鍵 / 手把X或□鍵)">🔊 重聽</button>
+    </div>
+
+    <!-- 拔刀決鬥提示橫幅 -->
+    <div id="duel-banner">⚔️ 同時搶答！拔刀決鬥！(揤 A / ✕ / 空白鍵 揮刀) ⚔️</div>
+
+    <!-- 玩家 1 與 玩家 2 飛碟實體 -->
+    <div id="player1" class="player-entity">
+        <div class="duel-hp-bar"><div class="duel-hp-fill" id="p1-duel-hp"></div></div>
+        <div class="player-stun-stars">💫💫</div>
+        <div class="player-ufo-sprite">🛸</div>
+        <div class="duel-sword-icon">🗡️</div>
+        <div class="slash-arc-fx"></div>
+        <div class="player-tag-badge" id="p1-badge">P1</div>
+    </div>
+
+    <div id="player2" class="player-entity" style="display: none;">
+        <div class="duel-hp-bar"><div class="duel-hp-fill" id="p2-duel-hp"></div></div>
+        <div class="player-stun-stars">💫💫</div>
+        <div class="player-ufo-sprite">🛸</div>
+        <div class="duel-sword-icon">🗡️</div>
+        <div class="slash-arc-fx"></div>
+        <div class="player-tag-badge" id="p2-badge">P2</div>
+    </div>
 </div>
 
 <script>
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
-    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一"];
+    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
+    
+    const audioFolderMap = {
+        "B1L1": "育達B1L1音檔",
+        "B1L2": "育達B1L2音檔",
+        "B1L3": "育達B1L3音檔",
+        "B1L4": "育達B1L4音檔",
+        "B3L1": "康軒B3L1音檔",
+        "B3L2": "康軒B3L2音檔",
+        "B3L3": "康軒B3L3音檔",
+        "防災素一": "康軒防災素一音檔",
+        "拼音練習": "拼音練習音檔"
+    };
+
+    // =========================================================
+    // 📚 教育部台語辭典：聲母、韻母、聲調索引庫與拼合規則引擎
+    // =========================================================
+    const MOE_INITIALS = ['p', 'ph', 'b', 'm', 't', 'th', 'n', 'l', 'k', 'kh', 'g', 'ng', 'h', 'ts', 'tsh', 's', 'j'];
+    // 依發音部位分組，讓聲母誘答更具鑑別度
+    const INITIAL_GROUPS = [
+        ['p', 'ph', 'b', 'm'],
+        ['t', 'th', 'n', 'l'],
+        ['k', 'kh', 'g', 'ng', 'h'],
+        ['ts', 'tsh', 's', 'j']
+    ];
+
+    // 教育部辭典韻母索引（區分舒聲韻與入聲韻）
+    const MOE_UNCHECKED_FINALS = [
+        'a', 'ann', 'am', 'an', 'ang',
+        'ai', 'ainn',
+        'au', 'aunn',
+        'e', 'enn',
+        'i', 'inn', 'im', 'in', 'ing',
+        'ia', 'iann', 'iam', 'ian', 'iang',
+        'iau', 'iaunn',
+        'io', 'iong',
+        'iu', 'iunn',
+        'm', 'ng',
+        'o', 'onn', 'om', 'ong',
+        'oo',
+        'u', 'un',
+        'ua', 'uann', 'uan', 'uang',
+        'uai', 'uainn',
+        'ue',
+        'ui', 'uinn'
+    ];
+
+    const MOE_CHECKED_FINALS = [
+        'ah', 'annh', 'ap', 'at', 'ak',
+        'aih', 'ainnh',
+        'auh', 'aunnh',
+        'eh', 'ennh',
+        'ih', 'ip', 'it', 'ik',
+        'iah', 'iannh', 'iap', 'iat', 'iak',
+        'iauh',
+        'ioh', 'iok',
+        'iuh',
+        'mh', 'ngh',
+        'oh', 'onnh', 'op', 'ok',
+        'ooh',
+        'uh', 'ut',
+        'uah', 'uat',
+        'uainnh',
+        'ueh',
+        'uih'
+    ];
+
+    // 檢查「聲母 + 韻母」是否符合教育部台羅拼合規則（避免拼出不存在或違規的音節）
+    function isValidInitialFinalCombo(initial, finalStr) {
+        // 1. 聲化韻母 m, mh, ng, ngh：若為 ng/ngh 僅可接 p, ph, m, t, th, n, l, k, kh, h, ts, tsh, s；若為 m/mh 僅單獨存在
+        if (finalStr === 'm' || finalStr === 'mh') {
+            return initial === '';
+        }
+        if (finalStr === 'ng' || finalStr === 'ngh') {
+            return !['b', 'g', 'j', 'ng'].includes(initial);
+        }
+        // 2. 鼻化韻 (-nn / -nnh)：不可接濁音 b, g, l, j，且標準台羅中 m, n, ng 本身帶鼻音不再重複標 -nn
+        if (finalStr.includes('nn')) {
+            if (['b', 'g', 'l', 'j', 'm', 'n', 'ng'].includes(initial)) return false;
+        }
+        // 3. 鼻音聲母 m, n, ng 後方通常只接純元音或 -h，不接 -m/-n/-ng/-p/-t/-k 韻尾
+        if (['m', 'n', 'ng'].includes(initial)) {
+            if (/[mngptk]$/.test(finalStr)) return false;
+        }
+        // 4. 雙唇聲母 p, ph, b, m 異化限制：不接雙唇韻尾 -m, -p
+        if (['p', 'ph', 'b', 'm'].includes(initial)) {
+            if (/[mp]$/.test(finalStr)) return false;
+        }
+        return true;
+    }
+
+    // 將單一音節拆解為 { initial, final, base, tone, isChecked }
+    function parseSingleSyllable(rawSyl) {
+        const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
+        let nfd = rawSyl.toLowerCase().normalize('NFD');
+        let base = '';
+        let tone = null;
+        for (let ch of nfd) {
+            if (toneMap[ch]) tone = toneMap[ch];
+            else if (/[a-z]/.test(ch)) base += ch;
+        }
+        if (!tone) {
+            tone = /[ptkh]$/.test(base) ? '4' : '1';
+        }
+
+        // 若整個音節就是 m, mh, ng, ngh（無母音），視為零聲母 + 聲化韻母
+        let initial = '';
+        let final = base;
+        if (!['m', 'mh', 'ng', 'ngh'].includes(base)) {
+            const sortedInitials = [...MOE_INITIALS].sort((a, b) => b.length - a.length);
+            for (let ini of sortedInitials) {
+                if (base.startsWith(ini)) {
+                    const rest = base.slice(ini.length);
+                    // 確保後方還有韻母成分（母音或 ng/ngh）
+                    if (rest.length > 0 && (/[aeiou]/.test(rest) || rest === 'ng' || rest === 'ngh')) {
+                        initial = ini;
+                        final = rest;
+                        break;
+                    }
+                }
+            }
+        }
+        const isChecked = /[ptkh]$/.test(final);
+        return { initial, final, base, tone, isChecked, raw: rawSyl };
+    }
+
+    // 將台羅聲調標記加在韻母正確的元音位置上
+    function applyToneToFinal(finalBase, toneDigit) {
+        if (toneDigit === '1' || toneDigit === '4') return finalBase;
+        const marks = { '2': '\u0301', '3': '\u0300', '5': '\u0302', '7': '\u0304', '8': '\u030D', '9': '\u030B' };
+        const m = marks[toneDigit];
+        if (!m) return finalBase;
+
+        let res = finalBase;
+        if (res.includes('a')) res = res.replace('a', 'a' + m);
+        else if (res.includes('oo')) res = res.replace('oo', 'o' + m + 'o');
+        else if (res.includes('o')) res = res.replace('o', 'o' + m);
+        else if (res.includes('e')) res = res.replace('e', 'e' + m);
+        else if (res.includes('iu')) res = res.replace('iu', 'iu' + m);
+        else if (res.includes('ui')) res = res.replace('ui', 'ui' + m);
+        else if (res.includes('i')) res = res.replace('i', 'i' + m);
+        else if (res.includes('u')) res = res.replace('u', 'u' + m);
+        else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g');
+        else if (res.includes('m')) res = res.replace('m', 'm' + m);
+
+        return res.normalize('NFC');
+    }
+
+    // 第 8 聲緊貼字母正上方的 HTML 轉換
+    function formatTailoHtml(str) {
+        if (!str) return '';
+        let nfd = str.normalize('NFD');
+        let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>');
+        res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
+        return res.normalize('NFC');
+    }
+
+    // 《除魔咒術》1~9 聲調 SVG 圖示產生器（供「考聲調」卡片使用）
+    function getToneCardHtml(toneStr) {
+        const tone = parseInt(toneStr, 10);
+        const isChecked = (tone === 4 || tone === 8);
+        let markPath = '';
+        switch(tone) {
+            case 2:
+                markPath = `<line x1="12.5" y1="3.5" x2="8" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
+                break;
+            case 3:
+                markPath = `<line x1="7.5" y1="3.5" x2="12" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
+                break;
+            case 5:
+                markPath = `<path d="M 6.2 9 L 10 3.8 L 13.8 9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />`;
+                break;
+            case 7:
+                markPath = `<line x1="6.2" y1="6.8" x2="13.8" y2="6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
+                break;
+            case 8:
+                markPath = `<line x1="10" y1="3" x2="10" y2="9.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />`;
+                break;
+            case 9:
+                markPath = `<line x1="9.8" y1="3.5" x2="6.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            <line x1="13.8" y1="3.5" x2="10.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />`;
+                break;
+        }
+        const vb = isChecked ? "3.5 0 13 26" : "0 0 20 26";
+        const svgHtml = `<svg class="tone-svg-unified" viewBox="${vb}">
+            ${markPath}
+            <circle cx="10" cy="18" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2.5,2" />
+        </svg>`;
+
+        if (isChecked) {
+            return `<div class="tone-card-box">
+                <div class="tone-card-num">${tone}</div>
+                <div class="checked-tone-group">
+                    ${svgHtml}
+                    <div class="checked-tone-grid"><span>p</span><span>t</span><span>k</span><span>h</span></div>
+                </div>
+            </div>`;
+        }
+        return `<div class="tone-card-box">
+            <div class="tone-card-num">${tone}</div>
+            ${svgHtml}
+        </div>`;
+    }
+
+    // 根據目標詞語與考法設定，自動拆解並生成「題目 HTML」與「3 個結構合法選項（1正2誤）」
+    function buildPhonotacticQuestion(card, preferredType, showHanzi) {
+        const cleanRoma = card.r.split('(')[0].trim();
+        // 保留連字號與空白分隔符以便重組
+        const parts = cleanRoma.split(/([\s\-–—]+)/);
+        const sylIndices = [];
+        const parsedMap = {};
+
+        parts.forEach((part, idx) => {
+            if (part && !/^[\s\-–—]+$/.test(part) && /[a-zA-Z]/.test(part)) {
+                sylIndices.push(idx);
+                parsedMap[idx] = parseSingleSyllable(part);
+            }
+        });
+
+        if (sylIndices.length === 0) {
+            return null;
+        }
+
+        // 決定本題實際考法：initial (聲母) / final (韻母) / tone (聲調)
+        let qType = preferredType;
+        const hasInitialSyls = sylIndices.filter(idx => parsedMap[idx].initial !== '');
+        if (qType === 'random') {
+            const types = hasInitialSyls.length > 0 ? ['initial', 'final', 'tone'] : ['final', 'tone'];
+            qType = types[cryptoRandomInt(types.length)];
+        } else if (qType === 'initial' && hasInitialSyls.length === 0) {
+            qType = 'final'; // 若該詞全為零聲母音節，自動轉考韻母
+        }
+
+        const candidateSylIndices = (qType === 'initial') ? hasInitialSyls : sylIndices;
+        const chosenIdx = candidateSylIndices[cryptoRandomInt(candidateSylIndices.length)];
+        const targetSyl = parsedMap[chosenIdx];
+
+        let promptParts = [...parts];
+        let options = []; // [{ html, isCorrect }]
+
+        if (qType === 'initial') {
+            // 1. 考聲母：挖空聲母，保留帶調韻母
+            const tonedFinalHtml = formatTailoHtml(applyToneToFinal(targetSyl.final, targetSyl.tone));
+            promptParts[chosenIdx] = `<span class="blank-slot">___</span>${tonedFinalHtml}`;
+
+            const correctIni = targetSyl.initial;
+            // 優先從同發音部位群組挑選合法的誘答聲母
+            const group = INITIAL_GROUPS.find(g => g.includes(correctIni)) || MOE_INITIALS;
+            const sameGroupValid = shuffleArray(group.filter(i => i !== correctIni && isValidInitialFinalCombo(i, targetSyl.final)));
+            const otherValid = shuffleArray(MOE_INITIALS.filter(i => i !== correctIni && !sameGroupValid.includes(i) && isValidInitialFinalCombo(i, targetSyl.final)));
+            const distractors = [...sameGroupValid, ...otherValid].slice(0, 2);
+
+            options = [
+                { html: correctIni, isCorrect: true },
+                ...distractors.map(d => ({ html: d, isCorrect: false }))
+            ];
+        } else if (qType === 'final') {
+            // 2. 考韻母：挖空韻母，所有選項皆帶上與正解相同的聲調符號
+            promptParts[chosenIdx] = `${targetSyl.initial}<span class="blank-slot">___</span>`;
+
+            const correctFinalBase = targetSyl.final;
+            const pool = targetSyl.isChecked ? MOE_CHECKED_FINALS : MOE_UNCHECKED_FINALS;
+            const validPool = pool.filter(f => f !== correctFinalBase && isValidInitialFinalCombo(targetSyl.initial, f));
+
+            // 優先挑選有共同主元音或相同韻尾的近似韻母（例如 ong vs iong / ang / ng）
+            const endingMatch = correctFinalBase.match(/(nnh|nn|ng|nh|m|n|p|t|k|h)$/);
+            const ending = endingMatch ? endingMatch[0] : '';
+            const similarFinals = shuffleArray(validPool.filter(f =>
+                (ending && f.endsWith(ending)) ||
+                f[0] === correctFinalBase[0] ||
+                f.includes(correctFinalBase) ||
+                correctFinalBase.includes(f)
+            ));
+            const restFinals = shuffleArray(validPool.filter(f => !similarFinals.includes(f)));
+            const chosenDistractorFinals = [...similarFinals, ...restFinals].slice(0, 2);
+
+            const correctTonedHtml = formatTailoHtml(applyToneToFinal(correctFinalBase, targetSyl.tone));
+            options = [
+                { html: correctTonedHtml, isCorrect: true },
+                ...chosenDistractorFinals.map(df => ({
+                    html: formatTailoHtml(applyToneToFinal(df, targetSyl.tone)),
+                    isCorrect: false
+                }))
+            ];
+        } else {
+            // 3. 考聲調：將目標音節去除聲調並用括號醒目框起，選項使用 1~9 聲調圖示
+            promptParts[chosenIdx] = `<span class="tone-target-box">【 ${targetSyl.base} 】</span>`;
+
+            const correctTone = targetSyl.tone;
+            let distractorTones = [];
+            if (targetSyl.isChecked) {
+                // 入聲字必含另一入聲調 (4 或 8)，再加一個舒聲調
+                const otherChecked = (correctTone === '4') ? '8' : '4';
+                const extraUnchecked = shuffleArray(['2', '3', '5', '7'])[0];
+                distractorTones = [otherChecked, extraUnchecked];
+            } else {
+                const uncheckedPool = ['1', '2', '3', '5', '7'].filter(t => t !== correctTone);
+                distractorTones = shuffleArray(uncheckedPool).slice(0, 2);
+            }
+
+            options = [
+                { html: getToneCardHtml(correctTone), isCorrect: true },
+                ...distractorTones.map(dt => ({ html: getToneCardHtml(dt), isCorrect: false }))
+            ];
+        }
+
+        // 其餘未被挖空的音節正常格式化第8聲
+        const formattedPromptRoma = promptParts.map((p, idx) => (idx === chosenIdx ? p : formatTailoHtml(p))).join('');
+        const hanziPrefix = showHanzi ? `<span class="hanzi-prompt-tag">${card.h}</span>` : '';
+
+        return {
+            promptHtml: `${hanziPrefix}${formattedPromptRoma}`,
+            options: shuffleArray(options)
+        };
+    }
+
+    // =========================================================
+    // 🎵 Web Audio API 合成音效系統（獨立通道，不打斷台語真人MP3）
+    // =========================================================
+    let sfxCtx = null;
+    let sfxMuted = false;
+
+    function getSfxCtx() {
+        if (!sfxCtx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) sfxCtx = new AudioCtx();
+        }
+        if (sfxCtx && sfxCtx.state === 'suspended') {
+            sfxCtx.resume();
+        }
+        return sfxCtx;
+    }
+
+    function playToneNode(freqStart, freqEnd, duration, type = 'sine', maxGain = 0.2, delay = 0) {
+        if (sfxMuted) return;
+        const audioCtx = getSfxCtx();
+        if (!audioCtx) return;
+        const t0 = audioCtx.currentTime + delay;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freqStart, t0);
+        if (freqEnd !== freqStart) {
+            osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
+        }
+        gain.gain.setValueAtTime(0.001, t0);
+        gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2));
+        gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t0);
+        osc.stop(t0 + duration + 0.02);
+    }
+
+    function sfxUiMove() { playToneNode(520, 620, 0.045, 'sine', 0.1, 0); }
+    function sfxUiConfirm() { playToneNode(660, 880, 0.08, 'triangle', 0.16, 0); }
+
+    function sfxGrabCorrect() {
+        playToneNode(587.33, 880, 0.1, 'sine', 0.22, 0);
+        playToneNode(880, 1174.66, 0.18, 'triangle', 0.24, 0.07);
+    }
+
+    function sfxHitWrongStun() {
+        playToneNode(180, 55, 0.26, 'sawtooth', 0.28, 0);
+        playToneNode(130, 42, 0.3, 'square', 0.22, 0.04);
+    }
+
+    function sfxSpeedUp() {
+        playToneNode(330, 660, 0.14, 'sine', 0.14, 0);
+        playToneNode(440, 880, 0.14, 'triangle', 0.12, 0.06);
+    }
+
+    // 拔刀決鬥音效：進入決鬥警報、揮刀破風、雙刀互擊鏘聲、砍中勝利
+    function sfxDuelStart() {
+        playToneNode(440, 880, 0.15, 'sawtooth', 0.22, 0);
+        playToneNode(587.33, 1174.66, 0.22, 'triangle', 0.25, 0.12);
+    }
+    function sfxSwordSwing() {
+        playToneNode(720, 180, 0.11, 'sine', 0.18, 0);
+        playToneNode(480, 120, 0.09, 'triangle', 0.14, 0.02);
+    }
+    function sfxSwordClash() {
+        playToneNode(1480, 2200, 0.08, 'square', 0.25, 0);
+        playToneNode(1760, 980, 0.18, 'triangle', 0.26, 0.05);
+    }
+    function sfxDuelWin() {
+        playToneNode(220, 65, 0.18, 'sawtooth', 0.28, 0);
+        playToneNode(523.25, 1046.5, 0.24, 'triangle', 0.26, 0.1);
+    }
+
+    function sfxGameOver(isHigh) {
+        if (isHigh) {
+            const fanfare = [
+                { f: 523.25, d: 0.12, t: 0 },
+                { f: 659.25, d: 0.12, t: 0.13 },
+                { f: 783.99, d: 0.12, t: 0.26 },
+                { f: 1046.50, d: 0.36, t: 0.39 }
+            ];
+            fanfare.forEach(n => playToneNode(n.f, n.f, n.d, 'triangle', 0.24, n.t));
+        } else {
+            const notes = [
+                { f: 329.63, d: 0.18, t: 0 },
+                { f: 293.66, d: 0.18, t: 0.19 },
+                { f: 261.63, d: 0.3, t: 0.38 }
+            ];
+            notes.forEach(n => playToneNode(n.f, n.f * 0.96, n.d, 'sine', 0.2, n.t));
+        }
+    }
+
+    const sfxBtn = document.getElementById('sfx-toggle-btn');
+    function toggleSfx(e) {
+        if (e) { e.stopPropagation(); e.preventDefault(); }
+        sfxMuted = !sfxMuted;
+        sfxBtn.innerText = sfxMuted ? '🔕' : '🔔';
+        sfxBtn.classList.toggle('muted', sfxMuted);
+        if (!sfxMuted) playToneNode(659.25, 880, 0.1, 'sine', 0.15, 0);
+    }
+    sfxBtn.addEventListener('mousedown', toggleSfx);
+    sfxBtn.addEventListener('touchstart', toggleSfx, { passive: false });
+
+    // =========================================================
+    // 🎮 PS4 (DualShock 4 / DualSense) 與 Xbox 手把雙規格讀取器
+    // =========================================================
+    function readGamepadState(gp) {
+        if (!gp) return null;
+        const id = (gp.id || '').toLowerCase();
+        const isRawDS4 = (gp.mapping === '' && (id.includes('054c') || id.includes('wireless controller') || id.includes('dualshock')));
+        const deadzone = 0.2;
+        const menuDeadzone = 0.48;
+
+        let moveUp = false, moveDown = false, moveLeft = false, moveRight = false;
+        let navUp = false, navDown = false, navLeft = false, navRight = false;
+        let btnAction = false, btnBack = false, btnReplay = false, btnStart = false;
+
+        if (gp.axes[0] < -deadzone) moveLeft = true;
+        if (gp.axes[0] > deadzone) moveRight = true;
+        if (gp.axes[0] < -menuDeadzone) navLeft = true;
+        if (gp.axes[0] > menuDeadzone) navRight = true;
+
+        if (gp.axes.length > 1) {
+            if (gp.axes[1] < -deadzone) moveUp = true;
+            if (gp.axes[1] > deadzone) moveDown = true;
+            if (gp.axes[1] < -menuDeadzone) navUp = true;
+            if (gp.axes[1] > menuDeadzone) navDown = true;
+        }
+
+        if (isRawDS4) {
+            btnAction = !!(gp.buttons[1] && gp.buttons[1].pressed); // PS4 ✕
+            btnBack = !!(gp.buttons[2] && gp.buttons[2].pressed);   // PS4 ○
+            btnReplay = !!(gp.buttons[0] && gp.buttons[0].pressed) || !!(gp.buttons[3] && gp.buttons[3].pressed);
+            btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
+            if (gp.axes.length > 9) {
+                const hat = gp.axes[9];
+                if (hat <= 1.05) {
+                    if (hat <= -0.65 || hat >= 0.9) { moveUp = true; navUp = true; }
+                    if (hat >= -0.2 && hat <= 0.5) { moveDown = true; navDown = true; }
+                    if (hat >= 0.35 && hat <= 1.05) { moveLeft = true; navLeft = true; }
+                    if (hat >= -0.8 && hat <= -0.1) { moveRight = true; navRight = true; }
+                }
+            }
+        } else {
+            btnAction = !!(gp.buttons[0] && gp.buttons[0].pressed); // Xbox A / PS4 ✕
+            btnBack = !!(gp.buttons[1] && gp.buttons[1].pressed);   // Xbox B / PS4 ○
+            btnReplay = !!(gp.buttons[2] && gp.buttons[2].pressed) || !!(gp.buttons[3] && gp.buttons[3].pressed);
+            btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
+            if (gp.buttons[12] && gp.buttons[12].pressed) { moveUp = true; navUp = true; }
+            if (gp.buttons[13] && gp.buttons[13].pressed) { moveDown = true; navDown = true; }
+            if (gp.buttons[14] && gp.buttons[14].pressed) { moveLeft = true; navLeft = true; }
+            if (gp.buttons[15] && gp.buttons[15].pressed) { moveRight = true; navRight = true; }
+        }
+
+        return { moveUp, moveDown, moveLeft, moveRight, navUp, navDown, navLeft, navRight, btnAction, btnBack, btnReplay, btnStart };
+    }
+
+    // =========================================================
+    // 🎲 高強度亂數洗牌與「不放回抽題袋」（杜絕連續重複出題）
+    // =========================================================
     let selectedLessons = [];
     let activeCards = [];
-    
-    let time = 30, score = 0, speed = 3.5, maxSpeed = 8.0, elapsedTime = 0, questionCount = 0;
-    let gameLoop, itemInterval;
-    let currentMode = 'hanzi';
-    let currentQuestionType = 'normal';
+    let questionDeck = [];
+    let lastTargetCard = null;
+    const questionAudio = new Audio();
+    let currentQuestionAudioUrl = "";
 
-    let playerX = 80;
-    let playerY = 0;
-    let playerSpeed = 7;
-    let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, s: false, a: false, d: false };
+    function cryptoRandomInt(maxExclusive) {
+        if (window.crypto && window.crypto.getRandomValues) {
+            const arr = new Uint32Array(1);
+            window.crypto.getRandomValues(arr);
+            return arr[0] % maxExclusive;
+        }
+        return Math.floor(Math.random() * maxExclusive);
+    }
 
     function shuffleArray(array) {
-        let currentIndex = array.length, randomIndex;
-        while (currentIndex !== 0) {
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
-            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = cryptoRandomInt(i + 1);
+            [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
+    }
+
+    function drawNextTargetCard() {
+        if (questionDeck.length === 0) {
+            questionDeck = shuffleArray([...activeCards]);
+            if (lastTargetCard && questionDeck.length > 1) {
+                if (questionDeck[0].h === lastTargetCard.h || questionDeck[0].r === lastTargetCard.r) {
+                    const swapIdx = questionDeck.findIndex(c => c.h !== lastTargetCard.h && c.r !== lastTargetCard.r);
+                    if (swapIdx > 0) {
+                        [questionDeck[0], questionDeck[swapIdx]] = [questionDeck[swapIdx], questionDeck[0]];
+                    }
+                }
+            }
+        }
+        if (lastTargetCard && questionDeck.length > 1) {
+            if (questionDeck[0].h === lastTargetCard.h || questionDeck[0].r === lastTargetCard.r) {
+                const diffIdx = questionDeck.findIndex(c => c.h !== lastTargetCard.h && c.r !== lastTargetCard.r);
+                if (diffIdx > 0) {
+                    [questionDeck[0], questionDeck[diffIdx]] = [questionDeck[diffIdx], questionDeck[0]];
+                }
+            }
+        }
+        const target = questionDeck.shift();
+        lastTargetCard = target;
+        return target;
+    }
+
+    function playQuestionAudio(customUrl) {
+        const rawUrl = customUrl || currentQuestionAudioUrl;
+        if (!rawUrl) return;
+        const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
+        questionAudio.pause();
+        questionAudio.src = safeUrl;
+        questionAudio.currentTime = 0;
+        questionAudio.play().catch(err => console.warn("語音播放失敗:", err));
+    }
+
+    const replayBtn = document.getElementById('replay-audio-btn');
+    replayBtn.addEventListener('mousedown', (e) => { e.stopPropagation(); e.preventDefault(); playQuestionAudio(); });
+    replayBtn.addEventListener('touchstart', (e) => { e.stopPropagation(); e.preventDefault(); playQuestionAudio(); }, { passive: false });
+
+    // =========================================================
+    // 💾 主選單設定記憶與手把選單導覽
+    // =========================================================
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        document.getElementById('ctrl-touch').checked = true;
+    }
+
+    function onPlayerCountChange() {
+        const pCount = parseInt(document.querySelector('input[name="pcount"]:checked').value, 10);
+        document.getElementById('ctrl-1p-box').style.display = (pCount === 1) ? 'block' : 'none';
+        document.getElementById('ctrl-2p-box').style.display = (pCount === 2) ? 'block' : 'none';
+        saveMenuSettings();
+    }
+
+    function sync2PControls(changedWho) {
+        const p1Sel = document.getElementById('p1-ctrl-select');
+        const p2Sel = document.getElementById('p2-ctrl-select');
+        if (p1Sel.value === 'keyboard' && p2Sel.value === 'keyboard') {
+            if (changedWho === 'p1') p2Sel.value = 'gamepad';
+            else p1Sel.value = 'gamepad';
+        }
+        saveMenuSettings();
+    }
+
+    function saveMenuSettings() {
+        try {
+            const settings = {
+                lessons: selectedLessons,
+                pcount: document.querySelector('input[name="pcount"]:checked')?.value || '1',
+                qtype: document.querySelector('input[name="qtype"]:checked')?.value || 'random',
+                showHanzi: document.getElementById('show-hanzi-toggle')?.checked || false,
+                ctrl1p: document.querySelector('input[name="ctrl1p"]:checked')?.value || 'keyboard',
+                p1Ctrl: document.getElementById('p1-ctrl-select')?.value || 'keyboard',
+                p2Ctrl: document.getElementById('p2-ctrl-select')?.value || 'gamepad'
+            };
+            sessionStorage.setItem('taigi_parkour_settings', JSON.stringify(settings));
+        } catch (e) {}
+    }
+
+    function restoreMenuSettings() {
+        try {
+            const raw = sessionStorage.getItem('taigi_parkour_settings');
+            if (!raw) return false;
+            const s = JSON.parse(raw);
+            if (Array.isArray(s.lessons) && s.lessons.length > 0) {
+                selectedLessons = [...s.lessons];
+                document.querySelectorAll('#lessons .lesson-btn').forEach(btn => {
+                    btn.classList.toggle('active', selectedLessons.includes(btn.innerText));
+                });
+            }
+            if (s.pcount) {
+                const r = document.querySelector(`input[name="pcount"][value="${s.pcount}"]`);
+                if (r) r.checked = true;
+            }
+            if (s.qtype) {
+                const r = document.querySelector(`input[name="qtype"][value="${s.qtype}"]`);
+                if (r) r.checked = true;
+            }
+            if (typeof s.showHanzi === 'boolean') {
+                document.getElementById('show-hanzi-toggle').checked = s.showHanzi;
+            }
+            if (s.ctrl1p) {
+                const r = document.querySelector(`input[name="ctrl1p"][value="${s.ctrl1p}"]`);
+                if (r) r.checked = true;
+            }
+            if (s.p1Ctrl) document.getElementById('p1-ctrl-select').value = s.p1Ctrl;
+            if (s.p2Ctrl) document.getElementById('p2-ctrl-select').value = s.p2Ctrl;
+            onPlayerCountChange();
+            return selectedLessons.length > 0;
+        } catch (e) {
+            return false;
+        }
     }
 
     const lessonsDiv = document.getElementById('lessons');
@@ -162,61 +1170,460 @@
             btn.classList.toggle('active');
             if(selectedLessons.includes(l)) selectedLessons = selectedLessons.filter(x => x !== l);
             else selectedLessons.push(l);
+            saveMenuSettings();
         };
         lessonsDiv.appendChild(btn);
     });
+    const hasRestoredLessons = restoreMenuSettings();
+
+    // 手把選單控制狀態
+    let isGameRunning = false;
+    let menuRowIdx = hasRestoredLessons ? 99 : 0;
+    let menuColIdx = 0;
+    let promptColIdx = 0;
+    let reviewRowIdx = -1;
+    let reviewPanelIdx = 0;
+    let lastNavMoveTime = 0;
+    let gameOverOpenedAt = 0;
+    let gpPrevButtonA = [false, false, false, false];
+    let gpPrevButtonB = [false, false, false, false];
+    let gpPrevButtonStart = [false, false, false, false];
+
+    function clearAllGpFocus() {
+        document.querySelectorAll('.gp-focus').forEach(el => el.classList.remove('gp-focus'));
+    }
+
+    function getMenuNavigationRows() {
+        const lessonBtns = Array.from(document.querySelectorAll('#lessons .lesson-btn'));
+        const rows = [
+            lessonBtns.slice(0, 5),
+            lessonBtns.slice(5, 9),
+            [document.getElementById('lbl-pcount-1'), document.getElementById('lbl-pcount-2')],
+            [
+                document.getElementById('lbl-qtype-rnd'),
+                document.getElementById('lbl-qtype-ini'),
+                document.getElementById('lbl-qtype-fin'),
+                document.getElementById('lbl-qtype-ton')
+            ],
+            [document.getElementById('lbl-show-hanzi')]
+        ];
+        const pCount = parseInt(document.querySelector('input[name="pcount"]:checked').value, 10);
+        if (pCount === 1) {
+            rows.push([document.getElementById('lbl-ctrl-kb'), document.getElementById('lbl-ctrl-tc')]);
+        } else {
+            rows.push([document.getElementById('p1-ctrl-select')]);
+            rows.push([document.getElementById('p2-ctrl-select')]);
+        }
+        rows.push([document.getElementById('main-start-btn')]);
+        return rows;
+    }
+
+    function updateMenuGpFocusVisual() {
+        clearAllGpFocus();
+        if (isGameRunning) return;
+
+        const menuEl = document.getElementById('menu');
+        const gameOverEl = document.getElementById('game-over');
+
+        if (menuEl.style.display !== 'none') {
+            const rows = getMenuNavigationRows();
+            menuRowIdx = Math.max(0, Math.min(menuRowIdx, rows.length - 1));
+            const curRow = rows[menuRowIdx];
+            menuColIdx = Math.max(0, Math.min(menuColIdx, curRow.length - 1));
+            const targetEl = curRow[menuColIdx];
+            if (targetEl) {
+                targetEl.classList.add('gp-focus');
+                targetEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        } else if (gameOverEl.style.display !== 'none') {
+            const promptBox = document.getElementById('review-prompt-box');
+            const reviewSec = document.getElementById('review-section');
+            if (promptBox.style.display !== 'none') {
+                const btns = [document.getElementById('btn-review-yes'), document.getElementById('btn-review-no')];
+                promptColIdx = Math.max(0, Math.min(promptColIdx, 1));
+                if (btns[promptColIdx]) btns[promptColIdx].classList.add('gp-focus');
+            } else if (reviewSec.style.display !== 'none') {
+                const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item'));
+                const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
+                const activeList = (playerCount === 2 && reviewPanelIdx === 1) ? p2Items : p1Items;
+
+                if (reviewRowIdx < 0 || activeList.length === 0) {
+                    reviewRowIdx = -1;
+                    const retBtn = document.getElementById('return-menu-btn');
+                    if (retBtn) retBtn.classList.add('gp-focus');
+                } else {
+                    reviewRowIdx = Math.min(reviewRowIdx, activeList.length - 1);
+                    const itemEl = activeList[reviewRowIdx];
+                    if (itemEl) {
+                        itemEl.classList.add('gp-focus');
+                        itemEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    }
+                }
+            }
+        }
+    }
+
+    function activateMenuFocusedElement() {
+        const rows = getMenuNavigationRows();
+        menuRowIdx = Math.max(0, Math.min(menuRowIdx, rows.length - 1));
+        const curRow = rows[menuRowIdx];
+        menuColIdx = Math.max(0, Math.min(menuColIdx, curRow.length - 1));
+        const el = curRow[menuColIdx];
+        if (!el) return;
+
+        sfxUiConfirm();
+        if (el.classList.contains('lesson-btn')) {
+            el.click();
+        } else if (el.classList.contains('radio-label')) {
+            const input = el.querySelector('input');
+            if (input) {
+                if (input.type === 'checkbox') {
+                    input.checked = !input.checked;
+                    if (input.onchange) input.onchange();
+                } else if (!input.checked) {
+                    input.checked = true;
+                    if (input.onchange) input.onchange();
+                }
+            }
+        } else if (el.tagName === 'SELECT') {
+            el.value = (el.value === 'keyboard') ? 'gamepad' : 'keyboard';
+            sync2PControls(el.id === 'p1-ctrl-select' ? 'p1' : 'p2');
+        } else if (el.id === 'main-start-btn') {
+            startGame();
+        }
+        updateMenuGpFocusVisual();
+    }
+
+    function pollUiGamepadNavigation() {
+        if (!isGameRunning) {
+            const now = Date.now();
+            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            let anyUp = false, anyDown = false, anyLeft = false, anyRight = false;
+            let trigA = false, trigB = false, trigStart = false;
+
+            for (let i = 0; i < gamepads.length; i++) {
+                const gp = gamepads[i];
+                if (!gp) {
+                    gpPrevButtonA[i] = false;
+                    gpPrevButtonB[i] = false;
+                    gpPrevButtonStart[i] = false;
+                    continue;
+                }
+                const st = readGamepadState(gp);
+                if (!st) continue;
+
+                if (st.navUp) anyUp = true;
+                if (st.navDown) anyDown = true;
+                if (st.navLeft) anyLeft = true;
+                if (st.navRight) anyRight = true;
+
+                if (st.btnAction && !gpPrevButtonA[i]) trigA = true;
+                if (st.btnBack && !gpPrevButtonB[i]) trigB = true;
+                if (st.btnStart && !gpPrevButtonStart[i]) trigStart = true;
+
+                gpPrevButtonA[i] = st.btnAction;
+                gpPrevButtonB[i] = st.btnBack;
+                gpPrevButtonStart[i] = st.btnStart;
+            }
+
+            const menuEl = document.getElementById('menu');
+            const gameOverEl = document.getElementById('game-over');
+
+            if (menuEl.style.display !== 'none') {
+                const rows = getMenuNavigationRows();
+                if (now - lastNavMoveTime > 185) {
+                    if (anyUp) {
+                        menuRowIdx = (menuRowIdx > 0) ? menuRowIdx - 1 : rows.length - 1;
+                        lastNavMoveTime = now;
+                        sfxUiMove();
+                        updateMenuGpFocusVisual();
+                    } else if (anyDown) {
+                        menuRowIdx = (menuRowIdx < rows.length - 1) ? menuRowIdx + 1 : 0;
+                        lastNavMoveTime = now;
+                        sfxUiMove();
+                        updateMenuGpFocusVisual();
+                    } else if (anyLeft) {
+                        const curRow = rows[Math.min(menuRowIdx, rows.length - 1)];
+                        if (curRow.length === 1 && curRow[0].tagName === 'SELECT') {
+                            activateMenuFocusedElement();
+                        } else if (curRow.length > 1) {
+                            menuColIdx = (menuColIdx > 0) ? menuColIdx - 1 : curRow.length - 1;
+                            sfxUiMove();
+                            updateMenuGpFocusVisual();
+                        }
+                        lastNavMoveTime = now;
+                    } else if (anyRight) {
+                        const curRow = rows[Math.min(menuRowIdx, rows.length - 1)];
+                        if (curRow.length === 1 && curRow[0].tagName === 'SELECT') {
+                            activateMenuFocusedElement();
+                        } else if (curRow.length > 1) {
+                            menuColIdx = (menuColIdx < curRow.length - 1) ? menuColIdx + 1 : 0;
+                            sfxUiMove();
+                            updateMenuGpFocusVisual();
+                        }
+                        lastNavMoveTime = now;
+                    }
+                }
+                if (trigA) {
+                    activateMenuFocusedElement();
+                } else if (trigStart && selectedLessons.length > 0) {
+                    sfxUiConfirm();
+                    startGame();
+                }
+            } else if (gameOverEl.style.display !== 'none' && (now - gameOverOpenedAt > 350)) {
+                const promptBox = document.getElementById('review-prompt-box');
+                const reviewSec = document.getElementById('review-section');
+
+                if (promptBox.style.display !== 'none') {
+                    if (now - lastNavMoveTime > 180 && (anyLeft || anyRight)) {
+                        promptColIdx = (promptColIdx === 0) ? 1 : 0;
+                        lastNavMoveTime = now;
+                        sfxUiMove();
+                        updateMenuGpFocusVisual();
+                    }
+                    if (trigA) {
+                        sfxUiConfirm();
+                        if (promptColIdx === 0) showReviewSection();
+                        else location.reload();
+                    } else if (trigB) {
+                        sfxUiConfirm();
+                        location.reload();
+                    }
+                } else if (reviewSec.style.display !== 'none') {
+                    const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item'));
+                    const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
+                    const activeList = (playerCount === 2 && reviewPanelIdx === 1) ? p2Items : p1Items;
+
+                    if (now - lastNavMoveTime > 180) {
+                        if (anyUp) {
+                            if (reviewRowIdx === -1 && activeList.length > 0) reviewRowIdx = activeList.length - 1;
+                            else if (reviewRowIdx > 0) reviewRowIdx--;
+                            lastNavMoveTime = now;
+                            sfxUiMove();
+                            updateMenuGpFocusVisual();
+                        } else if (anyDown) {
+                            if (reviewRowIdx >= 0 && reviewRowIdx < activeList.length - 1) reviewRowIdx++;
+                            else reviewRowIdx = -1;
+                            lastNavMoveTime = now;
+                            sfxUiMove();
+                            updateMenuGpFocusVisual();
+                        } else if ((anyLeft || anyRight) && playerCount === 2) {
+                            reviewPanelIdx = (reviewPanelIdx === 0) ? 1 : 0;
+                            const nextList = (reviewPanelIdx === 1) ? p2Items : p1Items;
+                            if (nextList.length === 0) reviewRowIdx = -1;
+                            else if (reviewRowIdx >= nextList.length) reviewRowIdx = nextList.length - 1;
+                            lastNavMoveTime = now;
+                            sfxUiMove();
+                            updateMenuGpFocusVisual();
+                        }
+                    }
+                    if (trigA) {
+                        if (reviewRowIdx === -1 || activeList.length === 0) {
+                            sfxUiConfirm();
+                            location.reload();
+                        } else if (activeList[reviewRowIdx]) {
+                            activeList[reviewRowIdx].click();
+                        }
+                    } else if (trigB || trigStart) {
+                        sfxUiConfirm();
+                        location.reload();
+                    }
+                }
+            }
+        }
+        requestAnimationFrame(pollUiGamepadNavigation);
+    }
+    updateMenuGpFocusVisual();
+    requestAnimationFrame(pollUiGamepadNavigation);
+
+    // =========================================================
+    // 🛸 遊戲核心狀態、雙人搶答與「⚔️ 拔刀決鬥模式」
+    // =========================================================
+    let playerCount = 1;
+    let preferredQType = 'random';
+    let showHanziSetting = false;
+    let time = 50, speed = 4.0, maxSpeed = 8.5, elapsedTime = 0, questionCount = 0;
+    let gameLoop = null, itemInterval = null;
+    let currentQuestionType = 'normal';
+    let currentWaveTargetCard = null;
+    let currentWaveAnswered = false;
+
+    // 同時撞擊判定緩衝與拔刀決鬥狀態
+    const SIMULTANEOUS_WINDOW_MS = 180;
+    const CLASH_WINDOW_MS = 130;
+    const SLASH_RANGE_PX = 140;
+    const SLASH_COOLDOWN_MS = 380;
+    let pendingClaim = null; // { playerIndex, timestamp, cardEl }
+    let duelState = {
+        active: false,
+        pendingHitBy: -1,
+        pendingHitAt: 0,
+        cardEl: null
+    };
+
+    let players = [];
+    let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, W: false, s: false, S: false, a: false, A: false, d: false, D: false };
+
+    function createPlayerObj(id, elId, controlType, gpIndex) {
+        const startY = (playerCount === 1)
+            ? (window.innerHeight / 2 - 32)
+            : (id === 0 ? window.innerHeight * 0.35 - 32 : window.innerHeight * 0.65 - 32);
+        return {
+            id: id,
+            el: document.getElementById(elId),
+            x: 80,
+            y: startY,
+            speed: 7.5,
+            score: 0,
+            correctCount: 0,
+            wrongQuestions: [],
+            controlType: controlType, // 'keyboard', 'touch', 'gamepad', 'kb_and_gp'
+            gpIndex: gpIndex,
+            gpPrevAction: false,
+            gpPrevReplay: false,
+            stunnedUntil: 0,
+            knockbackVx: 0,
+            duelHp: 100,
+            slashCooldownUntil: 0,
+            slashingUntil: 0
+        };
+    }
+
+    function recordPlayerWrong(p, card) {
+        if (!p || !card) return;
+        if (!p.wrongQuestions.some(item => item.h === card.h && item.r === card.r)) {
+            p.wrongQuestions.push({ h: card.h, r: card.r, a: card.a });
+        }
+    }
 
     async function startGame() {
         if(selectedLessons.length === 0) return alert("請至少選擇一課！");
-        currentMode = document.querySelector('input[name="mode"]:checked').value;
+        saveMenuSettings();
+        clearAllGpFocus();
+        getSfxCtx();
+
+        playerCount = parseInt(document.querySelector('input[name="pcount"]:checked').value, 10);
+        preferredQType = document.querySelector('input[name="qtype"]:checked').value;
+        showHanziSetting = document.getElementById('show-hanzi-toggle').checked;
+
         document.getElementById('menu').style.display = 'none';
-        
-        document.getElementById('question-display').innerText = "載入中...";
-        document.getElementById('game-board').style.display = 'block';
-        
-        playerY = window.innerHeight / 2 - 30;
-        document.getElementById('player').style.left = playerX + 'px';
-        document.getElementById('player').style.top = playerY + 'px';
+        const board = document.getElementById('game-board');
+        board.style.display = 'block';
+        board.classList.remove('duel-stage-glow');
+        document.getElementById('duel-banner').style.display = 'none';
+        document.getElementById('question-display').innerText = "載入題庫中...";
+
+        // 初始化玩家
+        players = [];
+        const p1El = document.getElementById('player1');
+        const p2El = document.getElementById('player2');
+        p1El.className = 'player-entity';
+        p2El.className = 'player-entity';
+
+        if (playerCount === 1) {
+            const ctrl1p = document.querySelector('input[name="ctrl1p"]:checked').value;
+            players.push(createPlayerObj(0, 'player1', ctrl1p === 'touch' ? 'touch' : 'kb_and_gp', 0));
+            p2El.style.display = 'none';
+            document.getElementById('p2-score-display').style.display = 'none';
+            replayBtn.style.display = 'inline-block';
+        } else {
+            p2El.style.display = 'flex';
+            document.getElementById('p2-score-display').style.display = 'inline-block';
+            replayBtn.style.display = 'none'; // 雙人搶答不開放重聽按鈕避免干擾
+            const p1Ctrl = document.getElementById('p1-ctrl-select').value;
+            const p2Ctrl = document.getElementById('p2-ctrl-select').value;
+            if (p1Ctrl === 'gamepad' && p2Ctrl === 'gamepad') {
+                players.push(createPlayerObj(0, 'player1', 'gamepad', 0));
+                players.push(createPlayerObj(1, 'player2', 'gamepad', 1));
+            } else if (p1Ctrl === 'keyboard' && p2Ctrl === 'gamepad') {
+                players.push(createPlayerObj(0, 'player1', 'keyboard', -1));
+                players.push(createPlayerObj(1, 'player2', 'gamepad', 0));
+            } else {
+                players.push(createPlayerObj(0, 'player1', 'gamepad', 0));
+                players.push(createPlayerObj(1, 'player2', 'keyboard', -1));
+            }
+        }
+
+        players.forEach(p => {
+            p.el.style.left = p.x + 'px';
+            p.el.style.top = p.y + 'px';
+        });
 
         const fetchPromises = selectedLessons.map(sheet => 
-            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheet}`).then(res => res.text())
+            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
+                .then(res => res.text())
+                .then(text => ({ sheet, text }))
         );
 
         const results = await Promise.all(fetchPromises);
         activeCards = [];
-        results.forEach(text => {
+        results.forEach(({ sheet, text }) => {
+            let rowNumber = 0;
             text.split(/\r?\n/).forEach(l => {
                 const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
                 if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
-                    activeCards.push({ h: p[0].trim(), r: p[1].trim() });
+                    rowNumber++;
+                    const numStr = String(rowNumber).padStart(2, '0');
+                    const folderName = audioFolderMap[sheet] || `${sheet}音檔`;
+                    const fallbackAudioUrl = `https://yyanjhang-web.github.io/hosngetaiagi/${folderName}/-${numStr}.mp3`;
+                    const colCAudioUrl = (p.length >= 3 && p[2].trim() !== "") ? p[2].trim() : fallbackAudioUrl;
+
+                    activeCards.push({
+                        h: p[0].trim(),
+                        r: p[1].trim().split('(')[0].trim(),
+                        a: colCAudioUrl
+                    });
                 }
             });
         });
 
         if(activeCards.length < 3) return alert("詞庫不足，請多選幾課！");
-        
+
+        questionDeck = shuffleArray([...activeCards]);
+        lastTargetCard = null;
+        time = 50; speed = 4.0; elapsedTime = 0; questionCount = 0;
+        pendingClaim = null;
+        duelState.active = false;
+        isGameRunning = true;
+
+        updateHudDisplay();
         spawnQuestion();
         gameLoop = requestAnimationFrame(update);
         itemInterval = setInterval(timerTick, 1000);
     }
 
     function timerTick() {
+        if (!isGameRunning || duelState.active) return; // 拔刀決鬥期間暫停倒數計時
         time--;
         elapsedTime++;
         if(elapsedTime > 0 && elapsedTime % 10 === 0) {
-            speed = Math.min(speed + 0.5, maxSpeed); 
+            speed = Math.min(speed + 0.5, maxSpeed);
+            sfxSpeedUp();
             triggerSpeedUpEffect();
         }
-        document.getElementById('time-display').innerText = `時間: ${time}`;
+        updateHudDisplay();
         if(time <= 0) endGame();
     }
 
+    function updateHudDisplay() {
+        document.getElementById('time-display').innerText = `時間: ${time}`;
+        if (players[0]) {
+            document.getElementById('p1-score-display').innerText = playerCount === 1
+                ? `分數: ${players[0].score}`
+                : `P1 分數: ${players[0].score}`;
+        }
+        if (playerCount === 2 && players[1]) {
+            document.getElementById('p2-score-display').innerText = `P2 分數: ${players[1].score}`;
+        }
+    }
+
     function spawnQuestion() {
-        document.querySelectorAll('.obstacle').forEach(e => {
-            if (e.dataset.resolved === 'false') {
-                e.remove(); 
-            }
-        });
+        if (!isGameRunning) return;
+        pendingClaim = null;
+        duelState.active = false;
+        currentWaveAnswered = false;
+
+        document.querySelectorAll('.obstacle').forEach(e => e.remove());
         
         currentQuestionType = 'normal'; 
         if (questionCount > 0 && questionCount % 3 === 0) currentQuestionType = 'special';
@@ -225,7 +1632,8 @@
         const screenHeight = window.innerHeight;
 
         if (currentQuestionType === 'special') {
-            document.getElementById('question-display').innerText = "火箭加速  星星加秒";
+            currentWaveTargetCard = null;
+            document.getElementById('question-display').innerHTML = "🚀 火箭加速   ⭐ 星星加秒";
             for (let col = 0; col < 3; col++) {
                 let items = ['rocket', 'rocket', 'rocket', 'rocket', 'rocket', 'star'];
                 shuffleArray(items);
@@ -238,23 +1646,26 @@
             return;
         }
 
-        let deck = shuffleArray([...activeCards]);
-        const target = deck[0];
-        const wrongs = deck.slice(1, 3);
-        
-        document.getElementById('question-display').innerText = currentMode === 'hanzi' ? target.h : target.r;
-        
-        let options = shuffleArray([target, wrongs[0], wrongs[1]]);
+        const target = drawNextTargetCard();
+        currentWaveTargetCard = target;
+        currentQuestionAudioUrl = target.a;
+
+        const qData = buildPhonotacticQuestion(target, preferredQType, showHanziSetting);
+        if (!qData) {
+            spawnQuestion();
+            return;
+        }
+
+        document.getElementById('question-display').innerHTML = qData.promptHtml;
+        playQuestionAudio();
+
         let waveId = 'text_' + Date.now();
-        
-        options.forEach((opt, index) => {
-            const isCorrect = (opt === target);
-            const text = currentMode === 'hanzi' ? opt.r : opt.h;
-            createEntity('text', text, isCorrect, screenWidth, (screenHeight / 3) * index, waveId);
+        qData.options.forEach((opt, index) => {
+            createEntity('text', opt.html, opt.isCorrect, screenWidth, (screenHeight / 3) * index, waveId);
         });
     }
 
-    function createEntity(type, text = '', isCorrect = false, startX, startY, groupId = '0') {
+    function createEntity(type, htmlContent = '', isCorrect = false, startX, startY, groupId = '0') {
         const el = document.createElement('div');
         el.className = 'obstacle';
         
@@ -266,7 +1677,7 @@
             el.innerText = "🚀"; 
         } else {
             el.classList.add('text-card');
-            el.innerText = text;
+            el.innerHTML = htmlContent;
         }
         
         el.dataset.correct = isCorrect;
@@ -281,151 +1692,379 @@
         document.getElementById('game-board').appendChild(el);
     }
 
-    function triggerCorrectEffect() {
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    function triggerCorrectEffect(originX = 0.5, originY = 0.6) {
+        confetti({ particleCount: 85, spread: 70, origin: { x: originX, y: originY } });
     }
 
     function triggerWrongEffect() {
         const board = document.getElementById('game-board');
-        board.classList.remove('flash-error');
-        board.classList.remove('flash-speed-up'); 
+        board.classList.remove('flash-error', 'flash-speed-up');
         void board.offsetWidth; 
         board.classList.add('flash-error');
     }
 
     function triggerSpeedUpEffect() {
         const board = document.getElementById('game-board');
-        board.classList.remove('flash-speed-up');
-        board.classList.remove('flash-error'); 
+        board.classList.remove('flash-speed-up', 'flash-error');
         void board.offsetWidth; 
         board.classList.add('flash-speed-up');
     }
 
-    function handleGamepad() {
-        const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-        if (!gamepads) return;
-        const gp = gamepads[0];
-        if (!gp) return;
+    // =========================================================
+    // ⚔️️ 拔刀決鬥模式：進入決鬥、揮刀判定、拚刀平手重置与勝負結算
+    // =========================================================
+    function startSwordDuel(cardEl) {
+        pendingClaim = null;
+        duelState.active = true;
+        duelState.pendingHitBy = -1;
+        duelState.pendingHitAt = 0;
+        duelState.cardEl = cardEl;
 
-        const deadzone = 0.2; 
-        
-        if (gp.axes[0] < -deadzone || (gp.buttons[14] && gp.buttons[14].pressed)) {
-            playerX -= playerSpeed;
-        }
-        if (gp.axes[0] > deadzone || (gp.buttons[15] && gp.buttons[15].pressed)) {
-            playerX += playerSpeed;
-        }
-        
-        if (gp.axes[1] < -deadzone || (gp.buttons[12] && gp.buttons[12].pressed)) {
-            playerY -= playerSpeed;
-        }
-        if (gp.axes[1] > deadzone || (gp.buttons[13] && gp.buttons[13].pressed)) {
-            playerY += playerSpeed;
+        sfxDuelStart();
+        const board = document.getElementById('game-board');
+        board.classList.add('duel-stage-glow');
+        const banner = document.getElementById('duel-banner');
+        banner.innerText = "⚔️ 同時搶答！拔刀決鬥！(揤 A / ✕ / 空白鍵 揮刀) ⚔️";
+        banner.style.display = 'block';
+
+        players.forEach((p, idx) => {
+            p.stunnedUntil = 0;
+            p.knockbackVx = 0;
+            p.duelHp = 100;
+            p.el.classList.remove('player-stunned');
+            p.el.classList.add('in-duel');
+            document.getElementById(`p${idx + 1}-duel-hp`).style.width = '100%';
+        });
+    }
+
+    function attemptPlayerSlash(attackerIdx) {
+        if (!isGameRunning || !duelState.active) return;
+        const now = Date.now();
+        const attacker = players[attackerIdx];
+        const defender = players[1 - attackerIdx];
+        if (!attacker || !defender) return;
+        if (now < attacker.slashCooldownUntil) return;
+
+        attacker.slashCooldownUntil = now + SLASH_COOLDOWN_MS;
+        attacker.slashingUntil = now + 160;
+        attacker.el.classList.remove('slashing');
+        void attacker.el.offsetWidth;
+        attacker.el.classList.add('slashing');
+        sfxSwordSwing();
+
+        // 計算兩位玩家中心點距離，判定揮刀是否命中對手
+        const dx = (attacker.x + 32) - (defender.x + 32);
+        const dy = (attacker.y + 32) - (defender.y + 32);
+        const dist = Math.hypot(dx, dy);
+
+        if (dist <= SLASH_RANGE_PX) {
+            if (duelState.pendingHitBy === -1) {
+                duelState.pendingHitBy = attackerIdx;
+                duelState.pendingHitAt = now;
+                document.getElementById(`p${defender.id + 1}-duel-hp`).style.width = '0%';
+            } else if (duelState.pendingHitBy !== attackerIdx && (now - duelState.pendingHitAt <= CLASH_WINDOW_MS)) {
+                // 雙方在 130ms 內同時砍中彼此 ➔ 觸發「鏘！拚刀平手！」血條重置並彈開
+                sfxSwordClash();
+                duelState.pendingHitBy = -1;
+                duelState.pendingHitAt = 0;
+                const banner = document.getElementById('duel-banner');
+                banner.innerText = "💥 鏘！拚刀平手！血條重置繼續砍！ 💥";
+
+                const pushDir = (players[0].x <= players[1].x) ? -1 : 1;
+                players[0].x = Math.max(20, Math.min(window.innerWidth - 84, players[0].x + pushDir * 75));
+                players[1].x = Math.max(20, Math.min(window.innerWidth - 84, players[1].x - pushDir * 75));
+
+                players.forEach((p, idx) => {
+                    p.duelHp = 100;
+                    document.getElementById(`p${idx + 1}-duel-hp`).style.width = '100%';
+                });
+            }
         }
     }
 
+    function resolveSwordDuelWinner(winnerIdx) {
+        const winner = players[winnerIdx];
+        const loser = players[1 - winnerIdx];
+        duelState.active = false;
+
+        sfxDuelWin();
+        winner.score += 25;
+        winner.correctCount++;
+        if (currentWaveTargetCard) {
+            recordPlayerWrong(loser, currentWaveTargetCard);
+        }
+        currentWaveAnswered = true;
+
+        const winRect = winner.el.getBoundingClientRect();
+        triggerCorrectEffect(
+            (winRect.left + 32) / window.innerWidth,
+            (winRect.top + 32) / window.innerHeight
+        );
+
+        document.getElementById('game-board').classList.remove('duel-stage-glow');
+        document.getElementById('duel-banner').style.display = 'none';
+        players.forEach(p => p.el.classList.remove('in-duel', 'slashing'));
+
+        updateHudDisplay();
+        questionCount++;
+        spawnQuestion();
+    }
+
+    function awardCleanClaim(winnerIdx, cardEl) {
+        const winner = players[winnerIdx];
+        pendingClaim = null;
+        sfxGrabCorrect();
+
+        if (playerCount === 1) {
+            time += 1;
+            winner.score += 15;
+        } else {
+            winner.score += 20;
+            const loser = players[1 - winnerIdx];
+            if (currentWaveTargetCard) {
+                recordPlayerWrong(loser, currentWaveTargetCard);
+            }
+        }
+        winner.correctCount++;
+        currentWaveAnswered = true;
+
+        const rect = cardEl ? cardEl.getBoundingClientRect() : winner.el.getBoundingClientRect();
+        triggerCorrectEffect(
+            Math.min(0.9, Math.max(0.1, rect.left / window.innerWidth)),
+            Math.min(0.9, Math.max(0.1, rect.top / window.innerHeight))
+        );
+
+        updateHudDisplay();
+        questionCount++;
+        spawnQuestion();
+    }
+
+    function handlePlayerMovements(now) {
+        const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+
+        players.forEach((p, idx) => {
+            if (now >= p.slashingUntil) {
+                p.el.classList.remove('slashing');
+            }
+
+            // 撞錯彈飛與 1.5 秒暈眩處理
+            const isStunned = (now < p.stunnedUntil);
+            p.el.classList.toggle('player-stunned', isStunned);
+            if (Math.abs(p.knockbackVx) > 0.2) {
+                p.x += p.knockbackVx;
+                p.knockbackVx *= 0.86;
+            } else {
+                p.knockbackVx = 0;
+            }
+
+            if (!isStunned) {
+                // 1. 鍵盤移動
+                if (p.controlType === 'keyboard' || p.controlType === 'kb_and_gp') {
+                    if (keys.ArrowUp || keys.w || keys.W) p.y -= p.speed;
+                    if (keys.ArrowDown || keys.s || keys.S) p.y += p.speed;
+                    if (keys.ArrowLeft || keys.a || keys.A) p.x -= p.speed;
+                    if (keys.ArrowRight || keys.d || keys.D) p.x += p.speed;
+                }
+
+                // 2. 手把移動與揮刀/重聽
+                if (p.controlType === 'gamepad' || p.controlType === 'kb_and_gp') {
+                    const gp = gamepads[p.gpIndex];
+                    const st = readGamepadState(gp);
+                    if (st) {
+                        if (st.moveLeft) p.x -= p.speed;
+                        if (st.moveRight) p.x += p.speed;
+                        if (st.moveUp) p.y -= p.speed;
+                        if (st.moveDown) p.y += p.speed;
+
+                        if (st.btnAction && !p.gpPrevAction && duelState.active) {
+                            attemptPlayerSlash(idx);
+                        }
+                        p.gpPrevAction = st.btnAction;
+
+                        if (st.btnReplay && !p.gpPrevReplay && playerCount === 1) {
+                            playQuestionAudio();
+                        }
+                        p.gpPrevReplay = st.btnReplay;
+                    }
+                }
+            }
+
+            p.x = Math.max(0, Math.min(p.x, window.innerWidth - 64));
+            p.y = Math.max(0, Math.min(p.y, window.innerHeight - 64));
+            p.el.style.left = p.x + 'px';
+            p.el.style.top = p.y + 'px';
+        });
+    }
+
+    function isRectOverlapping(r1, r2, tol = 10) {
+        return (
+            r1.left + tol < r2.right &&
+            r1.right - tol > r2.left &&
+            r1.top + tol < r2.bottom &&
+            r1.bottom - tol > r2.top
+        );
+    }
+
     function update() {
-        if(time <= 0) return;
+        if(!isGameRunning || time <= 0) return;
+        const now = Date.now();
 
-        handleGamepad();
+        handlePlayerMovements(now);
 
-        if (keys.ArrowUp || keys.w || keys.W) playerY -= playerSpeed;
-        if (keys.ArrowDown || keys.s || keys.S) playerY += playerSpeed;
-        if (keys.ArrowLeft || keys.a || keys.A) playerX -= playerSpeed;
-        if (keys.ArrowRight || keys.d || keys.D) playerX += playerSpeed;
+        // 1. 若處於「⚔️ 拔刀決鬥模式」，跑道暫停，僅檢查決鬥命中是否已過平手緩衝期
+        if (duelState.active) {
+            if (duelState.pendingHitBy !== -1 && (now - duelState.pendingHitAt > CLASH_WINDOW_MS)) {
+                resolveSwordDuelWinner(duelState.pendingHitBy);
+            }
+            gameLoop = requestAnimationFrame(update);
+            return;
+        }
 
-        playerX = Math.max(0, Math.min(playerX, window.innerWidth - 60));
-        playerY = Math.max(0, Math.min(playerY, window.innerHeight - 60));
+        // 2. 若雙人模式下有一方剛碰到正解，檢查 0.18 秒內對手是否也碰到正解
+        if (pendingClaim && playerCount === 2) {
+            const otherIdx = 1 - pendingClaim.playerIndex;
+            const otherP = players[otherIdx];
+            const cardRect = pendingClaim.cardEl.getBoundingClientRect();
+            const otherRect = otherP.el.getBoundingClientRect();
 
-        const playerEl = document.getElementById('player');
-        playerEl.style.left = playerX + 'px';
-        playerEl.style.top = playerY + 'px';
+            if (now >= otherP.stunnedUntil && isRectOverlapping(otherRect, cardRect, 6)) {
+                startSwordDuel(pendingClaim.cardEl);
+                gameLoop = requestAnimationFrame(update);
+                return;
+            } else if (now - pendingClaim.timestamp >= SIMULTANEOUS_WINDOW_MS) {
+                awardCleanClaim(pendingClaim.playerIndex, pendingClaim.cardEl);
+                gameLoop = requestAnimationFrame(update);
+                return;
+            }
+            // 緩衝期間暫停跑道推進，等待判定是否同時撞擊
+            gameLoop = requestAnimationFrame(update);
+            return;
+        }
 
-        const pRect = playerEl.getBoundingClientRect();
+        // 3. 一般跑道推進與碰撞偵測
         const obstacles = document.querySelectorAll('.obstacle');
-        let questionResolved = false;
+        let waveEndedByMissOr1PWrong = false;
 
         obstacles.forEach(obs => {
             let x = parseFloat(obs.dataset.x) - speed; 
             obs.dataset.x = x;
             obs.style.left = `${x}px`;
-            
-            const oRect = obs.getBoundingClientRect();
-            const tolerance = 10;
-            
-            if (
-                pRect.left + tolerance < oRect.right &&
-                pRect.right - tolerance > oRect.left &&
-                pRect.top + tolerance < oRect.bottom &&
-                pRect.bottom - tolerance > oRect.top &&
-                obs.dataset.resolved === 'false'
-            ) {
-                let gId = obs.dataset.groupId;
-                let groupItems = document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`);
-                
-                groupItems.forEach(c => c.dataset.resolved = 'true');
-                
-                if (obs.dataset.type === 'star') { 
-                    time += 2; score += 10; 
-                    obs.style.opacity = '0.2'; 
-                    triggerCorrectEffect();
-                    groupItems.forEach(c => {
-                        if (c !== obs && (c.dataset.type === 'star' || c.dataset.type === 'rocket')) c.remove();
-                    });
-                }
-                else if (obs.dataset.type === 'rocket') { 
-                    speed = Math.min(speed + 0.3, maxSpeed); 
-                    obs.style.opacity = '0.2'; 
-                    triggerSpeedUpEffect(); 
-                    groupItems.forEach(c => {
-                        if (c !== obs && (c.dataset.type === 'star' || c.dataset.type === 'rocket')) c.remove();
-                    });
-                }
-                else if (obs.dataset.type === 'text') {
-                    if (obs.dataset.correct === 'true') { 
-                        time += 1; score += 10; 
-                        triggerCorrectEffect();
-                        groupItems.forEach(c => {
-                            if (c === obs) {
-                                c.style.opacity = '0.4';
-                            } else {
-                                c.remove(); 
-                            }
-                        });
-                    } else { 
-                        time -= 2; 
-                        speed = Math.min(speed + 0.3, maxSpeed); 
-                        triggerWrongEffect();
-                        groupItems.forEach(c => {
-                            if (c.dataset.correct === 'true') {
-                                c.style.boxShadow = 'inset 0 0 0 10px #ffc107, 0 4px 8px rgba(0,0,0,0.3)';
-                                c.style.opacity = '0.4';
-                                c.style.zIndex = '10'; 
-                            } else {
-                                c.remove(); 
-                            }
-                        });
-                    }
-                    questionResolved = true;
-                }
-            } else if (x < -250) { 
-                if (obs.dataset.resolved === 'false') {
-                    let gId = obs.dataset.groupId;
-                    let groupItems = document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`);
-                    groupItems.forEach(c => c.dataset.resolved = 'true');
 
-                    if (obs.dataset.type === 'text') {
-                        time -= 2; 
-                        speed = Math.min(speed + 0.3, maxSpeed); 
-                        triggerWrongEffect();
-                        questionResolved = true;
+            if (obs.dataset.resolved === 'true') {
+                if (x < -260) obs.remove();
+                return;
+            }
+
+            const oRect = obs.getBoundingClientRect();
+
+            // 檢查每位未暈眩的玩家是否撞上該障礙物/選項卡
+            for (let pIdx = 0; pIdx < players.length; pIdx++) {
+                const p = players[pIdx];
+                if (now < p.stunnedUntil) continue;
+                const pRect = p.el.getBoundingClientRect();
+
+                if (isRectOverlapping(pRect, oRect, 10)) {
+                    const obsType = obs.dataset.type;
+
+                    if (obsType === 'star') {
+                        obs.dataset.resolved = 'true';
+                        obs.style.opacity = '0.15';
+                        time += 2;
+                        p.score += 15;
+                        sfxGrabCorrect();
+                        triggerCorrectEffect((pRect.left + 32) / window.innerWidth, (pRect.top + 32) / window.innerHeight);
+                        if (playerCount === 1) {
+                            let gId = obs.dataset.groupId;
+                            document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`).forEach(c => {
+                                c.dataset.resolved = 'true';
+                                if (c !== obs) c.remove();
+                            });
+                        } else {
+                            setTimeout(() => obs.remove(), 150);
+                        }
+                        break;
+                    } else if (obsType === 'rocket') {
+                        obs.dataset.resolved = 'true';
+                        obs.style.opacity = '0.15';
+                        speed = Math.min(speed + 0.35, maxSpeed);
+                        sfxSpeedUp();
+                        triggerSpeedUpEffect();
+                        if (playerCount === 1) {
+                            let gId = obs.dataset.groupId;
+                            document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`).forEach(c => {
+                                c.dataset.resolved = 'true';
+                                if (c !== obs) c.remove();
+                            });
+                        } else {
+                            setTimeout(() => obs.remove(), 150);
+                        }
+                        break;
+                    } else if (obsType === 'text') {
+                        if (obs.dataset.correct === 'true') {
+                            // 撞到正確答案卡！
+                            if (playerCount === 1) {
+                                obs.dataset.resolved = 'true';
+                                awardCleanClaim(0, obs);
+                                return;
+                            } else {
+                                // 雙人模式：檢查對手是否已經就在正解卡旁邊，或啟動 0.18 秒同時撞擊偵測
+                                const otherP = players[1 - pIdx];
+                                const otherRect = otherP.el.getBoundingClientRect();
+                                if (now >= otherP.stunnedUntil && isRectOverlapping(otherRect, oRect, -18)) {
+                                    startSwordDuel(obs);
+                                    return;
+                                } else {
+                                    pendingClaim = { playerIndex: pIdx, timestamp: now, cardEl: obs };
+                                    return;
+                                }
+                            }
+                        } else {
+                            // 撞到錯誤誘答字卡：字卡碎裂、玩家扣分並向後彈飛暈眩 1.5 秒！
+                            obs.dataset.resolved = 'true';
+                            sfxHitWrongStun();
+                            triggerWrongEffect();
+                            if (currentWaveTargetCard) {
+                                recordPlayerWrong(p, currentWaveTargetCard);
+                            }
+                            p.stunnedUntil = now + 1500;
+                            p.knockbackVx = -18;
+
+                            if (playerCount === 1) {
+                                time = Math.max(0, time - 2);
+                                speed = Math.min(speed + 0.3, maxSpeed);
+                                waveEndedByMissOr1PWrong = true;
+                            } else {
+                                p.score = Math.max(0, p.score - 10);
+                                obs.remove(); // 雙人模式下僅移除該張被撞破的錯卡，正解卡繼續前進讓對手有機會搶答
+                            }
+                            break;
+                        }
                     }
                 }
-                obs.remove(); 
+            }
+
+            // 若卡片滾出畫面左邊界 (x < -230)
+            if (x < -230) {
+                if (obs.dataset.resolved === 'false') {
+                    obs.dataset.resolved = 'true';
+                    if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
+                        // 正解卡無人搶到而流局：記錄至雙方複習清單
+                        sfxHitWrongStun();
+                        triggerWrongEffect();
+                        if (currentWaveTargetCard) {
+                            players.forEach(pl => recordPlayerWrong(pl, currentWaveTargetCard));
+                        }
+                        if (playerCount === 1) {
+                            time = Math.max(0, time - 2);
+                        }
+                        waveEndedByMissOr1PWrong = true;
+                    }
+                }
+                obs.remove();
             }
         });
 
-        if (questionResolved && currentQuestionType === 'normal') {
+        if (waveEndedByMissOr1PWrong && currentQuestionType === 'normal') {
             questionCount++;
             spawnQuestion();
         } else if (currentQuestionType === 'special') {
@@ -434,56 +2073,204 @@
                 spawnQuestion(); 
             }
         }
-        
-        document.getElementById('score-display').innerText = `分數: ${score}`;
-        document.getElementById('time-display').innerText = `時間: ${time}`;
+
+        updateHudDisplay();
+        if (time <= 0) {
+            endGame();
+            return;
+        }
         gameLoop = requestAnimationFrame(update);
     }
 
-    function endGame() {
-        cancelAnimationFrame(gameLoop);
-        clearInterval(itemInterval);
-        document.getElementById('game-board').style.display = 'none';
-        document.getElementById('game-over').style.display = 'flex';
-        
-        document.getElementById('final-score').innerText = score;
-        
-        let comment = "";
-        if (score >= 400) {
-            comment = "真gâu";
-        } else if (score >= 300) {
-            comment = "袂bái";
-        } else if (score >= 200) {
-            comment = "Beh出師矣";
-        } else {
-            comment = "繼續phah piànn";
+    function spawnAutumnLeaves(cardEl) {
+        cardEl.querySelectorAll('.falling-leaf').forEach(el => el.remove());
+        const leafIcons = ['🍂', '🍁', '🍃'];
+        for (let i = 0; i < 8; i++) {
+            const leaf = document.createElement('div');
+            leaf.className = 'falling-leaf';
+            leaf.innerText = leafIcons[i % leafIcons.length];
+            leaf.style.left = `${15 + Math.random() * 80}%`;
+            leaf.style.animationDuration = `${2.4 + Math.random() * 1.8}s`;
+            leaf.style.animationDelay = `${Math.random() * 2}s`;
+            cardEl.appendChild(leaf);
         }
-        document.getElementById('score-comment').innerText = comment;
     }
 
-    window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+    function endGame() {
+        if (!isGameRunning) return;
+        isGameRunning = false;
+        duelState.active = false;
+        pendingClaim = null;
+        gameOverOpenedAt = Date.now();
+        cancelAnimationFrame(gameLoop);
+        clearInterval(itemInterval);
+        questionAudio.pause();
+
+        // 若時間結束時場上仍有未作答的題目，收錄進複習清單
+        if (currentQuestionType === 'normal' && currentWaveTargetCard && !currentWaveAnswered) {
+            players.forEach(p => recordPlayerWrong(p, currentWaveTargetCard));
+        }
+
+        document.getElementById('game-board').style.display = 'none';
+        document.getElementById('game-over').style.display = 'flex';
+        document.getElementById('review-prompt-box').style.display = 'block';
+        document.getElementById('review-section').style.display = 'none';
+        promptColIdx = 0;
+        reviewRowIdx = -1;
+        reviewPanelIdx = 0;
+        updateMenuGpFocusVisual();
+
+        const box1P = document.getElementById('gameover-1p-box');
+        const box2P = document.getElementById('gameover-2p-box');
+
+        if (playerCount === 1) {
+            box1P.style.display = 'block';
+            box2P.style.display = 'none';
+            const finalScore = players[0].score;
+            document.getElementById('final-score').innerText = finalScore;
+            
+            let comment = "";
+            if (finalScore >= 400) { comment = "真gâu"; sfxGameOver(true); }
+            else if (finalScore >= 300) { comment = "袂bái"; sfxGameOver(true); }
+            else if (finalScore >= 200) { comment = "Beh出師矣"; sfxGameOver(true); }
+            else { comment = "繼續phah piànn"; sfxGameOver(false); }
+            document.getElementById('score-comment').innerText = comment;
+        } else {
+            box1P.style.display = 'none';
+            box2P.style.display = 'flex';
+            const s1 = players[0].score;
+            const s2 = players[1].score;
+            document.getElementById('p1-final-score').innerText = s1;
+            document.getElementById('p2-final-score').innerText = s2;
+
+            const c1 = document.getElementById('p1-result-card');
+            const c2 = document.getElementById('p2-result-card');
+            const i1 = document.getElementById('p1-result-icon');
+            const i2 = document.getElementById('p2-result-icon');
+            const st1 = document.getElementById('p1-result-status');
+            const st2 = document.getElementById('p2-result-status');
+            const title2P = document.getElementById('gameover-2p-title');
+
+            c1.querySelectorAll('.falling-leaf').forEach(el => el.remove());
+            c2.querySelectorAll('.falling-leaf').forEach(el => el.remove());
+
+            if (s1 > s2) {
+                title2P.innerText = "🏆 玩家 1 獲勝！ 🏆";
+                c1.className = "p2-result-card winner-card"; i1.innerText = "🏆"; st1.innerText = "台語小博士";
+                c2.className = "p2-result-card loser-card"; i2.innerText = "🍂"; st2.innerText = "繼續拍拚";
+                spawnAutumnLeaves(c2);
+                sfxGameOver(true);
+                confetti({ particleCount: 90, spread: 70, origin: { x: 0.3, y: 0.5 } });
+            } else if (s2 > s1) {
+                title2P.innerText = "🏆 玩家 2 獲勝！ 🏆";
+                c2.className = "p2-result-card winner-card"; i2.innerText = "🏆"; st2.innerText = "台語小博士";
+                c1.className = "p2-result-card loser-card"; i1.innerText = "🍂"; st1.innerText = "繼續拍拚";
+                spawnAutumnLeaves(c1);
+                sfxGameOver(true);
+                confetti({ particleCount: 90, spread: 70, origin: { x: 0.7, y: 0.5 } });
+            } else {
+                title2P.innerText = "🍂 平手 🍂";
+                c1.className = "p2-result-card loser-card"; i1.innerText = "🍂"; st1.innerText = "繼續拍拚";
+                spawnAutumnLeaves(c1);
+                c2.className = "p2-result-card loser-card"; i2.innerText = "🍂"; st2.innerText = "繼續拍拚";
+                spawnAutumnLeaves(c2);
+                sfxGameOver(false);
+            }
+        }
+    }
+
+    function renderPlayerWrongList(containerEl, playerObj) {
+        containerEl.innerHTML = '';
+        const wrongList = playerObj ? playerObj.wrongQuestions : [];
+        const correctCnt = playerObj ? playerObj.correctCount : 0;
+
+        if (wrongList.length === 0) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'review-empty-msg';
+            // 修正 0 分時卻顯示「完全無毋著」的問題
+            if (correctCnt > 0) {
+                emptyDiv.innerText = '✨ 完全無毋著，真gâu！ ✨';
+            } else {
+                emptyDiv.style.color = '#94a3b8';
+                emptyDiv.innerText = '本局尚無答對紀錄，繼續拍拚！';
+            }
+            containerEl.appendChild(emptyDiv);
+            return;
+        }
+        wrongList.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'review-item';
+            row.innerHTML = `<span class="review-hanzi">🔊 ${item.h}</span><span class="review-tailo">${formatTailoHtml(item.r)}</span>`;
+            row.onclick = () => playQuestionAudio(item.a);
+            containerEl.appendChild(row);
+        });
+    }
+
+    function showReviewSection() {
+        sfxGrabCorrect();
+        document.getElementById('review-prompt-box').style.display = 'none';
+        const reviewSec = document.getElementById('review-section');
+        const p2Panel = document.getElementById('review-p2-panel');
+        const p1Header = document.getElementById('review-p1-header');
+
+        if (playerCount === 1) {
+            p1Header.innerText = "📖 錯題複習 (揤詞語聽發音)";
+            p2Panel.style.display = 'none';
+            renderPlayerWrongList(document.getElementById('review-p1-list'), players[0]);
+        } else {
+            p1Header.innerText = "🛸 玩家 1 複習清單 (揤詞語聽發音)";
+            p2Panel.style.display = 'block';
+            renderPlayerWrongList(document.getElementById('review-p1-list'), players[0]);
+            renderPlayerWrongList(document.getElementById('review-p2-list'), players[1]);
+        }
+
+        reviewSec.style.display = 'flex';
+        reviewRowIdx = -1;
+        updateMenuGpFocusVisual();
+    }
+
+    // 鍵盤事件：移動、拔刀決鬥揮刀 (Space / Enter)、單人重聽 (Q)
+    window.addEventListener('keydown', e => {
+        if(keys.hasOwnProperty(e.key)) keys[e.key] = true;
+        if (!isGameRunning) return;
+
+        if ((e.code === 'Space' || e.key === 'Enter') && duelState.active) {
+            e.preventDefault();
+            const kbIdx = players.findIndex(p => p.controlType === 'keyboard' || p.controlType === 'kb_and_gp');
+            if (kbIdx !== -1 && !e.repeat) {
+                attemptPlayerSlash(kbIdx);
+            }
+        } else if ((e.key === 'q' || e.key === 'Q') && playerCount === 1) {
+            e.preventDefault();
+            playQuestionAudio();
+        }
+    });
     window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
+    // 觸控拖曳移動（僅限單人觸控模式）
     const board = document.getElementById('game-board');
     let isTouching = false;
     let touchStartX, touchStartY, playerStartX, playerStartY;
 
     board.addEventListener('touchstart', (e) => {
+        if (!isGameRunning || playerCount !== 1 || !players[0] || players[0].controlType !== 'touch') return;
+        if (e.target.closest('#replay-audio-btn') || e.target.closest('#sfx-toggle-btn')) return;
         e.preventDefault();
         isTouching = true;
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        playerStartX = playerX;
-        playerStartY = playerY;
+        playerStartX = players[0].x;
+        playerStartY = players[0].y;
     }, {passive: false});
 
     board.addEventListener('touchmove', (e) => {
-        if (!isTouching) return;
+        if (!isTouching || !isGameRunning || !players[0]) return;
+        if (Date.now() < players[0].stunnedUntil) return;
         e.preventDefault();
         let dx = e.touches[0].clientX - touchStartX;
         let dy = e.touches[0].clientY - touchStartY;
-        playerX = playerStartX + dx * 1.5; 
-        playerY = playerStartY + dy * 1.5;
+        players[0].x = playerStartX + dx * 1.5; 
+        players[0].y = playerStartY + dy * 1.5;
     }, {passive: false});
 
     board.addEventListener('touchend', () => { isTouching = false; });
