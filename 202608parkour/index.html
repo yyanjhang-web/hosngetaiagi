@@ -99,7 +99,7 @@
         /* 拔刀決鬥時舞台金色警戒邊框 */
         .duel-stage-glow { box-shadow: inset 0 0 55px 15px rgba(245, 158, 11, 0.55) !important; }
         
-        /* 頂部 HUD 與題目橫幅 */
+        /* 頂部 HUD 與重聽按鈕 */
         #hud {
             position: absolute; top: 10px; left: 16px; right: 16px; color: white;
             font-size: 19px; font-weight: bold; display: flex; justify-content: space-between; align-items: flex-start;
@@ -117,34 +117,14 @@
         }
         #sfx-toggle-btn.muted { opacity: 0.5; border-color: #777; background: rgba(0, 0, 0, 0.35); }
 
-        #top-center-bar {
-            position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
-            display: flex; align-items: center; gap: 10px; z-index: 6;
-            background: rgba(15, 23, 42, 0.88); border: 2px solid #facc15; border-radius: 14px;
-            padding: 5px 18px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); max-width: 68vw;
-        }
-        #question-display {
-            color: #fde047; font-size: clamp(20px, 3vw, 30px); font-weight: bold;
-            font-family: 'Charis SIL', 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', sans-serif;
-            text-shadow: 1px 1px 3px #000; letter-spacing: 0.5px; text-align: center;
-        }
-        .blank-slot {
-            display: inline-block; min-width: 42px; border-bottom: 3px solid #38bdf8;
-            color: #38bdf8; padding: 0 4px; margin: 0 2px; text-align: center;
-        }
-        .tone-target-box {
-            display: inline-block; background: rgba(56, 189, 248, 0.22); border: 2px solid #38bdf8;
-            color: #7dd3fc; border-radius: 8px; padding: 0 8px; margin: 0 2px;
-        }
-        .hanzi-prompt-tag {
-            color: #fb923c; margin-right: 10px; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif;
-        }
         #replay-audio-btn {
+            display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 10;
             background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff;
-            border: 1.5px solid #7dd3fc; border-radius: 16px; padding: 4px 10px;
-            font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+            border: 2px solid #38bdf8; border-radius: 20px; padding: 6px 18px;
+            font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+            white-space: nowrap; transition: transform 0.1s;
         }
-        #replay-audio-btn:active { transform: scale(0.92); }
+        #replay-audio-btn:active { transform: translateX(-50%) scale(0.93); }
 
         /* 拔刀決鬥中央橫幅提示 */
         #duel-banner {
@@ -221,38 +201,30 @@
         }
 
         /* ========================================================= */
-        /* 跑道選項卡片、聲調圖示與火箭/星星 */
+        /* 跑道選項卡片 (自帶前後文) 與火箭/星星 */
         /* ========================================================= */
         .obstacle { position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center; }
         
         .text-card {
-            width: 220px; height: 33.34vh; background: rgba(255, 255, 255, 0.96);
-            font-weight: bold; font-size: clamp(24px, 3.6vw, 36px);
-            font-family: 'Charis SIL', 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 220px; height: 33.33vh; background: rgba(255, 255, 255, 0.96);
             box-shadow: inset 0 0 0 3px #94a3b8, -4px 0 15px rgba(0,0,0,0.35);
-            color: #0f172a; box-sizing: border-box; margin: 0; border-radius: 12px 0 0 12px;
+            border-radius: 12px 0 0 12px; padding: 10px; box-sizing: border-box; text-align: center;
             transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
         }
 
-        /* 考聲調時的卡片內容佈局 (仿除魔咒術 1~9 聲調鍵) */
-        .tone-card-box {
-            position: relative; width: 96px; height: 96px; background: #0f3460;
-            border: 3px solid #00e5ff; border-radius: 16px; color: #00e5ff;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+        .card-hanzi {
+            color: #fb923c; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif;
+            font-size: clamp(16px, 2vw, 22px); margin-bottom: 6px; font-weight: bold;
         }
-        .tone-card-num {
-            position: absolute; top: 5px; left: 9px; font-size: 18px; font-weight: bold;
-            color: #84ffff; line-height: 1; font-family: Arial, sans-serif;
+
+        .card-tailo {
+            color: #94a3b8; font-family: 'Charis SIL', 'Noto Sans', sans-serif;
+            font-size: clamp(22px, 3.2vw, 34px); font-weight: bold;
+            white-space: nowrap; word-break: keep-all;
         }
-        .tone-svg-unified { width: 42px; height: 56px; overflow: visible; display: block; margin-top: 6px; }
-        .checked-tone-group { display: flex; align-items: flex-end; justify-content: center; gap: 3px; margin-top: 6px; }
-        .checked-tone-group .tone-svg-unified { width: 28px; height: 54px; margin-top: 0; }
-        .checked-tone-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px;
-            font-size: 14px; font-weight: bold; color: #84ffff; font-family: Arial, sans-serif;
-            line-height: 0.95; margin-bottom: 4px;
-        }
+        .blank-slot { color: #0ea5e9; font-weight: 900; margin: 0 1px; }
+        .context-text { opacity: 0.65; }
 
         /* 火箭與星星 */
         .bonus, .rocket { height: 16.67vh; width: 120px; font-size: min(10vh, 70px); box-sizing: border-box; margin: 0; transition: opacity 0.2s; }
@@ -340,7 +312,9 @@
         .review-item:last-child { border-bottom: none; }
         .review-hanzi { color: #fbbf24; font-size: 18px; font-weight: bold; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; }
         .review-tailo { color: #38bdf8; font-size: 19px; font-weight: bold; font-family: 'Charis SIL', 'Noto Sans', sans-serif; letter-spacing: 0.5px; }
-        .review-empty-msg { color: #4ade80; font-size: 16px; font-weight: bold; text-align: center; padding: 18px 6px; }
+        .review-empty-msg { font-size: 16px; font-weight: bold; text-align: center; padding: 18px 6px; }
+        .review-empty-msg.perfect { color: #4ade80; }
+        .review-empty-msg.zero { color: #94a3b8; }
     </style>
 </head>
 <body>
@@ -373,7 +347,7 @@
             <div class="hanzi-toggle-row">
                 <label class="radio-label" id="lbl-show-hanzi" style="color: #0369a1;">
                     <input type="checkbox" id="show-hanzi-toggle" onchange="saveMenuSettings()" style="transform: scale(1.2); margin-right: 4px;">
-                    👀 題目同時顯示漢字
+                    👀 題目選項顯示漢字
                 </label>
             </div>
         </div>
@@ -442,7 +416,7 @@
 
         <!-- 雙人對戰結算畫面 -->
         <div id="gameover-2p-box">
-            <h2 id="gameover-2p-title">⚔️ 對戰結果 ⚔️️</h2>
+            <h2 id="gameover-2p-title">⚔️ 對戰結果 ⚔</h2>
             <div class="p2-results-grid">
                 <div id="p1-result-card" class="p2-result-card">
                     <div class="result-player-tag">玩家 1 (藍 UFO)</div>
@@ -517,10 +491,8 @@
         </div>
     </div>
 
-    <div id="top-center-bar">
-        <div id="question-display">載入中...</div>
-        <button id="replay-audio-btn" title="重播語音 (Q鍵 / 手把X或□鍵)">🔊 重聽</button>
-    </div>
+    <!-- 單人聽音模式重聽按鈕 (獨立浮動，不再包覆題目框) -->
+    <button id="replay-audio-btn" title="重播語音 (Q鍵 / 手把X或□鍵)">🔊 重聽</button>
 
     <!-- 拔刀決鬥提示橫幅 -->
     <div id="duel-banner">⚔️ 同時搶答！拔刀決鬥！(揤 A / ✕ / 空白鍵 揮刀) ⚔️</div>
@@ -565,7 +537,6 @@
     // 📚 教育部台語辭典：聲母、韻母、聲調索引庫與拼合規則引擎
     // =========================================================
     const MOE_INITIALS = ['p', 'ph', 'b', 'm', 't', 'th', 'n', 'l', 'k', 'kh', 'g', 'ng', 'h', 'ts', 'tsh', 's', 'j'];
-    // 依發音部位分組，讓聲母誘答更具鑑別度
     const INITIAL_GROUPS = [
         ['p', 'ph', 'b', 'm'],
         ['t', 'th', 'n', 'l'],
@@ -573,72 +544,39 @@
         ['ts', 'tsh', 's', 'j']
     ];
 
-    // 教育部辭典韻母索引（區分舒聲韻與入聲韻）
     const MOE_UNCHECKED_FINALS = [
-        'a', 'ann', 'am', 'an', 'ang',
-        'ai', 'ainn',
-        'au', 'aunn',
+        'a', 'ann', 'am', 'an', 'ang', 'ai', 'ainn', 'au', 'aunn',
         'e', 'enn',
-        'i', 'inn', 'im', 'in', 'ing',
-        'ia', 'iann', 'iam', 'ian', 'iang',
-        'iau', 'iaunn',
-        'io', 'iong',
-        'iu', 'iunn',
+        'i', 'inn', 'im', 'in', 'ing', 'ia', 'iann', 'iam', 'ian', 'iang', 'iau', 'iaunn', 'io', 'iong', 'iu', 'iunn',
         'm', 'ng',
-        'o', 'onn', 'om', 'ong',
-        'oo',
-        'u', 'un',
-        'ua', 'uann', 'uan', 'uang',
-        'uai', 'uainn',
-        'ue',
-        'ui', 'uinn'
+        'o', 'onn', 'om', 'ong', 'oo',
+        'u', 'un', 'ua', 'uann', 'uan', 'uang', 'uai', 'uainn', 'ue', 'ui', 'uinn'
     ];
 
     const MOE_CHECKED_FINALS = [
-        'ah', 'annh', 'ap', 'at', 'ak',
-        'aih', 'ainnh',
-        'auh', 'aunnh',
+        'ah', 'annh', 'ap', 'at', 'ak', 'aih', 'ainnh', 'auh', 'aunnh',
         'eh', 'ennh',
-        'ih', 'ip', 'it', 'ik',
-        'iah', 'iannh', 'iap', 'iat', 'iak',
-        'iauh',
-        'ioh', 'iok',
-        'iuh',
+        'ih', 'ip', 'it', 'ik', 'iah', 'iannh', 'iap', 'iat', 'iak', 'iauh', 'ioh', 'iok', 'iuh',
         'mh', 'ngh',
-        'oh', 'onnh', 'op', 'ok',
-        'ooh',
-        'uh', 'ut',
-        'uah', 'uat',
-        'uainnh',
-        'ueh',
-        'uih'
+        'oh', 'onnh', 'op', 'ok', 'ooh',
+        'uh', 'ut', 'uah', 'uat', 'uainnh', 'ueh', 'uih'
     ];
 
-    // 檢查「聲母 + 韻母」是否符合教育部台羅拼合規則（避免拼出不存在或違規的音節）
     function isValidInitialFinalCombo(initial, finalStr) {
-        // 1. 聲化韻母 m, mh, ng, ngh：若為 ng/ngh 僅可接 p, ph, m, t, th, n, l, k, kh, h, ts, tsh, s；若為 m/mh 僅單獨存在
-        if (finalStr === 'm' || finalStr === 'mh') {
-            return initial === '';
-        }
-        if (finalStr === 'ng' || finalStr === 'ngh') {
-            return !['b', 'g', 'j', 'ng'].includes(initial);
-        }
-        // 2. 鼻化韻 (-nn / -nnh)：不可接濁音 b, g, l, j，且標準台羅中 m, n, ng 本身帶鼻音不再重複標 -nn
+        if (finalStr === 'm' || finalStr === 'mh') return initial === '';
+        if (finalStr === 'ng' || finalStr === 'ngh') return !['b', 'g', 'j', 'ng'].includes(initial);
         if (finalStr.includes('nn')) {
             if (['b', 'g', 'l', 'j', 'm', 'n', 'ng'].includes(initial)) return false;
         }
-        // 3. 鼻音聲母 m, n, ng 後方通常只接純元音或 -h，不接 -m/-n/-ng/-p/-t/-k 韻尾
         if (['m', 'n', 'ng'].includes(initial)) {
             if (/[mngptk]$/.test(finalStr)) return false;
         }
-        // 4. 雙唇聲母 p, ph, b, m 異化限制：不接雙唇韻尾 -m, -p
         if (['p', 'ph', 'b', 'm'].includes(initial)) {
             if (/[mp]$/.test(finalStr)) return false;
         }
         return true;
     }
 
-    // 將單一音節拆解為 { initial, final, base, tone, isChecked }
     function parseSingleSyllable(rawSyl) {
         const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
         let nfd = rawSyl.toLowerCase().normalize('NFD');
@@ -652,7 +590,6 @@
             tone = /[ptkh]$/.test(base) ? '4' : '1';
         }
 
-        // 若整個音節就是 m, mh, ng, ngh（無母音），視為零聲母 + 聲化韻母
         let initial = '';
         let final = base;
         if (!['m', 'mh', 'ng', 'ngh'].includes(base)) {
@@ -660,7 +597,6 @@
             for (let ini of sortedInitials) {
                 if (base.startsWith(ini)) {
                     const rest = base.slice(ini.length);
-                    // 確保後方還有韻母成分（母音或 ng/ngh）
                     if (rest.length > 0 && (/[aeiou]/.test(rest) || rest === 'ng' || rest === 'ngh')) {
                         initial = ini;
                         final = rest;
@@ -673,7 +609,6 @@
         return { initial, final, base, tone, isChecked, raw: rawSyl };
     }
 
-    // 將台羅聲調標記加在韻母正確的元音位置上
     function applyToneToFinal(finalBase, toneDigit) {
         if (toneDigit === '1' || toneDigit === '4') return finalBase;
         const marks = { '2': '\u0301', '3': '\u0300', '5': '\u0302', '7': '\u0304', '8': '\u030D', '9': '\u030B' };
@@ -695,7 +630,6 @@
         return res.normalize('NFC');
     }
 
-    // 第 8 聲緊貼字母正上方的 HTML 轉換
     function formatTailoHtml(str) {
         if (!str) return '';
         let nfd = str.normalize('NFD');
@@ -704,57 +638,9 @@
         return res.normalize('NFC');
     }
 
-    // 《除魔咒術》1~9 聲調 SVG 圖示產生器（供「考聲調」卡片使用）
-    function getToneCardHtml(toneStr) {
-        const tone = parseInt(toneStr, 10);
-        const isChecked = (tone === 4 || tone === 8);
-        let markPath = '';
-        switch(tone) {
-            case 2:
-                markPath = `<line x1="12.5" y1="3.5" x2="8" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
-                break;
-            case 3:
-                markPath = `<line x1="7.5" y1="3.5" x2="12" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
-                break;
-            case 5:
-                markPath = `<path d="M 6.2 9 L 10 3.8 L 13.8 9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />`;
-                break;
-            case 7:
-                markPath = `<line x1="6.2" y1="6.8" x2="13.8" y2="6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`;
-                break;
-            case 8:
-                markPath = `<line x1="10" y1="3" x2="10" y2="9.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />`;
-                break;
-            case 9:
-                markPath = `<line x1="9.8" y1="3.5" x2="6.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                            <line x1="13.8" y1="3.5" x2="10.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />`;
-                break;
-        }
-        const vb = isChecked ? "3.5 0 13 26" : "0 0 20 26";
-        const svgHtml = `<svg class="tone-svg-unified" viewBox="${vb}">
-            ${markPath}
-            <circle cx="10" cy="18" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2.5,2" />
-        </svg>`;
-
-        if (isChecked) {
-            return `<div class="tone-card-box">
-                <div class="tone-card-num">${tone}</div>
-                <div class="checked-tone-group">
-                    ${svgHtml}
-                    <div class="checked-tone-grid"><span>p</span><span>t</span><span>k</span><span>h</span></div>
-                </div>
-            </div>`;
-        }
-        return `<div class="tone-card-box">
-            <div class="tone-card-num">${tone}</div>
-            ${svgHtml}
-        </div>`;
-    }
-
-    // 根據目標詞語與考法設定，自動拆解並生成「題目 HTML」與「3 個結構合法選項（1正2誤）」
+    // 根據考法設定，生成自帶前後文的卡片 HTML 選項
     function buildPhonotacticQuestion(card, preferredType, showHanzi) {
         const cleanRoma = card.r.split('(')[0].trim();
-        // 保留連字號與空白分隔符以便重組
         const parts = cleanRoma.split(/([\s\-–—]+)/);
         const sylIndices = [];
         const parsedMap = {};
@@ -766,79 +652,55 @@
             }
         });
 
-        if (sylIndices.length === 0) {
-            return null;
-        }
+        if (sylIndices.length === 0) return null;
 
-        // 決定本題實際考法：initial (聲母) / final (韻母) / tone (聲調)
         let qType = preferredType;
         const hasInitialSyls = sylIndices.filter(idx => parsedMap[idx].initial !== '');
         if (qType === 'random') {
             const types = hasInitialSyls.length > 0 ? ['initial', 'final', 'tone'] : ['final', 'tone'];
             qType = types[cryptoRandomInt(types.length)];
         } else if (qType === 'initial' && hasInitialSyls.length === 0) {
-            qType = 'final'; // 若該詞全為零聲母音節，自動轉考韻母
+            qType = 'final';
         }
 
         const candidateSylIndices = (qType === 'initial') ? hasInitialSyls : sylIndices;
         const chosenIdx = candidateSylIndices[cryptoRandomInt(candidateSylIndices.length)];
         const targetSyl = parsedMap[chosenIdx];
 
-        let promptParts = [...parts];
-        let options = []; // [{ html, isCorrect }]
+        let variants = []; 
 
         if (qType === 'initial') {
-            // 1. 考聲母：挖空聲母，保留帶調韻母
-            const tonedFinalHtml = formatTailoHtml(applyToneToFinal(targetSyl.final, targetSyl.tone));
-            promptParts[chosenIdx] = `<span class="blank-slot">___</span>${tonedFinalHtml}`;
-
             const correctIni = targetSyl.initial;
-            // 優先從同發音部位群組挑選合法的誘答聲母
             const group = INITIAL_GROUPS.find(g => g.includes(correctIni)) || MOE_INITIALS;
             const sameGroupValid = shuffleArray(group.filter(i => i !== correctIni && isValidInitialFinalCombo(i, targetSyl.final)));
             const otherValid = shuffleArray(MOE_INITIALS.filter(i => i !== correctIni && !sameGroupValid.includes(i) && isValidInitialFinalCombo(i, targetSyl.final)));
             const distractors = [...sameGroupValid, ...otherValid].slice(0, 2);
 
-            options = [
-                { html: correctIni, isCorrect: true },
-                ...distractors.map(d => ({ html: d, isCorrect: false }))
+            variants = [
+                { text: correctIni + applyToneToFinal(targetSyl.final, targetSyl.tone), isCorrect: true },
+                ...distractors.map(d => ({ text: d + applyToneToFinal(targetSyl.final, targetSyl.tone), isCorrect: false }))
             ];
         } else if (qType === 'final') {
-            // 2. 考韻母：挖空韻母，所有選項皆帶上與正解相同的聲調符號
-            promptParts[chosenIdx] = `${targetSyl.initial}<span class="blank-slot">___</span>`;
-
             const correctFinalBase = targetSyl.final;
             const pool = targetSyl.isChecked ? MOE_CHECKED_FINALS : MOE_UNCHECKED_FINALS;
             const validPool = pool.filter(f => f !== correctFinalBase && isValidInitialFinalCombo(targetSyl.initial, f));
 
-            // 優先挑選有共同主元音或相同韻尾的近似韻母（例如 ong vs iong / ang / ng）
             const endingMatch = correctFinalBase.match(/(nnh|nn|ng|nh|m|n|p|t|k|h)$/);
             const ending = endingMatch ? endingMatch[0] : '';
             const similarFinals = shuffleArray(validPool.filter(f =>
-                (ending && f.endsWith(ending)) ||
-                f[0] === correctFinalBase[0] ||
-                f.includes(correctFinalBase) ||
-                correctFinalBase.includes(f)
+                (ending && f.endsWith(ending)) || f[0] === correctFinalBase[0] || f.includes(correctFinalBase) || correctFinalBase.includes(f)
             ));
             const restFinals = shuffleArray(validPool.filter(f => !similarFinals.includes(f)));
-            const chosenDistractorFinals = [...similarFinals, ...restFinals].slice(0, 2);
+            const distractors = [...similarFinals, ...restFinals].slice(0, 2);
 
-            const correctTonedHtml = formatTailoHtml(applyToneToFinal(correctFinalBase, targetSyl.tone));
-            options = [
-                { html: correctTonedHtml, isCorrect: true },
-                ...chosenDistractorFinals.map(df => ({
-                    html: formatTailoHtml(applyToneToFinal(df, targetSyl.tone)),
-                    isCorrect: false
-                }))
+            variants = [
+                { text: targetSyl.initial + applyToneToFinal(correctFinalBase, targetSyl.tone), isCorrect: true },
+                ...distractors.map(d => ({ text: targetSyl.initial + applyToneToFinal(d, targetSyl.tone), isCorrect: false }))
             ];
         } else {
-            // 3. 考聲調：將目標音節去除聲調並用括號醒目框起，選項使用 1~9 聲調圖示
-            promptParts[chosenIdx] = `<span class="tone-target-box">【 ${targetSyl.base} 】</span>`;
-
             const correctTone = targetSyl.tone;
             let distractorTones = [];
             if (targetSyl.isChecked) {
-                // 入聲字必含另一入聲調 (4 或 8)，再加一個舒聲調
                 const otherChecked = (correctTone === '4') ? '8' : '4';
                 const extraUnchecked = shuffleArray(['2', '3', '5', '7'])[0];
                 distractorTones = [otherChecked, extraUnchecked];
@@ -847,24 +709,35 @@
                 distractorTones = shuffleArray(uncheckedPool).slice(0, 2);
             }
 
-            options = [
-                { html: getToneCardHtml(correctTone), isCorrect: true },
-                ...distractorTones.map(dt => ({ html: getToneCardHtml(dt), isCorrect: false }))
+            variants = [
+                { text: targetSyl.initial + applyToneToFinal(targetSyl.final, correctTone), isCorrect: true },
+                ...distractorTones.map(dt => ({ text: targetSyl.initial + applyToneToFinal(targetSyl.final, dt), isCorrect: false }))
             ];
         }
 
-        // 其餘未被挖空的音節正常格式化第8聲
-        const formattedPromptRoma = promptParts.map((p, idx) => (idx === chosenIdx ? p : formatTailoHtml(p))).join('');
-        const hanziPrefix = showHanzi ? `<span class="hanzi-prompt-tag">${card.h}</span>` : '';
+        const options = variants.map(v => {
+            const tailoHtml = parts.map((p, i) => {
+                if (i === chosenIdx) {
+                    return `<span class="blank-slot">【${formatTailoHtml(v.text)}】</span>`;
+                } else {
+                    return `<span class="context-text">${formatTailoHtml(p)}</span>`;
+                }
+            }).join('');
 
-        return {
-            promptHtml: `${hanziPrefix}${formattedPromptRoma}`,
-            options: shuffleArray(options)
-        };
+            const cardHtml = `
+                <div class="card-content">
+                    ${showHanzi ? `<div class="card-hanzi">${card.h}</div>` : ''}
+                    <div class="card-tailo">${tailoHtml}</div>
+                </div>
+            `;
+            return { html: cardHtml, isCorrect: v.isCorrect };
+        });
+
+        return { options: shuffleArray(options) };
     }
 
     // =========================================================
-    // 🎵 Web Audio API 合成音效系統（獨立通道，不打斷台語真人MP3）
+    // 🎵 Web Audio API 合成音效系統（新增道具與加速音效）
     // =========================================================
     let sfxCtx = null;
     let sfxMuted = false;
@@ -919,7 +792,16 @@
         playToneNode(440, 880, 0.14, 'triangle', 0.12, 0.06);
     }
 
-    // 拔刀決鬥音效：進入決鬥警報、揮刀破風、雙刀互擊鏘聲、砍中勝利
+    function sfxStar() {
+        playToneNode(1046.5, 1318.51, 0.1, 'sine', 0.2, 0);
+        playToneNode(1318.51, 1567.98, 0.15, 'triangle', 0.2, 0.08);
+    }
+
+    function sfxRocket() {
+        playToneNode(400, 800, 0.15, 'sine', 0.25, 0);
+        playToneNode(800, 1200, 0.1, 'triangle', 0.2, 0.1);
+    }
+
     function sfxDuelStart() {
         playToneNode(440, 880, 0.15, 'sawtooth', 0.22, 0);
         playToneNode(587.33, 1174.66, 0.22, 'triangle', 0.25, 0.12);
@@ -994,8 +876,8 @@
         }
 
         if (isRawDS4) {
-            btnAction = !!(gp.buttons[1] && gp.buttons[1].pressed); // PS4 ✕
-            btnBack = !!(gp.buttons[2] && gp.buttons[2].pressed);   // PS4 ○
+            btnAction = !!(gp.buttons[1] && gp.buttons[1].pressed); 
+            btnBack = !!(gp.buttons[2] && gp.buttons[2].pressed);   
             btnReplay = !!(gp.buttons[0] && gp.buttons[0].pressed) || !!(gp.buttons[3] && gp.buttons[3].pressed);
             btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
             if (gp.axes.length > 9) {
@@ -1008,8 +890,8 @@
                 }
             }
         } else {
-            btnAction = !!(gp.buttons[0] && gp.buttons[0].pressed); // Xbox A / PS4 ✕
-            btnBack = !!(gp.buttons[1] && gp.buttons[1].pressed);   // Xbox B / PS4 ○
+            btnAction = !!(gp.buttons[0] && gp.buttons[0].pressed); 
+            btnBack = !!(gp.buttons[1] && gp.buttons[1].pressed);   
             btnReplay = !!(gp.buttons[2] && gp.buttons[2].pressed) || !!(gp.buttons[3] && gp.buttons[3].pressed);
             btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
             if (gp.buttons[12] && gp.buttons[12].pressed) { moveUp = true; navUp = true; }
@@ -1022,7 +904,7 @@
     }
 
     // =========================================================
-    // 🎲 高強度亂數洗牌與「不放回抽題袋」（杜絕連續重複出題）
+    // 🎲 高強度亂數洗牌與「不放回抽題袋」機制
     // =========================================================
     let selectedLessons = [];
     let activeCards = [];
@@ -1442,24 +1324,18 @@
     let playerCount = 1;
     let preferredQType = 'random';
     let showHanziSetting = false;
-    let time = 50, speed = 4.0, maxSpeed = 8.5, elapsedTime = 0, questionCount = 0;
+    let time = 50, speed = 2.5, maxSpeed = 6.0, elapsedTime = 0, questionCount = 0;
     let gameLoop = null, itemInterval = null;
     let currentQuestionType = 'normal';
     let currentWaveTargetCard = null;
     let currentWaveAnswered = false;
 
-    // 同時撞擊判定緩衝與拔刀決鬥狀態
     const SIMULTANEOUS_WINDOW_MS = 180;
     const CLASH_WINDOW_MS = 130;
     const SLASH_RANGE_PX = 140;
     const SLASH_COOLDOWN_MS = 380;
-    let pendingClaim = null; // { playerIndex, timestamp, cardEl }
-    let duelState = {
-        active: false,
-        pendingHitBy: -1,
-        pendingHitAt: 0,
-        cardEl: null
-    };
+    let pendingClaim = null; 
+    let duelState = { active: false, pendingHitBy: -1, pendingHitAt: 0, cardEl: null };
 
     let players = [];
     let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, W: false, s: false, S: false, a: false, A: false, d: false, D: false };
@@ -1477,7 +1353,7 @@
             score: 0,
             correctCount: 0,
             wrongQuestions: [],
-            controlType: controlType, // 'keyboard', 'touch', 'gamepad', 'kb_and_gp'
+            controlType: controlType,
             gpIndex: gpIndex,
             gpPrevAction: false,
             gpPrevReplay: false,
@@ -1511,9 +1387,7 @@
         board.style.display = 'block';
         board.classList.remove('duel-stage-glow');
         document.getElementById('duel-banner').style.display = 'none';
-        document.getElementById('question-display').innerText = "載入題庫中...";
 
-        // 初始化玩家
         players = [];
         const p1El = document.getElementById('player1');
         const p2El = document.getElementById('player2');
@@ -1525,11 +1399,11 @@
             players.push(createPlayerObj(0, 'player1', ctrl1p === 'touch' ? 'touch' : 'kb_and_gp', 0));
             p2El.style.display = 'none';
             document.getElementById('p2-score-display').style.display = 'none';
-            replayBtn.style.display = 'inline-block';
+            replayBtn.style.display = 'block';
         } else {
             p2El.style.display = 'flex';
             document.getElementById('p2-score-display').style.display = 'inline-block';
-            replayBtn.style.display = 'none'; // 雙人搶答不開放重聽按鈕避免干擾
+            replayBtn.style.display = 'none';
             const p1Ctrl = document.getElementById('p1-ctrl-select').value;
             const p2Ctrl = document.getElementById('p2-ctrl-select').value;
             if (p1Ctrl === 'gamepad' && p2Ctrl === 'gamepad') {
@@ -1581,7 +1455,7 @@
 
         questionDeck = shuffleArray([...activeCards]);
         lastTargetCard = null;
-        time = 50; speed = 4.0; elapsedTime = 0; questionCount = 0;
+        time = 50; speed = 2.5; elapsedTime = 0; questionCount = 0;
         pendingClaim = null;
         duelState.active = false;
         isGameRunning = true;
@@ -1593,11 +1467,11 @@
     }
 
     function timerTick() {
-        if (!isGameRunning || duelState.active) return; // 拔刀決鬥期間暫停倒數計時
+        if (!isGameRunning || duelState.active) return;
         time--;
         elapsedTime++;
         if(elapsedTime > 0 && elapsedTime % 10 === 0) {
-            speed = Math.min(speed + 0.5, maxSpeed);
+            speed = Math.min(speed + 0.2, maxSpeed);
             sfxSpeedUp();
             triggerSpeedUpEffect();
         }
@@ -1633,7 +1507,6 @@
 
         if (currentQuestionType === 'special') {
             currentWaveTargetCard = null;
-            document.getElementById('question-display').innerHTML = "🚀 火箭加速   ⭐ 星星加秒";
             for (let col = 0; col < 3; col++) {
                 let items = ['rocket', 'rocket', 'rocket', 'rocket', 'rocket', 'star'];
                 shuffleArray(items);
@@ -1656,7 +1529,6 @@
             return;
         }
 
-        document.getElementById('question-display').innerHTML = qData.promptHtml;
         playQuestionAudio();
 
         let waveId = 'text_' + Date.now();
@@ -1711,7 +1583,7 @@
     }
 
     // =========================================================
-    // ⚔️️ 拔刀決鬥模式：進入決鬥、揮刀判定、拚刀平手重置与勝負結算
+    // ⚔ 拔刀決鬥模式：進入決鬥、揮刀判定、拚刀平手重置与勝負結算
     // =========================================================
     function startSwordDuel(cardEl) {
         pendingClaim = null;
@@ -1752,7 +1624,6 @@
         attacker.el.classList.add('slashing');
         sfxSwordSwing();
 
-        // 計算兩位玩家中心點距離，判定揮刀是否命中對手
         const dx = (attacker.x + 32) - (defender.x + 32);
         const dy = (attacker.y + 32) - (defender.y + 32);
         const dist = Math.hypot(dx, dy);
@@ -1763,7 +1634,6 @@
                 duelState.pendingHitAt = now;
                 document.getElementById(`p${defender.id + 1}-duel-hp`).style.width = '0%';
             } else if (duelState.pendingHitBy !== attackerIdx && (now - duelState.pendingHitAt <= CLASH_WINDOW_MS)) {
-                // 雙方在 130ms 內同時砍中彼此 ➔ 觸發「鏘！拚刀平手！」血條重置並彈開
                 sfxSwordClash();
                 duelState.pendingHitBy = -1;
                 duelState.pendingHitAt = 0;
@@ -1847,7 +1717,6 @@
                 p.el.classList.remove('slashing');
             }
 
-            // 撞錯彈飛與 1.5 秒暈眩處理
             const isStunned = (now < p.stunnedUntil);
             p.el.classList.toggle('player-stunned', isStunned);
             if (Math.abs(p.knockbackVx) > 0.2) {
@@ -1858,7 +1727,6 @@
             }
 
             if (!isStunned) {
-                // 1. 鍵盤移動
                 if (p.controlType === 'keyboard' || p.controlType === 'kb_and_gp') {
                     if (keys.ArrowUp || keys.w || keys.W) p.y -= p.speed;
                     if (keys.ArrowDown || keys.s || keys.S) p.y += p.speed;
@@ -1866,7 +1734,6 @@
                     if (keys.ArrowRight || keys.d || keys.D) p.x += p.speed;
                 }
 
-                // 2. 手把移動與揮刀/重聽
                 if (p.controlType === 'gamepad' || p.controlType === 'kb_and_gp') {
                     const gp = gamepads[p.gpIndex];
                     const st = readGamepadState(gp);
@@ -1911,7 +1778,6 @@
 
         handlePlayerMovements(now);
 
-        // 1. 若處於「⚔️ 拔刀決鬥模式」，跑道暫停，僅檢查決鬥命中是否已過平手緩衝期
         if (duelState.active) {
             if (duelState.pendingHitBy !== -1 && (now - duelState.pendingHitAt > CLASH_WINDOW_MS)) {
                 resolveSwordDuelWinner(duelState.pendingHitBy);
@@ -1920,7 +1786,6 @@
             return;
         }
 
-        // 2. 若雙人模式下有一方剛碰到正解，檢查 0.18 秒內對手是否也碰到正解
         if (pendingClaim && playerCount === 2) {
             const otherIdx = 1 - pendingClaim.playerIndex;
             const otherP = players[otherIdx];
@@ -1936,12 +1801,10 @@
                 gameLoop = requestAnimationFrame(update);
                 return;
             }
-            // 緩衝期間暫停跑道推進，等待判定是否同時撞擊
             gameLoop = requestAnimationFrame(update);
             return;
         }
 
-        // 3. 一般跑道推進與碰撞偵測
         const obstacles = document.querySelectorAll('.obstacle');
         let waveEndedByMissOr1PWrong = false;
 
@@ -1957,7 +1820,6 @@
 
             const oRect = obs.getBoundingClientRect();
 
-            // 檢查每位未暈眩的玩家是否撞上該障礙物/選項卡
             for (let pIdx = 0; pIdx < players.length; pIdx++) {
                 const p = players[pIdx];
                 if (now < p.stunnedUntil) continue;
@@ -1971,7 +1833,7 @@
                         obs.style.opacity = '0.15';
                         time += 2;
                         p.score += 15;
-                        sfxGrabCorrect();
+                        sfxStar();
                         triggerCorrectEffect((pRect.left + 32) / window.innerWidth, (pRect.top + 32) / window.innerHeight);
                         if (playerCount === 1) {
                             let gId = obs.dataset.groupId;
@@ -1986,8 +1848,8 @@
                     } else if (obsType === 'rocket') {
                         obs.dataset.resolved = 'true';
                         obs.style.opacity = '0.15';
-                        speed = Math.min(speed + 0.35, maxSpeed);
-                        sfxSpeedUp();
+                        speed = Math.min(speed + 0.2, maxSpeed);
+                        sfxRocket();
                         triggerSpeedUpEffect();
                         if (playerCount === 1) {
                             let gId = obs.dataset.groupId;
@@ -2001,13 +1863,11 @@
                         break;
                     } else if (obsType === 'text') {
                         if (obs.dataset.correct === 'true') {
-                            // 撞到正確答案卡！
                             if (playerCount === 1) {
                                 obs.dataset.resolved = 'true';
                                 awardCleanClaim(0, obs);
                                 return;
                             } else {
-                                // 雙人模式：檢查對手是否已經就在正解卡旁邊，或啟動 0.18 秒同時撞擊偵測
                                 const otherP = players[1 - pIdx];
                                 const otherRect = otherP.el.getBoundingClientRect();
                                 if (now >= otherP.stunnedUntil && isRectOverlapping(otherRect, oRect, -18)) {
@@ -2019,7 +1879,6 @@
                                 }
                             }
                         } else {
-                            // 撞到錯誤誘答字卡：字卡碎裂、玩家扣分並向後彈飛暈眩 1.5 秒！
                             obs.dataset.resolved = 'true';
                             sfxHitWrongStun();
                             triggerWrongEffect();
@@ -2031,11 +1890,11 @@
 
                             if (playerCount === 1) {
                                 time = Math.max(0, time - 2);
-                                speed = Math.min(speed + 0.3, maxSpeed);
+                                speed = Math.min(speed + 0.2, maxSpeed);
                                 waveEndedByMissOr1PWrong = true;
                             } else {
                                 p.score = Math.max(0, p.score - 10);
-                                obs.remove(); // 雙人模式下僅移除該張被撞破的錯卡，正解卡繼續前進讓對手有機會搶答
+                                obs.remove(); 
                             }
                             break;
                         }
@@ -2043,12 +1902,10 @@
                 }
             }
 
-            // 若卡片滾出畫面左邊界 (x < -230)
             if (x < -230) {
                 if (obs.dataset.resolved === 'false') {
                     obs.dataset.resolved = 'true';
                     if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
-                        // 正解卡無人搶到而流局：記錄至雙方複習清單
                         sfxHitWrongStun();
                         triggerWrongEffect();
                         if (currentWaveTargetCard) {
@@ -2106,7 +1963,6 @@
         clearInterval(itemInterval);
         questionAudio.pause();
 
-        // 若時間結束時場上仍有未作答的題目，收錄進複習清單
         if (currentQuestionType === 'normal' && currentWaveTargetCard && !currentWaveAnswered) {
             players.forEach(p => recordPlayerWrong(p, currentWaveTargetCard));
         }
@@ -2187,11 +2043,11 @@
         if (wrongList.length === 0) {
             const emptyDiv = document.createElement('div');
             emptyDiv.className = 'review-empty-msg';
-            // 修正 0 分時卻顯示「完全無毋著」的問題
             if (correctCnt > 0) {
+                emptyDiv.classList.add('perfect');
                 emptyDiv.innerText = '✨ 完全無毋著，真gâu！ ✨';
             } else {
-                emptyDiv.style.color = '#94a3b8';
+                emptyDiv.classList.add('zero');
                 emptyDiv.innerText = '本局尚無答對紀錄，繼續拍拚！';
             }
             containerEl.appendChild(emptyDiv);
@@ -2229,7 +2085,7 @@
         updateMenuGpFocusVisual();
     }
 
-    // 鍵盤事件：移動、拔刀決鬥揮刀 (Space / Enter)、單人重聽 (Q)
+    // 鍵盤事件
     window.addEventListener('keydown', e => {
         if(keys.hasOwnProperty(e.key)) keys[e.key] = true;
         if (!isGameRunning) return;
