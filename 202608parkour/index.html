@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
-    <title>台語跑酷 - 單人/雙人拔刀搶答版</title>
+    <title>台語跑酷 - 忍者對決版</title>
     <!-- 引入 Google Fonts：Noto Sans TC、霞鶩文楷 (LXGW WenKai TC 支援台語擴展罕見字) 與 Charis SIL (完美支援台羅聲調) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
     <style>
         body { font-family: 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; overflow: hidden; background-color: #0f172a; touch-action: none; user-select: none; -webkit-user-select: none; }
         
-        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 20; padding: 10px 14px; box-sizing: border-box; overflow-y: auto; }
+        #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 30; padding: 10px 14px; box-sizing: border-box; overflow-y: auto; }
         
         .menu-content { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; width: 100%; max-width: 580px; margin-bottom: 6px; text-align: center; }
         
@@ -37,28 +37,12 @@
         .p2-ctrl-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 3px 0; font-size: 13px; font-weight: bold; color: #1e293b; flex-wrap: wrap; }
         .p2-ctrl-select { padding: 3px 8px; border-radius: 6px; border: 1.5px solid #d97706; background: #fff; font-family: inherit; font-size: 13px; font-weight: bold; color: #0f172a; cursor: pointer; }
 
-        /* 手把選單導覽高亮聚焦樣式 (.gp-focus) */
-        .gp-focus {
-            outline: 3px solid #0284c7 !important;
-            outline-offset: 2px !important;
-            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.45), 0 0 14px rgba(2, 132, 199, 0.75) !important;
-            transform: scale(1.04);
-            z-index: 5;
-        }
-        .choice-btn.gp-focus, .review-item.gp-focus, #return-menu-btn.gp-focus {
-            outline: 3px solid #ffffff !important;
-            outline-offset: 2px !important;
-            box-shadow: 0 0 0 4px rgba(0, 229, 255, 0.7), 0 0 18px #00e5ff !important;
-            transform: scale(1.06);
-        }
+        .gp-focus { outline: 3px solid #0284c7 !important; outline-offset: 2px !important; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.45), 0 0 14px rgba(2, 132, 199, 0.75) !important; transform: scale(1.04); z-index: 5; }
+        .choice-btn.gp-focus, .review-item.gp-focus, #return-menu-btn.gp-focus { outline: 3px solid #ffffff !important; outline-offset: 2px !important; box-shadow: 0 0 0 4px rgba(0, 229, 255, 0.7), 0 0 18px #00e5ff !important; transform: scale(1.06); }
         .review-item.gp-focus { background: rgba(56, 189, 248, 0.28) !important; transform: scale(1.01); }
 
         .menu-tips-box { margin: 4px 0 3px 0; font-size: 12px; color: #1e293b; font-weight: bold; line-height: 1.55; text-align: center; }
-        .inline-bell-icon {
-            display: inline-flex; align-items: center; justify-content: center;
-            background: #222; border: 1.5px solid rgba(255, 255, 255, 0.8); border-radius: 6px;
-            padding: 1px 6px; font-size: 12px; line-height: 1.1; vertical-align: middle; margin: 0 2px;
-        }
+        .inline-bell-icon { display: inline-flex; align-items: center; justify-content: center; background: #222; border: 1.5px solid rgba(255, 255, 255, 0.8); border-radius: 6px; padding: 1px 6px; font-size: 12px; line-height: 1.1; vertical-align: middle; margin: 0 2px; }
 
         button.start-btn { padding: 9px 30px; font-size: 18px; font-weight: bold; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 4px; cursor: pointer; font-family: inherit; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35); transition: 0.15s; }
         button.start-btn:active { transform: scale(0.95); }
@@ -69,46 +53,40 @@
         .counter-container img { height: 14px; }
 
         /* ========================================================= */
-        /* 遊戲主舞台與跑道樣式 */
+        /* 遊戲主舞台、HUD 與道具欄 */
         /* ========================================================= */
         #game-board {
             display: none; width: 100vw; height: 100vh; height: 100dvh; position: relative;
             background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
             overflow: hidden; box-sizing: border-box;
         }
-        /* 三條水平跑道分隔虛線 */
-        .lane-divider {
-            position: absolute; left: 0; width: 100%; height: 0;
-            border-top: 2px dashed rgba(255, 255, 255, 0.14); pointer-events: none; z-index: 1;
-        }
+        .lane-divider { position: absolute; left: 0; width: 100%; height: 0; border-top: 2px dashed rgba(255, 255, 255, 0.14); pointer-events: none; z-index: 1; }
         
-        /* 錯誤閃爍特效 */
-        @keyframes flashRed {
-            0%, 50%, 100% { box-shadow: inset 0 0 0 0 red; }
-            25%, 75% { box-shadow: inset 0 0 40px 20px red; }
-        }
+        @keyframes flashRed { 0%, 50%, 100% { box-shadow: inset 0 0 0 0 red; } 25%, 75% { box-shadow: inset 0 0 40px 20px red; } }
         .flash-error { animation: flashRed 0.5s; }
-
-        /* 加速閃爍特效 (藍/青色) */
-        @keyframes flashSpeed {
-            0%, 50%, 100% { box-shadow: inset 0 0 0 0 #00e5ff; }
-            25%, 75% { box-shadow: inset 0 0 40px 20px #00e5ff; }
-        }
+        @keyframes flashSpeed { 0%, 50%, 100% { box-shadow: inset 0 0 0 0 #00e5ff; } 25%, 75% { box-shadow: inset 0 0 40px 20px #00e5ff; } }
         .flash-speed-up { animation: flashSpeed 0.5s; }
-
-        /* 拔刀決鬥時舞台金色警戒邊框 */
         .duel-stage-glow { box-shadow: inset 0 0 55px 15px rgba(245, 158, 11, 0.55) !important; }
         
-        /* 頂部 HUD 與重聽按鈕 */
         #hud {
             position: absolute; top: 10px; left: 16px; right: 16px; color: white;
             font-size: 19px; font-weight: bold; display: flex; justify-content: space-between; align-items: flex-start;
-            z-index: 6; text-shadow: 2px 2px 4px #000; pointer-events: none;
+            z-index: 15; text-shadow: 2px 2px 4px #000; pointer-events: none;
         }
         .hud-left-col { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: auto; }
-        .hud-right-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .hud-right-col { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .p1-score-badge { color: #38bdf8; background: rgba(15, 23, 42, 0.75); padding: 2px 10px; border-radius: 8px; border: 1.5px solid #38bdf8; }
         .p2-score-badge { color: #fbbf24; background: rgba(15, 23, 42, 0.75); padding: 2px 10px; border-radius: 8px; border: 1.5px solid #fbbf24; }
+
+        /* 陷害道具欄 UI */
+        .inventory-row { display: flex; gap: 8px; margin-top: 4px; }
+        .item-slot { 
+            width: 32px; height: 32px; background: rgba(0,0,0,0.5); border: 2px solid #64748b; 
+            border-radius: 8px; display: flex; justify-content: center; align-items: center; 
+            font-size: 20px; filter: grayscale(1); opacity: 0.3; transition: 0.2s;
+        }
+        .item-slot.active { filter: grayscale(0); opacity: 1; border-color: #fde047; box-shadow: 0 0 8px #fde047; transform: scale(1.1); }
+        .item-hint { font-size: 10px; position: absolute; bottom: -14px; text-shadow: none; color: #cbd5e1; }
 
         #sfx-toggle-btn {
             background: rgba(255, 255, 255, 0.18); border: 2px solid rgba(255, 255, 255, 0.55);
@@ -118,7 +96,7 @@
         #sfx-toggle-btn.muted { opacity: 0.5; border-color: #777; background: rgba(0, 0, 0, 0.35); }
 
         #replay-audio-btn {
-            display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 10;
+            display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 15;
             background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff;
             border: 2px solid #38bdf8; border-radius: 20px; padding: 6px 18px;
             font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
@@ -126,31 +104,30 @@
         }
         #replay-audio-btn:active { transform: translateX(-50%) scale(0.93); }
 
-        /* 拔刀決鬥中央橫幅提示 */
         #duel-banner {
             display: none; position: absolute; top: 68px; left: 50%; transform: translateX(-50%);
             background: linear-gradient(90deg, #b91c1c, #d97706, #b91c1c); color: #fff;
             border: 2px solid #fde047; border-radius: 20px; padding: 6px 22px;
-            font-size: clamp(16px, 2.3vw, 22px); font-weight: bold; z-index: 12;
+            font-size: clamp(16px, 2.3vw, 22px); font-weight: bold; z-index: 16;
             box-shadow: 0 0 25px rgba(245, 158, 11, 0.8); text-shadow: 1px 1px 3px #000;
             white-space: nowrap; animation: pulseBanner 0.6s ease-in-out infinite alternate;
         }
         @keyframes pulseBanner { 0% { transform: translateX(-50%) scale(1); } 100% { transform: translateX(-50%) scale(1.06); } }
 
         /* ========================================================= */
-        /* 玩家角色 (UFO + 標籤 + 暈眩特效 + 拔刀決鬥血條與刀光) */
+        /* 玩家角色 (忍者 🥷 + 負面狀態特效) */
         /* ========================================================= */
         .player-entity {
             position: absolute; width: 64px; height: 64px; z-index: 8;
             display: flex; align-items: center; justify-content: center; pointer-events: none;
+            transition: filter 0.3s;
         }
-        .player-ufo-sprite {
+        .player-sprite {
             font-size: 52px; line-height: 1; transform: scaleX(-1);
-            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.8)); transition: filter 0.15s;
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.8)); transition: filter 0.2s;
         }
-        #player2 .player-ufo-sprite {
-            filter: hue-rotate(145deg) saturate(1.8) drop-shadow(0 0 8px rgba(251, 191, 36, 0.9));
-        }
+        #player2 .player-sprite { filter: hue-rotate(200deg) saturate(1.8) drop-shadow(0 0 8px rgba(251, 191, 36, 0.9)); }
+        
         .player-tag-badge {
             position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%);
             font-size: 11px; font-weight: bold; padding: 1px 6px; border-radius: 8px;
@@ -158,19 +135,16 @@
         }
         #player2 .player-tag-badge { background: #d97706; border-color: #fde68a; }
 
-        /* 撞錯彈飛暈眩狀態 */
-        .player-stunned .player-ufo-sprite {
-            animation: dizzySpin 0.35s linear infinite;
-            filter: grayscale(0.5) brightness(0.8) drop-shadow(0 0 10px #ef4444) !important;
-        }
-        @keyframes dizzySpin { 0% { transform: scaleX(-1) rotate(0deg); } 100% { transform: scaleX(-1) rotate(360deg); } }
-        .player-stun-stars {
-            display: none; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
-            font-size: 20px; white-space: nowrap; filter: drop-shadow(0 0 4px #000);
-        }
-        .player-stunned .player-stun-stars { display: block; }
+        /* 答錯狀態特效：1次暗淡、2次慢閃爍減速 */
+        .player-entity.dimmed .player-sprite { filter: grayscale(0.8) brightness(0.5) !important; }
+        .player-entity.slow-flash .player-sprite { animation: slowFlash 1s infinite alternate; filter: grayscale(0.8) brightness(0.5) !important; }
+        @keyframes slowFlash { 0% { opacity: 1; } 100% { opacity: 0.2; } }
 
-        /* 拔刀決鬥模式：頭頂血條、手持大刀與揮砍刀光 */
+        /* 蜘蛛網特效 */
+        .web-fx { display: none; position: absolute; font-size: 64px; z-index: 10; opacity: 0.9; }
+        .is-webbed .web-fx { display: block; }
+
+        /* 拔刀決鬥模式血條與刀光 */
         .duel-hp-bar {
             display: none; position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
             width: 58px; height: 9px; background: #1e293b; border: 1.5px solid #fff;
@@ -181,27 +155,22 @@
 
         .duel-sword-icon {
             display: none; position: absolute; right: -18px; top: 4px; font-size: 32px;
-            transform: rotate(25deg); transform-origin: bottom left;
-            filter: drop-shadow(0 0 6px #fde047); transition: transform 0.08s ease-out;
+            transform: rotate(25deg); transform-origin: bottom left; filter: drop-shadow(0 0 6px #fde047); transition: transform 0.08s ease-out;
         }
         .in-duel .duel-sword-icon { display: block; }
         .slashing .duel-sword-icon { transform: rotate(115deg) scale(1.35) !important; }
 
         .slash-arc-fx {
             display: none; position: absolute; width: 130px; height: 130px;
-            left: -33px; top: -33px; border-radius: 50%;
-            border: 5px solid transparent; border-right-color: #fde047; border-top-color: #38bdf8;
+            left: -33px; top: -33px; border-radius: 50%; border: 5px solid transparent; border-right-color: #fde047; border-top-color: #38bdf8;
             filter: drop-shadow(0 0 12px #fde047); pointer-events: none;
         }
         #player2 .slash-arc-fx { border-top-color: #fb923c; }
         .slashing .slash-arc-fx { display: block; animation: slashSpin 0.16s ease-out forwards; }
-        @keyframes slashSpin {
-            0% { transform: rotate(-60deg) scale(0.7); opacity: 1; }
-            100% { transform: rotate(90deg) scale(1.18); opacity: 0; }
-        }
+        @keyframes slashSpin { 0% { transform: rotate(-60deg) scale(0.7); opacity: 1; } 100% { transform: rotate(90deg) scale(1.18); opacity: 0; } }
 
         /* ========================================================= */
-        /* 跑道選項卡片 (自帶前後文) 與火箭/星星 */
+        /* 跑道選項卡片 (自帶前後文) 與 補給波道具 */
         /* ========================================================= */
         .obstacle { position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center; }
         
@@ -212,51 +181,31 @@
             border-radius: 12px 0 0 12px; padding: 10px; box-sizing: border-box; text-align: center;
             transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
         }
-
-        .card-hanzi {
-            color: #fb923c; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif;
-            font-size: clamp(16px, 2vw, 22px); margin-bottom: 6px; font-weight: bold;
-        }
-
+        .card-hanzi { color: #fb923c; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; font-size: clamp(16px, 2vw, 22px); margin-bottom: 6px; font-weight: bold; line-height: 1.2; }
         .card-tailo {
-            color: #94a3b8; font-family: 'Charis SIL', 'Noto Sans', sans-serif;
-            font-size: clamp(22px, 3.2vw, 34px); font-weight: bold;
-            white-space: nowrap; word-break: keep-all;
+            color: #94a3b8; font-family: 'Charis SIL', 'Noto Sans', sans-serif; font-size: clamp(22px, 3.2vw, 32px); font-weight: bold;
+            line-height: 1.3; word-wrap: break-word; /* 允許換行 */
         }
-        .blank-slot { color: #0ea5e9; font-weight: 900; margin: 0 1px; }
-        .context-text { opacity: 0.65; }
+        .target-pink { color: #ec4899; font-weight: 900; margin: 0 2px; }
+        .context-text { opacity: 0.75; }
 
-        /* 火箭與星星 */
-        .bonus, .rocket { height: 16.67vh; width: 120px; font-size: min(10vh, 70px); box-sizing: border-box; margin: 0; transition: opacity 0.2s; }
-        .star-icon { display: inline-block; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+        /* 補給波道具圖示 */
+        .loot-item { height: 16.67vh; width: 120px; font-size: min(8vh, 60px); box-sizing: border-box; margin: 0; transition: opacity 0.2s; }
+        .star-icon, .mushroom-icon { display: inline-block; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
 
-        /* 緊貼字母正上方的第8聲 CSS 獨立描繪樣式 */
         .t8, .t8-i { position: relative; display: inline-block; line-height: 1; }
-        .t8::after, .t8-i::after {
-            content: ''; position: absolute; top: 0.03em; left: 50%; transform: translateX(-50%);
-            width: 2.2px; height: 0.22em; background-color: currentColor; border-radius: 1px; pointer-events: none;
-        }
+        .t8::after, .t8-i::after { content: ''; position: absolute; top: 0.03em; left: 50%; transform: translateX(-50%); width: 2.2px; height: 0.22em; background-color: currentColor; border-radius: 1px; pointer-events: none; }
 
         /* ========================================================= */
-        /* 雙人對戰結算畫面（勝利獎盃 vs 落葉吹拂）與複習視窗 */
+        /* 雙人對戰結算畫面與複習視窗 */
         /* ========================================================= */
         #gameover-2p-box { display: none; width: 100%; max-width: 860px; flex-direction: column; align-items: center; margin-bottom: 8px; }
         #gameover-2p-title { font-size: 25px; font-weight: bold; color: #0f172a; margin: 0 0 8px 0; }
         .p2-results-grid { display: flex; gap: 12px; width: 100%; justify-content: center; align-items: stretch; }
-        .p2-result-card {
-            position: relative; flex: 1; border-radius: 14px; padding: 14px 10px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            overflow: hidden; min-height: 165px; box-sizing: border-box;
-        }
-        .p2-result-card.winner-card {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border: 3px solid #f59e0b; box-shadow: 0 0 25px rgba(245, 158, 11, 0.5); color: #78350f;
-        }
-        .p2-result-card.loser-card {
-            background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
-            border: 3px solid #64748b; box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6); color: #cbd5e1;
-        }
+        .p2-result-card { position: relative; flex: 1; border-radius: 14px; padding: 14px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; min-height: 165px; box-sizing: border-box; }
+        .p2-result-card.winner-card { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 3px solid #f59e0b; box-shadow: 0 0 25px rgba(245, 158, 11, 0.5); color: #78350f; }
+        .p2-result-card.loser-card { background: linear-gradient(180deg, #334155 0%, #1e293b 100%); border: 3px solid #64748b; box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6); color: #cbd5e1; }
         .result-player-tag { font-size: 17px; font-weight: bold; margin-bottom: 2px; z-index: 2; }
         .result-main-icon { font-size: 50px; line-height: 1.1; margin: 4px 0; z-index: 2; }
         .winner-card .result-main-icon { animation: trophyBounce 1s ease-in-out infinite alternate; filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.8)); }
@@ -266,48 +215,23 @@
         .loser-card .result-status-text { color: #94a3b8; }
         .result-score-text { font-size: 19px; font-weight: bold; z-index: 2; }
 
-        .falling-leaf {
-            position: absolute; top: -30px; font-size: 24px; pointer-events: none; z-index: 1; opacity: 0.85;
-            animation: leafBlow linear infinite;
-        }
-        @keyframes leafBlow {
-            0% { transform: translate(0, -20px) rotate(0deg); opacity: 0; }
-            15%, 85% { opacity: 0.85; }
-            100% { transform: translate(-120px, 250px) rotate(320deg); opacity: 0; }
-        }
+        .falling-leaf { position: absolute; top: -30px; font-size: 24px; pointer-events: none; z-index: 1; opacity: 0.85; animation: leafBlow linear infinite; }
+        @keyframes leafBlow { 0% { transform: translate(0, -20px) rotate(0deg); opacity: 0; } 15%, 85% { opacity: 0.85; } 100% { transform: translate(-120px, 250px) rotate(320deg); opacity: 0; } }
 
-        #review-prompt-box {
-            background: #1e293b; border: 2px solid #f59e0b; border-radius: 12px;
-            padding: 12px 20px; margin-top: 6px; text-align: center; width: 92%; max-width: 400px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-        }
+        #review-prompt-box { background: #1e293b; border: 2px solid #f59e0b; border-radius: 12px; padding: 12px 20px; margin-top: 6px; text-align: center; width: 92%; max-width: 400px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25); }
         .review-prompt-title { color: #fbbf24; font-size: 22px; font-weight: bold; margin: 0 0 10px 0; letter-spacing: 1px; }
         .choice-btn-group { display: flex; justify-content: center; gap: 16px; }
-        .choice-btn {
-            padding: 8px 28px; font-size: 18px; font-weight: bold; border-radius: 8px;
-            cursor: pointer; border: none; font-family: inherit; transition: 0.15s;
-        }
+        .choice-btn { padding: 8px 28px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; font-family: inherit; transition: 0.15s; }
         .btn-yes { background: #f59e0b; color: #0f172a; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
         .btn-no { background: #475569; color: #f8fafc; border: 1px solid #94a3b8; }
 
         #review-section { display: none; width: 100%; max-width: 860px; flex-direction: column; align-items: center; margin-top: 4px; }
         .review-columns-wrap { display: flex; gap: 12px; width: 100%; justify-content: center; align-items: stretch; }
-        .review-player-panel {
-            flex: 1; background: #0f172a; border: 2px solid #0284c7; border-radius: 12px;
-            padding: 10px 12px; max-height: 30vh; overflow-y: auto; box-sizing: border-box;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); text-align: left;
-        }
+        .review-player-panel { flex: 1; background: #0f172a; border: 2px solid #0284c7; border-radius: 12px; padding: 10px 12px; max-height: 30vh; overflow-y: auto; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); text-align: left; }
         .review-player-panel.p2-panel { border-color: #f59e0b; }
-        .review-panel-header {
-            font-size: 16px; font-weight: bold; color: #38bdf8; text-align: center;
-            padding-bottom: 6px; margin-bottom: 6px; border-bottom: 1px solid #334155;
-        }
+        .review-panel-header { font-size: 16px; font-weight: bold; color: #38bdf8; text-align: center; padding-bottom: 6px; margin-bottom: 6px; border-bottom: 1px solid #334155; }
         .review-player-panel.p2-panel .review-panel-header { color: #fbbf24; }
-        .review-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 7px 8px; border-bottom: 1px solid #1e293b; border-radius: 6px;
-            cursor: pointer; transition: background 0.15s; gap: 8px;
-        }
+        .review-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 8px; border-bottom: 1px solid #1e293b; border-radius: 6px; cursor: pointer; transition: background 0.15s; gap: 8px; }
         .review-item:hover, .review-item:active { background: rgba(56, 189, 248, 0.18); }
         .review-item:last-child { border-bottom: none; }
         .review-hanzi { color: #fbbf24; font-size: 18px; font-weight: bold; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; }
@@ -321,12 +245,10 @@
 
 <div id="menu">
     <div class="menu-content">
-        <h2 class="game-title">🛸 台語跑酷</h2>
+        <h2 class="game-title">🥷 台語跑酷 (忍者對決)</h2>
         
-        <!-- 課次選擇（含拼音練習共9課） -->
         <div id="lessons"></div>
         
-        <!-- 1. 遊玩模式 -->
         <div class="menu-card card-player-cnt">
             <p class="menu-card-title">遊玩模式</p>
             <div class="radio-row-wrap">
@@ -335,7 +257,6 @@
             </div>
         </div>
 
-        <!-- 2. 出題類型與顯示漢字開關 -->
         <div class="menu-card card-mode">
             <p class="menu-card-title">出題類型 (聽音補齊羅馬字結構)</p>
             <div class="radio-row-wrap">
@@ -347,12 +268,11 @@
             <div class="hanzi-toggle-row">
                 <label class="radio-label" id="lbl-show-hanzi" style="color: #0369a1;">
                     <input type="checkbox" id="show-hanzi-toggle" onchange="saveMenuSettings()" style="transform: scale(1.2); margin-right: 4px;">
-                    👀 題目選項顯示漢字
+                    👀 選項卡片顯示漢字提示
                 </label>
             </div>
         </div>
 
-        <!-- 3. 操作裝置設定 -->
         <div class="menu-card card-ctrl">
             <p class="menu-card-title">操作裝置</p>
             <div id="ctrl-1p-box">
@@ -363,28 +283,26 @@
             </div>
             <div id="ctrl-2p-box" style="display: none;">
                 <div class="p2-ctrl-row">
-                    <span>🛸 玩家 1 (藍)：</span>
+                    <span>🥷 玩家 1 (藍)：</span>
                     <select id="p1-ctrl-select" class="p2-ctrl-select" onchange="sync2PControls('p1')">
-                        <option value="keyboard" selected>⌨️ 鍵盤 (WASD/方向鍵 + 空白鍵揮刀)</option>
-                        <option value="gamepad">🎮 遊戲手把 (搖桿/十字鍵 + A/✕揮刀)</option>
+                        <option value="keyboard" selected>⌨️ 鍵盤 (WASD + 空白揮刀/E香蕉/Shift網)</option>
+                        <option value="gamepad">🎮 遊戲手把 (搖桿 + A揮刀/Y香蕉/B網)</option>
                     </select>
                 </div>
                 <div class="p2-ctrl-row">
-                    <span>🛸 玩家 2 (金)：</span>
+                    <span>🥷 玩家 2 (金)：</span>
                     <select id="p2-ctrl-select" class="p2-ctrl-select" onchange="sync2PControls('p2')">
-                        <option value="gamepad" selected>🎮 遊戲手把 (搖桿/十字鍵 + A/✕揮刀)</option>
-                        <option value="keyboard">⌨️ 鍵盤 (WASD/方向鍵 + 空白鍵揮刀)</option>
+                        <option value="gamepad" selected>🎮 遊戲手把 (搖桿 + A揮刀/Y香蕉/B網)</option>
+                        <option value="keyboard">⌨️ 鍵盤 (WASD + 空白揮刀/E香蕉/Shift網)</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <!-- 主選單說明文字 -->
         <div class="menu-tips-box">
             <div>揤鈃仔 <span class="inline-bell-icon">🔔</span> 會使開關音效</div>
+            <div style="color: #0369a1;">每題語音播完後，字卡才會出發。每 2 題有一波專屬補給！</div>
             <div style="color: #991b1b;">⚔️ 雙人同時搶著答案時跑道暫停，揤 空白鍵 / 手把A(✕) 抽刀決鬥！</div>
-            <div style="color: #b45309;">雙人對戰時，上無愛有一个人使用遊戲手把</div>
-            <div style="color: #0369a1;">本遊戲會自動播送語音，請毋通吵著別人</div>
         </div>
 
         <button class="start-btn" id="main-start-btn" onclick="startGame()">開始遊戲</button>
@@ -394,7 +312,6 @@
         <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
         <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
             Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
-            本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
             未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
         </p>
         <div class="counter-container">
@@ -407,25 +324,23 @@
 
 <div id="game-over" style="display: none;">
     <div class="menu-content" style="max-width: 860px;">
-        <!-- 單人結算畫面 -->
         <div id="gameover-1p-box">
             <h2 style="margin: 0 0 4px 0; font-size: 26px; color: #0f172a;">時間到！</h2>
             <p style="font-size: 22px; font-weight: bold; margin: 0 0 4px 0; color: #1e293b;">總分：<span id="final-score">0</span></p>
             <h3 id="score-comment" style="color: #d97706; font-size: 28px; margin: 0 0 8px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);"></h3>
         </div>
 
-        <!-- 雙人對戰結算畫面 -->
         <div id="gameover-2p-box">
             <h2 id="gameover-2p-title">⚔️ 對戰結果 ⚔</h2>
             <div class="p2-results-grid">
                 <div id="p1-result-card" class="p2-result-card">
-                    <div class="result-player-tag">玩家 1 (藍 UFO)</div>
+                    <div class="result-player-tag">玩家 1 (藍忍者)</div>
                     <div class="result-main-icon" id="p1-result-icon">🏆</div>
                     <div class="result-status-text" id="p1-result-status">台語小博士</div>
                     <div class="result-score-text">分數：<span id="p1-final-score">0</span></div>
                 </div>
                 <div id="p2-result-card" class="p2-result-card">
-                    <div class="result-player-tag">玩家 2 (金 UFO)</div>
+                    <div class="result-player-tag">玩家 2 (金忍者)</div>
                     <div class="result-main-icon" id="p2-result-icon">🍂</div>
                     <div class="result-status-text" id="p2-result-status">繼續拍拚</div>
                     <div class="result-score-text">分數：<span id="p2-final-score">0</span></div>
@@ -433,7 +348,6 @@
             </div>
         </div>
 
-        <!-- 敢欲複習？ 詢問區塊 -->
         <div id="review-prompt-box">
             <p class="review-prompt-title">敢欲複習？</p>
             <div class="choice-btn-group">
@@ -442,7 +356,6 @@
             </div>
         </div>
 
-        <!-- 錯題複習展示區塊 -->
         <div id="review-section">
             <div class="review-columns-wrap">
                 <div class="review-player-panel" id="review-p1-panel">
@@ -450,27 +363,13 @@
                     <div id="review-p1-list"></div>
                 </div>
                 <div class="review-player-panel p2-panel" id="review-p2-panel" style="display: none;">
-                    <div class="review-panel-header">🛸 玩家 2 複習清單 (揤詞語聽發音)</div>
+                    <div class="review-panel-header">🥷 玩家 2 複習清單 (揤詞語聽發音)</div>
                     <div id="review-p2-list"></div>
                 </div>
             </div>
             <button id="return-menu-btn" class="start-btn" onclick="location.reload()" style="margin-top: 10px;">
                 回主選單 (滑鼠左鍵 / 手把A)
             </button>
-        </div>
-    </div>
-    
-    <div class="footer">
-        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
-        <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
-            Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
-            本專案受著作權法保護，僅供原作者教學、研習或作業分享現場體驗使用。<br>
-            未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
-        </p>
-        <div class="counter-container">
-            <a href="https://www.hitwebcounter.com/" target="_blank">
-                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
-            </a>
         </div>
     </div>
 </div>
@@ -484,33 +383,43 @@
         <div class="hud-left-col">
             <span id="time-display">時間: 50</span>
             <div id="sfx-toggle-btn" title="開關音效">🔔</div>
+            <!-- P1 道具欄 -->
+            <div class="inventory-row" id="p1-inventory" style="display: none;">
+                <div class="item-slot" id="p1-web-slot">🕸️<div class="item-hint">Shift/B</div></div>
+                <div class="item-slot" id="p1-banana-slot">🍌<div class="item-hint">E/Y</div></div>
+            </div>
         </div>
         <div class="hud-right-col">
             <span id="p1-score-display" class="p1-score-badge">P1 分數: 0</span>
             <span id="p2-score-display" class="p2-score-badge" style="display: none;">P2 分數: 0</span>
+            <!-- P2 道具欄 -->
+            <div class="inventory-row" id="p2-inventory" style="display: none;">
+                <div class="item-slot" id="p2-banana-slot">🍌<div class="item-hint">E/Y</div></div>
+                <div class="item-slot" id="p2-web-slot">🕸️<div class="item-hint">Shift/B</div></div>
+            </div>
         </div>
     </div>
 
-    <!-- 單人聽音模式重聽按鈕 (獨立浮動，不再包覆題目框) -->
-    <button id="replay-audio-btn" title="重播語音 (Q鍵 / 手把X或□鍵)">🔊 重聽</button>
+    <!-- 單人聽音模式重聽按鈕 -->
+    <button id="replay-audio-btn" title="重播語音 (Q鍵 / 手把X或□鍵)">🔊 揤重聽</button>
 
     <!-- 拔刀決鬥提示橫幅 -->
     <div id="duel-banner">⚔️ 同時搶答！拔刀決鬥！(揤 A / ✕ / 空白鍵 揮刀) ⚔️</div>
 
-    <!-- 玩家 1 與 玩家 2 飛碟實體 -->
+    <!-- 玩家 1 與 玩家 2 忍者實體 -->
     <div id="player1" class="player-entity">
         <div class="duel-hp-bar"><div class="duel-hp-fill" id="p1-duel-hp"></div></div>
-        <div class="player-stun-stars">💫💫</div>
-        <div class="player-ufo-sprite">🛸</div>
-        <div class="duel-sword-icon">🗡️</div>
+        <div class="web-fx">🕸️</div>
+        <div class="player-sprite">🥷</div>
+        <div class="duel-sword-icon">🗡️️</div>
         <div class="slash-arc-fx"></div>
         <div class="player-tag-badge" id="p1-badge">P1</div>
     </div>
 
     <div id="player2" class="player-entity" style="display: none;">
         <div class="duel-hp-bar"><div class="duel-hp-fill" id="p2-duel-hp"></div></div>
-        <div class="player-stun-stars">💫💫</div>
-        <div class="player-ufo-sprite">🛸</div>
+        <div class="web-fx">🕸️</div>
+        <div class="player-sprite">🥷</div>
         <div class="duel-sword-icon">🗡️</div>
         <div class="slash-arc-fx"></div>
         <div class="player-tag-badge" id="p2-badge">P2</div>
@@ -538,69 +447,46 @@
     // =========================================================
     const MOE_INITIALS = ['p', 'ph', 'b', 'm', 't', 'th', 'n', 'l', 'k', 'kh', 'g', 'ng', 'h', 'ts', 'tsh', 's', 'j'];
     const INITIAL_GROUPS = [
-        ['p', 'ph', 'b', 'm'],
-        ['t', 'th', 'n', 'l'],
-        ['k', 'kh', 'g', 'ng', 'h'],
-        ['ts', 'tsh', 's', 'j']
+        ['p', 'ph', 'b', 'm'], ['t', 'th', 'n', 'l'], ['k', 'kh', 'g', 'ng', 'h'], ['ts', 'tsh', 's', 'j']
     ];
-
     const MOE_UNCHECKED_FINALS = [
-        'a', 'ann', 'am', 'an', 'ang', 'ai', 'ainn', 'au', 'aunn',
-        'e', 'enn',
+        'a', 'ann', 'am', 'an', 'ang', 'ai', 'ainn', 'au', 'aunn', 'e', 'enn',
         'i', 'inn', 'im', 'in', 'ing', 'ia', 'iann', 'iam', 'ian', 'iang', 'iau', 'iaunn', 'io', 'iong', 'iu', 'iunn',
-        'm', 'ng',
-        'o', 'onn', 'om', 'ong', 'oo',
-        'u', 'un', 'ua', 'uann', 'uan', 'uang', 'uai', 'uainn', 'ue', 'ui', 'uinn'
+        'm', 'ng', 'o', 'onn', 'om', 'ong', 'oo', 'u', 'un', 'ua', 'uann', 'uan', 'uang', 'uai', 'uainn', 'ue', 'ui', 'uinn'
     ];
-
     const MOE_CHECKED_FINALS = [
-        'ah', 'annh', 'ap', 'at', 'ak', 'aih', 'ainnh', 'auh', 'aunnh',
-        'eh', 'ennh',
+        'ah', 'annh', 'ap', 'at', 'ak', 'aih', 'ainnh', 'auh', 'aunnh', 'eh', 'ennh',
         'ih', 'ip', 'it', 'ik', 'iah', 'iannh', 'iap', 'iat', 'iak', 'iauh', 'ioh', 'iok', 'iuh',
-        'mh', 'ngh',
-        'oh', 'onnh', 'op', 'ok', 'ooh',
-        'uh', 'ut', 'uah', 'uat', 'uainnh', 'ueh', 'uih'
+        'mh', 'ngh', 'oh', 'onnh', 'op', 'ok', 'ooh', 'uh', 'ut', 'uah', 'uat', 'uainnh', 'ueh', 'uih'
     ];
 
     function isValidInitialFinalCombo(initial, finalStr) {
         if (finalStr === 'm' || finalStr === 'mh') return initial === '';
         if (finalStr === 'ng' || finalStr === 'ngh') return !['b', 'g', 'j', 'ng'].includes(initial);
-        if (finalStr.includes('nn')) {
-            if (['b', 'g', 'l', 'j', 'm', 'n', 'ng'].includes(initial)) return false;
-        }
-        if (['m', 'n', 'ng'].includes(initial)) {
-            if (/[mngptk]$/.test(finalStr)) return false;
-        }
-        if (['p', 'ph', 'b', 'm'].includes(initial)) {
-            if (/[mp]$/.test(finalStr)) return false;
-        }
+        if (finalStr.includes('nn') && ['b', 'g', 'l', 'j', 'm', 'n', 'ng'].includes(initial)) return false;
+        if (['m', 'n', 'ng'].includes(initial) && /[mngptk]$/.test(finalStr)) return false;
+        if (['p', 'ph', 'b', 'm'].includes(initial) && /[mp]$/.test(finalStr)) return false;
         return true;
     }
 
     function parseSingleSyllable(rawSyl) {
         const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
         let nfd = rawSyl.toLowerCase().normalize('NFD');
-        let base = '';
-        let tone = null;
+        let base = ''; let tone = null;
         for (let ch of nfd) {
             if (toneMap[ch]) tone = toneMap[ch];
             else if (/[a-z]/.test(ch)) base += ch;
         }
-        if (!tone) {
-            tone = /[ptkh]$/.test(base) ? '4' : '1';
-        }
+        if (!tone) tone = /[ptkh]$/.test(base) ? '4' : '1';
 
-        let initial = '';
-        let final = base;
+        let initial = ''; let final = base;
         if (!['m', 'mh', 'ng', 'ngh'].includes(base)) {
             const sortedInitials = [...MOE_INITIALS].sort((a, b) => b.length - a.length);
             for (let ini of sortedInitials) {
                 if (base.startsWith(ini)) {
                     const rest = base.slice(ini.length);
                     if (rest.length > 0 && (/[aeiou]/.test(rest) || rest === 'ng' || rest === 'ngh')) {
-                        initial = ini;
-                        final = rest;
-                        break;
+                        initial = ini; final = rest; break;
                     }
                 }
             }
@@ -626,7 +512,6 @@
         else if (res.includes('u')) res = res.replace('u', 'u' + m);
         else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g');
         else if (res.includes('m')) res = res.replace('m', 'm' + m);
-
         return res.normalize('NFC');
     }
 
@@ -638,7 +523,7 @@
         return res.normalize('NFC');
     }
 
-    // 根據考法設定，生成自帶前後文的卡片 HTML 選項
+    // 根據考法生成卡片 HTML，自帶前後文，挖空處以亮桃紅色標示，完全取消數字聲調圖示
     function buildPhonotacticQuestion(card, preferredType, showHanzi) {
         const cleanRoma = card.r.split('(')[0].trim();
         const parts = cleanRoma.split(/([\s\-–—]+)/);
@@ -651,7 +536,6 @@
                 parsedMap[idx] = parseSingleSyllable(part);
             }
         });
-
         if (sylIndices.length === 0) return null;
 
         let qType = preferredType;
@@ -668,7 +552,6 @@
         const targetSyl = parsedMap[chosenIdx];
 
         let variants = []; 
-
         if (qType === 'initial') {
             const correctIni = targetSyl.initial;
             const group = INITIAL_GROUPS.find(g => g.includes(correctIni)) || MOE_INITIALS;
@@ -677,14 +560,13 @@
             const distractors = [...sameGroupValid, ...otherValid].slice(0, 2);
 
             variants = [
-                { text: correctIni + applyToneToFinal(targetSyl.final, targetSyl.tone), isCorrect: true },
-                ...distractors.map(d => ({ text: d + applyToneToFinal(targetSyl.final, targetSyl.tone), isCorrect: false }))
+                { text: correctIni + applyToneToFinal(targetSyl.final, targetSyl.tone), isCorrect: true, distractorText: correctIni },
+                ...distractors.map(d => ({ text: d + applyToneToFinal(targetSyl.final, targetSyl.tone), isCorrect: false, distractorText: d }))
             ];
         } else if (qType === 'final') {
             const correctFinalBase = targetSyl.final;
             const pool = targetSyl.isChecked ? MOE_CHECKED_FINALS : MOE_UNCHECKED_FINALS;
             const validPool = pool.filter(f => f !== correctFinalBase && isValidInitialFinalCombo(targetSyl.initial, f));
-
             const endingMatch = correctFinalBase.match(/(nnh|nn|ng|nh|m|n|p|t|k|h)$/);
             const ending = endingMatch ? endingMatch[0] : '';
             const similarFinals = shuffleArray(validPool.filter(f =>
@@ -694,8 +576,8 @@
             const distractors = [...similarFinals, ...restFinals].slice(0, 2);
 
             variants = [
-                { text: targetSyl.initial + applyToneToFinal(correctFinalBase, targetSyl.tone), isCorrect: true },
-                ...distractors.map(d => ({ text: targetSyl.initial + applyToneToFinal(d, targetSyl.tone), isCorrect: false }))
+                { text: targetSyl.initial + applyToneToFinal(correctFinalBase, targetSyl.tone), isCorrect: true, distractorText: applyToneToFinal(correctFinalBase, targetSyl.tone) },
+                ...distractors.map(d => ({ text: targetSyl.initial + applyToneToFinal(d, targetSyl.tone), isCorrect: false, distractorText: applyToneToFinal(d, targetSyl.tone) }))
             ];
         } else {
             const correctTone = targetSyl.tone;
@@ -708,27 +590,32 @@
                 const uncheckedPool = ['1', '2', '3', '5', '7'].filter(t => t !== correctTone);
                 distractorTones = shuffleArray(uncheckedPool).slice(0, 2);
             }
-
             variants = [
-                { text: targetSyl.initial + applyToneToFinal(targetSyl.final, correctTone), isCorrect: true },
-                ...distractorTones.map(dt => ({ text: targetSyl.initial + applyToneToFinal(targetSyl.final, dt), isCorrect: false }))
+                { text: targetSyl.initial + applyToneToFinal(targetSyl.final, correctTone), isCorrect: true, distractorText: applyToneToFinal(targetSyl.final, correctTone) },
+                ...distractorTones.map(dt => ({ text: targetSyl.initial + applyToneToFinal(targetSyl.final, dt), isCorrect: false, distractorText: applyToneToFinal(targetSyl.final, dt) }))
             ];
         }
 
         const options = variants.map(v => {
             const tailoHtml = parts.map((p, i) => {
                 if (i === chosenIdx) {
-                    return `<span class="blank-slot">【${formatTailoHtml(v.text)}】</span>`;
+                    let formattedSyllable = formatTailoHtml(v.text);
+                    let formattedDistractor = formatTailoHtml(v.distractorText);
+                    let resultHtml = formattedSyllable;
+                    if (v.distractorText) {
+                        resultHtml = formattedSyllable.replace(formattedDistractor, `<span class="target-pink">${formattedDistractor}</span>`);
+                    } else {
+                        resultHtml = `<span class="target-pink">${formattedSyllable}</span>`;
+                    }
+                    return resultHtml;
                 } else {
                     return `<span class="context-text">${formatTailoHtml(p)}</span>`;
                 }
             }).join('');
 
             const cardHtml = `
-                <div class="card-content">
-                    ${showHanzi ? `<div class="card-hanzi">${card.h}</div>` : ''}
-                    <div class="card-tailo">${tailoHtml}</div>
-                </div>
+                <div class="card-hanzi" style="display: ${showHanzi ? 'block' : 'none'};">${card.h}</div>
+                <div class="card-tailo">${tailoHtml}</div>
             `;
             return { html: cardHtml, isCorrect: v.isCorrect };
         });
@@ -737,7 +624,7 @@
     }
 
     // =========================================================
-    // 🎵 Web Audio API 合成音效系統（新增道具與加速音效）
+    // 🎵 Web Audio API 合成音效系統
     // =========================================================
     let sfxCtx = null;
     let sfxMuted = false;
@@ -747,9 +634,7 @@
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
             if (AudioCtx) sfxCtx = new AudioCtx();
         }
-        if (sfxCtx && sfxCtx.state === 'suspended') {
-            sfxCtx.resume();
-        }
+        if (sfxCtx && sfxCtx.state === 'suspended') sfxCtx.resume();
         return sfxCtx;
     }
 
@@ -762,46 +647,36 @@
         const gain = audioCtx.createGain();
         osc.type = type;
         osc.frequency.setValueAtTime(freqStart, t0);
-        if (freqEnd !== freqStart) {
-            osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
-        }
+        if (freqEnd !== freqStart) osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
         gain.gain.setValueAtTime(0.001, t0);
         gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2));
         gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(t0);
-        osc.stop(t0 + duration + 0.02);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(t0); osc.stop(t0 + duration + 0.02);
     }
 
     function sfxUiMove() { playToneNode(520, 620, 0.045, 'sine', 0.1, 0); }
     function sfxUiConfirm() { playToneNode(660, 880, 0.08, 'triangle', 0.16, 0); }
-
     function sfxGrabCorrect() {
         playToneNode(587.33, 880, 0.1, 'sine', 0.22, 0);
         playToneNode(880, 1174.66, 0.18, 'triangle', 0.24, 0.07);
     }
-
-    function sfxHitWrongStun() {
-        playToneNode(180, 55, 0.26, 'sawtooth', 0.28, 0);
+    function sfxHitWrong() {
+        playToneNode(160, 55, 0.26, 'sawtooth', 0.28, 0);
         playToneNode(130, 42, 0.3, 'square', 0.22, 0.04);
     }
-
     function sfxSpeedUp() {
         playToneNode(330, 660, 0.14, 'sine', 0.14, 0);
         playToneNode(440, 880, 0.14, 'triangle', 0.12, 0.06);
     }
-
     function sfxStar() {
         playToneNode(1046.5, 1318.51, 0.1, 'sine', 0.2, 0);
         playToneNode(1318.51, 1567.98, 0.15, 'triangle', 0.2, 0.08);
     }
-
     function sfxRocket() {
         playToneNode(400, 800, 0.15, 'sine', 0.25, 0);
         playToneNode(800, 1200, 0.1, 'triangle', 0.2, 0.1);
     }
-
     function sfxDuelStart() {
         playToneNode(440, 880, 0.15, 'sawtooth', 0.22, 0);
         playToneNode(587.33, 1174.66, 0.22, 'triangle', 0.25, 0.12);
@@ -818,22 +693,15 @@
         playToneNode(220, 65, 0.18, 'sawtooth', 0.28, 0);
         playToneNode(523.25, 1046.5, 0.24, 'triangle', 0.26, 0.1);
     }
-
+    function sfxItemUse() {
+        playToneNode(880, 440, 0.12, 'sine', 0.2, 0);
+    }
     function sfxGameOver(isHigh) {
         if (isHigh) {
-            const fanfare = [
-                { f: 523.25, d: 0.12, t: 0 },
-                { f: 659.25, d: 0.12, t: 0.13 },
-                { f: 783.99, d: 0.12, t: 0.26 },
-                { f: 1046.50, d: 0.36, t: 0.39 }
-            ];
+            const fanfare = [{ f: 523.25, d: 0.12, t: 0 }, { f: 659.25, d: 0.12, t: 0.13 }, { f: 783.99, d: 0.12, t: 0.26 }, { f: 1046.50, d: 0.36, t: 0.39 }];
             fanfare.forEach(n => playToneNode(n.f, n.f, n.d, 'triangle', 0.24, n.t));
         } else {
-            const notes = [
-                { f: 329.63, d: 0.18, t: 0 },
-                { f: 293.66, d: 0.18, t: 0.19 },
-                { f: 261.63, d: 0.3, t: 0.38 }
-            ];
+            const notes = [{ f: 329.63, d: 0.18, t: 0 }, { f: 293.66, d: 0.18, t: 0.19 }, { f: 261.63, d: 0.3, t: 0.38 }];
             notes.forEach(n => playToneNode(n.f, n.f * 0.96, n.d, 'sine', 0.2, n.t));
         }
     }
@@ -850,18 +718,17 @@
     sfxBtn.addEventListener('touchstart', toggleSfx, { passive: false });
 
     // =========================================================
-    // 🎮 PS4 (DualShock 4 / DualSense) 與 Xbox 手把雙規格讀取器
+    // 🎮 PS4 (DualShock 4 / DualSense) 與 Xbox 手把讀取器
     // =========================================================
     function readGamepadState(gp) {
         if (!gp) return null;
         const id = (gp.id || '').toLowerCase();
         const isRawDS4 = (gp.mapping === '' && (id.includes('054c') || id.includes('wireless controller') || id.includes('dualshock')));
-        const deadzone = 0.2;
-        const menuDeadzone = 0.48;
+        const deadzone = 0.2; const menuDeadzone = 0.48;
 
         let moveUp = false, moveDown = false, moveLeft = false, moveRight = false;
         let navUp = false, navDown = false, navLeft = false, navRight = false;
-        let btnAction = false, btnBack = false, btnReplay = false, btnStart = false;
+        let btnAction = false, btnWeb = false, btnBanana = false, btnStart = false, btnReplay = false;
 
         if (gp.axes[0] < -deadzone) moveLeft = true;
         if (gp.axes[0] > deadzone) moveRight = true;
@@ -876,9 +743,10 @@
         }
 
         if (isRawDS4) {
-            btnAction = !!(gp.buttons[1] && gp.buttons[1].pressed); 
-            btnBack = !!(gp.buttons[2] && gp.buttons[2].pressed);   
-            btnReplay = !!(gp.buttons[0] && gp.buttons[0].pressed) || !!(gp.buttons[3] && gp.buttons[3].pressed);
+            btnAction = !!(gp.buttons[1] && gp.buttons[1].pressed); // ✕
+            btnWeb = !!(gp.buttons[2] && gp.buttons[2].pressed);    // ○
+            btnBanana = !!(gp.buttons[3] && gp.buttons[3].pressed); // △
+            btnReplay = !!(gp.buttons[0] && gp.buttons[0].pressed); // □
             btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
             if (gp.axes.length > 9) {
                 const hat = gp.axes[9];
@@ -890,9 +758,10 @@
                 }
             }
         } else {
-            btnAction = !!(gp.buttons[0] && gp.buttons[0].pressed); 
-            btnBack = !!(gp.buttons[1] && gp.buttons[1].pressed);   
-            btnReplay = !!(gp.buttons[2] && gp.buttons[2].pressed) || !!(gp.buttons[3] && gp.buttons[3].pressed);
+            btnAction = !!(gp.buttons[0] && gp.buttons[0].pressed); // A
+            btnWeb = !!(gp.buttons[1] && gp.buttons[1].pressed);    // B
+            btnBanana = !!(gp.buttons[3] && gp.buttons[3].pressed); // Y
+            btnReplay = !!(gp.buttons[2] && gp.buttons[2].pressed); // X
             btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
             if (gp.buttons[12] && gp.buttons[12].pressed) { moveUp = true; navUp = true; }
             if (gp.buttons[13] && gp.buttons[13].pressed) { moveDown = true; navDown = true; }
@@ -900,7 +769,7 @@
             if (gp.buttons[15] && gp.buttons[15].pressed) { moveRight = true; navRight = true; }
         }
 
-        return { moveUp, moveDown, moveLeft, moveRight, navUp, navDown, navLeft, navRight, btnAction, btnBack, btnReplay, btnStart };
+        return { moveUp, moveDown, moveLeft, moveRight, navUp, navDown, navLeft, navRight, btnAction, btnWeb, btnBanana, btnReplay, btnStart };
     }
 
     // =========================================================
@@ -911,7 +780,6 @@
     let questionDeck = [];
     let lastTargetCard = null;
     const questionAudio = new Audio();
-    let currentQuestionAudioUrl = "";
 
     function cryptoRandomInt(maxExclusive) {
         if (window.crypto && window.crypto.getRandomValues) {
@@ -936,18 +804,14 @@
             if (lastTargetCard && questionDeck.length > 1) {
                 if (questionDeck[0].h === lastTargetCard.h || questionDeck[0].r === lastTargetCard.r) {
                     const swapIdx = questionDeck.findIndex(c => c.h !== lastTargetCard.h && c.r !== lastTargetCard.r);
-                    if (swapIdx > 0) {
-                        [questionDeck[0], questionDeck[swapIdx]] = [questionDeck[swapIdx], questionDeck[0]];
-                    }
+                    if (swapIdx > 0) [questionDeck[0], questionDeck[swapIdx]] = [questionDeck[swapIdx], questionDeck[0]];
                 }
             }
         }
         if (lastTargetCard && questionDeck.length > 1) {
             if (questionDeck[0].h === lastTargetCard.h || questionDeck[0].r === lastTargetCard.r) {
                 const diffIdx = questionDeck.findIndex(c => c.h !== lastTargetCard.h && c.r !== lastTargetCard.r);
-                if (diffIdx > 0) {
-                    [questionDeck[0], questionDeck[diffIdx]] = [questionDeck[diffIdx], questionDeck[0]];
-                }
+                if (diffIdx > 0) [questionDeck[0], questionDeck[diffIdx]] = [questionDeck[diffIdx], questionDeck[0]];
             }
         }
         const target = questionDeck.shift();
@@ -956,13 +820,17 @@
     }
 
     function playQuestionAudio(customUrl) {
-        const rawUrl = customUrl || currentQuestionAudioUrl;
+        if (!currentWaveTargetCard) return;
+        const rawUrl = customUrl || currentWaveTargetCard.a;
         if (!rawUrl) return;
         const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
         questionAudio.pause();
         questionAudio.src = safeUrl;
         questionAudio.currentTime = 0;
-        questionAudio.play().catch(err => console.warn("語音播放失敗:", err));
+        questionAudio.play().catch(err => {
+            console.warn("語音播放失敗:", err);
+            if (waveState === 'waiting_audio') startWaveMovement();
+        });
     }
 
     const replayBtn = document.getElementById('replay-audio-btn');
@@ -972,9 +840,7 @@
     // =========================================================
     // 💾 主選單設定記憶與手把選單導覽
     // =========================================================
-    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-        document.getElementById('ctrl-touch').checked = true;
-    }
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) document.getElementById('ctrl-touch').checked = true;
 
     function onPlayerCountChange() {
         const pCount = parseInt(document.querySelector('input[name="pcount"]:checked').value, 10);
@@ -1019,28 +885,15 @@
                     btn.classList.toggle('active', selectedLessons.includes(btn.innerText));
                 });
             }
-            if (s.pcount) {
-                const r = document.querySelector(`input[name="pcount"][value="${s.pcount}"]`);
-                if (r) r.checked = true;
-            }
-            if (s.qtype) {
-                const r = document.querySelector(`input[name="qtype"][value="${s.qtype}"]`);
-                if (r) r.checked = true;
-            }
-            if (typeof s.showHanzi === 'boolean') {
-                document.getElementById('show-hanzi-toggle').checked = s.showHanzi;
-            }
-            if (s.ctrl1p) {
-                const r = document.querySelector(`input[name="ctrl1p"][value="${s.ctrl1p}"]`);
-                if (r) r.checked = true;
-            }
+            if (s.pcount) { const r = document.querySelector(`input[name="pcount"][value="${s.pcount}"]`); if (r) r.checked = true; }
+            if (s.qtype) { const r = document.querySelector(`input[name="qtype"][value="${s.qtype}"]`); if (r) r.checked = true; }
+            if (typeof s.showHanzi === 'boolean') document.getElementById('show-hanzi-toggle').checked = s.showHanzi;
+            if (s.ctrl1p) { const r = document.querySelector(`input[name="ctrl1p"][value="${s.ctrl1p}"]`); if (r) r.checked = true; }
             if (s.p1Ctrl) document.getElementById('p1-ctrl-select').value = s.p1Ctrl;
             if (s.p2Ctrl) document.getElementById('p2-ctrl-select').value = s.p2Ctrl;
             onPlayerCountChange();
             return selectedLessons.length > 0;
-        } catch (e) {
-            return false;
-        }
+        } catch (e) { return false; }
     }
 
     const lessonsDiv = document.getElementById('lessons');
@@ -1071,31 +924,19 @@
     let gpPrevButtonB = [false, false, false, false];
     let gpPrevButtonStart = [false, false, false, false];
 
-    function clearAllGpFocus() {
-        document.querySelectorAll('.gp-focus').forEach(el => el.classList.remove('gp-focus'));
-    }
+    function clearAllGpFocus() { document.querySelectorAll('.gp-focus').forEach(el => el.classList.remove('gp-focus')); }
 
     function getMenuNavigationRows() {
         const lessonBtns = Array.from(document.querySelectorAll('#lessons .lesson-btn'));
         const rows = [
-            lessonBtns.slice(0, 5),
-            lessonBtns.slice(5, 9),
+            lessonBtns.slice(0, 5), lessonBtns.slice(5, 9),
             [document.getElementById('lbl-pcount-1'), document.getElementById('lbl-pcount-2')],
-            [
-                document.getElementById('lbl-qtype-rnd'),
-                document.getElementById('lbl-qtype-ini'),
-                document.getElementById('lbl-qtype-fin'),
-                document.getElementById('lbl-qtype-ton')
-            ],
+            [document.getElementById('lbl-qtype-rnd'), document.getElementById('lbl-qtype-ini'), document.getElementById('lbl-qtype-fin'), document.getElementById('lbl-qtype-ton')],
             [document.getElementById('lbl-show-hanzi')]
         ];
         const pCount = parseInt(document.querySelector('input[name="pcount"]:checked').value, 10);
-        if (pCount === 1) {
-            rows.push([document.getElementById('lbl-ctrl-kb'), document.getElementById('lbl-ctrl-tc')]);
-        } else {
-            rows.push([document.getElementById('p1-ctrl-select')]);
-            rows.push([document.getElementById('p2-ctrl-select')]);
-        }
+        if (pCount === 1) rows.push([document.getElementById('lbl-ctrl-kb'), document.getElementById('lbl-ctrl-tc')]);
+        else { rows.push([document.getElementById('p1-ctrl-select')]); rows.push([document.getElementById('p2-ctrl-select')]); }
         rows.push([document.getElementById('main-start-btn')]);
         return rows;
     }
@@ -1113,10 +954,7 @@
             const curRow = rows[menuRowIdx];
             menuColIdx = Math.max(0, Math.min(menuColIdx, curRow.length - 1));
             const targetEl = curRow[menuColIdx];
-            if (targetEl) {
-                targetEl.classList.add('gp-focus');
-                targetEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            }
+            if (targetEl) { targetEl.classList.add('gp-focus'); targetEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
         } else if (gameOverEl.style.display !== 'none') {
             const promptBox = document.getElementById('review-prompt-box');
             const reviewSec = document.getElementById('review-section');
@@ -1136,10 +974,7 @@
                 } else {
                     reviewRowIdx = Math.min(reviewRowIdx, activeList.length - 1);
                     const itemEl = activeList[reviewRowIdx];
-                    if (itemEl) {
-                        itemEl.classList.add('gp-focus');
-                        itemEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                    }
+                    if (itemEl) { itemEl.classList.add('gp-focus'); itemEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
                 }
             }
         }
@@ -1154,18 +989,12 @@
         if (!el) return;
 
         sfxUiConfirm();
-        if (el.classList.contains('lesson-btn')) {
-            el.click();
-        } else if (el.classList.contains('radio-label')) {
+        if (el.classList.contains('lesson-btn')) el.click();
+        else if (el.classList.contains('radio-label')) {
             const input = el.querySelector('input');
             if (input) {
-                if (input.type === 'checkbox') {
-                    input.checked = !input.checked;
-                    if (input.onchange) input.onchange();
-                } else if (!input.checked) {
-                    input.checked = true;
-                    if (input.onchange) input.onchange();
-                }
+                if (input.type === 'checkbox') { input.checked = !input.checked; if (input.onchange) input.onchange(); }
+                else if (!input.checked) { input.checked = true; if (input.onchange) input.onchange(); }
             }
         } else if (el.tagName === 'SELECT') {
             el.value = (el.value === 'keyboard') ? 'gamepad' : 'keyboard';
@@ -1185,27 +1014,17 @@
 
             for (let i = 0; i < gamepads.length; i++) {
                 const gp = gamepads[i];
-                if (!gp) {
-                    gpPrevButtonA[i] = false;
-                    gpPrevButtonB[i] = false;
-                    gpPrevButtonStart[i] = false;
-                    continue;
-                }
+                if (!gp) { gpPrevButtonA[i] = false; gpPrevButtonB[i] = false; gpPrevButtonStart[i] = false; continue; }
                 const st = readGamepadState(gp);
                 if (!st) continue;
 
-                if (st.navUp) anyUp = true;
-                if (st.navDown) anyDown = true;
-                if (st.navLeft) anyLeft = true;
-                if (st.navRight) anyRight = true;
-
+                if (st.navUp) anyUp = true; if (st.navDown) anyDown = true;
+                if (st.navLeft) anyLeft = true; if (st.navRight) anyRight = true;
                 if (st.btnAction && !gpPrevButtonA[i]) trigA = true;
-                if (st.btnBack && !gpPrevButtonB[i]) trigB = true;
+                if (st.btnWeb && !gpPrevButtonB[i]) trigB = true;
                 if (st.btnStart && !gpPrevButtonStart[i]) trigStart = true;
 
-                gpPrevButtonA[i] = st.btnAction;
-                gpPrevButtonB[i] = st.btnBack;
-                gpPrevButtonStart[i] = st.btnStart;
+                gpPrevButtonA[i] = st.btnAction; gpPrevButtonB[i] = st.btnWeb; gpPrevButtonStart[i] = st.btnStart;
             }
 
             const menuEl = document.getElementById('menu');
@@ -1214,63 +1033,34 @@
             if (menuEl.style.display !== 'none') {
                 const rows = getMenuNavigationRows();
                 if (now - lastNavMoveTime > 185) {
-                    if (anyUp) {
-                        menuRowIdx = (menuRowIdx > 0) ? menuRowIdx - 1 : rows.length - 1;
-                        lastNavMoveTime = now;
-                        sfxUiMove();
-                        updateMenuGpFocusVisual();
-                    } else if (anyDown) {
-                        menuRowIdx = (menuRowIdx < rows.length - 1) ? menuRowIdx + 1 : 0;
-                        lastNavMoveTime = now;
-                        sfxUiMove();
-                        updateMenuGpFocusVisual();
-                    } else if (anyLeft) {
+                    if (anyUp) { menuRowIdx = (menuRowIdx > 0) ? menuRowIdx - 1 : rows.length - 1; lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual(); }
+                    else if (anyDown) { menuRowIdx = (menuRowIdx < rows.length - 1) ? menuRowIdx + 1 : 0; lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual(); }
+                    else if (anyLeft) {
                         const curRow = rows[Math.min(menuRowIdx, rows.length - 1)];
-                        if (curRow.length === 1 && curRow[0].tagName === 'SELECT') {
-                            activateMenuFocusedElement();
-                        } else if (curRow.length > 1) {
-                            menuColIdx = (menuColIdx > 0) ? menuColIdx - 1 : curRow.length - 1;
-                            sfxUiMove();
-                            updateMenuGpFocusVisual();
-                        }
+                        if (curRow.length === 1 && curRow[0].tagName === 'SELECT') activateMenuFocusedElement();
+                        else if (curRow.length > 1) { menuColIdx = (menuColIdx > 0) ? menuColIdx - 1 : curRow.length - 1; sfxUiMove(); updateMenuGpFocusVisual(); }
                         lastNavMoveTime = now;
                     } else if (anyRight) {
                         const curRow = rows[Math.min(menuRowIdx, rows.length - 1)];
-                        if (curRow.length === 1 && curRow[0].tagName === 'SELECT') {
-                            activateMenuFocusedElement();
-                        } else if (curRow.length > 1) {
-                            menuColIdx = (menuColIdx < curRow.length - 1) ? menuColIdx + 1 : 0;
-                            sfxUiMove();
-                            updateMenuGpFocusVisual();
-                        }
+                        if (curRow.length === 1 && curRow[0].tagName === 'SELECT') activateMenuFocusedElement();
+                        else if (curRow.length > 1) { menuColIdx = (menuColIdx < curRow.length - 1) ? menuColIdx + 1 : 0; sfxUiMove(); updateMenuGpFocusVisual(); }
                         lastNavMoveTime = now;
                     }
                 }
-                if (trigA) {
-                    activateMenuFocusedElement();
-                } else if (trigStart && selectedLessons.length > 0) {
-                    sfxUiConfirm();
-                    startGame();
-                }
+                if (trigA) activateMenuFocusedElement();
+                else if (trigStart && selectedLessons.length > 0) { sfxUiConfirm(); startGame(); }
             } else if (gameOverEl.style.display !== 'none' && (now - gameOverOpenedAt > 350)) {
                 const promptBox = document.getElementById('review-prompt-box');
                 const reviewSec = document.getElementById('review-section');
 
                 if (promptBox.style.display !== 'none') {
                     if (now - lastNavMoveTime > 180 && (anyLeft || anyRight)) {
-                        promptColIdx = (promptColIdx === 0) ? 1 : 0;
-                        lastNavMoveTime = now;
-                        sfxUiMove();
-                        updateMenuGpFocusVisual();
+                        promptColIdx = (promptColIdx === 0) ? 1 : 0; lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual();
                     }
                     if (trigA) {
                         sfxUiConfirm();
-                        if (promptColIdx === 0) showReviewSection();
-                        else location.reload();
-                    } else if (trigB) {
-                        sfxUiConfirm();
-                        location.reload();
-                    }
+                        if (promptColIdx === 0) showReviewSection(); else location.reload();
+                    } else if (trigB) { sfxUiConfirm(); location.reload(); }
                 } else if (reviewSec.style.display !== 'none') {
                     const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item'));
                     const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
@@ -1278,38 +1068,22 @@
 
                     if (now - lastNavMoveTime > 180) {
                         if (anyUp) {
-                            if (reviewRowIdx === -1 && activeList.length > 0) reviewRowIdx = activeList.length - 1;
-                            else if (reviewRowIdx > 0) reviewRowIdx--;
-                            lastNavMoveTime = now;
-                            sfxUiMove();
-                            updateMenuGpFocusVisual();
+                            if (reviewRowIdx === -1 && activeList.length > 0) reviewRowIdx = activeList.length - 1; else if (reviewRowIdx > 0) reviewRowIdx--;
+                            lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual();
                         } else if (anyDown) {
-                            if (reviewRowIdx >= 0 && reviewRowIdx < activeList.length - 1) reviewRowIdx++;
-                            else reviewRowIdx = -1;
-                            lastNavMoveTime = now;
-                            sfxUiMove();
-                            updateMenuGpFocusVisual();
+                            if (reviewRowIdx >= 0 && reviewRowIdx < activeList.length - 1) reviewRowIdx++; else reviewRowIdx = -1;
+                            lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual();
                         } else if ((anyLeft || anyRight) && playerCount === 2) {
                             reviewPanelIdx = (reviewPanelIdx === 0) ? 1 : 0;
                             const nextList = (reviewPanelIdx === 1) ? p2Items : p1Items;
-                            if (nextList.length === 0) reviewRowIdx = -1;
-                            else if (reviewRowIdx >= nextList.length) reviewRowIdx = nextList.length - 1;
-                            lastNavMoveTime = now;
-                            sfxUiMove();
-                            updateMenuGpFocusVisual();
+                            if (nextList.length === 0) reviewRowIdx = -1; else if (reviewRowIdx >= nextList.length) reviewRowIdx = nextList.length - 1;
+                            lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual();
                         }
                     }
                     if (trigA) {
-                        if (reviewRowIdx === -1 || activeList.length === 0) {
-                            sfxUiConfirm();
-                            location.reload();
-                        } else if (activeList[reviewRowIdx]) {
-                            activeList[reviewRowIdx].click();
-                        }
-                    } else if (trigB || trigStart) {
-                        sfxUiConfirm();
-                        location.reload();
-                    }
+                        if (reviewRowIdx === -1 || activeList.length === 0) { sfxUiConfirm(); location.reload(); }
+                        else if (activeList[reviewRowIdx]) activeList[reviewRowIdx].click();
+                    } else if (trigB || trigStart) { sfxUiConfirm(); location.reload(); }
                 }
             }
         }
@@ -1319,16 +1093,19 @@
     requestAnimationFrame(pollUiGamepadNavigation);
 
     // =========================================================
-    // 🛸 遊戲核心狀態、雙人搶答與「⚔️ 拔刀決鬥模式」
+    // 🛸 遊戲核心狀態與機制
     // =========================================================
-    let playerCount = 1;
     let preferredQType = 'random';
     let showHanziSetting = false;
     let time = 50, speed = 2.5, maxSpeed = 6.0, elapsedTime = 0, questionCount = 0;
-    let gameLoop = null, itemInterval = null;
+    let gameLoop = null, itemInterval = null, audioTimeout = null;
     let currentQuestionType = 'normal';
     let currentWaveTargetCard = null;
     let currentWaveAnswered = false;
+    let waveState = 'waiting_audio'; // 'waiting_audio' -> 'playing'
+
+    let globalMushroomActive = false; // 若為 true，下一題選項變成 2 個
+    let lastMushroomSwapTime = 0;
 
     const SIMULTANEOUS_WINDOW_MS = 180;
     const CLASH_WINDOW_MS = 130;
@@ -1338,27 +1115,30 @@
     let duelState = { active: false, pendingHitBy: -1, pendingHitAt: 0, cardEl: null };
 
     let players = [];
-    let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, W: false, s: false, S: false, a: false, A: false, d: false, D: false };
+    let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, W: false, s: false, S: false, a: false, A: false, d: false, D: false, Shift: false, e: false, E: false };
 
     function createPlayerObj(id, elId, controlType, gpIndex) {
-        const startY = (playerCount === 1)
-            ? (window.innerHeight / 2 - 32)
-            : (id === 0 ? window.innerHeight * 0.35 - 32 : window.innerHeight * 0.65 - 32);
+        const startY = getLaneY(1) + 20; // 中間跑道
         return {
             id: id,
             el: document.getElementById(elId),
             x: 80,
-            y: startY,
+            y: (playerCount === 1) ? startY : (id === 0 ? getLaneY(0) + 20 : getLaneY(2) + 20),
             speed: 7.5,
+            baseSpeed: 7.5,
             score: 0,
             correctCount: 0,
+            errorCount: 0, // 錯誤次數累計
+            debuffUntil: 0, // 慢閃爍減速結束時間
+            inventory: { web: 0, banana: 0 },
+            webbedUntil: 0,
+            bananaSliding: false,
             wrongQuestions: [],
             controlType: controlType,
             gpIndex: gpIndex,
             gpPrevAction: false,
-            gpPrevReplay: false,
-            stunnedUntil: 0,
-            knockbackVx: 0,
+            gpPrevWeb: false,
+            gpPrevBanana: false,
             duelHp: 100,
             slashCooldownUntil: 0,
             slashingUntil: 0
@@ -1369,6 +1149,23 @@
         if (!p || !card) return;
         if (!p.wrongQuestions.some(item => item.h === card.h && item.r === card.r)) {
             p.wrongQuestions.push({ h: card.h, r: card.r, a: card.a });
+        }
+    }
+
+    function getLaneY(laneIndex) {
+        return (window.innerHeight / 3) * laneIndex + (window.innerHeight / 6) - 50;
+    }
+
+    function updateItemHud() {
+        if (playerCount !== 2) return;
+        const p1 = players[0], p2 = players[1];
+        if (p1) {
+            document.getElementById('p1-web-slot').className = p1.inventory.web > 0 ? 'item-slot active' : 'item-slot';
+            document.getElementById('p1-banana-slot').className = p1.inventory.banana > 0 ? 'item-slot active' : 'item-slot';
+        }
+        if (p2) {
+            document.getElementById('p2-web-slot').className = p2.inventory.web > 0 ? 'item-slot active' : 'item-slot';
+            document.getElementById('p2-banana-slot').className = p2.inventory.banana > 0 ? 'item-slot active' : 'item-slot';
         }
     }
 
@@ -1387,6 +1184,14 @@
         board.style.display = 'block';
         board.classList.remove('duel-stage-glow');
         document.getElementById('duel-banner').style.display = 'none';
+
+        if (playerCount === 2) {
+            document.getElementById('p1-inventory').style.display = 'flex';
+            document.getElementById('p2-inventory').style.display = 'flex';
+        } else {
+            document.getElementById('p1-inventory').style.display = 'none';
+            document.getElementById('p2-inventory').style.display = 'none';
+        }
 
         players = [];
         const p1El = document.getElementById('player1');
@@ -1418,10 +1223,8 @@
             }
         }
 
-        players.forEach(p => {
-            p.el.style.left = p.x + 'px';
-            p.el.style.top = p.y + 'px';
-        });
+        players.forEach(p => { p.el.style.left = p.x + 'px'; p.el.style.top = p.y + 'px'; });
+        updateItemHud();
 
         const fetchPromises = selectedLessons.map(sheet => 
             fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
@@ -1441,12 +1244,7 @@
                     const folderName = audioFolderMap[sheet] || `${sheet}音檔`;
                     const fallbackAudioUrl = `https://yyanjhang-web.github.io/hosngetaiagi/${folderName}/-${numStr}.mp3`;
                     const colCAudioUrl = (p.length >= 3 && p[2].trim() !== "") ? p[2].trim() : fallbackAudioUrl;
-
-                    activeCards.push({
-                        h: p[0].trim(),
-                        r: p[1].trim().split('(')[0].trim(),
-                        a: colCAudioUrl
-                    });
+                    activeCards.push({ h: p[0].trim(), r: p[1].trim().split('(')[0].trim(), a: colCAudioUrl });
                 }
             });
         });
@@ -1458,6 +1256,7 @@
         time = 50; speed = 2.5; elapsedTime = 0; questionCount = 0;
         pendingClaim = null;
         duelState.active = false;
+        globalMushroomActive = false;
         isGameRunning = true;
 
         updateHudDisplay();
@@ -1482,13 +1281,16 @@
     function updateHudDisplay() {
         document.getElementById('time-display').innerText = `時間: ${time}`;
         if (players[0]) {
-            document.getElementById('p1-score-display').innerText = playerCount === 1
-                ? `分數: ${players[0].score}`
-                : `P1 分數: ${players[0].score}`;
+            document.getElementById('p1-score-display').innerText = playerCount === 1 ? `分數: ${players[0].score}` : `P1 分數: ${players[0].score}`;
         }
         if (playerCount === 2 && players[1]) {
             document.getElementById('p2-score-display').innerText = `P2 分數: ${players[1].score}`;
         }
+    }
+
+    function startWaveMovement() {
+        if (!isGameRunning) return;
+        waveState = 'playing';
     }
 
     function spawnQuestion() {
@@ -1496,26 +1298,29 @@
         pendingClaim = null;
         duelState.active = false;
         currentWaveAnswered = false;
+        waveState = 'waiting_audio';
 
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
         
         currentQuestionType = 'normal'; 
-        if (questionCount > 0 && questionCount % 3 === 0) currentQuestionType = 'special';
+        // 每 2 題出一次專屬補給波 (Loot Wave)
+        if (questionCount > 0 && questionCount % 2 === 0) currentQuestionType = 'loot';
 
         const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
 
-        if (currentQuestionType === 'special') {
+        if (currentQuestionType === 'loot') {
             currentWaveTargetCard = null;
+            let items = ['web', 'web', 'banana', 'banana', 'mushroom', 'mushroom', 'star', 'star', 'star'];
+            shuffleArray(items);
+            let waveId = 'loot_' + Date.now();
+            
+            let itemIdx = 0;
             for (let col = 0; col < 3; col++) {
-                let items = ['rocket', 'rocket', 'rocket', 'rocket', 'rocket', 'star'];
-                shuffleArray(items);
-                let waveId = 'special_' + Date.now() + '_' + col;
-                
-                for (let l = 0; l < 6; l++) {
-                    createEntity(items[l], '', false, screenWidth + (col * 250), (screenHeight / 6) * l, waveId);
+                for (let lane = 0; lane < 3; lane++) {
+                    createEntity(items[itemIdx++], '', false, screenWidth + (col * 300), getLaneY(lane), waveId, lane);
                 }
             }
+            waveState = 'playing'; // 補給波不需等語音
             return;
         }
 
@@ -1524,30 +1329,41 @@
         currentQuestionAudioUrl = target.a;
 
         const qData = buildPhonotacticQuestion(target, preferredQType, showHanziSetting);
-        if (!qData) {
-            spawnQuestion();
-            return;
-        }
-
-        playQuestionAudio();
+        if (!qData) { spawnQuestion(); return; }
 
         let waveId = 'text_' + Date.now();
-        qData.options.forEach((opt, index) => {
-            createEntity('text', opt.html, opt.isCorrect, screenWidth, (screenHeight / 3) * index, waveId);
+        const optionCount = globalMushroomActive ? 2 : 3;
+        globalMushroomActive = false; // 消耗蘑菇效果
+        
+        let options = shuffleArray([qData.options.find(o => o.isCorrect), ...qData.options.filter(o => !o.isCorrect).slice(0, optionCount - 1)]);
+        let availableLanes = shuffleArray([0, 1, 2]);
+
+        options.forEach((opt, index) => {
+            let lane = availableLanes[index];
+            createEntity('text', opt.html, opt.isCorrect, screenWidth + 50, getLaneY(lane), waveId, lane);
         });
+
+        // 語音完整播完後才讓卡片前進，設 2.5 秒保底防呆
+        clearTimeout(audioTimeout);
+        audioTimeout = setTimeout(startWaveMovement, 2500);
+        questionAudio.onended = () => { clearTimeout(audioTimeout); startWaveMovement(); };
+        
+        const rawUrl = currentQuestionAudioUrl;
+        const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
+        questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
+        questionAudio.play().catch(err => { clearTimeout(audioTimeout); startWaveMovement(); });
     }
 
-    function createEntity(type, htmlContent = '', isCorrect = false, startX, startY, groupId = '0') {
+    function createEntity(type, htmlContent = '', isCorrect = false, startX, startY, groupId = '0', lane = 0) {
         const el = document.createElement('div');
         el.className = 'obstacle';
         
-        if(type === 'star') { 
-            el.classList.add('bonus'); 
-            el.innerHTML = '<span class="star-icon">⭐</span>';
-        } else if(type === 'rocket') { 
-            el.classList.add('rocket'); 
-            el.innerText = "🚀"; 
-        } else {
+        if (type === 'star') { el.classList.add('loot-item'); el.innerHTML = '<span class="star-icon">⭐</span>'; }
+        else if (type === 'rocket') { el.classList.add('loot-item'); el.innerHTML = '<span class="star-icon">🚀</span>'; } // 保留兼容
+        else if (type === 'mushroom') { el.classList.add('loot-item'); el.innerHTML = '<span class="mushroom-icon">🍄</span>'; }
+        else if (type === 'web') { el.classList.add('loot-item'); el.innerHTML = '🕸️'; }
+        else if (type === 'banana') { el.classList.add('loot-item'); el.innerHTML = '🍌'; }
+        else {
             el.classList.add('text-card');
             el.innerHTML = htmlContent;
         }
@@ -1555,56 +1371,31 @@
         el.dataset.correct = isCorrect;
         el.dataset.type = type;
         el.dataset.x = startX; 
+        el.dataset.lane = lane;
         el.dataset.resolved = 'false'; 
         el.dataset.groupId = groupId;
         
         el.style.top = `${startY}px`;
         el.style.left = `${startX}px`;
-        
         document.getElementById('game-board').appendChild(el);
     }
 
-    function triggerCorrectEffect(originX = 0.5, originY = 0.6) {
-        confetti({ particleCount: 85, spread: 70, origin: { x: originX, y: originY } });
-    }
-
-    function triggerWrongEffect() {
-        const board = document.getElementById('game-board');
-        board.classList.remove('flash-error', 'flash-speed-up');
-        void board.offsetWidth; 
-        board.classList.add('flash-error');
-    }
-
-    function triggerSpeedUpEffect() {
-        const board = document.getElementById('game-board');
-        board.classList.remove('flash-speed-up', 'flash-error');
-        void board.offsetWidth; 
-        board.classList.add('flash-speed-up');
-    }
+    function triggerCorrectEffect(originX = 0.5, originY = 0.6) { confetti({ particleCount: 85, spread: 70, origin: { x: originX, y: originY } }); }
+    function triggerWrongEffect() { const board = document.getElementById('game-board'); board.classList.remove('flash-error', 'flash-speed-up'); void board.offsetWidth; board.classList.add('flash-error'); }
+    function triggerSpeedUpEffect() { const board = document.getElementById('game-board'); board.classList.remove('flash-speed-up', 'flash-error'); void board.offsetWidth; board.classList.add('flash-speed-up'); }
 
     // =========================================================
-    // ⚔ 拔刀決鬥模式：進入決鬥、揮刀判定、拚刀平手重置与勝負結算
+    // ⚔ 拔刀決鬥模式
     // =========================================================
     function startSwordDuel(cardEl) {
-        pendingClaim = null;
-        duelState.active = true;
-        duelState.pendingHitBy = -1;
-        duelState.pendingHitAt = 0;
-        duelState.cardEl = cardEl;
-
+        pendingClaim = null; duelState.active = true; duelState.pendingHitBy = -1; duelState.pendingHitAt = 0; duelState.cardEl = cardEl;
         sfxDuelStart();
-        const board = document.getElementById('game-board');
-        board.classList.add('duel-stage-glow');
+        document.getElementById('game-board').classList.add('duel-stage-glow');
         const banner = document.getElementById('duel-banner');
-        banner.innerText = "⚔️ 同時搶答！拔刀決鬥！(揤 A / ✕ / 空白鍵 揮刀) ⚔️";
-        banner.style.display = 'block';
+        banner.innerText = "⚔️ 同時搶答！拔刀決鬥！(揤 A / ✕ / 空白鍵 揮刀) ⚔️"; banner.style.display = 'block';
 
         players.forEach((p, idx) => {
-            p.stunnedUntil = 0;
-            p.knockbackVx = 0;
-            p.duelHp = 100;
-            p.el.classList.remove('player-stunned');
-            p.el.classList.add('in-duel');
+            p.bananaSliding = false; p.duelHp = 100; p.el.classList.add('in-duel');
             document.getElementById(`p${idx + 1}-duel-hp`).style.width = '100%';
         });
     }
@@ -1612,126 +1403,140 @@
     function attemptPlayerSlash(attackerIdx) {
         if (!isGameRunning || !duelState.active) return;
         const now = Date.now();
-        const attacker = players[attackerIdx];
-        const defender = players[1 - attackerIdx];
+        const attacker = players[attackerIdx]; const defender = players[1 - attackerIdx];
         if (!attacker || !defender) return;
         if (now < attacker.slashCooldownUntil) return;
 
         attacker.slashCooldownUntil = now + SLASH_COOLDOWN_MS;
         attacker.slashingUntil = now + 160;
-        attacker.el.classList.remove('slashing');
-        void attacker.el.offsetWidth;
-        attacker.el.classList.add('slashing');
+        attacker.el.classList.remove('slashing'); void attacker.el.offsetWidth; attacker.el.classList.add('slashing');
         sfxSwordSwing();
 
-        const dx = (attacker.x + 32) - (defender.x + 32);
-        const dy = (attacker.y + 32) - (defender.y + 32);
-        const dist = Math.hypot(dx, dy);
-
-        if (dist <= SLASH_RANGE_PX) {
+        const dx = (attacker.x + 32) - (defender.x + 32); const dy = (attacker.y + 32) - (defender.y + 32);
+        if (Math.hypot(dx, dy) <= SLASH_RANGE_PX) {
             if (duelState.pendingHitBy === -1) {
-                duelState.pendingHitBy = attackerIdx;
-                duelState.pendingHitAt = now;
+                duelState.pendingHitBy = attackerIdx; duelState.pendingHitAt = now;
                 document.getElementById(`p${defender.id + 1}-duel-hp`).style.width = '0%';
             } else if (duelState.pendingHitBy !== attackerIdx && (now - duelState.pendingHitAt <= CLASH_WINDOW_MS)) {
                 sfxSwordClash();
-                duelState.pendingHitBy = -1;
-                duelState.pendingHitAt = 0;
-                const banner = document.getElementById('duel-banner');
-                banner.innerText = "💥 鏘！拚刀平手！血條重置繼續砍！ 💥";
-
+                duelState.pendingHitBy = -1; duelState.pendingHitAt = 0;
+                document.getElementById('duel-banner').innerText = "💥 鏘！拚刀平手！血條重置繼續砍！ 💥";
                 const pushDir = (players[0].x <= players[1].x) ? -1 : 1;
                 players[0].x = Math.max(20, Math.min(window.innerWidth - 84, players[0].x + pushDir * 75));
                 players[1].x = Math.max(20, Math.min(window.innerWidth - 84, players[1].x - pushDir * 75));
-
-                players.forEach((p, idx) => {
-                    p.duelHp = 100;
-                    document.getElementById(`p${idx + 1}-duel-hp`).style.width = '100%';
-                });
+                players.forEach((p, idx) => { p.duelHp = 100; document.getElementById(`p${idx + 1}-duel-hp`).style.width = '100%'; });
             }
         }
     }
 
     function resolveSwordDuelWinner(winnerIdx) {
-        const winner = players[winnerIdx];
-        const loser = players[1 - winnerIdx];
+        const winner = players[winnerIdx]; const loser = players[1 - winnerIdx];
         duelState.active = false;
-
         sfxDuelWin();
-        winner.score += 25;
-        winner.correctCount++;
-        if (currentWaveTargetCard) {
-            recordPlayerWrong(loser, currentWaveTargetCard);
-        }
+        winner.score += 25; winner.correctCount++; winner.errorCount = 0;
+        applyPlayerDebuffVisual(winner);
+        
+        if (currentWaveTargetCard) recordPlayerWrong(loser, currentWaveTargetCard);
         currentWaveAnswered = true;
 
         const winRect = winner.el.getBoundingClientRect();
-        triggerCorrectEffect(
-            (winRect.left + 32) / window.innerWidth,
-            (winRect.top + 32) / window.innerHeight
-        );
+        triggerCorrectEffect((winRect.left + 32) / window.innerWidth, (winRect.top + 32) / window.innerHeight);
 
         document.getElementById('game-board').classList.remove('duel-stage-glow');
         document.getElementById('duel-banner').style.display = 'none';
         players.forEach(p => p.el.classList.remove('in-duel', 'slashing'));
 
-        updateHudDisplay();
-        questionCount++;
-        spawnQuestion();
+        updateHudDisplay(); questionCount++; spawnQuestion();
     }
 
     function awardCleanClaim(winnerIdx, cardEl) {
         const winner = players[winnerIdx];
-        pendingClaim = null;
-        sfxGrabCorrect();
+        pendingClaim = null; sfxGrabCorrect();
 
-        if (playerCount === 1) {
-            time += 1;
-            winner.score += 15;
-        } else {
+        if (playerCount === 1) { time += 1; winner.score += 15; }
+        else {
             winner.score += 20;
             const loser = players[1 - winnerIdx];
-            if (currentWaveTargetCard) {
-                recordPlayerWrong(loser, currentWaveTargetCard);
-            }
+            if (currentWaveTargetCard) recordPlayerWrong(loser, currentWaveTargetCard);
         }
-        winner.correctCount++;
+        winner.correctCount++; winner.errorCount = 0;
+        applyPlayerDebuffVisual(winner);
         currentWaveAnswered = true;
 
         const rect = cardEl ? cardEl.getBoundingClientRect() : winner.el.getBoundingClientRect();
-        triggerCorrectEffect(
-            Math.min(0.9, Math.max(0.1, rect.left / window.innerWidth)),
-            Math.min(0.9, Math.max(0.1, rect.top / window.innerHeight))
-        );
+        triggerCorrectEffect(Math.min(0.9, Math.max(0.1, rect.left / window.innerWidth)), Math.min(0.9, Math.max(0.1, rect.top / window.innerHeight)));
 
-        updateHudDisplay();
-        questionCount++;
-        spawnQuestion();
+        updateHudDisplay(); questionCount++; spawnQuestion();
+    }
+
+    // =========================================================
+    // 🛡️ 玩家負面狀態與陷害道具施放
+    // =========================================================
+    function applyPlayerDebuffVisual(p) {
+        const now = Date.now();
+        if (p.errorCount >= 2 && now < p.debuffUntil) {
+            p.speed = p.baseSpeed / 2;
+            p.el.classList.add('slow-flash'); p.el.classList.remove('dimmed');
+        } else if (p.errorCount >= 1) {
+            p.speed = p.baseSpeed;
+            p.el.classList.add('dimmed'); p.el.classList.remove('slow-flash');
+            if (p.errorCount >= 2 && now >= p.debuffUntil) p.errorCount = 1;
+        } else {
+            p.speed = p.baseSpeed;
+            p.el.classList.remove('dimmed', 'slow-flash');
+        }
+    }
+
+    function applyPlayerWrongPenalty(p) {
+        p.errorCount++;
+        if (p.errorCount >= 2) p.debuffUntil = Date.now() + 3000;
+        applyPlayerDebuffVisual(p);
+    }
+
+    function useWeb(pId) {
+        if (playerCount !== 2 || !isGameRunning || duelState.active) return;
+        const p = players[pId];
+        if (p.inventory.web > 0) {
+            p.inventory.web--; updateItemHud(); sfxItemUse();
+            const target = players[1 - pId];
+            target.webbedUntil = Date.now() + 2000; // 定身 2 秒
+        }
+    }
+
+    function useBanana(pId) {
+        if (playerCount !== 2 || !isGameRunning || duelState.active) return;
+        const p = players[pId];
+        if (p.inventory.banana > 0) {
+            p.inventory.banana--; updateItemHud(); sfxItemUse();
+            const target = players[1 - pId];
+            target.bananaSliding = true; // 強制滑行
+        }
     }
 
     function handlePlayerMovements(now) {
         const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
 
         players.forEach((p, idx) => {
-            if (now >= p.slashingUntil) {
-                p.el.classList.remove('slashing');
-            }
+            if (now >= p.slashingUntil) p.el.classList.remove('slashing');
 
-            const isStunned = (now < p.stunnedUntil);
-            p.el.classList.toggle('player-stunned', isStunned);
-            if (Math.abs(p.knockbackVx) > 0.2) {
-                p.x += p.knockbackVx;
-                p.knockbackVx *= 0.86;
-            } else {
-                p.knockbackVx = 0;
-            }
+            applyPlayerDebuffVisual(p);
+            p.el.classList.toggle('is-webbed', now < p.webbedUntil);
 
-            if (!isStunned) {
+            // 如果踩到香蕉皮，強制極速往前滑
+            if (p.bananaSliding) {
+                p.x += 22; 
+                if (p.x >= window.innerWidth - 64) p.bananaSliding = false;
+            } 
+            // 否則正常移動（受蜘蛛網定身限制）
+            else if (now >= p.webbedUntil) {
                 if (p.controlType === 'keyboard' || p.controlType === 'kb_and_gp') {
                     if (keys.ArrowUp || keys.w || keys.W) p.y -= p.speed;
                     if (keys.ArrowDown || keys.s || keys.S) p.y += p.speed;
                     if (keys.ArrowLeft || keys.a || keys.A) p.x -= p.speed;
                     if (keys.ArrowRight || keys.d || keys.D) p.x += p.speed;
+                    // 鍵盤陷害道具按鍵
+                    if (keys.Shift && playerCount === 2) { useWeb(idx); keys.Shift = false; }
+                    if ((keys.e || keys.E) && playerCount === 2) { useBanana(idx); keys.e = false; keys.E = false; }
                 }
 
                 if (p.controlType === 'gamepad' || p.controlType === 'kb_and_gp') {
@@ -1743,14 +1548,16 @@
                         if (st.moveUp) p.y -= p.speed;
                         if (st.moveDown) p.y += p.speed;
 
-                        if (st.btnAction && !p.gpPrevAction && duelState.active) {
-                            attemptPlayerSlash(idx);
-                        }
+                        if (st.btnAction && !p.gpPrevAction && duelState.active) attemptPlayerSlash(idx);
                         p.gpPrevAction = st.btnAction;
+                        
+                        if (st.btnWeb && !p.gpPrevWeb) useWeb(idx);
+                        p.gpPrevWeb = st.btnWeb;
 
-                        if (st.btnReplay && !p.gpPrevReplay && playerCount === 1) {
-                            playQuestionAudio();
-                        }
+                        if (st.btnBanana && !p.gpPrevBanana) useBanana(idx);
+                        p.gpPrevBanana = st.btnBanana;
+
+                        if (st.btnReplay && !p.gpPrevReplay && playerCount === 1) playQuestionAudio();
                         p.gpPrevReplay = st.btnReplay;
                     }
                 }
@@ -1758,18 +1565,12 @@
 
             p.x = Math.max(0, Math.min(p.x, window.innerWidth - 64));
             p.y = Math.max(0, Math.min(p.y, window.innerHeight - 64));
-            p.el.style.left = p.x + 'px';
-            p.el.style.top = p.y + 'px';
+            p.el.style.left = p.x + 'px'; p.el.style.top = p.y + 'px';
         });
     }
 
     function isRectOverlapping(r1, r2, tol = 10) {
-        return (
-            r1.left + tol < r2.right &&
-            r1.right - tol > r2.left &&
-            r1.top + tol < r2.bottom &&
-            r1.bottom - tol > r2.top
-        );
+        return ( r1.left + tol < r2.right && r1.right - tol > r2.left && r1.top + tol < r2.bottom && r1.bottom - tol > r2.top );
     }
 
     function update() {
@@ -1779,141 +1580,110 @@
         handlePlayerMovements(now);
 
         if (duelState.active) {
-            if (duelState.pendingHitBy !== -1 && (now - duelState.pendingHitAt > CLASH_WINDOW_MS)) {
-                resolveSwordDuelWinner(duelState.pendingHitBy);
-            }
-            gameLoop = requestAnimationFrame(update);
-            return;
+            if (duelState.pendingHitBy !== -1 && (now - duelState.pendingHitAt > CLASH_WINDOW_MS)) resolveSwordDuelWinner(duelState.pendingHitBy);
+            gameLoop = requestAnimationFrame(update); return;
         }
 
         if (pendingClaim && playerCount === 2) {
-            const otherIdx = 1 - pendingClaim.playerIndex;
-            const otherP = players[otherIdx];
-            const cardRect = pendingClaim.cardEl.getBoundingClientRect();
-            const otherRect = otherP.el.getBoundingClientRect();
+            const otherIdx = 1 - pendingClaim.playerIndex; const otherP = players[otherIdx];
+            const cardRect = pendingClaim.cardEl.getBoundingClientRect(); const otherRect = otherP.el.getBoundingClientRect();
+            if (isRectOverlapping(otherRect, cardRect, 6)) { startSwordDuel(pendingClaim.cardEl); gameLoop = requestAnimationFrame(update); return; }
+            else if (now - pendingClaim.timestamp >= SIMULTANEOUS_WINDOW_MS) { awardCleanClaim(pendingClaim.playerIndex, pendingClaim.cardEl); gameLoop = requestAnimationFrame(update); return; }
+            gameLoop = requestAnimationFrame(update); return;
+        }
 
-            if (now >= otherP.stunnedUntil && isRectOverlapping(otherRect, cardRect, 6)) {
-                startSwordDuel(pendingClaim.cardEl);
-                gameLoop = requestAnimationFrame(update);
-                return;
-            } else if (now - pendingClaim.timestamp >= SIMULTANEOUS_WINDOW_MS) {
-                awardCleanClaim(pendingClaim.playerIndex, pendingClaim.cardEl);
-                gameLoop = requestAnimationFrame(update);
-                return;
+        // =========================================================
+        // 🍄 蘑菇 2 選 1 鎖定換道機制
+        // =========================================================
+        if (currentQuestionType === 'normal' && waveState === 'playing') {
+            const textCards = document.querySelectorAll('.obstacle[data-type="text"]');
+            if (textCards.length === 2 && now - lastMushroomSwapTime > 450) {
+                let c1 = textCards[0], c2 = textCards[1];
+                let xPos = parseFloat(c1.dataset.x);
+                // 只有在畫面左側 1/3 之前會瘋狂換道，進入 1/3 區域即鎖定
+                if (xPos > window.innerWidth / 3) {
+                    let tempY = c1.style.top; let tempLane = c1.dataset.lane;
+                    c1.style.top = c2.style.top; c1.dataset.lane = c2.dataset.lane;
+                    c2.style.top = tempY; c2.dataset.lane = tempLane;
+                    lastMushroomSwapTime = now;
+                }
             }
-            gameLoop = requestAnimationFrame(update);
-            return;
         }
 
         const obstacles = document.querySelectorAll('.obstacle');
         let waveEndedByMissOr1PWrong = false;
 
         obstacles.forEach(obs => {
-            let x = parseFloat(obs.dataset.x) - speed; 
-            obs.dataset.x = x;
-            obs.style.left = `${x}px`;
+            // 如果還在等語音，文字卡片不移動；但 Loot 波的道具會直接出發
+            if (waveState === 'waiting_audio' && obs.dataset.type === 'text') return;
 
-            if (obs.dataset.resolved === 'true') {
-                if (x < -260) obs.remove();
-                return;
-            }
+            let x = parseFloat(obs.dataset.x) - speed; 
+            obs.dataset.x = x; obs.style.left = `${x}px`;
+
+            if (obs.dataset.resolved === 'true') { if (x < -300) obs.remove(); return; }
 
             const oRect = obs.getBoundingClientRect();
 
             for (let pIdx = 0; pIdx < players.length; pIdx++) {
                 const p = players[pIdx];
-                if (now < p.stunnedUntil) continue;
                 const pRect = p.el.getBoundingClientRect();
 
                 if (isRectOverlapping(pRect, oRect, 10)) {
                     const obsType = obs.dataset.type;
 
                     if (obsType === 'star') {
-                        obs.dataset.resolved = 'true';
-                        obs.style.opacity = '0.15';
-                        time += 2;
-                        p.score += 15;
-                        sfxStar();
+                        obs.dataset.resolved = 'true'; obs.style.opacity = '0.15';
+                        time += 2; p.score += 15; sfxStar();
                         triggerCorrectEffect((pRect.left + 32) / window.innerWidth, (pRect.top + 32) / window.innerHeight);
-                        if (playerCount === 1) {
-                            let gId = obs.dataset.groupId;
-                            document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`).forEach(c => {
-                                c.dataset.resolved = 'true';
-                                if (c !== obs) c.remove();
-                            });
-                        } else {
-                            setTimeout(() => obs.remove(), 150);
-                        }
-                        break;
-                    } else if (obsType === 'rocket') {
+                        setTimeout(() => obs.remove(), 150);
+                    } else if (obsType === 'web') {
                         obs.dataset.resolved = 'true';
-                        obs.style.opacity = '0.15';
-                        speed = Math.min(speed + 0.2, maxSpeed);
-                        sfxRocket();
-                        triggerSpeedUpEffect();
-                        if (playerCount === 1) {
-                            let gId = obs.dataset.groupId;
-                            document.querySelectorAll(`.obstacle[data-group-id="${gId}"]`).forEach(c => {
-                                c.dataset.resolved = 'true';
-                                if (c !== obs) c.remove();
-                            });
-                        } else {
-                            setTimeout(() => obs.remove(), 150);
-                        }
-                        break;
+                        if (p.inventory.web < 1) { p.inventory.web = 1; updateItemHud(); }
+                        sfxStar(); obs.remove();
+                    } else if (obsType === 'banana') {
+                        obs.dataset.resolved = 'true';
+                        if (p.inventory.banana < 1) { p.inventory.banana = 1; updateItemHud(); }
+                        sfxStar(); obs.remove();
+                    } else if (obsType === 'mushroom') {
+                        obs.dataset.resolved = 'true';
+                        globalMushroomActive = true;
+                        sfxSpeedUp(); obs.remove();
                     } else if (obsType === 'text') {
+                        p.bananaSliding = false; // 撞到字卡解除滑行狀態
                         if (obs.dataset.correct === 'true') {
-                            if (playerCount === 1) {
-                                obs.dataset.resolved = 'true';
-                                awardCleanClaim(0, obs);
-                                return;
-                            } else {
-                                const otherP = players[1 - pIdx];
-                                const otherRect = otherP.el.getBoundingClientRect();
-                                if (now >= otherP.stunnedUntil && isRectOverlapping(otherRect, oRect, -18)) {
-                                    startSwordDuel(obs);
-                                    return;
-                                } else {
-                                    pendingClaim = { playerIndex: pIdx, timestamp: now, cardEl: obs };
-                                    return;
-                                }
+                            if (playerCount === 1) { obs.dataset.resolved = 'true'; awardCleanClaim(0, obs); return; }
+                            else {
+                                const otherP = players[1 - pIdx]; const otherRect = otherP.el.getBoundingClientRect();
+                                if (isRectOverlapping(otherRect, oRect, -18)) { startSwordDuel(obs); return; }
+                                else { pendingClaim = { playerIndex: pIdx, timestamp: now, cardEl: obs }; return; }
                             }
                         } else {
                             obs.dataset.resolved = 'true';
-                            sfxHitWrongStun();
-                            triggerWrongEffect();
-                            if (currentWaveTargetCard) {
-                                recordPlayerWrong(p, currentWaveTargetCard);
-                            }
-                            p.stunnedUntil = now + 1500;
-                            p.knockbackVx = -18;
+                            sfxHitWrong(); triggerWrongEffect();
+                            if (currentWaveTargetCard) recordPlayerWrong(p, currentWaveTargetCard);
+                            
+                            applyPlayerWrongPenalty(p); // 套用新版負面狀態
 
                             if (playerCount === 1) {
                                 time = Math.max(0, time - 2);
-                                speed = Math.min(speed + 0.2, maxSpeed);
                                 waveEndedByMissOr1PWrong = true;
                             } else {
                                 p.score = Math.max(0, p.score - 10);
                                 obs.remove(); 
                             }
-                            break;
                         }
                     }
+                    break;
                 }
             }
 
-            if (x < -230) {
+            if (x < -280) {
                 if (obs.dataset.resolved === 'false') {
                     obs.dataset.resolved = 'true';
                     if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
-                        sfxHitWrongStun();
-                        triggerWrongEffect();
-                        if (currentWaveTargetCard) {
-                            players.forEach(pl => recordPlayerWrong(pl, currentWaveTargetCard));
-                        }
-                        if (playerCount === 1) {
-                            time = Math.max(0, time - 2);
-                        }
+                        sfxHitWrong(); triggerWrongEffect();
+                        if (currentWaveTargetCard) players.forEach(pl => recordPlayerWrong(pl, currentWaveTargetCard));
+                        if (playerCount === 1) time = Math.max(0, time - 2);
                         waveEndedByMissOr1PWrong = true;
                     }
                 }
@@ -1922,20 +1692,15 @@
         });
 
         if (waveEndedByMissOr1PWrong && currentQuestionType === 'normal') {
-            questionCount++;
-            spawnQuestion();
-        } else if (currentQuestionType === 'special') {
+            questionCount++; spawnQuestion();
+        } else if (currentQuestionType === 'loot') {
             if (document.querySelectorAll('.obstacle[data-resolved="false"]').length === 0) {
-                questionCount++;
-                spawnQuestion(); 
+                questionCount++; spawnQuestion(); 
             }
         }
 
         updateHudDisplay();
-        if (time <= 0) {
-            endGame();
-            return;
-        }
+        if (time <= 0) { endGame(); return; }
         gameLoop = requestAnimationFrame(update);
     }
 
@@ -1943,25 +1708,16 @@
         cardEl.querySelectorAll('.falling-leaf').forEach(el => el.remove());
         const leafIcons = ['🍂', '🍁', '🍃'];
         for (let i = 0; i < 8; i++) {
-            const leaf = document.createElement('div');
-            leaf.className = 'falling-leaf';
-            leaf.innerText = leafIcons[i % leafIcons.length];
-            leaf.style.left = `${15 + Math.random() * 80}%`;
-            leaf.style.animationDuration = `${2.4 + Math.random() * 1.8}s`;
-            leaf.style.animationDelay = `${Math.random() * 2}s`;
+            const leaf = document.createElement('div'); leaf.className = 'falling-leaf'; leaf.innerText = leafIcons[i % leafIcons.length];
+            leaf.style.left = `${15 + Math.random() * 80}%`; leaf.style.animationDuration = `${2.4 + Math.random() * 1.8}s`; leaf.style.animationDelay = `${Math.random() * 2}s`;
             cardEl.appendChild(leaf);
         }
     }
 
     function endGame() {
         if (!isGameRunning) return;
-        isGameRunning = false;
-        duelState.active = false;
-        pendingClaim = null;
-        gameOverOpenedAt = Date.now();
-        cancelAnimationFrame(gameLoop);
-        clearInterval(itemInterval);
-        questionAudio.pause();
+        isGameRunning = false; duelState.active = false; pendingClaim = null; gameOverOpenedAt = Date.now();
+        cancelAnimationFrame(gameLoop); clearInterval(itemInterval); questionAudio.pause();
 
         if (currentQuestionType === 'normal' && currentWaveTargetCard && !currentWaveAnswered) {
             players.forEach(p => recordPlayerWrong(p, currentWaveTargetCard));
@@ -1971,20 +1727,13 @@
         document.getElementById('game-over').style.display = 'flex';
         document.getElementById('review-prompt-box').style.display = 'block';
         document.getElementById('review-section').style.display = 'none';
-        promptColIdx = 0;
-        reviewRowIdx = -1;
-        reviewPanelIdx = 0;
+        promptColIdx = 0; reviewRowIdx = -1; reviewPanelIdx = 0;
         updateMenuGpFocusVisual();
 
-        const box1P = document.getElementById('gameover-1p-box');
-        const box2P = document.getElementById('gameover-2p-box');
-
+        const box1P = document.getElementById('gameover-1p-box'); const box2P = document.getElementById('gameover-2p-box');
         if (playerCount === 1) {
-            box1P.style.display = 'block';
-            box2P.style.display = 'none';
-            const finalScore = players[0].score;
-            document.getElementById('final-score').innerText = finalScore;
-            
+            box1P.style.display = 'block'; box2P.style.display = 'none';
+            const finalScore = players[0].score; document.getElementById('final-score').innerText = finalScore;
             let comment = "";
             if (finalScore >= 400) { comment = "真gâu"; sfxGameOver(true); }
             else if (finalScore >= 300) { comment = "袂bái"; sfxGameOver(true); }
@@ -1992,45 +1741,29 @@
             else { comment = "繼續phah piànn"; sfxGameOver(false); }
             document.getElementById('score-comment').innerText = comment;
         } else {
-            box1P.style.display = 'none';
-            box2P.style.display = 'flex';
-            const s1 = players[0].score;
-            const s2 = players[1].score;
-            document.getElementById('p1-final-score').innerText = s1;
-            document.getElementById('p2-final-score').innerText = s2;
-
-            const c1 = document.getElementById('p1-result-card');
-            const c2 = document.getElementById('p2-result-card');
-            const i1 = document.getElementById('p1-result-icon');
-            const i2 = document.getElementById('p2-result-icon');
-            const st1 = document.getElementById('p1-result-status');
-            const st2 = document.getElementById('p2-result-status');
+            box1P.style.display = 'none'; box2P.style.display = 'flex';
+            const s1 = players[0].score; const s2 = players[1].score;
+            document.getElementById('p1-final-score').innerText = s1; document.getElementById('p2-final-score').innerText = s2;
+            const c1 = document.getElementById('p1-result-card'); const c2 = document.getElementById('p2-result-card');
+            const i1 = document.getElementById('p1-result-icon'); const i2 = document.getElementById('p2-result-icon');
+            const st1 = document.getElementById('p1-result-status'); const st2 = document.getElementById('p2-result-status');
             const title2P = document.getElementById('gameover-2p-title');
-
-            c1.querySelectorAll('.falling-leaf').forEach(el => el.remove());
-            c2.querySelectorAll('.falling-leaf').forEach(el => el.remove());
+            c1.querySelectorAll('.falling-leaf').forEach(el => el.remove()); c2.querySelectorAll('.falling-leaf').forEach(el => el.remove());
 
             if (s1 > s2) {
                 title2P.innerText = "🏆 玩家 1 獲勝！ 🏆";
                 c1.className = "p2-result-card winner-card"; i1.innerText = "🏆"; st1.innerText = "台語小博士";
                 c2.className = "p2-result-card loser-card"; i2.innerText = "🍂"; st2.innerText = "繼續拍拚";
-                spawnAutumnLeaves(c2);
-                sfxGameOver(true);
-                confetti({ particleCount: 90, spread: 70, origin: { x: 0.3, y: 0.5 } });
+                spawnAutumnLeaves(c2); sfxGameOver(true); confetti({ particleCount: 90, spread: 70, origin: { x: 0.3, y: 0.5 } });
             } else if (s2 > s1) {
                 title2P.innerText = "🏆 玩家 2 獲勝！ 🏆";
                 c2.className = "p2-result-card winner-card"; i2.innerText = "🏆"; st2.innerText = "台語小博士";
                 c1.className = "p2-result-card loser-card"; i1.innerText = "🍂"; st1.innerText = "繼續拍拚";
-                spawnAutumnLeaves(c1);
-                sfxGameOver(true);
-                confetti({ particleCount: 90, spread: 70, origin: { x: 0.7, y: 0.5 } });
+                spawnAutumnLeaves(c1); sfxGameOver(true); confetti({ particleCount: 90, spread: 70, origin: { x: 0.7, y: 0.5 } });
             } else {
                 title2P.innerText = "🍂 平手 🍂";
-                c1.className = "p2-result-card loser-card"; i1.innerText = "🍂"; st1.innerText = "繼續拍拚";
-                spawnAutumnLeaves(c1);
-                c2.className = "p2-result-card loser-card"; i2.innerText = "🍂"; st2.innerText = "繼續拍拚";
-                spawnAutumnLeaves(c2);
-                sfxGameOver(false);
+                c1.className = "p2-result-card loser-card"; i1.innerText = "🍂"; st1.innerText = "繼續拍拚"; spawnAutumnLeaves(c1);
+                c2.className = "p2-result-card loser-card"; i2.innerText = "🍂"; st2.innerText = "繼續拍拚"; spawnAutumnLeaves(c2); sfxGameOver(false);
             }
         }
     }
@@ -2050,15 +1783,12 @@
                 emptyDiv.classList.add('zero');
                 emptyDiv.innerText = '本局尚無答對紀錄，繼續拍拚！';
             }
-            containerEl.appendChild(emptyDiv);
-            return;
+            containerEl.appendChild(emptyDiv); return;
         }
         wrongList.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'review-item';
+            const row = document.createElement('div'); row.className = 'review-item';
             row.innerHTML = `<span class="review-hanzi">🔊 ${item.h}</span><span class="review-tailo">${formatTailoHtml(item.r)}</span>`;
-            row.onclick = () => playQuestionAudio(item.a);
-            containerEl.appendChild(row);
+            row.onclick = () => playQuestionAudio(item.a); containerEl.appendChild(row);
         });
     }
 
@@ -2070,19 +1800,14 @@
         const p1Header = document.getElementById('review-p1-header');
 
         if (playerCount === 1) {
-            p1Header.innerText = "📖 錯題複習 (揤詞語聽發音)";
-            p2Panel.style.display = 'none';
+            p1Header.innerText = "📖 錯題複習 (揤詞語聽發音)"; p2Panel.style.display = 'none';
             renderPlayerWrongList(document.getElementById('review-p1-list'), players[0]);
         } else {
-            p1Header.innerText = "🛸 玩家 1 複習清單 (揤詞語聽發音)";
-            p2Panel.style.display = 'block';
+            p1Header.innerText = "🥷 玩家 1 複習清單 (揤詞語聽發音)"; p2Panel.style.display = 'block';
             renderPlayerWrongList(document.getElementById('review-p1-list'), players[0]);
             renderPlayerWrongList(document.getElementById('review-p2-list'), players[1]);
         }
-
-        reviewSec.style.display = 'flex';
-        reviewRowIdx = -1;
-        updateMenuGpFocusVisual();
+        reviewSec.style.display = 'flex'; reviewRowIdx = -1; updateMenuGpFocusVisual();
     }
 
     // 鍵盤事件
@@ -2093,40 +1818,31 @@
         if ((e.code === 'Space' || e.key === 'Enter') && duelState.active) {
             e.preventDefault();
             const kbIdx = players.findIndex(p => p.controlType === 'keyboard' || p.controlType === 'kb_and_gp');
-            if (kbIdx !== -1 && !e.repeat) {
-                attemptPlayerSlash(kbIdx);
-            }
+            if (kbIdx !== -1 && !e.repeat) attemptPlayerSlash(kbIdx);
         } else if ((e.key === 'q' || e.key === 'Q') && playerCount === 1) {
-            e.preventDefault();
-            playQuestionAudio();
+            e.preventDefault(); playQuestionAudio();
         }
     });
     window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
     // 觸控拖曳移動（僅限單人觸控模式）
     const board = document.getElementById('game-board');
-    let isTouching = false;
-    let touchStartX, touchStartY, playerStartX, playerStartY;
+    let isTouching = false, touchStartX, touchStartY, playerStartX, playerStartY;
 
     board.addEventListener('touchstart', (e) => {
         if (!isGameRunning || playerCount !== 1 || !players[0] || players[0].controlType !== 'touch') return;
         if (e.target.closest('#replay-audio-btn') || e.target.closest('#sfx-toggle-btn')) return;
-        e.preventDefault();
-        isTouching = true;
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-        playerStartX = players[0].x;
-        playerStartY = players[0].y;
+        e.preventDefault(); isTouching = true;
+        touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
+        playerStartX = players[0].x; playerStartY = players[0].y;
     }, {passive: false});
 
     board.addEventListener('touchmove', (e) => {
         if (!isTouching || !isGameRunning || !players[0]) return;
-        if (Date.now() < players[0].stunnedUntil) return;
+        if (Date.now() < players[0].webbedUntil || Date.now() < players[0].stunnedUntil || players[0].bananaSliding) return;
         e.preventDefault();
-        let dx = e.touches[0].clientX - touchStartX;
-        let dy = e.touches[0].clientY - touchStartY;
-        players[0].x = playerStartX + dx * 1.5; 
-        players[0].y = playerStartY + dy * 1.5;
+        players[0].x = playerStartX + (e.touches[0].clientX - touchStartX) * 1.5; 
+        players[0].y = playerStartY + (e.touches[0].clientY - touchStartY) * 1.5;
     }, {passive: false});
 
     board.addEventListener('touchend', () => { isTouching = false; });
