@@ -4,14 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, orientation=landscape">
     <title>台語跑酷 - 忍者對決版</title>
-    <!-- 引入 Google Fonts：Noto Sans TC、霞鶩文楷 (LXGW WenKai TC 支援台語擴展罕見字) 與 Charis SIL (完美支援台羅聲調) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Charis+SIL:wght@400;700&family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <!-- 引入 豆腐烏 (Tauhu-Oo) 官方網頁字型 -->
+    <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
+    <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
     <!-- 引入彩帶特效函式庫 -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: 'Noto Sans', 'Noto Sans TC', 'LXGW WenKai TC', 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; overflow: hidden; background-color: #0f172a; touch-action: none; user-select: none; -webkit-user-select: none; }
+        body { 
+            font-family: tauhu-oo-bold, PingFangTC-Bold, "Microsoft JhengHei Bold", sans-serif; 
+            margin: 0; padding: 0; overflow: hidden; background-color: #0f172a; 
+            touch-action: none; user-select: none; -webkit-user-select: none; 
+        }
         
         #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 30; padding: 10px 14px; box-sizing: border-box; overflow-y: auto; }
         
@@ -86,7 +89,7 @@
             font-size: 20px; filter: grayscale(1); opacity: 0.3; transition: 0.2s;
         }
         .item-slot.active { filter: grayscale(0); opacity: 1; border-color: #fde047; box-shadow: 0 0 8px #fde047; transform: scale(1.1); }
-        .item-hint { font-size: 10px; position: absolute; bottom: -14px; text-shadow: none; color: #cbd5e1; }
+        .item-hint { font-size: 10px; position: absolute; bottom: -14px; text-shadow: none; color: #cbd5e1; font-family: Arial, sans-serif; }
 
         #sfx-toggle-btn {
             background: rgba(255, 255, 255, 0.18); border: 2px solid rgba(255, 255, 255, 0.55);
@@ -181,21 +184,18 @@
             border-radius: 12px 0 0 12px; padding: 10px; box-sizing: border-box; text-align: center;
             transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
         }
-        .card-hanzi { color: #fb923c; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; font-size: clamp(16px, 2vw, 22px); margin-bottom: 6px; font-weight: bold; line-height: 1.2; }
+        .card-hanzi { color: #fb923c; font-size: clamp(16px, 2vw, 22px); margin-bottom: 6px; line-height: 1.2; }
         .card-tailo {
-            color: #94a3b8; font-family: 'Charis SIL', 'Noto Sans', sans-serif; font-size: clamp(22px, 3.2vw, 32px); font-weight: bold;
+            color: #94a3b8; font-size: clamp(22px, 3.2vw, 32px); 
             line-height: 1.3; word-wrap: break-word; /* 允許換行 */
         }
-        .target-pink { color: #ec4899; font-weight: 900; margin: 0 2px; }
+        .target-pink { color: #ec4899; margin: 0 2px; }
         .context-text { opacity: 0.75; }
 
         /* 補給波道具圖示 */
         .loot-item { height: 16.67vh; width: 120px; font-size: min(8vh, 60px); box-sizing: border-box; margin: 0; transition: opacity 0.2s; }
         .star-icon, .mushroom-icon { display: inline-block; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
-
-        .t8, .t8-i { position: relative; display: inline-block; line-height: 1; }
-        .t8::after, .t8-i::after { content: ''; position: absolute; top: 0.03em; left: 50%; transform: translateX(-50%); width: 2.2px; height: 0.22em; background-color: currentColor; border-radius: 1px; pointer-events: none; }
 
         /* ========================================================= */
         /* 雙人對戰結算畫面與複習視窗 */
@@ -234,8 +234,8 @@
         .review-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 8px; border-bottom: 1px solid #1e293b; border-radius: 6px; cursor: pointer; transition: background 0.15s; gap: 8px; }
         .review-item:hover, .review-item:active { background: rgba(56, 189, 248, 0.18); }
         .review-item:last-child { border-bottom: none; }
-        .review-hanzi { color: #fbbf24; font-size: 18px; font-weight: bold; font-family: 'Noto Sans TC', 'LXGW WenKai TC', sans-serif; }
-        .review-tailo { color: #38bdf8; font-size: 19px; font-weight: bold; font-family: 'Charis SIL', 'Noto Sans', sans-serif; letter-spacing: 0.5px; }
+        .review-hanzi { color: #fbbf24; font-size: 18px; font-weight: bold; }
+        .review-tailo { color: #38bdf8; font-size: 19px; font-weight: bold; letter-spacing: 0.5px; }
         .review-empty-msg { font-size: 16px; font-weight: bold; text-align: center; padding: 18px 6px; }
         .review-empty-msg.perfect { color: #4ade80; }
         .review-empty-msg.zero { color: #94a3b8; }
@@ -411,7 +411,7 @@
         <div class="duel-hp-bar"><div class="duel-hp-fill" id="p1-duel-hp"></div></div>
         <div class="web-fx">🕸️</div>
         <div class="player-sprite">🥷</div>
-        <div class="duel-sword-icon">🗡️️</div>
+        <div class="duel-sword-icon">🗡</div>
         <div class="slash-arc-fx"></div>
         <div class="player-tag-badge" id="p1-badge">P1</div>
     </div>
@@ -517,10 +517,7 @@
 
     function formatTailoHtml(str) {
         if (!str) return '';
-        let nfd = str.normalize('NFD');
-        let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>');
-        res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
-        return res.normalize('NFC');
+        return str.normalize('NFC');
     }
 
     // 根據考法生成卡片 HTML，自帶前後文，挖空處以亮桃紅色標示，完全取消數字聲調圖示
