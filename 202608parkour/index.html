@@ -182,13 +182,9 @@
             width: 220px; height: 33.33vh; background: rgba(255, 255, 255, 0.96);
             box-shadow: inset 0 0 0 3px #94a3b8, -4px 0 15px rgba(0,0,0,0.35);
             border-radius: 12px 0 0 12px; padding: 10px; box-sizing: border-box; text-align: center;
-            transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
         }
         .card-hanzi { color: #fb923c; font-size: clamp(16px, 2vw, 22px); margin-bottom: 6px; line-height: 1.2; }
-        .card-tailo {
-            color: #94a3b8; font-size: clamp(22px, 3.2vw, 32px); 
-            line-height: 1.3; word-wrap: break-word; /* 允許換行 */
-        }
+        .card-tailo { color: #94a3b8; font-size: clamp(22px, 3.2vw, 32px); line-height: 1.3; word-wrap: break-word; }
         .target-pink { color: #ec4899; margin: 0 2px; }
         .context-text { opacity: 0.75; }
 
@@ -443,7 +439,7 @@
     };
 
     // =========================================================
-    // 📚 教育部台語辭典：聲母、韻母、聲調索引庫與拼合規則引擎
+    // 📚 教育部台語辭典：聲母、韻母拼合規則引擎
     // =========================================================
     const MOE_INITIALS = ['p', 'ph', 'b', 'm', 't', 'th', 'n', 'l', 'k', 'kh', 'g', 'ng', 'h', 'ts', 'tsh', 's', 'j'];
     const INITIAL_GROUPS = [
@@ -513,11 +509,6 @@
         else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g');
         else if (res.includes('m')) res = res.replace('m', 'm' + m);
         return res.normalize('NFC');
-    }
-
-    function formatTailoHtml(str) {
-        if (!str) return '';
-        return str.normalize('NFC');
     }
 
     // 根據考法生成卡片 HTML，自帶前後文，挖空處以亮桃紅色標示，完全取消數字聲調圖示
@@ -596,8 +587,8 @@
         const options = variants.map(v => {
             const tailoHtml = parts.map((p, i) => {
                 if (i === chosenIdx) {
-                    let formattedSyllable = formatTailoHtml(v.text);
-                    let formattedDistractor = formatTailoHtml(v.distractorText);
+                    let formattedSyllable = v.text;
+                    let formattedDistractor = v.distractorText;
                     let resultHtml = formattedSyllable;
                     if (v.distractorText) {
                         resultHtml = formattedSyllable.replace(formattedDistractor, `<span class="target-pink">${formattedDistractor}</span>`);
@@ -606,7 +597,7 @@
                     }
                     return resultHtml;
                 } else {
-                    return `<span class="context-text">${formatTailoHtml(p)}</span>`;
+                    return `<span class="context-text">${p}</span>`;
                 }
             }).join('');
 
@@ -627,72 +618,33 @@
     let sfxMuted = false;
 
     function getSfxCtx() {
-        if (!sfxCtx) {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (AudioCtx) sfxCtx = new AudioCtx();
-        }
+        if (!sfxCtx) { const AudioCtx = window.AudioContext || window.webkitAudioContext; if (AudioCtx) sfxCtx = new AudioCtx(); }
         if (sfxCtx && sfxCtx.state === 'suspended') sfxCtx.resume();
         return sfxCtx;
     }
 
     function playToneNode(freqStart, freqEnd, duration, type = 'sine', maxGain = 0.2, delay = 0) {
         if (sfxMuted) return;
-        const audioCtx = getSfxCtx();
-        if (!audioCtx) return;
-        const t0 = audioCtx.currentTime + delay;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freqStart, t0);
+        const audioCtx = getSfxCtx(); if (!audioCtx) return;
+        const t0 = audioCtx.currentTime + delay; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freqStart, t0);
         if (freqEnd !== freqStart) osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
-        gain.gain.setValueAtTime(0.001, t0);
-        gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2));
+        gain.gain.setValueAtTime(0.001, t0); gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2));
         gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(t0); osc.stop(t0 + duration + 0.02);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t0); osc.stop(t0 + duration + 0.02);
     }
 
     function sfxUiMove() { playToneNode(520, 620, 0.045, 'sine', 0.1, 0); }
     function sfxUiConfirm() { playToneNode(660, 880, 0.08, 'triangle', 0.16, 0); }
-    function sfxGrabCorrect() {
-        playToneNode(587.33, 880, 0.1, 'sine', 0.22, 0);
-        playToneNode(880, 1174.66, 0.18, 'triangle', 0.24, 0.07);
-    }
-    function sfxHitWrong() {
-        playToneNode(160, 55, 0.26, 'sawtooth', 0.28, 0);
-        playToneNode(130, 42, 0.3, 'square', 0.22, 0.04);
-    }
-    function sfxSpeedUp() {
-        playToneNode(330, 660, 0.14, 'sine', 0.14, 0);
-        playToneNode(440, 880, 0.14, 'triangle', 0.12, 0.06);
-    }
-    function sfxStar() {
-        playToneNode(1046.5, 1318.51, 0.1, 'sine', 0.2, 0);
-        playToneNode(1318.51, 1567.98, 0.15, 'triangle', 0.2, 0.08);
-    }
-    function sfxRocket() {
-        playToneNode(400, 800, 0.15, 'sine', 0.25, 0);
-        playToneNode(800, 1200, 0.1, 'triangle', 0.2, 0.1);
-    }
-    function sfxDuelStart() {
-        playToneNode(440, 880, 0.15, 'sawtooth', 0.22, 0);
-        playToneNode(587.33, 1174.66, 0.22, 'triangle', 0.25, 0.12);
-    }
-    function sfxSwordSwing() {
-        playToneNode(720, 180, 0.11, 'sine', 0.18, 0);
-        playToneNode(480, 120, 0.09, 'triangle', 0.14, 0.02);
-    }
-    function sfxSwordClash() {
-        playToneNode(1480, 2200, 0.08, 'square', 0.25, 0);
-        playToneNode(1760, 980, 0.18, 'triangle', 0.26, 0.05);
-    }
-    function sfxDuelWin() {
-        playToneNode(220, 65, 0.18, 'sawtooth', 0.28, 0);
-        playToneNode(523.25, 1046.5, 0.24, 'triangle', 0.26, 0.1);
-    }
-    function sfxItemUse() {
-        playToneNode(880, 440, 0.12, 'sine', 0.2, 0);
-    }
+    function sfxGrabCorrect() { playToneNode(587.33, 880, 0.1, 'sine', 0.22, 0); playToneNode(880, 1174.66, 0.18, 'triangle', 0.24, 0.07); }
+    function sfxHitWrong() { playToneNode(160, 55, 0.26, 'sawtooth', 0.28, 0); playToneNode(130, 42, 0.3, 'square', 0.22, 0.04); }
+    function sfxSpeedUp() { playToneNode(330, 660, 0.14, 'sine', 0.14, 0); playToneNode(440, 880, 0.14, 'triangle', 0.12, 0.06); }
+    function sfxStar() { playToneNode(1046.5, 1318.51, 0.1, 'sine', 0.2, 0); playToneNode(1318.51, 1567.98, 0.15, 'triangle', 0.2, 0.08); }
+    function sfxDuelStart() { playToneNode(440, 880, 0.15, 'sawtooth', 0.22, 0); playToneNode(587.33, 1174.66, 0.22, 'triangle', 0.25, 0.12); }
+    function sfxSwordSwing() { playToneNode(720, 180, 0.11, 'sine', 0.18, 0); playToneNode(480, 120, 0.09, 'triangle', 0.14, 0.02); }
+    function sfxSwordClash() { playToneNode(1480, 2200, 0.08, 'square', 0.25, 0); playToneNode(1760, 980, 0.18, 'triangle', 0.26, 0.05); }
+    function sfxDuelWin() { playToneNode(220, 65, 0.18, 'sawtooth', 0.28, 0); playToneNode(523.25, 1046.5, 0.24, 'triangle', 0.26, 0.1); }
+    function sfxItemUse() { playToneNode(880, 440, 0.12, 'sine', 0.2, 0); }
     function sfxGameOver(isHigh) {
         if (isHigh) {
             const fanfare = [{ f: 523.25, d: 0.12, t: 0 }, { f: 659.25, d: 0.12, t: 0.13 }, { f: 783.99, d: 0.12, t: 0.26 }, { f: 1046.50, d: 0.36, t: 0.39 }];
@@ -706,13 +658,10 @@
     const sfxBtn = document.getElementById('sfx-toggle-btn');
     function toggleSfx(e) {
         if (e) { e.stopPropagation(); e.preventDefault(); }
-        sfxMuted = !sfxMuted;
-        sfxBtn.innerText = sfxMuted ? '🔕' : '🔔';
-        sfxBtn.classList.toggle('muted', sfxMuted);
+        sfxMuted = !sfxMuted; sfxBtn.innerText = sfxMuted ? '🔕' : '🔔'; sfxBtn.classList.toggle('muted', sfxMuted);
         if (!sfxMuted) playToneNode(659.25, 880, 0.1, 'sine', 0.15, 0);
     }
-    sfxBtn.addEventListener('mousedown', toggleSfx);
-    sfxBtn.addEventListener('touchstart', toggleSfx, { passive: false });
+    sfxBtn.addEventListener('mousedown', toggleSfx); sfxBtn.addEventListener('touchstart', toggleSfx, { passive: false });
 
     // =========================================================
     // 🎮 PS4 (DualShock 4 / DualSense) 與 Xbox 手把讀取器
@@ -727,16 +676,11 @@
         let navUp = false, navDown = false, navLeft = false, navRight = false;
         let btnAction = false, btnWeb = false, btnBanana = false, btnStart = false, btnReplay = false;
 
-        if (gp.axes[0] < -deadzone) moveLeft = true;
-        if (gp.axes[0] > deadzone) moveRight = true;
-        if (gp.axes[0] < -menuDeadzone) navLeft = true;
-        if (gp.axes[0] > menuDeadzone) navRight = true;
-
+        if (gp.axes[0] < -deadzone) moveLeft = true; if (gp.axes[0] > deadzone) moveRight = true;
+        if (gp.axes[0] < -menuDeadzone) navLeft = true; if (gp.axes[0] > menuDeadzone) navRight = true;
         if (gp.axes.length > 1) {
-            if (gp.axes[1] < -deadzone) moveUp = true;
-            if (gp.axes[1] > deadzone) moveDown = true;
-            if (gp.axes[1] < -menuDeadzone) navUp = true;
-            if (gp.axes[1] > menuDeadzone) navDown = true;
+            if (gp.axes[1] < -deadzone) moveUp = true; if (gp.axes[1] > deadzone) moveDown = true;
+            if (gp.axes[1] < -menuDeadzone) navUp = true; if (gp.axes[1] > menuDeadzone) navDown = true;
         }
 
         if (isRawDS4) {
@@ -765,7 +709,6 @@
             if (gp.buttons[14] && gp.buttons[14].pressed) { moveLeft = true; navLeft = true; }
             if (gp.buttons[15] && gp.buttons[15].pressed) { moveRight = true; navRight = true; }
         }
-
         return { moveUp, moveDown, moveLeft, moveRight, navUp, navDown, navLeft, navRight, btnAction, btnWeb, btnBanana, btnReplay, btnStart };
     }
 
@@ -780,17 +723,13 @@
 
     function cryptoRandomInt(maxExclusive) {
         if (window.crypto && window.crypto.getRandomValues) {
-            const arr = new Uint32Array(1);
-            window.crypto.getRandomValues(arr);
-            return arr[0] % maxExclusive;
+            const arr = new Uint32Array(1); window.crypto.getRandomValues(arr); return arr[0] % maxExclusive;
         }
         return Math.floor(Math.random() * maxExclusive);
     }
-
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
-            const j = cryptoRandomInt(i + 1);
-            [array[i], array[j]] = [array[j], array[i]];
+            const j = cryptoRandomInt(i + 1); [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
     }
@@ -811,19 +750,14 @@
                 if (diffIdx > 0) [questionDeck[0], questionDeck[diffIdx]] = [questionDeck[diffIdx], questionDeck[0]];
             }
         }
-        const target = questionDeck.shift();
-        lastTargetCard = target;
-        return target;
+        const target = questionDeck.shift(); lastTargetCard = target; return target;
     }
 
     function playQuestionAudio(customUrl) {
         if (!currentWaveTargetCard) return;
-        const rawUrl = customUrl || currentWaveTargetCard.a;
-        if (!rawUrl) return;
+        const rawUrl = customUrl || currentWaveTargetCard.a; if (!rawUrl) return;
         const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
-        questionAudio.pause();
-        questionAudio.src = safeUrl;
-        questionAudio.currentTime = 0;
+        questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
         questionAudio.play().catch(err => {
             console.warn("語音播放失敗:", err);
             if (waveState === 'waiting_audio') startWaveMovement();
@@ -845,17 +779,13 @@
         document.getElementById('ctrl-2p-box').style.display = (pCount === 2) ? 'block' : 'none';
         saveMenuSettings();
     }
-
     function sync2PControls(changedWho) {
-        const p1Sel = document.getElementById('p1-ctrl-select');
-        const p2Sel = document.getElementById('p2-ctrl-select');
+        const p1Sel = document.getElementById('p1-ctrl-select'); const p2Sel = document.getElementById('p2-ctrl-select');
         if (p1Sel.value === 'keyboard' && p2Sel.value === 'keyboard') {
-            if (changedWho === 'p1') p2Sel.value = 'gamepad';
-            else p1Sel.value = 'gamepad';
+            if (changedWho === 'p1') p2Sel.value = 'gamepad'; else p1Sel.value = 'gamepad';
         }
         saveMenuSettings();
     }
-
     function saveMenuSettings() {
         try {
             const settings = {
@@ -870,17 +800,13 @@
             sessionStorage.setItem('taigi_parkour_settings', JSON.stringify(settings));
         } catch (e) {}
     }
-
     function restoreMenuSettings() {
         try {
-            const raw = sessionStorage.getItem('taigi_parkour_settings');
-            if (!raw) return false;
+            const raw = sessionStorage.getItem('taigi_parkour_settings'); if (!raw) return false;
             const s = JSON.parse(raw);
             if (Array.isArray(s.lessons) && s.lessons.length > 0) {
                 selectedLessons = [...s.lessons];
-                document.querySelectorAll('#lessons .lesson-btn').forEach(btn => {
-                    btn.classList.toggle('active', selectedLessons.includes(btn.innerText));
-                });
+                document.querySelectorAll('#lessons .lesson-btn').forEach(btn => { btn.classList.toggle('active', selectedLessons.includes(btn.innerText)); });
             }
             if (s.pcount) { const r = document.querySelector(`input[name="pcount"][value="${s.pcount}"]`); if (r) r.checked = true; }
             if (s.qtype) { const r = document.querySelector(`input[name="qtype"][value="${s.qtype}"]`); if (r) r.checked = true; }
@@ -888,20 +814,16 @@
             if (s.ctrl1p) { const r = document.querySelector(`input[name="ctrl1p"][value="${s.ctrl1p}"]`); if (r) r.checked = true; }
             if (s.p1Ctrl) document.getElementById('p1-ctrl-select').value = s.p1Ctrl;
             if (s.p2Ctrl) document.getElementById('p2-ctrl-select').value = s.p2Ctrl;
-            onPlayerCountChange();
-            return selectedLessons.length > 0;
+            onPlayerCountChange(); return selectedLessons.length > 0;
         } catch (e) { return false; }
     }
 
     const lessonsDiv = document.getElementById('lessons');
     lessons.forEach(l => {
-        const btn = document.createElement('button');
-        btn.className = 'lesson-btn';
-        btn.innerText = l;
+        const btn = document.createElement('button'); btn.className = 'lesson-btn'; btn.innerText = l;
         btn.onclick = () => {
             btn.classList.toggle('active');
-            if(selectedLessons.includes(l)) selectedLessons = selectedLessons.filter(x => x !== l);
-            else selectedLessons.push(l);
+            if(selectedLessons.includes(l)) selectedLessons = selectedLessons.filter(x => x !== l); else selectedLessons.push(l);
             saveMenuSettings();
         };
         lessonsDiv.appendChild(btn);
@@ -910,19 +832,11 @@
 
     // 手把選單控制狀態
     let isGameRunning = false;
-    let menuRowIdx = hasRestoredLessons ? 99 : 0;
-    let menuColIdx = 0;
-    let promptColIdx = 0;
-    let reviewRowIdx = -1;
-    let reviewPanelIdx = 0;
-    let lastNavMoveTime = 0;
-    let gameOverOpenedAt = 0;
-    let gpPrevButtonA = [false, false, false, false];
-    let gpPrevButtonB = [false, false, false, false];
-    let gpPrevButtonStart = [false, false, false, false];
+    let menuRowIdx = hasRestoredLessons ? 99 : 0; let menuColIdx = 0; let promptColIdx = 0; let reviewRowIdx = -1; let reviewPanelIdx = 0;
+    let lastNavMoveTime = 0; let gameOverOpenedAt = 0;
+    let gpPrevButtonA = [false, false, false, false]; let gpPrevButtonB = [false, false, false, false]; let gpPrevButtonStart = [false, false, false, false];
 
     function clearAllGpFocus() { document.querySelectorAll('.gp-focus').forEach(el => el.classList.remove('gp-focus')); }
-
     function getMenuNavigationRows() {
         const lessonBtns = Array.from(document.querySelectorAll('#lessons .lesson-btn'));
         const rows = [
@@ -939,22 +853,14 @@
     }
 
     function updateMenuGpFocusVisual() {
-        clearAllGpFocus();
-        if (isGameRunning) return;
-
-        const menuEl = document.getElementById('menu');
-        const gameOverEl = document.getElementById('game-over');
-
+        clearAllGpFocus(); if (isGameRunning) return;
+        const menuEl = document.getElementById('menu'); const gameOverEl = document.getElementById('game-over');
         if (menuEl.style.display !== 'none') {
-            const rows = getMenuNavigationRows();
-            menuRowIdx = Math.max(0, Math.min(menuRowIdx, rows.length - 1));
-            const curRow = rows[menuRowIdx];
-            menuColIdx = Math.max(0, Math.min(menuColIdx, curRow.length - 1));
-            const targetEl = curRow[menuColIdx];
-            if (targetEl) { targetEl.classList.add('gp-focus'); targetEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+            const rows = getMenuNavigationRows(); menuRowIdx = Math.max(0, Math.min(menuRowIdx, rows.length - 1));
+            const curRow = rows[menuRowIdx]; menuColIdx = Math.max(0, Math.min(menuColIdx, curRow.length - 1));
+            const targetEl = curRow[menuColIdx]; if (targetEl) { targetEl.classList.add('gp-focus'); targetEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
         } else if (gameOverEl.style.display !== 'none') {
-            const promptBox = document.getElementById('review-prompt-box');
-            const reviewSec = document.getElementById('review-section');
+            const promptBox = document.getElementById('review-prompt-box'); const reviewSec = document.getElementById('review-section');
             if (promptBox.style.display !== 'none') {
                 const btns = [document.getElementById('btn-review-yes'), document.getElementById('btn-review-no')];
                 promptColIdx = Math.max(0, Math.min(promptColIdx, 1));
@@ -963,14 +869,10 @@
                 const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item'));
                 const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
                 const activeList = (playerCount === 2 && reviewPanelIdx === 1) ? p2Items : p1Items;
-
                 if (reviewRowIdx < 0 || activeList.length === 0) {
-                    reviewRowIdx = -1;
-                    const retBtn = document.getElementById('return-menu-btn');
-                    if (retBtn) retBtn.classList.add('gp-focus');
+                    reviewRowIdx = -1; const retBtn = document.getElementById('return-menu-btn'); if (retBtn) retBtn.classList.add('gp-focus');
                 } else {
-                    reviewRowIdx = Math.min(reviewRowIdx, activeList.length - 1);
-                    const itemEl = activeList[reviewRowIdx];
+                    reviewRowIdx = Math.min(reviewRowIdx, activeList.length - 1); const itemEl = activeList[reviewRowIdx];
                     if (itemEl) { itemEl.classList.add('gp-focus'); itemEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
                 }
             }
@@ -978,13 +880,9 @@
     }
 
     function activateMenuFocusedElement() {
-        const rows = getMenuNavigationRows();
-        menuRowIdx = Math.max(0, Math.min(menuRowIdx, rows.length - 1));
-        const curRow = rows[menuRowIdx];
-        menuColIdx = Math.max(0, Math.min(menuColIdx, curRow.length - 1));
-        const el = curRow[menuColIdx];
-        if (!el) return;
-
+        const rows = getMenuNavigationRows(); menuRowIdx = Math.max(0, Math.min(menuRowIdx, rows.length - 1));
+        const curRow = rows[menuRowIdx]; menuColIdx = Math.max(0, Math.min(menuColIdx, curRow.length - 1));
+        const el = curRow[menuColIdx]; if (!el) return;
         sfxUiConfirm();
         if (el.classList.contains('lesson-btn')) el.click();
         else if (el.classList.contains('radio-label')) {
@@ -996,37 +894,27 @@
         } else if (el.tagName === 'SELECT') {
             el.value = (el.value === 'keyboard') ? 'gamepad' : 'keyboard';
             sync2PControls(el.id === 'p1-ctrl-select' ? 'p1' : 'p2');
-        } else if (el.id === 'main-start-btn') {
-            startGame();
-        }
+        } else if (el.id === 'main-start-btn') startGame();
         updateMenuGpFocusVisual();
     }
 
     function pollUiGamepadNavigation() {
         if (!isGameRunning) {
-            const now = Date.now();
-            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            let anyUp = false, anyDown = false, anyLeft = false, anyRight = false;
-            let trigA = false, trigB = false, trigStart = false;
+            const now = Date.now(); const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            let anyUp = false, anyDown = false, anyLeft = false, anyRight = false; let trigA = false, trigB = false, trigStart = false;
 
             for (let i = 0; i < gamepads.length; i++) {
                 const gp = gamepads[i];
                 if (!gp) { gpPrevButtonA[i] = false; gpPrevButtonB[i] = false; gpPrevButtonStart[i] = false; continue; }
-                const st = readGamepadState(gp);
-                if (!st) continue;
-
-                if (st.navUp) anyUp = true; if (st.navDown) anyDown = true;
-                if (st.navLeft) anyLeft = true; if (st.navRight) anyRight = true;
+                const st = readGamepadState(gp); if (!st) continue;
+                if (st.navUp) anyUp = true; if (st.navDown) anyDown = true; if (st.navLeft) anyLeft = true; if (st.navRight) anyRight = true;
                 if (st.btnAction && !gpPrevButtonA[i]) trigA = true;
                 if (st.btnWeb && !gpPrevButtonB[i]) trigB = true;
                 if (st.btnStart && !gpPrevButtonStart[i]) trigStart = true;
-
                 gpPrevButtonA[i] = st.btnAction; gpPrevButtonB[i] = st.btnWeb; gpPrevButtonStart[i] = st.btnStart;
             }
 
-            const menuEl = document.getElementById('menu');
-            const gameOverEl = document.getElementById('game-over');
-
+            const menuEl = document.getElementById('menu'); const gameOverEl = document.getElementById('game-over');
             if (menuEl.style.display !== 'none') {
                 const rows = getMenuNavigationRows();
                 if (now - lastNavMoveTime > 185) {
@@ -1047,40 +935,23 @@
                 if (trigA) activateMenuFocusedElement();
                 else if (trigStart && selectedLessons.length > 0) { sfxUiConfirm(); startGame(); }
             } else if (gameOverEl.style.display !== 'none' && (now - gameOverOpenedAt > 350)) {
-                const promptBox = document.getElementById('review-prompt-box');
-                const reviewSec = document.getElementById('review-section');
-
+                const promptBox = document.getElementById('review-prompt-box'); const reviewSec = document.getElementById('review-section');
                 if (promptBox.style.display !== 'none') {
-                    if (now - lastNavMoveTime > 180 && (anyLeft || anyRight)) {
-                        promptColIdx = (promptColIdx === 0) ? 1 : 0; lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual();
-                    }
-                    if (trigA) {
-                        sfxUiConfirm();
-                        if (promptColIdx === 0) showReviewSection(); else location.reload();
-                    } else if (trigB) { sfxUiConfirm(); location.reload(); }
+                    if (now - lastNavMoveTime > 180 && (anyLeft || anyRight)) { promptColIdx = (promptColIdx === 0) ? 1 : 0; lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual(); }
+                    if (trigA) { sfxUiConfirm(); if (promptColIdx === 0) showReviewSection(); else location.reload(); } else if (trigB) { sfxUiConfirm(); location.reload(); }
                 } else if (reviewSec.style.display !== 'none') {
-                    const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item'));
-                    const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
+                    const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item')); const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
                     const activeList = (playerCount === 2 && reviewPanelIdx === 1) ? p2Items : p1Items;
-
                     if (now - lastNavMoveTime > 180) {
-                        if (anyUp) {
-                            if (reviewRowIdx === -1 && activeList.length > 0) reviewRowIdx = activeList.length - 1; else if (reviewRowIdx > 0) reviewRowIdx--;
-                            lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual();
-                        } else if (anyDown) {
-                            if (reviewRowIdx >= 0 && reviewRowIdx < activeList.length - 1) reviewRowIdx++; else reviewRowIdx = -1;
-                            lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual();
-                        } else if ((anyLeft || anyRight) && playerCount === 2) {
-                            reviewPanelIdx = (reviewPanelIdx === 0) ? 1 : 0;
-                            const nextList = (reviewPanelIdx === 1) ? p2Items : p1Items;
+                        if (anyUp) { if (reviewRowIdx === -1 && activeList.length > 0) reviewRowIdx = activeList.length - 1; else if (reviewRowIdx > 0) reviewRowIdx--; lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual(); }
+                        else if (anyDown) { if (reviewRowIdx >= 0 && reviewRowIdx < activeList.length - 1) reviewRowIdx++; else reviewRowIdx = -1; lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual(); }
+                        else if ((anyLeft || anyRight) && playerCount === 2) {
+                            reviewPanelIdx = (reviewPanelIdx === 0) ? 1 : 0; const nextList = (reviewPanelIdx === 1) ? p2Items : p1Items;
                             if (nextList.length === 0) reviewRowIdx = -1; else if (reviewRowIdx >= nextList.length) reviewRowIdx = nextList.length - 1;
                             lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual();
                         }
                     }
-                    if (trigA) {
-                        if (reviewRowIdx === -1 || activeList.length === 0) { sfxUiConfirm(); location.reload(); }
-                        else if (activeList[reviewRowIdx]) activeList[reviewRowIdx].click();
-                    } else if (trigB || trigStart) { sfxUiConfirm(); location.reload(); }
+                    if (trigA) { if (reviewRowIdx === -1 || activeList.length === 0) { sfxUiConfirm(); location.reload(); } else if (activeList[reviewRowIdx]) activeList[reviewRowIdx].click(); } else if (trigB || trigStart) { sfxUiConfirm(); location.reload(); }
                 }
             }
         }
@@ -1092,66 +963,40 @@
     // =========================================================
     // 🛸 遊戲核心狀態與機制
     // =========================================================
-    let preferredQType = 'random';
-    let showHanziSetting = false;
+    let preferredQType = 'random'; let showHanziSetting = false;
     let time = 50, speed = 2.5, maxSpeed = 6.0, elapsedTime = 0, questionCount = 0;
     let gameLoop = null, itemInterval = null, audioTimeout = null;
     let currentQuestionType = 'normal';
-    let currentWaveTargetCard = null;
-    let currentWaveAnswered = false;
-    let waveState = 'waiting_audio'; // 'waiting_audio' -> 'playing'
+    let currentWaveTargetCard = null; let currentWaveAnswered = false;
+    let waveState = 'waiting_audio'; 
 
-    let globalMushroomActive = false; // 若為 true，下一題選項變成 2 個
-    let lastMushroomSwapTime = 0;
+    let globalMushroomActive = false; // 紀錄下一題是否變成 2選1
+    let lootWavesTriggered = 0; // 全場僅觸發 2 次道具補給波
 
-    const SIMULTANEOUS_WINDOW_MS = 180;
-    const CLASH_WINDOW_MS = 130;
-    const SLASH_RANGE_PX = 140;
-    const SLASH_COOLDOWN_MS = 380;
-    let pendingClaim = null; 
-    let duelState = { active: false, pendingHitBy: -1, pendingHitAt: 0, cardEl: null };
-
+    const SIMULTANEOUS_WINDOW_MS = 180; const CLASH_WINDOW_MS = 130; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
+    let pendingClaim = null; let duelState = { active: false, pendingHitBy: -1, pendingHitAt: 0, cardEl: null };
     let players = [];
     let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, W: false, s: false, S: false, a: false, A: false, d: false, D: false, Shift: false, e: false, E: false };
 
     function createPlayerObj(id, elId, controlType, gpIndex) {
-        const startY = getLaneY(1) + 20; // 中間跑道
+        const startY = getLaneY(1) + 20;
         return {
-            id: id,
-            el: document.getElementById(elId),
-            x: 80,
-            y: (playerCount === 1) ? startY : (id === 0 ? getLaneY(0) + 20 : getLaneY(2) + 20),
-            speed: 7.5,
-            baseSpeed: 7.5,
-            score: 0,
-            correctCount: 0,
-            errorCount: 0, // 錯誤次數累計
-            debuffUntil: 0, // 慢閃爍減速結束時間
-            inventory: { web: 0, banana: 0 },
-            webbedUntil: 0,
-            bananaSliding: false,
-            wrongQuestions: [],
-            controlType: controlType,
-            gpIndex: gpIndex,
-            gpPrevAction: false,
-            gpPrevWeb: false,
-            gpPrevBanana: false,
-            duelHp: 100,
-            slashCooldownUntil: 0,
-            slashingUntil: 0
+            id: id, el: document.getElementById(elId),
+            x: 80, y: (playerCount === 1) ? startY : (id === 0 ? getLaneY(0) + 20 : getLaneY(2) + 20),
+            speed: 7.5, baseSpeed: 7.5, score: 0, correctCount: 0, errorCount: 0,
+            debuffUntil: 0, inventory: { web: 0, banana: 0 },
+            webbedUntil: 0, bananaSliding: false, wrongQuestions: [],
+            controlType: controlType, gpIndex: gpIndex, gpPrevAction: false, gpPrevWeb: false, gpPrevBanana: false,
+            duelHp: 100, slashCooldownUntil: 0, slashingUntil: 0
         };
     }
 
     function recordPlayerWrong(p, card) {
         if (!p || !card) return;
-        if (!p.wrongQuestions.some(item => item.h === card.h && item.r === card.r)) {
-            p.wrongQuestions.push({ h: card.h, r: card.r, a: card.a });
-        }
+        if (!p.wrongQuestions.some(item => item.h === card.h && item.r === card.r)) p.wrongQuestions.push({ h: card.h, r: card.r, a: card.a });
     }
 
-    function getLaneY(laneIndex) {
-        return (window.innerHeight / 3) * laneIndex + (window.innerHeight / 6) - 50;
-    }
+    function getLaneY(laneIndex) { return (window.innerHeight / 3) * laneIndex + (window.innerHeight / 6) - 50; }
 
     function updateItemHud() {
         if (playerCount !== 2) return;
@@ -1168,9 +1013,7 @@
 
     async function startGame() {
         if(selectedLessons.length === 0) return alert("請至少選擇一課！");
-        saveMenuSettings();
-        clearAllGpFocus();
-        getSfxCtx();
+        saveMenuSettings(); clearAllGpFocus(); getSfxCtx();
 
         playerCount = parseInt(document.querySelector('input[name="pcount"]:checked').value, 10);
         preferredQType = document.querySelector('input[name="qtype"]:checked').value;
@@ -1178,45 +1021,34 @@
 
         document.getElementById('menu').style.display = 'none';
         const board = document.getElementById('game-board');
-        board.style.display = 'block';
-        board.classList.remove('duel-stage-glow');
+        board.style.display = 'block'; board.classList.remove('duel-stage-glow');
         document.getElementById('duel-banner').style.display = 'none';
 
         if (playerCount === 2) {
-            document.getElementById('p1-inventory').style.display = 'flex';
-            document.getElementById('p2-inventory').style.display = 'flex';
+            document.getElementById('p1-inventory').style.display = 'flex'; document.getElementById('p2-inventory').style.display = 'flex';
         } else {
-            document.getElementById('p1-inventory').style.display = 'none';
-            document.getElementById('p2-inventory').style.display = 'none';
+            document.getElementById('p1-inventory').style.display = 'none'; document.getElementById('p2-inventory').style.display = 'none';
         }
 
         players = [];
-        const p1El = document.getElementById('player1');
-        const p2El = document.getElementById('player2');
-        p1El.className = 'player-entity';
-        p2El.className = 'player-entity';
+        const p1El = document.getElementById('player1'); const p2El = document.getElementById('player2');
+        p1El.className = 'player-entity'; p2El.className = 'player-entity';
 
         if (playerCount === 1) {
             const ctrl1p = document.querySelector('input[name="ctrl1p"]:checked').value;
             players.push(createPlayerObj(0, 'player1', ctrl1p === 'touch' ? 'touch' : 'kb_and_gp', 0));
-            p2El.style.display = 'none';
-            document.getElementById('p2-score-display').style.display = 'none';
+            p2El.style.display = 'none'; document.getElementById('p2-score-display').style.display = 'none';
             replayBtn.style.display = 'block';
         } else {
-            p2El.style.display = 'flex';
-            document.getElementById('p2-score-display').style.display = 'inline-block';
+            p2El.style.display = 'flex'; document.getElementById('p2-score-display').style.display = 'inline-block';
             replayBtn.style.display = 'none';
-            const p1Ctrl = document.getElementById('p1-ctrl-select').value;
-            const p2Ctrl = document.getElementById('p2-ctrl-select').value;
+            const p1Ctrl = document.getElementById('p1-ctrl-select').value; const p2Ctrl = document.getElementById('p2-ctrl-select').value;
             if (p1Ctrl === 'gamepad' && p2Ctrl === 'gamepad') {
-                players.push(createPlayerObj(0, 'player1', 'gamepad', 0));
-                players.push(createPlayerObj(1, 'player2', 'gamepad', 1));
+                players.push(createPlayerObj(0, 'player1', 'gamepad', 0)); players.push(createPlayerObj(1, 'player2', 'gamepad', 1));
             } else if (p1Ctrl === 'keyboard' && p2Ctrl === 'gamepad') {
-                players.push(createPlayerObj(0, 'player1', 'keyboard', -1));
-                players.push(createPlayerObj(1, 'player2', 'gamepad', 0));
+                players.push(createPlayerObj(0, 'player1', 'keyboard', -1)); players.push(createPlayerObj(1, 'player2', 'gamepad', 0));
             } else {
-                players.push(createPlayerObj(0, 'player1', 'gamepad', 0));
-                players.push(createPlayerObj(1, 'player2', 'keyboard', -1));
+                players.push(createPlayerObj(0, 'player1', 'gamepad', 0)); players.push(createPlayerObj(1, 'player2', 'keyboard', -1));
             }
         }
 
@@ -1225,8 +1057,7 @@
 
         const fetchPromises = selectedLessons.map(sheet => 
             fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
-                .then(res => res.text())
-                .then(text => ({ sheet, text }))
+                .then(res => res.text()).then(text => ({ sheet, text }))
         );
 
         const results = await Promise.all(fetchPromises);
@@ -1236,8 +1067,7 @@
             text.split(/\r?\n/).forEach(l => {
                 const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
                 if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
-                    rowNumber++;
-                    const numStr = String(rowNumber).padStart(2, '0');
+                    rowNumber++; const numStr = String(rowNumber).padStart(2, '0');
                     const folderName = audioFolderMap[sheet] || `${sheet}音檔`;
                     const fallbackAudioUrl = `https://yyanjhang-web.github.io/hosngetaiagi/${folderName}/-${numStr}.mp3`;
                     const colCAudioUrl = (p.length >= 3 && p[2].trim() !== "") ? p[2].trim() : fallbackAudioUrl;
@@ -1251,63 +1081,50 @@
         questionDeck = shuffleArray([...activeCards]);
         lastTargetCard = null;
         time = 50; speed = 2.5; elapsedTime = 0; questionCount = 0;
-        pendingClaim = null;
-        duelState.active = false;
-        globalMushroomActive = false;
+        pendingClaim = null; duelState.active = false; globalMushroomActive = false; lootWavesTriggered = 0;
         isGameRunning = true;
 
-        updateHudDisplay();
-        spawnQuestion();
-        gameLoop = requestAnimationFrame(update);
-        itemInterval = setInterval(timerTick, 1000);
+        updateHudDisplay(); spawnQuestion();
+        gameLoop = requestAnimationFrame(update); itemInterval = setInterval(timerTick, 1000);
     }
 
     function timerTick() {
         if (!isGameRunning || duelState.active) return;
-        time--;
-        elapsedTime++;
+        time--; elapsedTime++;
         if(elapsedTime > 0 && elapsedTime % 10 === 0) {
             speed = Math.min(speed + 0.2, maxSpeed);
-            sfxSpeedUp();
-            triggerSpeedUpEffect();
+            sfxSpeedUp(); triggerSpeedUpEffect();
         }
-        updateHudDisplay();
-        if(time <= 0) endGame();
+        updateHudDisplay(); if(time <= 0) endGame();
     }
 
     function updateHudDisplay() {
         document.getElementById('time-display').innerText = `時間: ${time}`;
-        if (players[0]) {
-            document.getElementById('p1-score-display').innerText = playerCount === 1 ? `分數: ${players[0].score}` : `P1 分數: ${players[0].score}`;
-        }
-        if (playerCount === 2 && players[1]) {
-            document.getElementById('p2-score-display').innerText = `P2 分數: ${players[1].score}`;
-        }
+        if (players[0]) document.getElementById('p1-score-display').innerText = playerCount === 1 ? `分數: ${players[0].score}` : `P1 分數: ${players[0].score}`;
+        if (playerCount === 2 && players[1]) document.getElementById('p2-score-display').innerText = `P2 分數: ${players[1].score}`;
     }
 
-    function startWaveMovement() {
-        if (!isGameRunning) return;
-        waveState = 'playing';
-    }
+    function startWaveMovement() { if (!isGameRunning) return; waveState = 'playing'; }
 
     function spawnQuestion() {
         if (!isGameRunning) return;
-        pendingClaim = null;
-        duelState.active = false;
-        currentWaveAnswered = false;
-        waveState = 'waiting_audio';
+        pendingClaim = null; duelState.active = false; currentWaveAnswered = false; waveState = 'waiting_audio';
 
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
-        
         currentQuestionType = 'normal'; 
-        // 每 2 題出一次專屬補給波 (Loot Wave)
-        if (questionCount > 0 && questionCount % 2 === 0) currentQuestionType = 'loot';
+
+        // 全局僅觸發 2 波道具補給波 (例如第 3 題與第 7 題之後)
+        if ((questionCount === 3 && lootWavesTriggered === 0) || (questionCount === 7 && lootWavesTriggered === 1)) {
+            currentQuestionType = 'loot';
+            lootWavesTriggered++;
+        }
 
         const screenWidth = window.innerWidth;
 
         if (currentQuestionType === 'loot') {
             currentWaveTargetCard = null;
-            let items = ['web', 'web', 'banana', 'banana', 'mushroom', 'mushroom', 'star', 'star', 'star'];
+            // 補給波不再產生蘑菇，只放星星與陷害道具
+            let items = ['web', 'banana', 'star', 'star', 'web', 'banana', 'star', 'star', 'star'];
             shuffleArray(items);
             let waveId = 'loot_' + Date.now();
             
@@ -1322,14 +1139,14 @@
         }
 
         const target = drawNextTargetCard();
-        currentWaveTargetCard = target;
-        currentQuestionAudioUrl = target.a;
+        currentWaveTargetCard = target; currentQuestionAudioUrl = target.a;
 
         const qData = buildPhonotacticQuestion(target, preferredQType, showHanziSetting);
         if (!qData) { spawnQuestion(); return; }
 
         let waveId = 'text_' + Date.now();
         const optionCount = globalMushroomActive ? 2 : 3;
+        const currentWaveIsMushroom = globalMushroomActive;
         globalMushroomActive = false; // 消耗蘑菇效果
         
         let options = shuffleArray([qData.options.find(o => o.isCorrect), ...qData.options.filter(o => !o.isCorrect).slice(0, optionCount - 1)]);
@@ -1337,44 +1154,39 @@
 
         options.forEach((opt, index) => {
             let lane = availableLanes[index];
-            createEntity('text', opt.html, opt.isCorrect, screenWidth + 50, getLaneY(lane), waveId, lane);
+            let el = createEntity('text', opt.html, opt.isCorrect, screenWidth + 50, getLaneY(lane), waveId, lane);
+            if (currentWaveIsMushroom) {
+                // 蘑菇特效：S型蛇行交錯，設定最終鎖定跑道與初始相位
+                el.dataset.finalLane = lane;
+                el.dataset.sinePhase = (index === 0) ? 1 : -1;
+            }
         });
 
-        // 語音完整播完後才讓卡片前進，設 2.5 秒保底防呆
-        clearTimeout(audioTimeout);
-        audioTimeout = setTimeout(startWaveMovement, 2500);
+        // 蘑菇 (稀有怪)：隨機於一般波次提早出現 (機率 25%)
+        if (!currentWaveIsMushroom && !globalMushroomActive && Math.random() < 0.25) {
+            createEntity('mushroom', '', false, screenWidth - 100, getLaneY(cryptoRandomInt(3)), waveId, 0);
+        }
+
+        clearTimeout(audioTimeout); audioTimeout = setTimeout(startWaveMovement, 2500);
         questionAudio.onended = () => { clearTimeout(audioTimeout); startWaveMovement(); };
-        
-        const rawUrl = currentQuestionAudioUrl;
-        const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
+        const rawUrl = currentQuestionAudioUrl; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
         questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
         questionAudio.play().catch(err => { clearTimeout(audioTimeout); startWaveMovement(); });
     }
 
     function createEntity(type, htmlContent = '', isCorrect = false, startX, startY, groupId = '0', lane = 0) {
-        const el = document.createElement('div');
-        el.className = 'obstacle';
-        
+        const el = document.createElement('div'); el.className = 'obstacle';
         if (type === 'star') { el.classList.add('loot-item'); el.innerHTML = '<span class="star-icon">⭐</span>'; }
-        else if (type === 'rocket') { el.classList.add('loot-item'); el.innerHTML = '<span class="star-icon">🚀</span>'; } // 保留兼容
         else if (type === 'mushroom') { el.classList.add('loot-item'); el.innerHTML = '<span class="mushroom-icon">🍄</span>'; }
         else if (type === 'web') { el.classList.add('loot-item'); el.innerHTML = '🕸️'; }
         else if (type === 'banana') { el.classList.add('loot-item'); el.innerHTML = '🍌'; }
-        else {
-            el.classList.add('text-card');
-            el.innerHTML = htmlContent;
-        }
+        else { el.classList.add('text-card'); el.innerHTML = htmlContent; }
         
-        el.dataset.correct = isCorrect;
-        el.dataset.type = type;
-        el.dataset.x = startX; 
-        el.dataset.lane = lane;
-        el.dataset.resolved = 'false'; 
-        el.dataset.groupId = groupId;
-        
-        el.style.top = `${startY}px`;
-        el.style.left = `${startX}px`;
+        el.dataset.correct = isCorrect; el.dataset.type = type; el.dataset.x = startX; 
+        el.dataset.lane = lane; el.dataset.resolved = 'false'; el.dataset.groupId = groupId;
+        el.style.top = `${startY}px`; el.style.left = `${startX}px`;
         document.getElementById('game-board').appendChild(el);
+        return el;
     }
 
     function triggerCorrectEffect(originX = 0.5, originY = 0.6) { confetti({ particleCount: 85, spread: 70, origin: { x: originX, y: originY } }); }
@@ -1404,8 +1216,7 @@
         if (!attacker || !defender) return;
         if (now < attacker.slashCooldownUntil) return;
 
-        attacker.slashCooldownUntil = now + SLASH_COOLDOWN_MS;
-        attacker.slashingUntil = now + 160;
+        attacker.slashCooldownUntil = now + SLASH_COOLDOWN_MS; attacker.slashingUntil = now + 160;
         attacker.el.classList.remove('slashing'); void attacker.el.offsetWidth; attacker.el.classList.add('slashing');
         sfxSwordSwing();
 
@@ -1415,8 +1226,7 @@
                 duelState.pendingHitBy = attackerIdx; duelState.pendingHitAt = now;
                 document.getElementById(`p${defender.id + 1}-duel-hp`).style.width = '0%';
             } else if (duelState.pendingHitBy !== attackerIdx && (now - duelState.pendingHitAt <= CLASH_WINDOW_MS)) {
-                sfxSwordClash();
-                duelState.pendingHitBy = -1; duelState.pendingHitAt = 0;
+                sfxSwordClash(); duelState.pendingHitBy = -1; duelState.pendingHitAt = 0;
                 document.getElementById('duel-banner').innerText = "💥 鏘！拚刀平手！血條重置繼續砍！ 💥";
                 const pushDir = (players[0].x <= players[1].x) ? -1 : 1;
                 players[0].x = Math.max(20, Math.min(window.innerWidth - 84, players[0].x + pushDir * 75));
@@ -1428,41 +1238,30 @@
 
     function resolveSwordDuelWinner(winnerIdx) {
         const winner = players[winnerIdx]; const loser = players[1 - winnerIdx];
-        duelState.active = false;
-        sfxDuelWin();
-        winner.score += 25; winner.correctCount++; winner.errorCount = 0;
-        applyPlayerDebuffVisual(winner);
-        
+        duelState.active = false; sfxDuelWin();
+        winner.score += 25; winner.correctCount++; winner.errorCount = 0; applyPlayerDebuffVisual(winner);
         if (currentWaveTargetCard) recordPlayerWrong(loser, currentWaveTargetCard);
         currentWaveAnswered = true;
 
         const winRect = winner.el.getBoundingClientRect();
         triggerCorrectEffect((winRect.left + 32) / window.innerWidth, (winRect.top + 32) / window.innerHeight);
 
-        document.getElementById('game-board').classList.remove('duel-stage-glow');
-        document.getElementById('duel-banner').style.display = 'none';
+        document.getElementById('game-board').classList.remove('duel-stage-glow'); document.getElementById('duel-banner').style.display = 'none';
         players.forEach(p => p.el.classList.remove('in-duel', 'slashing'));
-
         updateHudDisplay(); questionCount++; spawnQuestion();
     }
 
     function awardCleanClaim(winnerIdx, cardEl) {
-        const winner = players[winnerIdx];
-        pendingClaim = null; sfxGrabCorrect();
+        const winner = players[winnerIdx]; pendingClaim = null; sfxGrabCorrect();
 
         if (playerCount === 1) { time += 1; winner.score += 15; }
-        else {
-            winner.score += 20;
-            const loser = players[1 - winnerIdx];
-            if (currentWaveTargetCard) recordPlayerWrong(loser, currentWaveTargetCard);
-        }
-        winner.correctCount++; winner.errorCount = 0;
-        applyPlayerDebuffVisual(winner);
+        else { winner.score += 20; const loser = players[1 - winnerIdx]; if (currentWaveTargetCard) recordPlayerWrong(loser, currentWaveTargetCard); }
+        
+        winner.correctCount++; winner.errorCount = 0; applyPlayerDebuffVisual(winner);
         currentWaveAnswered = true;
 
         const rect = cardEl ? cardEl.getBoundingClientRect() : winner.el.getBoundingClientRect();
         triggerCorrectEffect(Math.min(0.9, Math.max(0.1, rect.left / window.innerWidth)), Math.min(0.9, Math.max(0.1, rect.top / window.innerHeight)));
-
         updateHudDisplay(); questionCount++; spawnQuestion();
     }
 
@@ -1495,8 +1294,7 @@
         const p = players[pId];
         if (p.inventory.web > 0) {
             p.inventory.web--; updateItemHud(); sfxItemUse();
-            const target = players[1 - pId];
-            target.webbedUntil = Date.now() + 2000; // 定身 2 秒
+            const target = players[1 - pId]; target.webbedUntil = Date.now() + 2000;
         }
     }
 
@@ -1505,8 +1303,7 @@
         const p = players[pId];
         if (p.inventory.banana > 0) {
             p.inventory.banana--; updateItemHud(); sfxItemUse();
-            const target = players[1 - pId];
-            target.bananaSliding = true; // 強制滑行
+            const target = players[1 - pId]; target.bananaSliding = true;
         }
     }
 
@@ -1515,65 +1312,43 @@
 
         players.forEach((p, idx) => {
             if (now >= p.slashingUntil) p.el.classList.remove('slashing');
-
             applyPlayerDebuffVisual(p);
             p.el.classList.toggle('is-webbed', now < p.webbedUntil);
 
-            // 如果踩到香蕉皮，強制極速往前滑
             if (p.bananaSliding) {
-                p.x += 22; 
-                if (p.x >= window.innerWidth - 64) p.bananaSliding = false;
-            } 
-            // 否則正常移動（受蜘蛛網定身限制）
-            else if (now >= p.webbedUntil) {
+                p.x += 22; if (p.x >= window.innerWidth - 64) p.bananaSliding = false;
+            } else if (now >= p.webbedUntil) {
                 if (p.controlType === 'keyboard' || p.controlType === 'kb_and_gp') {
                     if (keys.ArrowUp || keys.w || keys.W) p.y -= p.speed;
                     if (keys.ArrowDown || keys.s || keys.S) p.y += p.speed;
                     if (keys.ArrowLeft || keys.a || keys.A) p.x -= p.speed;
                     if (keys.ArrowRight || keys.d || keys.D) p.x += p.speed;
-                    // 鍵盤陷害道具按鍵
                     if (keys.Shift && playerCount === 2) { useWeb(idx); keys.Shift = false; }
                     if ((keys.e || keys.E) && playerCount === 2) { useBanana(idx); keys.e = false; keys.E = false; }
                 }
 
                 if (p.controlType === 'gamepad' || p.controlType === 'kb_and_gp') {
-                    const gp = gamepads[p.gpIndex];
-                    const st = readGamepadState(gp);
+                    const gp = gamepads[p.gpIndex]; const st = readGamepadState(gp);
                     if (st) {
-                        if (st.moveLeft) p.x -= p.speed;
-                        if (st.moveRight) p.x += p.speed;
-                        if (st.moveUp) p.y -= p.speed;
-                        if (st.moveDown) p.y += p.speed;
-
-                        if (st.btnAction && !p.gpPrevAction && duelState.active) attemptPlayerSlash(idx);
-                        p.gpPrevAction = st.btnAction;
-                        
-                        if (st.btnWeb && !p.gpPrevWeb) useWeb(idx);
-                        p.gpPrevWeb = st.btnWeb;
-
-                        if (st.btnBanana && !p.gpPrevBanana) useBanana(idx);
-                        p.gpPrevBanana = st.btnBanana;
-
-                        if (st.btnReplay && !p.gpPrevReplay && playerCount === 1) playQuestionAudio();
-                        p.gpPrevReplay = st.btnReplay;
+                        if (st.moveLeft) p.x -= p.speed; if (st.moveRight) p.x += p.speed;
+                        if (st.moveUp) p.y -= p.speed; if (st.moveDown) p.y += p.speed;
+                        if (st.btnAction && !p.gpPrevAction && duelState.active) attemptPlayerSlash(idx); p.gpPrevAction = st.btnAction;
+                        if (st.btnWeb && !p.gpPrevWeb) useWeb(idx); p.gpPrevWeb = st.btnWeb;
+                        if (st.btnBanana && !p.gpPrevBanana) useBanana(idx); p.gpPrevBanana = st.btnBanana;
+                        if (st.btnReplay && !p.gpPrevReplay && playerCount === 1) playQuestionAudio(); p.gpPrevReplay = st.btnReplay;
                     }
                 }
             }
-
-            p.x = Math.max(0, Math.min(p.x, window.innerWidth - 64));
-            p.y = Math.max(0, Math.min(p.y, window.innerHeight - 64));
+            p.x = Math.max(0, Math.min(p.x, window.innerWidth - 64)); p.y = Math.max(0, Math.min(p.y, window.innerHeight - 64));
             p.el.style.left = p.x + 'px'; p.el.style.top = p.y + 'px';
         });
     }
 
-    function isRectOverlapping(r1, r2, tol = 10) {
-        return ( r1.left + tol < r2.right && r1.right - tol > r2.left && r1.top + tol < r2.bottom && r1.bottom - tol > r2.top );
-    }
+    function isRectOverlapping(r1, r2, tol = 10) { return ( r1.left + tol < r2.right && r1.right - tol > r2.left && r1.top + tol < r2.bottom && r1.bottom - tol > r2.top ); }
 
     function update() {
         if(!isGameRunning || time <= 0) return;
         const now = Date.now();
-
         handlePlayerMovements(now);
 
         if (duelState.active) {
@@ -1589,38 +1364,29 @@
             gameLoop = requestAnimationFrame(update); return;
         }
 
-        // =========================================================
-        // 🍄 蘑菇 2 選 1 鎖定換道機制
-        // =========================================================
-        if (currentQuestionType === 'normal' && waveState === 'playing') {
-            const textCards = document.querySelectorAll('.obstacle[data-type="text"]');
-            if (textCards.length === 2 && now - lastMushroomSwapTime > 450) {
-                let c1 = textCards[0], c2 = textCards[1];
-                let xPos = parseFloat(c1.dataset.x);
-                // 只有在畫面左側 1/3 之前會瘋狂換道，進入 1/3 區域即鎖定
-                if (xPos > window.innerWidth / 3) {
-                    let tempY = c1.style.top; let tempLane = c1.dataset.lane;
-                    c1.style.top = c2.style.top; c1.dataset.lane = c2.dataset.lane;
-                    c2.style.top = tempY; c2.dataset.lane = tempLane;
-                    lastMushroomSwapTime = now;
-                }
-            }
-        }
-
         const obstacles = document.querySelectorAll('.obstacle');
         let waveEndedByMissOr1PWrong = false;
 
         obstacles.forEach(obs => {
-            // 如果還在等語音，文字卡片不移動；但 Loot 波的道具會直接出發
             if (waveState === 'waiting_audio' && obs.dataset.type === 'text') return;
 
             let x = parseFloat(obs.dataset.x) - speed; 
             obs.dataset.x = x; obs.style.left = `${x}px`;
 
+            // 🍄 蘑菇 S型蛇行換道邏輯
+            if (obs.dataset.type === 'text' && obs.dataset.sinePhase) {
+                let lockX = window.innerWidth * 0.35;
+                let finalY = getLaneY(parseInt(obs.dataset.finalLane));
+                let phase = parseFloat(obs.dataset.sinePhase);
+                let erraticY = getLaneY(1) + Math.sin(x / 65) * (window.innerHeight / 3.2) * phase;
+                let progress = Math.max(0, Math.min(1, (x - lockX) / 350)); 
+                let currentY = erraticY * progress + finalY * (1 - progress);
+                obs.style.top = currentY + 'px';
+            }
+
             if (obs.dataset.resolved === 'true') { if (x < -300) obs.remove(); return; }
 
             const oRect = obs.getBoundingClientRect();
-
             for (let pIdx = 0; pIdx < players.length; pIdx++) {
                 const p = players[pIdx];
                 const pRect = p.el.getBoundingClientRect();
@@ -1634,19 +1400,13 @@
                         triggerCorrectEffect((pRect.left + 32) / window.innerWidth, (pRect.top + 32) / window.innerHeight);
                         setTimeout(() => obs.remove(), 150);
                     } else if (obsType === 'web') {
-                        obs.dataset.resolved = 'true';
-                        if (p.inventory.web < 1) { p.inventory.web = 1; updateItemHud(); }
-                        sfxStar(); obs.remove();
+                        obs.dataset.resolved = 'true'; if (p.inventory.web < 1) { p.inventory.web = 1; updateItemHud(); } sfxStar(); obs.remove();
                     } else if (obsType === 'banana') {
-                        obs.dataset.resolved = 'true';
-                        if (p.inventory.banana < 1) { p.inventory.banana = 1; updateItemHud(); }
-                        sfxStar(); obs.remove();
+                        obs.dataset.resolved = 'true'; if (p.inventory.banana < 1) { p.inventory.banana = 1; updateItemHud(); } sfxStar(); obs.remove();
                     } else if (obsType === 'mushroom') {
-                        obs.dataset.resolved = 'true';
-                        globalMushroomActive = true;
-                        sfxSpeedUp(); obs.remove();
+                        obs.dataset.resolved = 'true'; globalMushroomActive = true; sfxSpeedUp(); obs.remove();
                     } else if (obsType === 'text') {
-                        p.bananaSliding = false; // 撞到字卡解除滑行狀態
+                        p.bananaSliding = false; 
                         if (obs.dataset.correct === 'true') {
                             if (playerCount === 1) { obs.dataset.resolved = 'true'; awardCleanClaim(0, obs); return; }
                             else {
@@ -1655,19 +1415,11 @@
                                 else { pendingClaim = { playerIndex: pIdx, timestamp: now, cardEl: obs }; return; }
                             }
                         } else {
-                            obs.dataset.resolved = 'true';
-                            sfxHitWrong(); triggerWrongEffect();
+                            obs.dataset.resolved = 'true'; sfxHitWrong(); triggerWrongEffect();
                             if (currentWaveTargetCard) recordPlayerWrong(p, currentWaveTargetCard);
-                            
-                            applyPlayerWrongPenalty(p); // 套用新版負面狀態
-
-                            if (playerCount === 1) {
-                                time = Math.max(0, time - 2);
-                                waveEndedByMissOr1PWrong = true;
-                            } else {
-                                p.score = Math.max(0, p.score - 10);
-                                obs.remove(); 
-                            }
+                            applyPlayerWrongPenalty(p);
+                            if (playerCount === 1) { time = Math.max(0, time - 2); waveEndedByMissOr1PWrong = true; }
+                            else { p.score = Math.max(0, p.score - 10); obs.remove(); }
                         }
                     }
                     break;
@@ -1688,16 +1440,12 @@
             }
         });
 
-        if (waveEndedByMissOr1PWrong && currentQuestionType === 'normal') {
-            questionCount++; spawnQuestion();
-        } else if (currentQuestionType === 'loot') {
-            if (document.querySelectorAll('.obstacle[data-resolved="false"]').length === 0) {
-                questionCount++; spawnQuestion(); 
-            }
+        if (waveEndedByMissOr1PWrong && currentQuestionType === 'normal') { questionCount++; spawnQuestion(); }
+        else if (currentQuestionType === 'loot') {
+            if (document.querySelectorAll('.obstacle[data-resolved="false"]').length === 0) { questionCount++; spawnQuestion(); }
         }
 
-        updateHudDisplay();
-        if (time <= 0) { endGame(); return; }
+        updateHudDisplay(); if (time <= 0) { endGame(); return; }
         gameLoop = requestAnimationFrame(update);
     }
 
@@ -1724,18 +1472,15 @@
         document.getElementById('game-over').style.display = 'flex';
         document.getElementById('review-prompt-box').style.display = 'block';
         document.getElementById('review-section').style.display = 'none';
-        promptColIdx = 0; reviewRowIdx = -1; reviewPanelIdx = 0;
-        updateMenuGpFocusVisual();
+        promptColIdx = 0; reviewRowIdx = -1; reviewPanelIdx = 0; updateMenuGpFocusVisual();
 
         const box1P = document.getElementById('gameover-1p-box'); const box2P = document.getElementById('gameover-2p-box');
         if (playerCount === 1) {
             box1P.style.display = 'block'; box2P.style.display = 'none';
             const finalScore = players[0].score; document.getElementById('final-score').innerText = finalScore;
             let comment = "";
-            if (finalScore >= 400) { comment = "真gâu"; sfxGameOver(true); }
-            else if (finalScore >= 300) { comment = "袂bái"; sfxGameOver(true); }
-            else if (finalScore >= 200) { comment = "Beh出師矣"; sfxGameOver(true); }
-            else { comment = "繼續phah piànn"; sfxGameOver(false); }
+            if (finalScore >= 400) { comment = "真gâu"; sfxGameOver(true); } else if (finalScore >= 300) { comment = "袂bái"; sfxGameOver(true); }
+            else if (finalScore >= 200) { comment = "Beh出師矣"; sfxGameOver(true); } else { comment = "繼續phah piànn"; sfxGameOver(false); }
             document.getElementById('score-comment').innerText = comment;
         } else {
             box1P.style.display = 'none'; box2P.style.display = 'flex';
@@ -1748,18 +1493,15 @@
             c1.querySelectorAll('.falling-leaf').forEach(el => el.remove()); c2.querySelectorAll('.falling-leaf').forEach(el => el.remove());
 
             if (s1 > s2) {
-                title2P.innerText = "🏆 玩家 1 獲勝！ 🏆";
-                c1.className = "p2-result-card winner-card"; i1.innerText = "🏆"; st1.innerText = "台語小博士";
+                title2P.innerText = "🏆 玩家 1 獲勝！ 🏆"; c1.className = "p2-result-card winner-card"; i1.innerText = "🏆"; st1.innerText = "台語小博士";
                 c2.className = "p2-result-card loser-card"; i2.innerText = "🍂"; st2.innerText = "繼續拍拚";
                 spawnAutumnLeaves(c2); sfxGameOver(true); confetti({ particleCount: 90, spread: 70, origin: { x: 0.3, y: 0.5 } });
             } else if (s2 > s1) {
-                title2P.innerText = "🏆 玩家 2 獲勝！ 🏆";
-                c2.className = "p2-result-card winner-card"; i2.innerText = "🏆"; st2.innerText = "台語小博士";
+                title2P.innerText = "🏆 玩家 2 獲勝！ 🏆"; c2.className = "p2-result-card winner-card"; i2.innerText = "🏆"; st2.innerText = "台語小博士";
                 c1.className = "p2-result-card loser-card"; i1.innerText = "🍂"; st1.innerText = "繼續拍拚";
                 spawnAutumnLeaves(c1); sfxGameOver(true); confetti({ particleCount: 90, spread: 70, origin: { x: 0.7, y: 0.5 } });
             } else {
-                title2P.innerText = "🍂 平手 🍂";
-                c1.className = "p2-result-card loser-card"; i1.innerText = "🍂"; st1.innerText = "繼續拍拚"; spawnAutumnLeaves(c1);
+                title2P.innerText = "🍂 平手 🍂"; c1.className = "p2-result-card loser-card"; i1.innerText = "🍂"; st1.innerText = "繼續拍拚"; spawnAutumnLeaves(c1);
                 c2.className = "p2-result-card loser-card"; i2.innerText = "🍂"; st2.innerText = "繼續拍拚"; spawnAutumnLeaves(c2); sfxGameOver(false);
             }
         }
@@ -1767,19 +1509,11 @@
 
     function renderPlayerWrongList(containerEl, playerObj) {
         containerEl.innerHTML = '';
-        const wrongList = playerObj ? playerObj.wrongQuestions : [];
-        const correctCnt = playerObj ? playerObj.correctCount : 0;
-
+        const wrongList = playerObj ? playerObj.wrongQuestions : []; const correctCnt = playerObj ? playerObj.correctCount : 0;
         if (wrongList.length === 0) {
-            const emptyDiv = document.createElement('div');
-            emptyDiv.className = 'review-empty-msg';
-            if (correctCnt > 0) {
-                emptyDiv.classList.add('perfect');
-                emptyDiv.innerText = '✨ 完全無毋著，真gâu！ ✨';
-            } else {
-                emptyDiv.classList.add('zero');
-                emptyDiv.innerText = '本局尚無答對紀錄，繼續拍拚！';
-            }
+            const emptyDiv = document.createElement('div'); emptyDiv.className = 'review-empty-msg';
+            if (correctCnt > 0) { emptyDiv.classList.add('perfect'); emptyDiv.innerText = '✨ 完全無毋著，真gâu！ ✨'; }
+            else { emptyDiv.classList.add('zero'); emptyDiv.innerText = '本局尚無答對紀錄，繼續拍拚！'; }
             containerEl.appendChild(emptyDiv); return;
         }
         wrongList.forEach(item => {
@@ -1790,47 +1524,36 @@
     }
 
     function showReviewSection() {
-        sfxGrabCorrect();
-        document.getElementById('review-prompt-box').style.display = 'none';
-        const reviewSec = document.getElementById('review-section');
-        const p2Panel = document.getElementById('review-p2-panel');
-        const p1Header = document.getElementById('review-p1-header');
+        sfxGrabCorrect(); document.getElementById('review-prompt-box').style.display = 'none';
+        const reviewSec = document.getElementById('review-section'); const p2Panel = document.getElementById('review-p2-panel'); const p1Header = document.getElementById('review-p1-header');
 
         if (playerCount === 1) {
             p1Header.innerText = "📖 錯題複習 (揤詞語聽發音)"; p2Panel.style.display = 'none';
             renderPlayerWrongList(document.getElementById('review-p1-list'), players[0]);
         } else {
             p1Header.innerText = "🥷 玩家 1 複習清單 (揤詞語聽發音)"; p2Panel.style.display = 'block';
-            renderPlayerWrongList(document.getElementById('review-p1-list'), players[0]);
-            renderPlayerWrongList(document.getElementById('review-p2-list'), players[1]);
+            renderPlayerWrongList(document.getElementById('review-p1-list'), players[0]); renderPlayerWrongList(document.getElementById('review-p2-list'), players[1]);
         }
         reviewSec.style.display = 'flex'; reviewRowIdx = -1; updateMenuGpFocusVisual();
     }
 
-    // 鍵盤事件
     window.addEventListener('keydown', e => {
         if(keys.hasOwnProperty(e.key)) keys[e.key] = true;
         if (!isGameRunning) return;
-
         if ((e.code === 'Space' || e.key === 'Enter') && duelState.active) {
-            e.preventDefault();
-            const kbIdx = players.findIndex(p => p.controlType === 'keyboard' || p.controlType === 'kb_and_gp');
+            e.preventDefault(); const kbIdx = players.findIndex(p => p.controlType === 'keyboard' || p.controlType === 'kb_and_gp');
             if (kbIdx !== -1 && !e.repeat) attemptPlayerSlash(kbIdx);
-        } else if ((e.key === 'q' || e.key === 'Q') && playerCount === 1) {
-            e.preventDefault(); playQuestionAudio();
-        }
+        } else if ((e.key === 'q' || e.key === 'Q') && playerCount === 1) { e.preventDefault(); playQuestionAudio(); }
     });
     window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
-    // 觸控拖曳移動（僅限單人觸控模式）
     const board = document.getElementById('game-board');
     let isTouching = false, touchStartX, touchStartY, playerStartX, playerStartY;
 
     board.addEventListener('touchstart', (e) => {
         if (!isGameRunning || playerCount !== 1 || !players[0] || players[0].controlType !== 'touch') return;
         if (e.target.closest('#replay-audio-btn') || e.target.closest('#sfx-toggle-btn')) return;
-        e.preventDefault(); isTouching = true;
-        touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
+        e.preventDefault(); isTouching = true; touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
         playerStartX = players[0].x; playerStartY = players[0].y;
     }, {passive: false});
 
@@ -1841,7 +1564,6 @@
         players[0].x = playerStartX + (e.touches[0].clientX - touchStartX) * 1.5; 
         players[0].y = playerStartY + (e.touches[0].clientY - touchStartY) * 1.5;
     }, {passive: false});
-
     board.addEventListener('touchend', () => { isTouching = false; });
 </script>
 </body>
