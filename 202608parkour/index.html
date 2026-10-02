@@ -516,7 +516,6 @@
         return str.normalize('NFC');
     }
 
-    // 根據考法生成卡片 HTML，自帶前後文，挖空處以亮桃紅色標示，完全取消數字聲調圖示
     function buildPhonotacticQuestion(card, preferredType, showHanzi) {
         const cleanRoma = card.r.split('(')[0].trim();
         const parts = cleanRoma.split(/([\s\-–—]+)/);
@@ -975,7 +974,7 @@
     let currentWaveTargetCard = null; let currentWaveAnswered = false;
     let waveState = 'waiting_audio'; 
 
-    let globalMushroomActive = false; // 紀錄下一題是否變成 2選1
+    let globalMushroomActive = false; // 紀錄當下是否已發動蘑菇效果 (S型2選1)
     let lootWavesTriggered = 0; // 全場僅觸發 1 次道具補給波
 
     const SIMULTANEOUS_WINDOW_MS = 180; const CLASH_WINDOW_MS = 130; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
@@ -1111,17 +1110,21 @@
 
     function startWaveMovement() { if (!isGameRunning) return; waveState = 'playing'; }
 
-    function spawnQuestion() {
+    // 加入 keepCurrentCard 參數，支援蘑菇的「即時原題重出」
+    function spawnQuestion(keepCurrentCard = false) {
         if (!isGameRunning) return;
         pendingClaim = null; duelState.active = false; currentWaveAnswered = false; waveState = 'waiting_audio';
 
+        // 生成新題目或重置前，先清空畫面上所有的舊方塊
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
-        currentQuestionType = 'normal'; 
-
-        // 全局僅觸發 1 波道具補給波 (例如第 4 題之後)
-        if (questionCount === 4 && lootWavesTriggered === 0) {
-            currentQuestionType = 'loot';
-            lootWavesTriggered++;
+        
+        if (!keepCurrentCard) {
+            currentQuestionType = 'normal'; 
+            // 全局僅觸發 1 波道具補給波 (例如第 4 題結束時)
+            if (questionCount === 4 && lootWavesTriggered === 0) {
+                currentQuestionType = 'loot';
+                lootWavesTriggered++;
+            }
         }
 
         const screenWidth = window.innerWidth;
@@ -1140,10 +1143,13 @@
             return;
         }
 
-        const target = drawNextTargetCard();
-        currentWaveTargetCard = target; currentQuestionAudioUrl = target.a;
+        // 若不是即時重出，則抽取新題目
+        if (!keepCurrentCard || !currentWaveTargetCard) {
+            currentWaveTargetCard = drawNextTargetCard();
+        }
+        currentQuestionAudioUrl = currentWaveTargetCard.a;
 
-        const qData = buildPhonotacticQuestion(target, preferredQType, showHanziSetting);
+        const qData = buildPhonotacticQuestion(currentWaveTargetCard, preferredQType, showHanziSetting);
         if (!qData) { spawnQuestion(); return; }
 
         let waveId = 'text_' + Date.now();
@@ -1158,22 +1164,30 @@
             let lane = availableLanes[index];
             let el = createEntity('text', opt.html, opt.isCorrect, screenWidth + 50, getLaneY(lane), waveId, lane);
             if (currentWaveIsMushroom) {
-                // 蘑菇特效：S型蛇行交錯，設定最終鎖定跑道與初始相位
+                // 蘑菇特效：設定最終鎖定跑道與 S 型初始相位
                 el.dataset.finalLane = lane;
                 el.dataset.sinePhase = (index === 0) ? 1 : -1;
             }
         });
 
-        // 蘑菇 (稀有怪)：隨機於一般波次提早出現 (機率 40%)
-        if (!currentWaveIsMushroom && !globalMushroomActive && Math.random() < 0.4) {
-            createEntity('mushroom', '', false, screenWidth - 100, getLaneY(cryptoRandomInt(3)), waveId, 0);
-        }
+        // 蘑菇即時重出：不延遲，直接讓卡片開跑並同步播放語音
+        if (keepCurrentCard) {
+            waveState = 'playing';
+            const rawUrl = currentQuestionAudioUrl; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
+            questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
+            questionAudio.play().catch(err => console.log(err));
+        } else {
+            // 一般出題：隨機於波次提早出現蘑菇稀有怪 (機率調升為 40%)
+            if (!currentWaveIsMushroom && Math.random() < 0.4) {
+                createEntity('mushroom', '', false, screenWidth - 100, getLaneY(cryptoRandomInt(3)), waveId, 0);
+            }
 
-        clearTimeout(audioTimeout); audioTimeout = setTimeout(startWaveMovement, 2500);
-        questionAudio.onended = () => { clearTimeout(audioTimeout); startWaveMovement(); };
-        const rawUrl = currentQuestionAudioUrl; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
-        questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
-        questionAudio.play().catch(err => { clearTimeout(audioTimeout); startWaveMovement(); });
+            clearTimeout(audioTimeout); audioTimeout = setTimeout(startWaveMovement, 2500);
+            questionAudio.onended = () => { clearTimeout(audioTimeout); startWaveMovement(); };
+            const rawUrl = currentQuestionAudioUrl; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
+            questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
+            questionAudio.play().catch(err => { clearTimeout(audioTimeout); startWaveMovement(); });
+        }
     }
 
     function createEntity(type, htmlContent = '', isCorrect = false, startX, startY, groupId = '0', lane = 0) {
@@ -1366,28 +1380,13 @@
             gameLoop = requestAnimationFrame(update); return;
         }
 
-        // =========================================================
-        // 🍄 蘑菇 2 選 1 鎖定換道機制
-        // =========================================================
-        if (currentQuestionType === 'normal' && waveState === 'playing') {
-            const textCards = document.querySelectorAll('.obstacle[data-type="text"]');
-            if (textCards.length === 2 && now - lastMushroomSwapTime > 450) {
-                let c1 = textCards[0], c2 = textCards[1];
-                let xPos = parseFloat(c1.dataset.x);
-                // 只有在畫面左側 1/3 之前會瘋狂換道，進入 1/3 區域即鎖定
-                if (xPos > window.innerWidth / 3) {
-                    let tempY = c1.style.top; let tempLane = c1.dataset.lane;
-                    c1.style.top = c2.style.top; c1.dataset.lane = c2.dataset.lane;
-                    c2.style.top = tempY; c2.dataset.lane = tempLane;
-                    lastMushroomSwapTime = now;
-                }
-            }
-        }
-
         const obstacles = document.querySelectorAll('.obstacle');
-        let waveEndedByMissOr1PWrong = false;
+        let waveEndedThisFrame = false;
+        let mushroomEatenThisFrame = false;
 
         obstacles.forEach(obs => {
+            // 安全鎖定：如果這幀已經結束舊題目或是吃到蘑菇，跳過其餘舊方塊的碰撞處理
+            if (waveEndedThisFrame || mushroomEatenThisFrame) return;
             if (waveState === 'waiting_audio' && obs.dataset.type === 'text') return;
 
             let x = parseFloat(obs.dataset.x) - speed; 
@@ -1407,6 +1406,7 @@
             if (obs.dataset.resolved === 'true') { if (x < -300) obs.remove(); return; }
 
             const oRect = obs.getBoundingClientRect();
+
             for (let pIdx = 0; pIdx < players.length; pIdx++) {
                 const p = players[pIdx];
                 const pRect = p.el.getBoundingClientRect();
@@ -1424,21 +1424,37 @@
                     } else if (obsType === 'banana') {
                         obs.dataset.resolved = 'true'; if (p.inventory.banana < 1) { p.inventory.banana = 1; updateItemHud(); } sfxStar(); obs.remove();
                     } else if (obsType === 'mushroom') {
-                        obs.dataset.resolved = 'true'; globalMushroomActive = true; sfxSpeedUp(); obs.remove();
+                        obs.dataset.resolved = 'true'; 
+                        sfxSpeedUp(); 
+                        obs.remove(); 
+                        mushroomEatenThisFrame = true; // 觸發蘑菇重出大招
+                        break;
                     } else if (obsType === 'text') {
                         p.bananaSliding = false; 
                         if (obs.dataset.correct === 'true') {
-                            if (playerCount === 1) { obs.dataset.resolved = 'true'; awardCleanClaim(0, obs); return; }
+                            if (playerCount === 1) { 
+                                obs.dataset.resolved = 'true'; 
+                                awardCleanClaim(0, obs); 
+                                waveEndedThisFrame = true;
+                                return; 
+                            }
                             else {
                                 const otherP = players[1 - pIdx]; const otherRect = otherP.el.getBoundingClientRect();
-                                if (isRectOverlapping(otherRect, oRect, -18)) { startSwordDuel(obs); return; }
+                                if (isRectOverlapping(otherRect, oRect, -18)) { 
+                                    startSwordDuel(obs); 
+                                    waveEndedThisFrame = true;
+                                    return; 
+                                }
                                 else { pendingClaim = { playerIndex: pIdx, timestamp: now, cardEl: obs }; return; }
                             }
                         } else {
                             obs.dataset.resolved = 'true'; sfxHitWrong(); triggerWrongEffect();
                             if (currentWaveTargetCard) recordPlayerWrong(p, currentWaveTargetCard);
                             applyPlayerWrongPenalty(p);
-                            if (playerCount === 1) { time = Math.max(0, time - 2); waveEndedByMissOr1PWrong = true; }
+                            if (playerCount === 1) { 
+                                time = Math.max(0, time - 2); 
+                                waveEndedThisFrame = true;
+                            }
                             else { p.score = Math.max(0, p.score - 10); obs.remove(); }
                         }
                     }
@@ -1446,21 +1462,29 @@
                 }
             }
 
-            if (x < -280) {
+            if (x < -280 && !waveEndedThisFrame && !mushroomEatenThisFrame) {
                 if (obs.dataset.resolved === 'false') {
                     obs.dataset.resolved = 'true';
                     if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
                         sfxHitWrong(); triggerWrongEffect();
                         if (currentWaveTargetCard) players.forEach(pl => recordPlayerWrong(pl, currentWaveTargetCard));
                         if (playerCount === 1) time = Math.max(0, time - 2);
-                        waveEndedByMissOr1PWrong = true;
+                        waveEndedThisFrame = true;
                     }
                 }
                 obs.remove();
             }
         });
 
-        if (waveEndedByMissOr1PWrong && currentQuestionType === 'normal') { questionCount++; spawnQuestion(); }
+        // 蘑菇特效：立刻清空畫面，以 2 選 1 模式重出當前題目！
+        if (mushroomEatenThisFrame) {
+            globalMushroomActive = true;
+            spawnQuestion(true);
+            gameLoop = requestAnimationFrame(update);
+            return;
+        }
+
+        if (waveEndedThisFrame && currentQuestionType === 'normal') { questionCount++; spawnQuestion(); }
         else if (currentQuestionType === 'loot') {
             if (document.querySelectorAll('.obstacle[data-resolved="false"]').length === 0) { questionCount++; spawnQuestion(); }
         }
