@@ -377,7 +377,7 @@
 
     <div id="hud">
         <div class="hud-left-col">
-            <span id="time-display">時間: 50</span>
+            <span id="time-display">時間: 60</span>
             <div id="sfx-toggle-btn" title="開關音效">🔔</div>
             <!-- P1 道具欄 -->
             <div class="inventory-row" id="p1-inventory" style="display: none;">
@@ -968,7 +968,7 @@
     // 🛸 遊戲核心狀態與機制
     // =========================================================
     let preferredQType = 'random'; let showHanziSetting = false;
-    let time = 50, speed = 2.5, maxSpeed = 6.0, elapsedTime = 0, questionCount = 0;
+    let time = 60, speed = 2.5, maxSpeed = 6.0, elapsedTime = 0, questionCount = 0;
     let gameLoop = null, itemInterval = null, audioTimeout = null;
     let currentQuestionType = 'normal';
     let currentWaveTargetCard = null; let currentWaveAnswered = false;
@@ -1084,7 +1084,7 @@
 
         questionDeck = shuffleArray([...activeCards]);
         lastTargetCard = null;
-        time = 50; speed = 2.5; elapsedTime = 0; questionCount = 0;
+        time = 60; speed = 2.5; elapsedTime = 0; questionCount = 0;
         pendingClaim = null; duelState.active = false; globalMushroomActive = false; lootWavesTriggered = 0;
         isGameRunning = true;
 
@@ -1420,9 +1420,13 @@
                         triggerCorrectEffect((pRect.left + 32) / window.innerWidth, (pRect.top + 32) / window.innerHeight);
                         setTimeout(() => obs.remove(), 150);
                     } else if (obsType === 'web') {
-                        obs.dataset.resolved = 'true'; if (p.inventory.web < 1) { p.inventory.web = 1; updateItemHud(); } sfxStar(); obs.remove();
+                        obs.dataset.resolved = 'true';
+                        if (p.inventory.web < 1) { p.inventory.web = 1; updateItemHud(); }
+                        sfxStar(); obs.remove();
                     } else if (obsType === 'banana') {
-                        obs.dataset.resolved = 'true'; if (p.inventory.banana < 1) { p.inventory.banana = 1; updateItemHud(); } sfxStar(); obs.remove();
+                        obs.dataset.resolved = 'true';
+                        if (p.inventory.banana < 1) { p.inventory.banana = 1; updateItemHud(); }
+                        sfxStar(); obs.remove();
                     } else if (obsType === 'mushroom') {
                         obs.dataset.resolved = 'true'; 
                         sfxSpeedUp(); 
