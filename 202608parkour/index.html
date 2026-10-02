@@ -297,7 +297,7 @@
 
         <div class="menu-tips-box">
             <div>揤鈃仔 <span class="inline-bell-icon">🔔</span> 會使開關音效</div>
-            <div style="color: #0369a1;">每題語音播完後，字卡才會出發。每 2 題有一波專屬補給！</div>
+            <div style="color: #0369a1;">每題語音播完後，字卡才會出發。全場會有 1 波專屬補給！</div>
             <div style="color: #991b1b;">⚔️ 雙人同時搶著答案時跑道暫停，揤 空白鍵 / 手把A(✕) 抽刀決鬥！</div>
         </div>
 
@@ -509,6 +509,11 @@
         else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g');
         else if (res.includes('m')) res = res.replace('m', 'm' + m);
         return res.normalize('NFC');
+    }
+
+    function formatTailoHtml(str) {
+        if (!str) return '';
+        return str.normalize('NFC');
     }
 
     // 根據考法生成卡片 HTML，自帶前後文，挖空處以亮桃紅色標示，完全取消數字聲調圖示
@@ -971,7 +976,7 @@
     let waveState = 'waiting_audio'; 
 
     let globalMushroomActive = false; // 紀錄下一題是否變成 2選1
-    let lootWavesTriggered = 0; // 全場僅觸發 2 次道具補給波
+    let lootWavesTriggered = 0; // 全場僅觸發 1 次道具補給波
 
     const SIMULTANEOUS_WINDOW_MS = 180; const CLASH_WINDOW_MS = 130; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
     let pendingClaim = null; let duelState = { active: false, pendingHitBy: -1, pendingHitAt: 0, cardEl: null };
@@ -1113,8 +1118,8 @@
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
         currentQuestionType = 'normal'; 
 
-        // 全局僅觸發 2 波道具補給波 (例如第 3 題與第 7 題之後)
-        if ((questionCount === 3 && lootWavesTriggered === 0) || (questionCount === 7 && lootWavesTriggered === 1)) {
+        // 全局僅觸發 1 波道具補給波 (例如第 4 題之後)
+        if (questionCount === 4 && lootWavesTriggered === 0) {
             currentQuestionType = 'loot';
             lootWavesTriggered++;
         }
@@ -1123,16 +1128,13 @@
 
         if (currentQuestionType === 'loot') {
             currentWaveTargetCard = null;
-            // 補給波不再產生蘑菇，只放星星與陷害道具
-            let items = ['web', 'banana', 'star', 'star', 'web', 'banana', 'star', 'star', 'star'];
+            // 補給波只產生 1 條直線上的 3 個道具
+            let items = ['web', 'banana', 'star'];
             shuffleArray(items);
             let waveId = 'loot_' + Date.now();
             
-            let itemIdx = 0;
-            for (let col = 0; col < 3; col++) {
-                for (let lane = 0; lane < 3; lane++) {
-                    createEntity(items[itemIdx++], '', false, screenWidth + (col * 300), getLaneY(lane), waveId, lane);
-                }
+            for (let lane = 0; lane < 3; lane++) {
+                createEntity(items[lane], '', false, screenWidth + 100, getLaneY(lane), waveId, lane);
             }
             waveState = 'playing'; // 補給波不需等語音
             return;
@@ -1162,8 +1164,8 @@
             }
         });
 
-        // 蘑菇 (稀有怪)：隨機於一般波次提早出現 (機率 25%)
-        if (!currentWaveIsMushroom && !globalMushroomActive && Math.random() < 0.25) {
+        // 蘑菇 (稀有怪)：隨機於一般波次提早出現 (機率 40%)
+        if (!currentWaveIsMushroom && !globalMushroomActive && Math.random() < 0.4) {
             createEntity('mushroom', '', false, screenWidth - 100, getLaneY(cryptoRandomInt(3)), waveId, 0);
         }
 
@@ -1362,6 +1364,24 @@
             if (isRectOverlapping(otherRect, cardRect, 6)) { startSwordDuel(pendingClaim.cardEl); gameLoop = requestAnimationFrame(update); return; }
             else if (now - pendingClaim.timestamp >= SIMULTANEOUS_WINDOW_MS) { awardCleanClaim(pendingClaim.playerIndex, pendingClaim.cardEl); gameLoop = requestAnimationFrame(update); return; }
             gameLoop = requestAnimationFrame(update); return;
+        }
+
+        // =========================================================
+        // 🍄 蘑菇 2 選 1 鎖定換道機制
+        // =========================================================
+        if (currentQuestionType === 'normal' && waveState === 'playing') {
+            const textCards = document.querySelectorAll('.obstacle[data-type="text"]');
+            if (textCards.length === 2 && now - lastMushroomSwapTime > 450) {
+                let c1 = textCards[0], c2 = textCards[1];
+                let xPos = parseFloat(c1.dataset.x);
+                // 只有在畫面左側 1/3 之前會瘋狂換道，進入 1/3 區域即鎖定
+                if (xPos > window.innerWidth / 3) {
+                    let tempY = c1.style.top; let tempLane = c1.dataset.lane;
+                    c1.style.top = c2.style.top; c1.dataset.lane = c2.dataset.lane;
+                    c2.style.top = tempY; c2.dataset.lane = tempLane;
+                    lastMushroomSwapTime = now;
+                }
+            }
         }
 
         const obstacles = document.querySelectorAll('.obstacle');
