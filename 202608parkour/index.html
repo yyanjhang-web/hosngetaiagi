@@ -191,7 +191,7 @@
         @keyframes slashSpinLeft { 0% { transform: scaleX(-1) rotate(-60deg) scale(0.7); opacity: 1; } 100% { transform: scaleX(-1) rotate(90deg) scale(1.18); opacity: 0; } }
 
         /* ========================================================= */
-        /* 跑道選項卡片 (自帶前後文) 與 補給波道具 */
+        /* 跑道選項卡片、補給波道具與飛行軌跡 */
         /* ========================================================= */
         .obstacle { position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center; }
         
@@ -209,6 +209,11 @@
         .loot-item { height: 16.67vh; width: 120px; font-size: min(8vh, 60px); box-sizing: border-box; margin: 0; transition: opacity 0.2s; }
         .star-icon, .mushroom-icon { display: inline-block; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+
+        .flying-projectile {
+            position: absolute; font-size: 40px; z-index: 25; pointer-events: none;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+        }
 
         /* ========================================================= */
         /* 雙人對戰結算畫面與複習視窗 */
@@ -266,7 +271,7 @@
             <p class="menu-card-title">遊玩模式</p>
             <div class="radio-row-wrap">
                 <label class="radio-label" id="lbl-pcount-1"><input type="radio" name="pcount" value="1" checked onchange="onPlayerCountChange()"> 👤 單人遊玩</label>
-                <label class="radio-label" id="lbl-pcount-2"><input type="radio" name="pcount" value="2" onchange="onPlayerCountChange()"> ⚔️ 雙人對戰 (同起點搶答)</label>
+                <label class="radio-label" id="lbl-pcount-2"><input type="radio" name="pcount" value="2" onchange="onPlayerCountChange()"> ⚔️️ 雙人對戰 (同起點搶答)</label>
             </div>
         </div>
 
@@ -998,9 +1003,11 @@
 
     let globalMushroomActive = false; // 紀錄當下是否已發動蘑菇效果 (S型2選1)
     let lootWavesTriggered = 0; // 全場僅觸發 1 次道具補給波
+    let flyingItems = []; // 飛行中的道具軌跡
 
-    const CLASH_WINDOW_MS = 130; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
+    const SIMULTANEOUS_WINDOW_MS = 180; const CLASH_WINDOW_MS = 130; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
     let duelState = { active: false, phase: 'none', countdownEnds: 0, lastTick: -1, pendingHitBy: -1, pendingHitAt: 0, cardEl: null };
+    let pendingClaim = null; 
     let players = [];
     let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, W: false, s: false, S: false, a: false, A: false, d: false, D: false, Shift: false, e: false, E: false };
 
@@ -1051,6 +1058,10 @@
         document.getElementById('duel-overlay').style.display = 'none';
         document.getElementById('duel-center-text').style.display = 'none';
         document.getElementById('duel-banner').style.display = 'none';
+
+        // 移除先前的飛行道具
+        flyingItems.forEach(i => { if(i.el) i.el.remove(); });
+        flyingItems = [];
 
         if (playerCount === 2) {
             document.getElementById('p1-inventory').style.display = 'flex'; document.getElementById('p2-inventory').style.display = 'flex';
@@ -1109,7 +1120,7 @@
         questionDeck = shuffleArray([...activeCards]);
         lastTargetCard = null;
         time = 60; speed = 2.5; elapsedTime = 0; questionCount = 0;
-        duelState.active = false; duelState.phase = 'none'; globalMushroomActive = false; lootWavesTriggered = 0;
+        pendingClaim = null; duelState.active = false; duelState.phase = 'none'; globalMushroomActive = false; lootWavesTriggered = 0;
         isGameRunning = true;
 
         updateHudDisplay(); spawnQuestion();
@@ -1137,14 +1148,14 @@
     // 加入 keepCurrentCard 參數，支援蘑菇的「即時原題重出」
     function spawnQuestion(keepCurrentCard = false) {
         if (!isGameRunning) return;
-        duelState.active = false; duelState.phase = 'none'; currentWaveAnswered = false; waveState = 'waiting_audio';
+        pendingClaim = null; duelState.active = false; duelState.phase = 'none'; currentWaveAnswered = false; waveState = 'waiting_audio';
 
         // 生成新題目或重置前，先清空畫面上所有的舊方塊
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
         
         if (!keepCurrentCard) {
             currentQuestionType = 'normal'; 
-            // 全局僅觸發 1 波道具補給波 (例如第 4 題結束時)
+            // 全局僅觸發 1 波道具補給波 (第 4 題結束時)
             if (questionCount === 4 && lootWavesTriggered === 0) {
                 currentQuestionType = 'loot';
                 lootWavesTriggered++;
@@ -1227,6 +1238,22 @@
         el.style.top = `${startY}px`; el.style.left = `${startX}px`;
         document.getElementById('game-board').appendChild(el);
         return el;
+    }
+
+    // 飛行軌跡道具動畫生成
+    function spawnProjectile(type, fromP, toP) {
+        const el = document.createElement('div');
+        el.className = 'flying-projectile';
+        el.innerText = (type === 'web') ? '🕸️' : '🍌';
+        el.style.left = fromP.x + 'px';
+        el.style.top = fromP.y + 'px';
+        document.getElementById('game-board').appendChild(el);
+        
+        flyingItems.push({
+            type: type, from: fromP, to: toP, el: el,
+            startX: fromP.x, startY: fromP.y,
+            startTime: Date.now(), duration: 400 // 飛行時間 400ms
+        });
     }
 
     function triggerCorrectEffect(originX = 0.5, originY = 0.6) { confetti({ particleCount: 85, spread: 70, origin: { x: originX, y: originY } }); }
@@ -1368,7 +1395,7 @@
         const p = players[pId];
         if (p.inventory.web > 0) {
             p.inventory.web--; updateItemHud(); sfxItemUse();
-            const target = players[1 - pId]; target.webbedUntil = Date.now() + 2000;
+            spawnProjectile('web', p, players[1 - pId]);
         }
     }
 
@@ -1377,7 +1404,7 @@
         const p = players[pId];
         if (p.inventory.banana > 0) {
             p.inventory.banana--; updateItemHud(); sfxItemUse();
-            const target = players[1 - pId]; target.bananaSliding = true;
+            spawnProjectile('banana', p, players[1 - pId]);
         }
     }
 
@@ -1459,12 +1486,45 @@
 
         handlePlayerMovements(now);
 
+        // 飛行道具軌跡更新
+        flyingItems = flyingItems.filter(item => {
+            let p = (now - item.startTime) / item.duration;
+            if (p >= 1) {
+                if (item.type === 'web') { item.to.webbedUntil = now + 2000; sfxHitWrong(); } 
+                else if (item.type === 'banana') { item.to.bananaSliding = true; sfxHitWrong(); }
+                item.el.remove(); return false;
+            }
+            // 追蹤軌跡加上拋物線
+            const currentX = item.startX + (item.to.x - item.startX) * p;
+            const arcY = Math.sin(p * Math.PI) * -80; 
+            const currentY = item.startY + (item.to.y - item.startY) * p + arcY;
+            item.el.style.left = currentX + 'px'; item.el.style.top = currentY + 'px';
+            item.el.style.transform = `rotate(${p * 720}deg)`;
+            return true;
+        });
+
+        // 0.18 秒搶答判定緩衝
+        if (pendingClaim && playerCount === 2) {
+            const otherIdx = 1 - pendingClaim.playerIndex; const otherP = players[otherIdx];
+            const cardRect = pendingClaim.cardEl.getBoundingClientRect(); const otherRect = otherP.el.getBoundingClientRect();
+            
+            if (isRectOverlapping(otherRect, cardRect, 6) && now >= otherP.stunnedUntil && now >= otherP.webbedUntil) { 
+                startSwordDuel(pendingClaim.cardEl); 
+                gameLoop = requestAnimationFrame(update); return; 
+            }
+            else if (now - pendingClaim.timestamp >= SIMULTANEOUS_WINDOW_MS) { 
+                pendingClaim.cardEl.dataset.resolved = 'true';
+                awardCleanClaim(pendingClaim.playerIndex, pendingClaim.cardEl); 
+                gameLoop = requestAnimationFrame(update); return; 
+            }
+            gameLoop = requestAnimationFrame(update); return;
+        }
+
         let waveEndedThisFrame = false;
         let mushroomEatenThisFrame = false;
 
         const obstacles = document.querySelectorAll('.obstacle');
         obstacles.forEach(obs => {
-            // 安全鎖定：如果這幀已經結束舊題目或是吃到蘑菇，跳過其餘舊方塊的碰撞處理
             if (waveEndedThisFrame || mushroomEatenThisFrame) return;
             if (waveState === 'waiting_audio' && obs.dataset.type === 'text') return;
 
@@ -1522,19 +1582,18 @@
                                 return; 
                             }
                             else {
-                                const otherP = players[1 - pIdx]; const otherRect = otherP.el.getBoundingClientRect();
-                                // 如果雙人碰觸，檢查是否「同時」(空間內重疊) 判斷觸發決鬥
-                                if (isRectOverlapping(otherRect, oRect, -18) && now >= otherP.stunnedUntil && now >= otherP.webbedUntil) { 
-                                    startSwordDuel(obs); 
-                                    waveEndedThisFrame = true;
-                                    return; 
-                                }
-                                else { 
-                                    // 否則先判給率先碰到的人得分
-                                    obs.dataset.resolved = 'true';
-                                    awardCleanClaim(pIdx, obs);
-                                    waveEndedThisFrame = true;
-                                    return; 
+                                if (pendingClaim && pendingClaim.cardEl === obs) {
+                                    if (pendingClaim.playerIndex !== pIdx && now >= p.stunnedUntil && now >= p.webbedUntil) {
+                                        startSwordDuel(obs); waveEndedThisFrame = true; return;
+                                    }
+                                    break; 
+                                } else {
+                                    const otherP = players[1 - pIdx]; const otherRect = otherP.el.getBoundingClientRect();
+                                    if (isRectOverlapping(otherRect, oRect, -18) && now >= otherP.stunnedUntil && now >= otherP.webbedUntil) { 
+                                        startSwordDuel(obs); waveEndedThisFrame = true; return; 
+                                    } else { 
+                                        pendingClaim = { playerIndex: pIdx, timestamp: now, cardEl: obs }; break; 
+                                    }
                                 }
                             }
                         } else {
