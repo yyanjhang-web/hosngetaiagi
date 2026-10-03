@@ -140,7 +140,6 @@
             font-size: 52px; line-height: 1; transform: scaleX(-1);
             filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.8)); transition: transform 0.15s, filter 0.2s;
         }
-        /* P2 預設朝右（同 P1），拔刀決鬥時加 facing-left 轉身 */
         #player2 .player-sprite { filter: hue-rotate(200deg) saturate(1.8) drop-shadow(0 0 8px rgba(251, 191, 36, 0.9)); }
         .player-entity.facing-left .player-sprite { transform: scaleX(1) !important; }
         
@@ -151,16 +150,13 @@
         }
         #player2 .player-tag-badge { background: #d97706; border-color: #fde68a; }
 
-        /* 答錯狀態特效：1次暗淡、2次慢閃爍減速 */
         .player-entity.dimmed .player-sprite { filter: grayscale(0.8) brightness(0.5) !important; }
         .player-entity.slow-flash .player-sprite { animation: slowFlash 1s infinite alternate; filter: grayscale(0.8) brightness(0.5) !important; }
         @keyframes slowFlash { 0% { opacity: 1; } 100% { opacity: 0.2; } }
 
-        /* 蜘蛛網特效 */
         .web-fx { display: none; position: absolute; font-size: 64px; z-index: 10; opacity: 0.9; }
         .is-webbed .web-fx { display: block; }
 
-        /* 拔刀決鬥模式血條與刀光 */
         .duel-hp-bar {
             display: none; position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
             width: 58px; height: 9px; background: #1e293b; border: 1.5px solid #fff;
@@ -191,7 +187,7 @@
         @keyframes slashSpinLeft { 0% { transform: scaleX(-1) rotate(-60deg) scale(0.7); opacity: 1; } 100% { transform: scaleX(-1) rotate(90deg) scale(1.18); opacity: 0; } }
 
         /* ========================================================= */
-        /* 跑道選項卡片、補給波道具與飛行軌跡 */
+        /* 跑道選項卡片與飛行道具 (蜘蛛網/香蕉皮) */
         /* ========================================================= */
         .obstacle { position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center; }
         
@@ -210,6 +206,7 @@
         .star-icon, .mushroom-icon { display: inline-block; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
 
+        /* 飛行道具動畫樣式 */
         .flying-projectile {
             position: absolute; font-size: 40px; z-index: 25; pointer-events: none;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
@@ -271,7 +268,7 @@
             <p class="menu-card-title">遊玩模式</p>
             <div class="radio-row-wrap">
                 <label class="radio-label" id="lbl-pcount-1"><input type="radio" name="pcount" value="1" checked onchange="onPlayerCountChange()"> 👤 單人遊玩</label>
-                <label class="radio-label" id="lbl-pcount-2"><input type="radio" name="pcount" value="2" onchange="onPlayerCountChange()"> ⚔️️ 雙人對戰 (同起點搶答)</label>
+                <label class="radio-label" id="lbl-pcount-2"><input type="radio" name="pcount" value="2" onchange="onPlayerCountChange()"> ⚔️ 雙人對戰 (同起點搶答)</label>
             </div>
         </div>
 
@@ -1001,11 +998,12 @@
     let currentWaveTargetCard = null; let currentWaveAnswered = false;
     let waveState = 'waiting_audio'; 
 
-    let globalMushroomActive = false; // 紀錄當下是否已發動蘑菇效果 (S型2選1)
-    let lootWavesTriggered = 0; // 全場僅觸發 1 次道具補給波
+    let globalMushroomActive = false; 
+    let lootWavesTriggered = 0; 
     let flyingItems = []; // 飛行中的道具軌跡
 
-    const SIMULTANEOUS_WINDOW_MS = 180; const CLASH_WINDOW_MS = 130; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
+    const SIMULTANEOUS_WINDOW_MS = 250; // 0.25 秒搶答判定緩衝
+    const CLASH_WINDOW_MS = 130; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
     let duelState = { active: false, phase: 'none', countdownEnds: 0, lastTick: -1, pendingHitBy: -1, pendingHitAt: 0, cardEl: null };
     let pendingClaim = null; 
     let players = [];
@@ -1059,7 +1057,6 @@
         document.getElementById('duel-center-text').style.display = 'none';
         document.getElementById('duel-banner').style.display = 'none';
 
-        // 移除先前的飛行道具
         flyingItems.forEach(i => { if(i.el) i.el.remove(); });
         flyingItems = [];
 
@@ -1145,17 +1142,14 @@
 
     function startWaveMovement() { if (!isGameRunning) return; waveState = 'playing'; }
 
-    // 加入 keepCurrentCard 參數，支援蘑菇的「即時原題重出」
     function spawnQuestion(keepCurrentCard = false) {
         if (!isGameRunning) return;
         pendingClaim = null; duelState.active = false; duelState.phase = 'none'; currentWaveAnswered = false; waveState = 'waiting_audio';
 
-        // 生成新題目或重置前，先清空畫面上所有的舊方塊
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
         
         if (!keepCurrentCard) {
             currentQuestionType = 'normal'; 
-            // 全局僅觸發 1 波道具補給波 (第 4 題結束時)
             if (questionCount === 4 && lootWavesTriggered === 0) {
                 currentQuestionType = 'loot';
                 lootWavesTriggered++;
@@ -1166,7 +1160,6 @@
 
         if (currentQuestionType === 'loot') {
             currentWaveTargetCard = null;
-            // 補給波只產生 1 條直線上的 3 個道具
             let items = ['web', 'banana', 'star'];
             shuffleArray(items);
             let waveId = 'loot_' + Date.now();
@@ -1174,11 +1167,10 @@
             for (let lane = 0; lane < 3; lane++) {
                 createEntity(items[lane], '', false, screenWidth + 100, getLaneY(lane), waveId, lane);
             }
-            waveState = 'playing'; // 補給波不需等語音
+            waveState = 'playing'; 
             return;
         }
 
-        // 若不是即時重出，則抽取新題目
         if (!keepCurrentCard || !currentWaveTargetCard) {
             currentWaveTargetCard = drawNextTargetCard();
         }
@@ -1190,7 +1182,7 @@
         let waveId = 'text_' + Date.now();
         const optionCount = globalMushroomActive ? 2 : 3;
         const currentWaveIsMushroom = globalMushroomActive;
-        globalMushroomActive = false; // 消耗蘑菇效果
+        globalMushroomActive = false; 
         
         let options = shuffleArray([qData.options.find(o => o.isCorrect), ...qData.options.filter(o => !o.isCorrect).slice(0, optionCount - 1)]);
         let availableLanes = shuffleArray([0, 1, 2]);
@@ -1199,24 +1191,20 @@
             let lane = availableLanes[index];
             let el = createEntity('text', opt.html, opt.isCorrect, screenWidth + 50, getLaneY(lane), waveId, lane);
             if (currentWaveIsMushroom) {
-                // 蘑菇特效：設定最終鎖定跑道與 S 型初始相位
                 el.dataset.finalLane = lane;
                 el.dataset.sinePhase = (index === 0) ? 1 : -1;
             }
         });
 
-        // 蘑菇即時重出：不延遲，直接讓卡片開跑並同步播放語音
         if (keepCurrentCard) {
             waveState = 'playing';
             const rawUrl = currentQuestionAudioUrl; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
             questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
             questionAudio.play().catch(err => console.log(err));
         } else {
-            // 一般出題：隨機於波次提早出現蘑菇稀有怪 (機率調升為 40%)
             if (!currentWaveIsMushroom && Math.random() < 0.4) {
                 createEntity('mushroom', '', false, screenWidth - 100, getLaneY(cryptoRandomInt(3)), waveId, 0);
             }
-
             clearTimeout(audioTimeout); audioTimeout = setTimeout(startWaveMovement, 2500);
             questionAudio.onended = () => { clearTimeout(audioTimeout); startWaveMovement(); };
             const rawUrl = currentQuestionAudioUrl; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
@@ -1240,19 +1228,19 @@
         return el;
     }
 
-    // 飛行軌跡道具動畫生成
+    // 飛行道具動畫生成
     function spawnProjectile(type, fromP, toP) {
         const el = document.createElement('div');
         el.className = 'flying-projectile';
         el.innerText = (type === 'web') ? '🕸️' : '🍌';
-        el.style.left = fromP.x + 'px';
-        el.style.top = fromP.y + 'px';
+        el.style.left = (fromP.x + 16) + 'px';
+        el.style.top = (fromP.y + 16) + 'px';
         document.getElementById('game-board').appendChild(el);
         
         flyingItems.push({
-            type: type, from: fromP, to: toP, el: el,
-            startX: fromP.x, startY: fromP.y,
-            startTime: Date.now(), duration: 400 // 飛行時間 400ms
+            type: type, to: toP, el: el,
+            startX: fromP.x + 16, startY: fromP.y + 16,
+            startTime: Date.now(), duration: 350 // 0.35 秒飛行時間
         });
     }
 
@@ -1261,7 +1249,7 @@
     function triggerSpeedUpEffect() { const board = document.getElementById('game-board'); board.classList.remove('flash-speed-up', 'flash-error'); void board.offsetWidth; board.classList.add('flash-speed-up'); }
 
     // =========================================================
-    // ⚔ 拔刀決鬥模式 (升級版：傳送中央、變灰、倒數)
+    // ⚔ 拔刀決鬥模式 (傳送中央、變灰、倒數)
     // =========================================================
     function startSwordDuel(cardEl) {
         duelState.active = true; 
@@ -1277,7 +1265,6 @@
         document.getElementById('duel-banner').style.display = 'none';
 
         players.forEach((p, idx) => {
-            // 解除所有異常狀態，補滿血條
             p.bananaSliding = false; 
             p.webbedUntil = 0; 
             p.stunnedUntil = 0;
@@ -1286,14 +1273,13 @@
             p.el.classList.remove('player-stunned', 'is-webbed', 'dimmed', 'slow-flash');
             document.getElementById(`p${idx + 1}-duel-hp`).style.width = '100%';
             
-            // 傳送到場中央面對面
             p.y = window.innerHeight / 2 - 32;
             if (idx === 0) {
                 p.x = window.innerWidth / 2 - 200;
                 p.el.classList.remove('facing-left');
             } else {
                 p.x = window.innerWidth / 2 + 150;
-                p.el.classList.add('facing-left'); // P2 轉向面向 P1
+                p.el.classList.add('facing-left');
             }
             p.el.style.left = p.x + 'px';
             p.el.style.top = p.y + 'px';
@@ -1337,14 +1323,12 @@
         const winRect = winner.el.getBoundingClientRect();
         triggerCorrectEffect((winRect.left + 32) / window.innerWidth, (winRect.top + 32) / window.innerHeight);
 
-        // 清除決鬥 UI
         document.getElementById('duel-overlay').style.display = 'none'; 
         document.getElementById('duel-center-text').style.display = 'none';
         document.getElementById('duel-banner').style.display = 'none';
         
         players.forEach((p, idx) => {
             p.el.classList.remove('in-duel', 'slashing', 'facing-left');
-            // 將玩家重置回上下跑道
             p.x = 80;
             p.y = getLaneY(idx === 0 ? 0 : 2);
         });
@@ -1353,7 +1337,7 @@
     }
 
     function awardCleanClaim(winnerIdx, cardEl) {
-        const winner = players[winnerIdx]; sfxGrabCorrect();
+        const winner = players[winnerIdx]; pendingClaim = null; sfxGrabCorrect();
 
         if (playerCount === 1) { time += 1; winner.score += 15; }
         else { winner.score += 20; const loser = players[1 - winnerIdx]; if (currentWaveTargetCard) recordPlayerWrong(loser, currentWaveTargetCard); }
@@ -1409,9 +1393,7 @@
     }
 
     function handlePlayerMovements(now) {
-        // 倒數期間凍結行動
         if (duelState.active && duelState.phase === 'countdown') return;
-
         const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
 
         players.forEach((p, idx) => {
@@ -1455,23 +1437,18 @@
         if(!isGameRunning || time <= 0) return;
         const now = Date.now();
 
-        // 決鬥控制與倒數邏輯
         if (duelState.active) {
             if (duelState.phase === 'countdown') {
                 const remainMs = duelState.countdownEnds - now;
                 const remainSec = Math.ceil(remainMs / 1000);
                 if (remainSec > 0) {
                     document.getElementById('duel-timer-span').innerText = remainSec;
-                    if (remainSec !== duelState.lastTick) {
-                        duelState.lastTick = remainSec;
-                        if (remainSec <= 5) sfxTick();
-                    }
+                    if (remainSec !== duelState.lastTick) { duelState.lastTick = remainSec; if (remainSec <= 5) sfxTick(); }
                 } else {
                     duelState.phase = 'fighting';
                     document.getElementById('duel-center-text').style.display = 'none';
                     const banner = document.getElementById('duel-banner');
-                    banner.innerText = "⚔️ 戰鬥開始！(揤 A / ✕ / 空白鍵 揮刀) ⚔️";
-                    banner.style.display = 'block';
+                    banner.innerText = "⚔️ 戰鬥開始！(揤 A / ✕ / 空白鍵 揮刀) ⚔️"; banner.style.display = 'block';
                     sfxDuelStart();
                 }
                 gameLoop = requestAnimationFrame(update); return;
@@ -1494,30 +1471,21 @@
                 else if (item.type === 'banana') { item.to.bananaSliding = true; sfxHitWrong(); }
                 item.el.remove(); return false;
             }
-            // 追蹤軌跡加上拋物線
-            const currentX = item.startX + (item.to.x - item.startX) * p;
+            let targetX = item.to.x + 16; let targetY = item.to.y + 16;
+            const currentX = item.startX + (targetX - item.startX) * p;
             const arcY = Math.sin(p * Math.PI) * -80; 
-            const currentY = item.startY + (item.to.y - item.startY) * p + arcY;
+            const currentY = item.startY + (targetY - item.startY) * p + arcY;
             item.el.style.left = currentX + 'px'; item.el.style.top = currentY + 'px';
             item.el.style.transform = `rotate(${p * 720}deg)`;
             return true;
         });
 
-        // 0.18 秒搶答判定緩衝
+        // 0.25 秒搶答判定緩衝
         if (pendingClaim && playerCount === 2) {
-            const otherIdx = 1 - pendingClaim.playerIndex; const otherP = players[otherIdx];
-            const cardRect = pendingClaim.cardEl.getBoundingClientRect(); const otherRect = otherP.el.getBoundingClientRect();
-            
-            if (isRectOverlapping(otherRect, cardRect, 6) && now >= otherP.stunnedUntil && now >= otherP.webbedUntil) { 
-                startSwordDuel(pendingClaim.cardEl); 
-                gameLoop = requestAnimationFrame(update); return; 
-            }
-            else if (now - pendingClaim.timestamp >= SIMULTANEOUS_WINDOW_MS) { 
+            if (now - pendingClaim.timestamp >= SIMULTANEOUS_WINDOW_MS) { 
                 pendingClaim.cardEl.dataset.resolved = 'true';
                 awardCleanClaim(pendingClaim.playerIndex, pendingClaim.cardEl); 
-                gameLoop = requestAnimationFrame(update); return; 
             }
-            gameLoop = requestAnimationFrame(update); return;
         }
 
         let waveEndedThisFrame = false;
@@ -1531,7 +1499,6 @@
             let x = parseFloat(obs.dataset.x) - speed; 
             obs.dataset.x = x; obs.style.left = `${x}px`;
 
-            // 🍄 蘑菇 S型蛇行換道邏輯
             if (obs.dataset.type === 'text' && obs.dataset.sinePhase) {
                 let lockX = window.innerWidth * 0.35;
                 let finalY = getLaneY(parseInt(obs.dataset.finalLane));
@@ -1568,9 +1535,8 @@
                         sfxStar(); obs.remove();
                     } else if (obsType === 'mushroom') {
                         obs.dataset.resolved = 'true'; 
-                        sfxSpeedUp(); 
-                        obs.remove(); 
-                        mushroomEatenThisFrame = true; // 觸發蘑菇重出大招
+                        sfxSpeedUp(); obs.remove(); 
+                        mushroomEatenThisFrame = true;
                         break;
                     } else if (obsType === 'text') {
                         p.bananaSliding = false; 
@@ -1580,30 +1546,20 @@
                                 awardCleanClaim(0, obs); 
                                 waveEndedThisFrame = true;
                                 return; 
-                            }
-                            else {
+                            } else {
                                 if (pendingClaim && pendingClaim.cardEl === obs) {
                                     if (pendingClaim.playerIndex !== pIdx && now >= p.stunnedUntil && now >= p.webbedUntil) {
                                         startSwordDuel(obs); waveEndedThisFrame = true; return;
                                     }
-                                    break; 
-                                } else {
-                                    const otherP = players[1 - pIdx]; const otherRect = otherP.el.getBoundingClientRect();
-                                    if (isRectOverlapping(otherRect, oRect, -18) && now >= otherP.stunnedUntil && now >= otherP.webbedUntil) { 
-                                        startSwordDuel(obs); waveEndedThisFrame = true; return; 
-                                    } else { 
-                                        pendingClaim = { playerIndex: pIdx, timestamp: now, cardEl: obs }; break; 
-                                    }
+                                } else if (!pendingClaim) {
+                                    pendingClaim = { playerIndex: pIdx, timestamp: now, cardEl: obs };
                                 }
                             }
                         } else {
                             obs.dataset.resolved = 'true'; sfxHitWrong(); triggerWrongEffect();
                             if (currentWaveTargetCard) recordPlayerWrong(p, currentWaveTargetCard);
                             applyPlayerWrongPenalty(p);
-                            if (playerCount === 1) { 
-                                time = Math.max(0, time - 2); 
-                                waveEndedThisFrame = true;
-                            }
+                            if (playerCount === 1) { time = Math.max(0, time - 2); waveEndedThisFrame = true; }
                             else { p.score = Math.max(0, p.score - 10); obs.remove(); }
                         }
                     }
@@ -1625,7 +1581,6 @@
             }
         });
 
-        // 蘑菇特效：立刻清空畫面，以 2 選 1 模式重出當前題目！
         if (mushroomEatenThisFrame) {
             globalMushroomActive = true;
             spawnQuestion(true);
