@@ -18,6 +18,8 @@
         
         #menu, #game-over { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #e0f2f7; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 30; padding: 10px 14px; box-sizing: border-box; overflow-y: auto; }
         
+        #version-tag { position: absolute; top: 12px; right: 20px; font-weight: bold; color: #0369a1; font-size: 16px; z-index: 100; letter-spacing: 1px; }
+
         .menu-content { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; width: 100%; max-width: 580px; margin-bottom: 6px; text-align: center; }
         
         h2.game-title { margin: 0 0 6px 0; font-size: 26px; color: #0f172a; letter-spacing: 1px; }
@@ -259,6 +261,7 @@
 <body>
 
 <div id="menu">
+    <div id="version-tag">Ver 5.0</div>
     <div class="menu-content">
         <h2 class="game-title">🥷 台語跑酷 (忍者對決)</h2>
         
@@ -788,7 +791,8 @@
         questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
         questionAudio.play().catch(err => {
             console.warn("語音播放失敗:", err);
-            if (waveState === 'waiting_audio') startWaveMovement();
+            // 若音檔失效，觸發提早開跑
+            if (waveState === 'waiting_audio') triggerCardSpawn();
         });
     }
 
@@ -968,7 +972,8 @@
                     if (now - lastNavMoveTime > 180 && (anyLeft || anyRight)) { promptColIdx = (promptColIdx === 0) ? 1 : 0; lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual(); }
                     if (trigA) { sfxUiConfirm(); if (promptColIdx === 0) showReviewSection(); else location.reload(); } else if (trigB) { sfxUiConfirm(); location.reload(); }
                 } else if (reviewSec.style.display !== 'none') {
-                    const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item')); const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
+                    const p1Items = Array.from(document.querySelectorAll('#review-p1-list .review-item'));
+                    const p2Items = Array.from(document.querySelectorAll('#review-p2-list .review-item'));
                     const activeList = (playerCount === 2 && reviewPanelIdx === 1) ? p2Items : p1Items;
                     if (now - lastNavMoveTime > 180) {
                         if (anyUp) { if (reviewRowIdx === -1 && activeList.length > 0) reviewRowIdx = activeList.length - 1; else if (reviewRowIdx > 0) reviewRowIdx--; lastNavMoveTime = now; sfxUiMove(); updateMenuGpFocusVisual(); }
@@ -994,6 +999,7 @@
     let preferredQType = 'random'; let showHanziSetting = false;
     let time = 60, speed = 2.5, maxSpeed = 6.0, elapsedTime = 0, questionCount = 0;
     let gameLoop = null, itemInterval = null, audioTimeout = null;
+    
     let currentQuestionType = 'normal';
     let currentWaveTargetCard = null; let currentWaveAnswered = false;
     let waveState = 'waiting_audio'; 
@@ -1002,10 +1008,10 @@
     let lootWavesTriggered = 0; 
     let flyingItems = []; // 飛行中的道具軌跡
 
-    const SIMULTANEOUS_WINDOW_MS = 250; // 0.25 秒搶答判定緩衝
-    const CLASH_WINDOW_MS = 130; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
+    let pendingWaveData = null; // 用來等待語音播完再出題
+
+    const CLASH_WINDOW_MS = 200; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
     let duelState = { active: false, phase: 'none', countdownEnds: 0, lastTick: -1, pendingHitBy: -1, pendingHitAt: 0, cardEl: null };
-    let pendingClaim = null; 
     let players = [];
     let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, W: false, s: false, S: false, a: false, A: false, d: false, D: false, Shift: false, e: false, E: false };
 
@@ -1117,8 +1123,8 @@
         questionDeck = shuffleArray([...activeCards]);
         lastTargetCard = null;
         time = 60; speed = 2.5; elapsedTime = 0; questionCount = 0;
-        pendingClaim = null; duelState.active = false; duelState.phase = 'none'; globalMushroomActive = false; lootWavesTriggered = 0;
-        isGameRunning = true;
+        duelState.active = false; duelState.phase = 'none'; globalMushroomActive = false; lootWavesTriggered = 0;
+        isGameRunning = true; pendingWaveData = null;
 
         updateHudDisplay(); spawnQuestion();
         gameLoop = requestAnimationFrame(update); itemInterval = setInterval(timerTick, 1000);
@@ -1140,16 +1146,56 @@
         if (playerCount === 2 && players[1]) document.getElementById('p2-score-display').innerText = `P2 分數: ${players[1].score}`;
     }
 
-    function startWaveMovement() { if (!isGameRunning) return; waveState = 'playing'; }
+    // 將卡片生成的動作封裝，語音結束後呼叫
+    function triggerCardSpawn() {
+        if (!isGameRunning || waveState === 'playing' || !pendingWaveData) return;
+        waveState = 'playing';
+
+        if (pendingWaveData.isLoot) {
+            let waveId = 'loot_' + Date.now();
+            if (playerCount === 1) {
+                // 單人模式的 Loot Wave 僅生成 2 顆 S型蛇行星星
+                let s1 = createEntity('star', '', false, pendingWaveData.screenWidth + 100, getLaneY(0), waveId, 0);
+                s1.dataset.sinePhase = 1;
+                let s2 = createEntity('star', '', false, pendingWaveData.screenWidth + 100, getLaneY(2), waveId, 2);
+                s2.dataset.sinePhase = -1;
+            } else {
+                // 雙人模式生成 🕸️ 🍌 ⭐ 互搶
+                let items = ['web', 'banana', 'star'];
+                shuffleArray(items);
+                for (let lane = 0; lane < 3; lane++) {
+                    createEntity(items[lane], '', false, pendingWaveData.screenWidth + 100, getLaneY(lane), waveId, lane);
+                }
+            }
+        } else {
+            // 一般出題
+            pendingWaveData.options.forEach((opt, index) => {
+                let lane = pendingWaveData.availableLanes[index];
+                let el = createEntity('text', opt.html, opt.isCorrect, pendingWaveData.screenWidth + 50, getLaneY(lane), pendingWaveData.waveId, lane);
+                if (pendingWaveData.isMushroom) {
+                    el.dataset.finalLane = lane;
+                    el.dataset.sinePhase = (index === 0) ? 1 : -1;
+                }
+            });
+
+            // 一般出題有 40% 機率飛出蘑菇稀有怪
+            if (!pendingWaveData.isMushroom && Math.random() < 0.4) {
+                createEntity('mushroom', '', false, pendingWaveData.screenWidth - 100, getLaneY(cryptoRandomInt(3)), pendingWaveData.waveId, 0);
+            }
+        }
+        pendingWaveData = null;
+    }
 
     function spawnQuestion(keepCurrentCard = false) {
         if (!isGameRunning) return;
-        pendingClaim = null; duelState.active = false; duelState.phase = 'none'; currentWaveAnswered = false; waveState = 'waiting_audio';
+        duelState.active = false; duelState.phase = 'none'; currentWaveAnswered = false; waveState = 'waiting_audio';
 
+        // 生成新題目或重置前，先清空畫面上所有的舊方塊
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
         
         if (!keepCurrentCard) {
             currentQuestionType = 'normal'; 
+            // 全局僅觸發 1 波道具補給波 (第 4 題結束時)
             if (questionCount === 4 && lootWavesTriggered === 0) {
                 currentQuestionType = 'loot';
                 lootWavesTriggered++;
@@ -1160,17 +1206,12 @@
 
         if (currentQuestionType === 'loot') {
             currentWaveTargetCard = null;
-            let items = ['web', 'banana', 'star'];
-            shuffleArray(items);
-            let waveId = 'loot_' + Date.now();
-            
-            for (let lane = 0; lane < 3; lane++) {
-                createEntity(items[lane], '', false, screenWidth + 100, getLaneY(lane), waveId, lane);
-            }
-            waveState = 'playing'; 
+            pendingWaveData = { isLoot: true, screenWidth: screenWidth };
+            triggerCardSpawn(); // Loot波無語音直接出發
             return;
         }
 
+        // 抽取新題目
         if (!keepCurrentCard || !currentWaveTargetCard) {
             currentWaveTargetCard = drawNextTargetCard();
         }
@@ -1179,38 +1220,31 @@
         const qData = buildPhonotacticQuestion(currentWaveTargetCard, preferredQType, showHanziSetting);
         if (!qData) { spawnQuestion(); return; }
 
-        let waveId = 'text_' + Date.now();
         const optionCount = globalMushroomActive ? 2 : 3;
         const currentWaveIsMushroom = globalMushroomActive;
-        globalMushroomActive = false; 
+        globalMushroomActive = false; // 消耗蘑菇效果
         
         let options = shuffleArray([qData.options.find(o => o.isCorrect), ...qData.options.filter(o => !o.isCorrect).slice(0, optionCount - 1)]);
         let availableLanes = shuffleArray([0, 1, 2]);
 
-        options.forEach((opt, index) => {
-            let lane = availableLanes[index];
-            let el = createEntity('text', opt.html, opt.isCorrect, screenWidth + 50, getLaneY(lane), waveId, lane);
-            if (currentWaveIsMushroom) {
-                el.dataset.finalLane = lane;
-                el.dataset.sinePhase = (index === 0) ? 1 : -1;
-            }
-        });
+        // 儲存待生成的資料
+        pendingWaveData = {
+            isLoot: false,
+            options: options,
+            availableLanes: availableLanes,
+            isMushroom: currentWaveIsMushroom,
+            screenWidth: screenWidth,
+            waveId: 'text_' + Date.now()
+        };
 
-        if (keepCurrentCard) {
-            waveState = 'playing';
-            const rawUrl = currentQuestionAudioUrl; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
-            questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
-            questionAudio.play().catch(err => console.log(err));
-        } else {
-            if (!currentWaveIsMushroom && Math.random() < 0.4) {
-                createEntity('mushroom', '', false, screenWidth - 100, getLaneY(cryptoRandomInt(3)), waveId, 0);
-            }
-            clearTimeout(audioTimeout); audioTimeout = setTimeout(startWaveMovement, 2500);
-            questionAudio.onended = () => { clearTimeout(audioTimeout); startWaveMovement(); };
-            const rawUrl = currentQuestionAudioUrl; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
-            questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
-            questionAudio.play().catch(err => { clearTimeout(audioTimeout); startWaveMovement(); });
-        }
+        // 播放語音，等播完再呼叫 triggerCardSpawn
+        clearTimeout(audioTimeout); 
+        audioTimeout = setTimeout(triggerCardSpawn, 2500); // 防呆機制
+        questionAudio.onended = () => { clearTimeout(audioTimeout); triggerCardSpawn(); };
+        
+        const rawUrl = currentQuestionAudioUrl; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
+        questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
+        questionAudio.play().catch(err => { console.log(err); clearTimeout(audioTimeout); triggerCardSpawn(); });
     }
 
     function createEntity(type, htmlContent = '', isCorrect = false, startX, startY, groupId = '0', lane = 0) {
@@ -1228,7 +1262,7 @@
         return el;
     }
 
-    // 飛行道具動畫生成
+    // 飛行道具動畫生成 (拋物線與旋轉追蹤)
     function spawnProjectile(type, fromP, toP) {
         const el = document.createElement('div');
         el.className = 'flying-projectile';
@@ -1337,7 +1371,7 @@
     }
 
     function awardCleanClaim(winnerIdx, cardEl) {
-        const winner = players[winnerIdx]; pendingClaim = null; sfxGrabCorrect();
+        const winner = players[winnerIdx]; sfxGrabCorrect();
 
         if (playerCount === 1) { time += 1; winner.score += 15; }
         else { winner.score += 20; const loser = players[1 - winnerIdx]; if (currentWaveTargetCard) recordPlayerWrong(loser, currentWaveTargetCard); }
@@ -1437,6 +1471,7 @@
         if(!isGameRunning || time <= 0) return;
         const now = Date.now();
 
+        // 決鬥控制與倒數邏輯
         if (duelState.active) {
             if (duelState.phase === 'countdown') {
                 const remainMs = duelState.countdownEnds - now;
@@ -1480,14 +1515,6 @@
             return true;
         });
 
-        // 0.25 秒搶答判定緩衝
-        if (pendingClaim && playerCount === 2) {
-            if (now - pendingClaim.timestamp >= SIMULTANEOUS_WINDOW_MS) { 
-                pendingClaim.cardEl.dataset.resolved = 'true';
-                awardCleanClaim(pendingClaim.playerIndex, pendingClaim.cardEl); 
-            }
-        }
-
         let waveEndedThisFrame = false;
         let mushroomEatenThisFrame = false;
 
@@ -1499,71 +1526,102 @@
             let x = parseFloat(obs.dataset.x) - speed; 
             obs.dataset.x = x; obs.style.left = `${x}px`;
 
-            if (obs.dataset.type === 'text' && obs.dataset.sinePhase) {
-                let lockX = window.innerWidth * 0.35;
-                let finalY = getLaneY(parseInt(obs.dataset.finalLane));
+            // 🍄 蘑菇 S型蛇行換道邏輯
+            if (obs.dataset.sinePhase) {
                 let phase = parseFloat(obs.dataset.sinePhase);
                 let erraticY = getLaneY(1) + Math.sin(x / 65) * (window.innerHeight / 3.2) * phase;
-                let progress = Math.max(0, Math.min(1, (x - lockX) / 350)); 
-                let currentY = erraticY * progress + finalY * (1 - progress);
-                obs.style.top = currentY + 'px';
+                if (obs.dataset.type === 'text') {
+                    let lockX = window.innerWidth * 0.35;
+                    let finalY = getLaneY(parseInt(obs.dataset.finalLane));
+                    let progress = Math.max(0, Math.min(1, (x - lockX) / 350)); 
+                    let currentY = erraticY * progress + finalY * (1 - progress);
+                    obs.style.top = currentY + 'px';
+                } else if (obs.dataset.type === 'star') {
+                    obs.style.top = erraticY + 'px'; // 星星持續蛇行
+                }
             }
 
             if (obs.dataset.resolved === 'true') { if (x < -300) obs.remove(); return; }
 
             const oRect = obs.getBoundingClientRect();
 
-            for (let pIdx = 0; pIdx < players.length; pIdx++) {
-                const p = players[pIdx];
-                const pRect = p.el.getBoundingClientRect();
-
-                if (isRectOverlapping(pRect, oRect, 10)) {
-                    const obsType = obs.dataset.type;
-
-                    if (obsType === 'star') {
-                        obs.dataset.resolved = 'true'; obs.style.opacity = '0.15';
-                        time += 2; p.score += 15; sfxStar();
-                        triggerCorrectEffect((pRect.left + 32) / window.innerWidth, (pRect.top + 32) / window.innerHeight);
-                        setTimeout(() => obs.remove(), 150);
-                    } else if (obsType === 'web') {
-                        obs.dataset.resolved = 'true';
-                        if (p.inventory.web < 1) { p.inventory.web = 1; updateItemHud(); }
-                        sfxStar(); obs.remove();
-                    } else if (obsType === 'banana') {
-                        obs.dataset.resolved = 'true';
-                        if (p.inventory.banana < 1) { p.inventory.banana = 1; updateItemHud(); }
-                        sfxStar(); obs.remove();
-                    } else if (obsType === 'mushroom') {
-                        obs.dataset.resolved = 'true'; 
-                        sfxSpeedUp(); obs.remove(); 
-                        mushroomEatenThisFrame = true;
-                        break;
-                    } else if (obsType === 'text') {
-                        p.bananaSliding = false; 
-                        if (obs.dataset.correct === 'true') {
-                            if (playerCount === 1) { 
-                                obs.dataset.resolved = 'true'; 
-                                awardCleanClaim(0, obs); 
-                                waveEndedThisFrame = true;
-                                return; 
-                            } else {
-                                if (pendingClaim && pendingClaim.cardEl === obs) {
-                                    if (pendingClaim.playerIndex !== pIdx && now >= p.stunnedUntil && now >= p.webbedUntil) {
-                                        startSwordDuel(obs); waveEndedThisFrame = true; return;
-                                    }
-                                } else if (!pendingClaim) {
-                                    pendingClaim = { playerIndex: pIdx, timestamp: now, cardEl: obs };
-                                }
-                            }
-                        } else {
-                            obs.dataset.resolved = 'true'; sfxHitWrong(); triggerWrongEffect();
-                            if (currentWaveTargetCard) recordPlayerWrong(p, currentWaveTargetCard);
-                            applyPlayerWrongPenalty(p);
-                            if (playerCount === 1) { time = Math.max(0, time - 2); waveEndedThisFrame = true; }
-                            else { p.score = Math.max(0, p.score - 10); obs.remove(); }
+            // 精密重寫的同時撞擊判定邏輯
+            if (obs.dataset.type === 'text') {
+                if (obs.dataset.correct === 'true') {
+                    let hitBy = obs.dataset.hitBy ? JSON.parse(obs.dataset.hitBy) : [];
+                    for (let pIdx = 0; pIdx < players.length; pIdx++) {
+                        const p = players[pIdx];
+                        if (now < p.stunnedUntil) continue;
+                        if (isRectOverlapping(p.el.getBoundingClientRect(), oRect, 10)) {
+                            p.bananaSliding = false; // 撞到字卡解除滑走
+                            if (!hitBy.includes(pIdx)) hitBy.push(pIdx);
                         }
                     }
-                    break;
+
+                    if (hitBy.length > 0) {
+                        if (!obs.dataset.hitTime) obs.dataset.hitTime = now;
+                        obs.dataset.hitBy = JSON.stringify(hitBy);
+
+                        if (playerCount === 1) {
+                            obs.dataset.resolved = 'true';
+                            awardCleanClaim(0, obs);
+                            waveEndedThisFrame = true;
+                        } else {
+                            if (hitBy.length === 2) {
+                                // 雙方都命中，觸發決鬥
+                                obs.dataset.resolved = 'true';
+                                startSwordDuel(obs);
+                                waveEndedThisFrame = true;
+                            } else if (now - parseInt(obs.dataset.hitTime) >= 200) {
+                                // 超過 200ms 對手沒碰到，判定單人得分
+                                obs.dataset.resolved = 'true';
+                                awardCleanClaim(hitBy[0], obs);
+                                waveEndedThisFrame = true;
+                            }
+                        }
+                    }
+                } else {
+                    // 撞到錯誤答案
+                    for (let pIdx = 0; pIdx < players.length; pIdx++) {
+                        const p = players[pIdx];
+                        if (now < p.stunnedUntil) continue;
+                        if (isRectOverlapping(p.el.getBoundingClientRect(), oRect, 10)) {
+                            p.bananaSliding = false;
+                            obs.dataset.resolved = 'true';
+                            sfxHitWrong(); triggerWrongEffect();
+                            if (currentWaveTargetCard) recordPlayerWrong(p, currentWaveTargetCard);
+                            applyPlayerWrongPenalty(p);
+                            if (playerCount === 1) { 
+                                time = Math.max(0, time - 2); 
+                                waveEndedThisFrame = true;
+                            } else { 
+                                p.score = Math.max(0, p.score - 10); 
+                                obs.style.display = 'none'; // 隱藏，避免另一人再撞
+                            }
+                        }
+                    }
+                }
+            } else {
+                // 道具判定
+                for (let pIdx = 0; pIdx < players.length; pIdx++) {
+                    const p = players[pIdx];
+                    if (now < p.stunnedUntil) continue;
+                    if (isRectOverlapping(p.el.getBoundingClientRect(), oRect, 10)) {
+                        const obsType = obs.dataset.type;
+                        obs.dataset.resolved = 'true';
+
+                        if (obsType === 'star') {
+                            obs.style.opacity = '0.15'; time += 2; p.score += 15; sfxStar();
+                            triggerCorrectEffect((pRect.left + 32) / window.innerWidth, (pRect.top + 32) / window.innerHeight);
+                            setTimeout(() => obs.remove(), 150);
+                        } else if (obsType === 'web') {
+                            if (p.inventory.web < 1) { p.inventory.web = 1; updateItemHud(); } sfxStar(); obs.remove();
+                        } else if (obsType === 'banana') {
+                            if (p.inventory.banana < 1) { p.inventory.banana = 1; updateItemHud(); } sfxStar(); obs.remove();
+                        } else if (obsType === 'mushroom') {
+                            sfxSpeedUp(); obs.remove(); mushroomEatenThisFrame = true; break;
+                        }
+                    }
                 }
             }
 
@@ -1609,7 +1667,7 @@
 
     function endGame() {
         if (!isGameRunning) return;
-        isGameRunning = false; duelState.active = false; pendingClaim = null; gameOverOpenedAt = Date.now();
+        isGameRunning = false; duelState.active = false; gameOverOpenedAt = Date.now();
         cancelAnimationFrame(gameLoop); clearInterval(itemInterval); questionAudio.pause();
 
         if (currentQuestionType === 'normal' && currentWaveTargetCard && !currentWaveAnswered) {
