@@ -115,45 +115,45 @@
             z-index: 15; text-shadow: 2px 2px 4px #000; pointer-events: none;
         }
         .hud-left-col { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: auto; }
-        .hud-center-col { position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: auto; }
-        .sys-btn-row { display: flex; gap: 8px; align-items: center; }
+        /* 修正中央 UI 為橫排，避免按鈕重疊 */
+        .hud-center-col { position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; align-items: center; gap: 12px; pointer-events: auto; }
+        .time-badge { font-size: 20px; text-shadow: 2px 2px 4px #000; white-space: nowrap; }
         .hud-right-col { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; pointer-events: auto; }
 
         .p1-score-badge { color: #38bdf8; background: rgba(15, 23, 42, 0.75); padding: 2px 10px; border-radius: 8px; border: 1.5px solid #38bdf8; }
         .p2-score-badge { color: #fbbf24; background: rgba(15, 23, 42, 0.75); padding: 2px 10px; border-radius: 8px; border: 1.5px solid #fbbf24; }
 
-        /* 陷害道具欄 UI 與 手把圖示 */
-        .inventory-row { display: flex; gap: 8px; margin-top: 4px; }
+        /* 陷害道具欄 UI 與 手把圖示 (加大並加寬間距) */
+        .inventory-row { display: flex; gap: 14px; margin-top: 4px; }
         .item-slot { 
-            width: 32px; height: 32px; background: rgba(0,0,0,0.5); border: 2px solid #64748b; 
+            width: 40px; height: 40px; background: rgba(0,0,0,0.5); border: 2px solid #64748b; 
             border-radius: 8px; display: flex; justify-content: center; align-items: center; 
-            font-size: 20px; filter: grayscale(1); opacity: 0.3; transition: 0.2s; position: relative;
+            font-size: 24px; filter: grayscale(1); opacity: 0.3; transition: 0.2s; position: relative;
         }
         .item-slot.active { filter: grayscale(0); opacity: 1; border-color: #fde047; box-shadow: 0 0 8px #fde047; transform: scale(1.1); }
-        .item-hint { font-size: 10px; position: absolute; bottom: -16px; text-shadow: none; color: #cbd5e1; font-family: Arial, sans-serif; white-space: nowrap; }
+        .item-hint { font-size: 11px; position: absolute; bottom: -18px; text-shadow: none; color: #cbd5e1; font-family: Arial, sans-serif; white-space: nowrap; }
         
         .hint-text-wrap { display: flex; align-items: center; justify-content: center; gap: 3px; }
-        .hint-slash { font-size: 8px; opacity: 0.6; }
-        .btn-diamond { display: inline-block; position: relative; width: 14px; height: 14px; vertical-align: middle; }
-        .btn-dot { position: absolute; width: 4.5px; height: 4.5px; background-color: #cbd5e1; border-radius: 50%; border: 0.5px solid #0f172a; box-sizing: border-box; }
-        .btn-dot.top { top: 0; left: 4.75px; }
-        .btn-dot.bottom { bottom: 0; left: 4.75px; }
-        .btn-dot.left { top: 4.75px; left: 0; }
-        .btn-dot.right { top: 4.75px; right: 0; }
+        .hint-slash { font-size: 9px; opacity: 0.6; }
+        .btn-diamond { display: inline-block; position: relative; width: 16px; height: 16px; vertical-align: middle; }
+        .btn-dot { position: absolute; width: 5px; height: 5px; background-color: #cbd5e1; border-radius: 50%; border: 0.5px solid #0f172a; box-sizing: border-box; }
+        .btn-dot.top { top: 0; left: 5.5px; }
+        .btn-dot.bottom { bottom: 0; left: 5.5px; }
+        .btn-dot.left { top: 5.5px; left: 0; }
+        .btn-dot.right { top: 5.5px; right: 0; }
         .btn-dot.active { background-color: #ef4444; border-color: #b91c1c; box-shadow: 0 0 4px #ef4444; z-index: 2; transform: scale(1.1); }
 
         #sfx-toggle-btn {
             background: rgba(255, 255, 255, 0.18); border: 2px solid rgba(255, 255, 255, 0.55);
-            border-radius: 8px; padding: 2px 8px; font-size: 17px; line-height: 1.2;
+            border-radius: 8px; padding: 2px 8px; font-size: 18px; line-height: 1.2;
             cursor: pointer; transition: 0.15s; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
         #sfx-toggle-btn.muted { opacity: 0.5; border-color: #777; background: rgba(0, 0, 0, 0.35); }
 
         #replay-audio-btn {
-            display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 15;
-            background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff;
-            border: 2px solid #38bdf8; border-radius: 20px; padding: 4px 12px;
-            font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+            display: none; background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff;
+            border: 2px solid #38bdf8; border-radius: 20px; padding: 4px 14px;
+            font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
             white-space: nowrap; transition: transform 0.1s;
         }
         #replay-audio-btn:active { transform: scale(0.93); }
@@ -301,7 +301,7 @@
 <body>
 
 <div id="menu">
-    <div id="version-tag">Ver 5.6</div>
+    <div id="version-tag">Ver 5.7</div>
     <div class="menu-content">
         <h2 class="game-title">🥷 台語跑酷 (忍者對決)</h2>
         
@@ -462,9 +462,9 @@
             </div>
         </div>
         
-        <!-- 中央：時間與系統按鈕 -->
+        <!-- 中央：時間與系統按鈕 (修正排版) -->
         <div class="hud-center-col">
-            <span id="time-display">時間: 60</span>
+            <span class="time-badge" id="time-display">時間: 60</span>
             <div class="sys-btn-row">
                 <div id="sfx-toggle-btn" title="開關音效">🔔</div>
                 <button id="replay-audio-btn" title="重播語音 (Q鍵 / 手把X或□鍵)" style="display: none;">🔊 揤重聽</button>
@@ -487,12 +487,12 @@
 
     <!-- 拔刀決鬥中央巨型倒數與提示橫幅 -->
     <div id="duel-center-text">同齊正確回答 PK搶答<br><span id="duel-timer-span" style="font-size: 80px; color: #ef4444;">3</span></div>
-    <div id="duel-banner">⚔️ 戰鬥開始！(揤 空白鍵 / 手把攻擊 揮刀) ⚔️</div>
+    <div id="duel-banner">⚔️️ 戰鬥開始！(揤 空白鍵 / 手把攻擊 揮刀) ⚔️</div>
 
     <!-- 玩家 1 與 玩家 2 忍者實體 -->
     <div id="player1" class="player-entity">
         <div class="duel-hp-bar"><div class="duel-hp-fill" id="p1-duel-hp"></div></div>
-        <div class="web-fx">🕸️️</div>
+        <div class="web-fx">🕸️</div>
         <div class="player-sprite">🥷</div>
         <div class="duel-sword-icon">🗡</div>
         <div class="slash-arc-fx"></div>
@@ -1070,7 +1070,6 @@
 
     let pendingWaveData = null; 
 
-    // 0.2 秒精準搶答區間
     const CLASH_WINDOW_MS = 200; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
     let duelState = { active: false, phase: 'none', countdownEnds: 0, lastTick: -1, pendingHitBy: -1, pendingHitAt: 0, cardEl: null };
     let players = [];
@@ -1243,7 +1242,6 @@
 
     function spawnQuestion(keepCurrentCard = false) {
         if (!isGameRunning) return;
-        // 嚴格確保狀態重置時不干擾決鬥
         if (duelState.active) return;
         
         currentWaveAnswered = false; waveState = 'waiting_audio';
@@ -1303,7 +1301,7 @@
         const el = document.createElement('div'); el.className = 'obstacle';
         if (type === 'star') { el.classList.add('loot-item'); el.innerHTML = '<span class="star-icon">⭐</span>'; }
         else if (type === 'mushroom') { el.classList.add('loot-item'); el.innerHTML = '<span class="mushroom-icon">🍄</span>'; }
-        else if (type === 'web') { el.classList.add('loot-item'); el.innerHTML = '🕸️'; }
+        else if (type === 'web') { el.classList.add('loot-item'); el.innerHTML = '🕸️️'; }
         else if (type === 'banana') { el.classList.add('loot-item'); el.innerHTML = '🍌'; }
         else { el.classList.add('text-card'); el.innerHTML = htmlContent; }
         
@@ -1554,7 +1552,6 @@
         if(!isGameRunning || time <= 0) return;
         const now = Date.now();
 
-        // 決鬥控制與倒數邏輯 (嚴格鎖死碰撞)
         if (duelState.active) {
             if (duelState.phase === 'countdown') {
                 const remainMs = duelState.countdownEnds - now;
@@ -1569,7 +1566,7 @@
                     duelState.phase = 'fighting';
                     document.getElementById('duel-center-text').style.display = 'none';
                     const banner = document.getElementById('duel-banner');
-                    banner.innerText = "⚔️ 戰鬥開始！(揤 空白鍵 / 手把攻擊 揮刀) ⚔️️";
+                    banner.innerText = "⚔️ 戰鬥開始！(揤 空白鍵 / 手把攻擊 揮刀) ⚔️";
                     banner.style.display = 'block';
                     sfxDuelStart();
                 }
@@ -1601,30 +1598,29 @@
             return true;
         });
 
-        let nextAction = null;
-        let claimWinnerIdx = -1;
-        let eventTargetCard = null;
+        let waveEndedThisFrame = false;
+        let mushroomEatenThisFrame = false;
 
         const obstacles = document.querySelectorAll('.obstacle');
         obstacles.forEach(obs => {
-            if (nextAction) return;
+            if (waveEndedThisFrame || mushroomEatenThisFrame) return;
             if (waveState === 'waiting_audio' && obs.dataset.type === 'text') return;
 
             let x = parseFloat(obs.dataset.x) - speed; 
             obs.dataset.x = x; obs.style.left = `${x}px`;
 
-            if (obs.dataset.type === 'text' && obs.dataset.sinePhase) {
-                let lockX = window.innerWidth * 0.35;
-                let finalY = getLaneY(parseInt(obs.dataset.finalLane));
+            if (obs.dataset.sinePhase) {
                 let phase = parseFloat(obs.dataset.sinePhase);
                 let erraticY = getLaneY(1) + Math.sin(x / 65) * (window.innerHeight / 3.2) * phase;
-                let progress = Math.max(0, Math.min(1, (x - lockX) / 350)); 
-                let currentY = erraticY * progress + finalY * (1 - progress);
-                obs.style.top = currentY + 'px';
-            } else if (obs.dataset.type === 'star' && obs.dataset.sinePhase) {
-                let phase = parseFloat(obs.dataset.sinePhase);
-                let erraticY = getLaneY(1) + Math.sin(x / 65) * (window.innerHeight / 3.2) * phase;
-                obs.style.top = erraticY + 'px';
+                if (obs.dataset.type === 'text') {
+                    let lockX = window.innerWidth * 0.35;
+                    let finalY = getLaneY(parseInt(obs.dataset.finalLane));
+                    let progress = Math.max(0, Math.min(1, (x - lockX) / 350)); 
+                    let currentY = erraticY * progress + finalY * (1 - progress);
+                    obs.style.top = currentY + 'px';
+                } else if (obs.dataset.type === 'star') {
+                    obs.style.top = erraticY + 'px'; 
+                }
             }
 
             if (obs.dataset.resolved === 'true') { if (x < -300) obs.remove(); return; }
@@ -1649,14 +1645,17 @@
 
                         if (playerCount === 1) {
                             obs.dataset.resolved = 'true';
-                            nextAction = 'award'; claimWinnerIdx = 0; eventTargetCard = obs;
+                            awardCleanClaim(0, obs);
+                            waveEndedThisFrame = true;
                         } else {
                             if (hitBy.length === 2) {
                                 obs.dataset.resolved = 'true';
-                                nextAction = 'duel'; eventTargetCard = obs;
+                                startSwordDuel(obs);
+                                waveEndedThisFrame = true;
                             } else if (now - parseInt(obs.dataset.hitTime) >= 200) {
                                 obs.dataset.resolved = 'true';
-                                nextAction = 'award'; claimWinnerIdx = hitBy[0]; eventTargetCard = obs;
+                                awardCleanClaim(hitBy[0], obs);
+                                waveEndedThisFrame = true;
                             }
                         }
                     }
@@ -1672,7 +1671,7 @@
                             applyPlayerWrongPenalty(p);
                             if (playerCount === 1) { 
                                 time = Math.max(0, time - 2); 
-                                nextAction = 'miss';
+                                waveEndedThisFrame = true;
                             } else { 
                                 p.score = Math.max(0, p.score - 10); 
                                 obs.style.display = 'none'; 
@@ -1697,39 +1696,36 @@
                         } else if (obsType === 'banana') {
                             if (p.inventory.banana < 1) { p.inventory.banana = 1; updateItemHud(); } sfxStar(); obs.remove();
                         } else if (obsType === 'mushroom') {
-                            sfxSpeedUp(); obs.remove(); nextAction = 'mushroom';
-                            break;
+                            sfxSpeedUp(); obs.remove(); mushroomEatenThisFrame = true; break;
                         }
                     }
                 }
             }
 
-            if (x < -280 && !nextAction) {
+            if (x < -280 && !waveEndedThisFrame && !mushroomEatenThisFrame) {
                 if (obs.dataset.resolved === 'false') {
                     obs.dataset.resolved = 'true';
                     if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
-                        nextAction = 'miss';
+                        sfxHitWrong(); triggerWrongEffect();
+                        if (currentWaveTargetCard) players.forEach(pl => recordPlayerWrong(pl, currentWaveTargetCard));
+                        if (playerCount === 1) time = Math.max(0, time - 2);
+                        waveEndedThisFrame = true;
                     }
                 }
                 obs.remove();
             }
         });
 
-        if (nextAction === 'mushroom') {
-            globalMushroomActive = true; spawnQuestion(true);
-        } else if (nextAction === 'duel') {
-            startSwordDuel(eventTargetCard);
-        } else if (nextAction === 'award') {
-            awardCleanClaim(claimWinnerIdx, eventTargetCard);
-        } else if (nextAction === 'miss') {
-            sfxHitWrong(); triggerWrongEffect();
-            if (currentWaveTargetCard) players.forEach(pl => recordPlayerWrong(pl, currentWaveTargetCard));
-            if (playerCount === 1) time = Math.max(0, time - 2);
-            questionCount++; spawnQuestion();
-        } else if (currentQuestionType === 'loot' && !nextAction) {
-            if (document.querySelectorAll('.obstacle[data-resolved="false"]').length === 0) { 
-                questionCount++; spawnQuestion(); 
-            }
+        if (mushroomEatenThisFrame) {
+            globalMushroomActive = true;
+            spawnQuestion(true);
+            gameLoop = requestAnimationFrame(update);
+            return;
+        }
+
+        if (waveEndedThisFrame && currentQuestionType === 'normal') { questionCount++; spawnQuestion(); }
+        else if (currentQuestionType === 'loot') {
+            if (document.querySelectorAll('.obstacle[data-resolved="false"]').length === 0) { questionCount++; spawnQuestion(); }
         }
 
         updateHudDisplay(); if (time <= 0) { endGame(); return; }
@@ -1827,7 +1823,7 @@
     window.addEventListener('keydown', e => {
         if(keys.hasOwnProperty(e.key)) {
             keys[e.key] = true;
-            if (isGameRunning && e.key === 'Enter') e.preventDefault();
+            if (isGameRunning && e.key === 'Enter') e.preventDefault(); // 防止干擾 UI
         }
         if (e.code === 'Space') keys['Space'] = true;
 
