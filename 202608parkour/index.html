@@ -42,6 +42,31 @@
         .p2-ctrl-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 3px 0; font-size: 13px; font-weight: bold; color: #1e293b; flex-wrap: wrap; }
         .p2-ctrl-select { padding: 3px 8px; border-radius: 6px; border: 1.5px solid #d97706; background: #fff; font-family: inherit; font-size: 13px; font-weight: bold; color: #0f172a; cursor: pointer; }
 
+        /* ====== 操作指南說明區 (純 CSS 刻畫手把圖示) ====== */
+        .control-guide {
+            display: grid; grid-template-columns: 1fr; gap: 6px;
+            font-size: 13px; color: #1e293b; background: #f8fafc;
+            border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin: 8px auto 0 auto;
+            text-align: left; width: 95%; box-sizing: border-box;
+        }
+        @media (min-width: 480px) { .control-guide { grid-template-columns: 1fr 1fr; } }
+        .cg-item { display: flex; align-items: center; justify-content: flex-start; gap: 6px; }
+        .cg-label { font-weight: bold; color: #0f172a; width: 75px; text-align: right; flex-shrink: 0; }
+        .cg-value { display: flex; align-items: center; gap: 4px; color: #475569; font-weight: bold; }
+        .cg-slash { color: #94a3b8; font-size: 11px; margin: 0 2px; }
+        
+        .icon-dpad {
+            display: inline-block; width: 14px; height: 14px;
+            background: linear-gradient(to right, transparent 33%, #475569 33%, #475569 66%, transparent 66%),
+                        linear-gradient(to bottom, transparent 33%, #475569 33%, #475569 66%, transparent 66%);
+            vertical-align: middle;
+        }
+        .icon-stick {
+            display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+            background: radial-gradient(circle at center, #94a3b8 30%, #475569 80%);
+            border: 1px solid #1e293b; vertical-align: middle; box-sizing: border-box;
+        }
+
         .gp-focus { outline: 3px solid #0284c7 !important; outline-offset: 2px !important; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.45), 0 0 14px rgba(2, 132, 199, 0.75) !important; transform: scale(1.04); z-index: 5; }
         .choice-btn.gp-focus, .review-item.gp-focus, #return-menu-btn.gp-focus { outline: 3px solid #ffffff !important; outline-offset: 2px !important; box-shadow: 0 0 0 4px rgba(0, 229, 255, 0.7), 0 0 18px #00e5ff !important; transform: scale(1.06); }
         .review-item.gp-focus { background: rgba(56, 189, 248, 0.28) !important; transform: scale(1.01); }
@@ -125,6 +150,7 @@
         #sfx-toggle-btn.muted { opacity: 0.5; border-color: #777; background: rgba(0, 0, 0, 0.35); }
 
         #replay-audio-btn {
+            display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 15;
             background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff;
             border: 2px solid #38bdf8; border-radius: 20px; padding: 4px 12px;
             font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
@@ -154,6 +180,7 @@
             font-size: 52px; line-height: 1; transform: scaleX(-1);
             filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.8)); transition: transform 0.15s, filter 0.2s;
         }
+        /* P2 預設朝右（同 P1），拔刀決鬥時加 facing-left 轉身 */
         #player2 .player-sprite { filter: hue-rotate(200deg) saturate(1.8) drop-shadow(0 0 8px rgba(251, 191, 36, 0.9)); }
         .player-entity.facing-left .player-sprite { transform: scaleX(1) !important; }
         
@@ -273,7 +300,7 @@
 <body>
 
 <div id="menu">
-    <div id="version-tag">Ver 5.2</div>
+    <div id="version-tag">Ver 5.3</div>
     <div class="menu-content">
         <h2 class="game-title">🥷 台語跑酷 (忍者對決)</h2>
         
@@ -315,24 +342,32 @@
                 <div class="p2-ctrl-row">
                     <span>🥷 玩家 1 (藍)：</span>
                     <select id="p1-ctrl-select" class="p2-ctrl-select" onchange="sync2PControls('p1')">
-                        <option value="keyboard" selected>⌨️ 鍵盤 (WASD + 空白揮刀/E香蕉/Shift網)</option>
-                        <option value="gamepad">🎮 遊戲手把 (搖桿 + A揮刀/Y香蕉/B網)</option>
+                        <option value="keyboard" selected>⌨️ 鍵盤</option>
+                        <option value="gamepad">🎮 遊戲手把</option>
                     </select>
                 </div>
                 <div class="p2-ctrl-row">
                     <span>🥷 玩家 2 (金)：</span>
                     <select id="p2-ctrl-select" class="p2-ctrl-select" onchange="sync2PControls('p2')">
-                        <option value="gamepad" selected>🎮 遊戲手把 (搖桿 + A揮刀/Y香蕉/B網)</option>
-                        <option value="keyboard">⌨️ 鍵盤 (WASD + 空白揮刀/E香蕉/Shift網)</option>
+                        <option value="gamepad" selected>🎮 遊戲手把</option>
+                        <option value="keyboard">⌨️ 鍵盤</option>
                     </select>
                 </div>
+            </div>
+
+            <!-- 純 CSS 手把操作指南 -->
+            <div class="control-guide">
+                <div class="cg-item"><div class="cg-label">🕹️ 方向</div><div class="cg-value">WASD <span class="cg-slash">/</span> <span class="icon-dpad"></span> <span class="icon-stick"></span></div></div>
+                <div class="cg-item"><div class="cg-label">⚔️ PK揮刀</div><div class="cg-value">空白鍵 <span class="cg-slash">/</span> <span class="btn-diamond"><i class="btn-dot top"></i><i class="btn-dot left"></i><i class="btn-dot right"></i><i class="btn-dot bottom active"></i></span></div></div>
+                <div class="cg-item"><div class="cg-label">🕸️ 蜘蛛網</div><div class="cg-value">Ctrl <span class="cg-slash">/</span> <span class="btn-diamond"><i class="btn-dot top"></i><i class="btn-dot left"></i><i class="btn-dot right active"></i><i class="btn-dot bottom"></i></span></div></div>
+                <div class="cg-item"><div class="cg-label">🍌 香蕉皮</div><div class="cg-value">Enter <span class="cg-slash">/</span> <span class="btn-diamond"><i class="btn-dot top active"></i><i class="btn-dot left"></i><i class="btn-dot right"></i><i class="btn-dot bottom"></i></span></div></div>
             </div>
         </div>
 
         <div class="menu-tips-box">
             <div>揤鈃仔 <span class="inline-bell-icon">🔔</span> 會使開關音效</div>
             <div style="color: #0369a1;">每題語音播完後，字卡才會出發。全場會有 1 波專屬補給！</div>
-            <div style="color: #991b1b;">⚔️ 雙人同時搶著答案時進入「凍結擂台」，揤 空白鍵 / 手把A(✕) 抽刀決鬥！</div>
+            <div style="color: #991b1b;">⚔️ 雙人同時搶著答案時進入「凍結擂台」，倒數完 PK 抽刀決鬥！</div>
         </div>
 
         <button class="start-btn" id="main-start-btn" onclick="startGame()">開始遊戲</button>
@@ -418,10 +453,10 @@
             <span id="p1-score-display" class="p1-score-badge">P1 分數: 0</span>
             <div class="inventory-row" id="p1-inventory" style="display: none;">
                 <div class="item-slot" id="p1-web-slot">🕸️
-                    <div class="item-hint"><div class="hint-text-wrap">Shift<span class="hint-slash">/</span><span class="btn-diamond"><i class="btn-dot top"></i><i class="btn-dot left"></i><i class="btn-dot right active"></i><i class="btn-dot bottom"></i></span></div></div>
+                    <div class="item-hint"><div class="hint-text-wrap">Ctrl<span class="hint-slash">/</span><span class="btn-diamond"><i class="btn-dot top"></i><i class="btn-dot left"></i><i class="btn-dot right active"></i><i class="btn-dot bottom"></i></span></div></div>
                 </div>
                 <div class="item-slot" id="p1-banana-slot">🍌
-                    <div class="item-hint"><div class="hint-text-wrap">E<span class="hint-slash">/</span><span class="btn-diamond"><i class="btn-dot top active"></i><i class="btn-dot left"></i><i class="btn-dot right"></i><i class="btn-dot bottom"></i></span></div></div>
+                    <div class="item-hint"><div class="hint-text-wrap">Enter<span class="hint-slash">/</span><span class="btn-diamond"><i class="btn-dot top active"></i><i class="btn-dot left"></i><i class="btn-dot right"></i><i class="btn-dot bottom"></i></span></div></div>
                 </div>
             </div>
         </div>
@@ -440,18 +475,18 @@
             <span id="p2-score-display" class="p2-score-badge" style="display: none;">P2 分數: 0</span>
             <div class="inventory-row" id="p2-inventory" style="display: none;">
                 <div class="item-slot" id="p2-banana-slot">🍌
-                    <div class="item-hint"><div class="hint-text-wrap">E<span class="hint-slash">/</span><span class="btn-diamond"><i class="btn-dot top active"></i><i class="btn-dot left"></i><i class="btn-dot right"></i><i class="btn-dot bottom"></i></span></div></div>
+                    <div class="item-hint"><div class="hint-text-wrap">Enter<span class="hint-slash">/</span><span class="btn-diamond"><i class="btn-dot top active"></i><i class="btn-dot left"></i><i class="btn-dot right"></i><i class="btn-dot bottom"></i></span></div></div>
                 </div>
                 <div class="item-slot" id="p2-web-slot">🕸️
-                    <div class="item-hint"><div class="hint-text-wrap">Shift<span class="hint-slash">/</span><span class="btn-diamond"><i class="btn-dot top"></i><i class="btn-dot left"></i><i class="btn-dot right active"></i><i class="btn-dot bottom"></i></span></div></div>
+                    <div class="item-hint"><div class="hint-text-wrap">Ctrl<span class="hint-slash">/</span><span class="btn-diamond"><i class="btn-dot top"></i><i class="btn-dot left"></i><i class="btn-dot right active"></i><i class="btn-dot bottom"></i></span></div></div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- 拔刀決鬥中央巨型倒數與提示橫幅 -->
-    <div id="duel-center-text">同齊正確回答 PK搶答<br><span id="duel-timer-span" style="font-size: 80px; color: #ef4444;">5</span></div>
-    <div id="duel-banner">⚔️ 戰鬥開始！(揤 A / ✕ / 空白鍵 揮刀) ⚔️</div>
+    <div id="duel-center-text">同齊正確回答 PK搶答<br><span id="duel-timer-span" style="font-size: 80px; color: #ef4444;">3</span></div>
+    <div id="duel-banner">⚔️ 戰鬥開始！(揤 空白鍵 / 手把預設攻擊 揮刀) ⚔️</div>
 
     <!-- 玩家 1 與 玩家 2 忍者實體 -->
     <div id="player1" class="player-entity">
@@ -741,9 +776,9 @@
 
         if (isRawDS4) {
             btnAction = !!(gp.buttons[1] && gp.buttons[1].pressed); // ✕
-            btnWeb = !!(gp.buttons[2] && gp.buttons[2].pressed);    // ○ (右鍵)
-            btnBanana = !!(gp.buttons[3] && gp.buttons[3].pressed); // △ (上鍵)
-            btnReplay = !!(gp.buttons[0] && gp.buttons[0].pressed); // □ (左鍵)
+            btnWeb = !!(gp.buttons[2] && gp.buttons[2].pressed);    // ○
+            btnBanana = !!(gp.buttons[3] && gp.buttons[3].pressed); // △
+            btnReplay = !!(gp.buttons[0] && gp.buttons[0].pressed); // □
             btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
             if (gp.axes.length > 9) {
                 const hat = gp.axes[9];
@@ -756,9 +791,9 @@
             }
         } else {
             btnAction = !!(gp.buttons[0] && gp.buttons[0].pressed); // A
-            btnWeb = !!(gp.buttons[1] && gp.buttons[1].pressed);    // B (右鍵)
-            btnBanana = !!(gp.buttons[3] && gp.buttons[3].pressed); // Y (上鍵)
-            btnReplay = !!(gp.buttons[2] && gp.buttons[2].pressed); // X (左鍵)
+            btnWeb = !!(gp.buttons[1] && gp.buttons[1].pressed);    // B
+            btnBanana = !!(gp.buttons[3] && gp.buttons[3].pressed); // Y
+            btnReplay = !!(gp.buttons[2] && gp.buttons[2].pressed); // X
             btnStart = !!(gp.buttons[9] && gp.buttons[9].pressed);
             if (gp.buttons[12] && gp.buttons[12].pressed) { moveUp = true; navUp = true; }
             if (gp.buttons[13] && gp.buttons[13].pressed) { moveDown = true; navDown = true; }
@@ -1034,12 +1069,11 @@
 
     let pendingWaveData = null; 
 
-    const SIMULTANEOUS_WINDOW_MS = 200; // 0.2 秒搶答判定緩衝
-    const CLASH_WINDOW_MS = 130; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
+    const CLASH_WINDOW_MS = 200; const SLASH_RANGE_PX = 140; const SLASH_COOLDOWN_MS = 380;
     let duelState = { active: false, phase: 'none', countdownEnds: 0, lastTick: -1, pendingHitBy: -1, pendingHitAt: 0, cardEl: null };
     let pendingClaim = null; 
     let players = [];
-    let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, W: false, s: false, S: false, a: false, A: false, d: false, D: false, Shift: false, e: false, E: false };
+    let keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, W: false, s: false, S: false, a: false, A: false, d: false, D: false, Control: false, Enter: false };
 
     function createPlayerObj(id, elId, controlType, gpIndex) {
         const startY = getLaneY(1) + 20;
@@ -1309,12 +1343,12 @@
     function triggerSpeedUpEffect() { const board = document.getElementById('game-board'); board.classList.remove('flash-speed-up', 'flash-error'); void board.offsetWidth; board.classList.add('flash-speed-up'); }
 
     // =========================================================
-    // ⚔ 拔刀決鬥模式 (升級版：傳送中央、變灰、倒數)
+    // ⚔ 拔刀決鬥模式 (傳送中央、變灰、倒數)
     // =========================================================
     function startSwordDuel(cardEl) {
         duelState.active = true; 
         duelState.phase = 'countdown';
-        duelState.countdownEnds = Date.now() + 5000;
+        duelState.countdownEnds = Date.now() + 3000; // 3 秒緊湊倒數
         duelState.lastTick = -1;
         duelState.pendingHitBy = -1; 
         duelState.pendingHitAt = 0; 
@@ -1491,8 +1525,8 @@
                     if (keys.ArrowLeft || keys.a || keys.A) p.x -= p.speed;
                     if (keys.ArrowRight || keys.d || keys.D) p.x += p.speed;
                     // 鍵盤陷害道具按鍵
-                    if (keys.Shift && playerCount === 2) { useWeb(idx); keys.Shift = false; }
-                    if ((keys.e || keys.E) && playerCount === 2) { useBanana(idx); keys.e = false; keys.E = false; }
+                    if (keys.Control && playerCount === 2) { useWeb(idx); keys.Control = false; }
+                    if (keys.Enter && playerCount === 2) { useBanana(idx); keys.Enter = false; }
                 }
 
                 if (p.controlType === 'gamepad' || p.controlType === 'kb_and_gp') {
@@ -1538,7 +1572,7 @@
         if(!isGameRunning || time <= 0) return;
         const now = Date.now();
 
-        // 決鬥控制與倒數邏輯
+        // 決鬥控制與倒數邏輯 (嚴格鎖死碰撞)
         if (duelState.active) {
             if (duelState.phase === 'countdown') {
                 const remainMs = duelState.countdownEnds - now;
@@ -1547,13 +1581,13 @@
                     document.getElementById('duel-timer-span').innerText = remainSec;
                     if (remainSec !== duelState.lastTick) {
                         duelState.lastTick = remainSec;
-                        if (remainSec <= 5) sfxTick();
+                        if (remainSec <= 3) sfxTick();
                     }
                 } else {
                     duelState.phase = 'fighting';
                     document.getElementById('duel-center-text').style.display = 'none';
                     const banner = document.getElementById('duel-banner');
-                    banner.innerText = "⚔️ 戰鬥開始！(揤 A / ✕ / 空白鍵 揮刀) ⚔️";
+                    banner.innerText = "⚔️ 戰鬥開始！(揤 空白鍵 / 手把攻擊 揮刀) ⚔️";
                     banner.style.display = 'block';
                     sfxDuelStart();
                 }
@@ -1587,32 +1621,31 @@
             return true;
         });
 
-        let nextAction = null;
-        let claimWinnerIdx = -1;
-        let eventTargetCard = null;
+        let waveEndedThisFrame = false;
+        let mushroomEatenThisFrame = false;
 
         const obstacles = document.querySelectorAll('.obstacle');
         obstacles.forEach(obs => {
             // 安全鎖定：如果這幀已經結束舊題目或是吃到蘑菇，跳過其餘舊方塊的碰撞處理
-            if (nextAction) return;
+            if (waveEndedThisFrame || mushroomEatenThisFrame) return;
             if (waveState === 'waiting_audio' && obs.dataset.type === 'text') return;
 
             let x = parseFloat(obs.dataset.x) - speed; 
             obs.dataset.x = x; obs.style.left = `${x}px`;
 
             // 🍄 蘑菇 S型蛇行換道邏輯
-            if (obs.dataset.type === 'text' && obs.dataset.sinePhase) {
-                let lockX = window.innerWidth * 0.35;
-                let finalY = getLaneY(parseInt(obs.dataset.finalLane));
+            if (obs.dataset.sinePhase) {
                 let phase = parseFloat(obs.dataset.sinePhase);
                 let erraticY = getLaneY(1) + Math.sin(x / 65) * (window.innerHeight / 3.2) * phase;
-                let progress = Math.max(0, Math.min(1, (x - lockX) / 350)); 
-                let currentY = erraticY * progress + finalY * (1 - progress);
-                obs.style.top = currentY + 'px';
-            } else if (obs.dataset.type === 'star' && obs.dataset.sinePhase) {
-                let phase = parseFloat(obs.dataset.sinePhase);
-                let erraticY = getLaneY(1) + Math.sin(x / 65) * (window.innerHeight / 3.2) * phase;
-                obs.style.top = erraticY + 'px';
+                if (obs.dataset.type === 'text') {
+                    let lockX = window.innerWidth * 0.35;
+                    let finalY = getLaneY(parseInt(obs.dataset.finalLane));
+                    let progress = Math.max(0, Math.min(1, (x - lockX) / 350)); 
+                    let currentY = erraticY * progress + finalY * (1 - progress);
+                    obs.style.top = currentY + 'px';
+                } else if (obs.dataset.type === 'star') {
+                    obs.style.top = erraticY + 'px'; // 星星持續蛇行
+                }
             }
 
             if (obs.dataset.resolved === 'true') { if (x < -300) obs.remove(); return; }
@@ -1638,16 +1671,19 @@
 
                         if (playerCount === 1) {
                             obs.dataset.resolved = 'true';
-                            nextAction = 'award'; claimWinnerIdx = 0; eventTargetCard = obs;
+                            awardCleanClaim(0, obs);
+                            waveEndedThisFrame = true;
                         } else {
                             if (hitBy.length === 2) {
                                 // 雙方都命中，觸發決鬥
                                 obs.dataset.resolved = 'true';
-                                nextAction = 'duel'; eventTargetCard = obs;
+                                startSwordDuel(obs);
+                                waveEndedThisFrame = true;
                             } else if (now - parseInt(obs.dataset.hitTime) >= 200) {
                                 // 超過 200ms 對手沒碰到，判定單人得分
                                 obs.dataset.resolved = 'true';
-                                nextAction = 'award'; claimWinnerIdx = hitBy[0]; eventTargetCard = obs;
+                                awardCleanClaim(hitBy[0], obs);
+                                waveEndedThisFrame = true;
                             }
                         }
                     }
@@ -1664,10 +1700,10 @@
                             applyPlayerWrongPenalty(p);
                             if (playerCount === 1) { 
                                 time = Math.max(0, time - 2); 
-                                nextAction = 'miss';
+                                waveEndedThisFrame = true;
                             } else { 
                                 p.score = Math.max(0, p.score - 10); 
-                                obs.style.display = 'none'; 
+                                obs.style.display = 'none'; // 隱藏，避免另一人再撞
                             }
                         }
                     }
@@ -1690,40 +1726,37 @@
                         } else if (obsType === 'banana') {
                             if (p.inventory.banana < 1) { p.inventory.banana = 1; updateItemHud(); } sfxStar(); obs.remove();
                         } else if (obsType === 'mushroom') {
-                            sfxSpeedUp(); obs.remove(); nextAction = 'mushroom';
-                            break;
+                            sfxSpeedUp(); obs.remove(); mushroomEatenThisFrame = true; break;
                         }
                     }
                 }
             }
 
-            if (x < -280 && !nextAction) {
+            if (x < -280 && !waveEndedThisFrame && !mushroomEatenThisFrame) {
                 if (obs.dataset.resolved === 'false') {
                     obs.dataset.resolved = 'true';
                     if (obs.dataset.type === 'text' && obs.dataset.correct === 'true') {
-                        nextAction = 'miss';
+                        sfxHitWrong(); triggerWrongEffect();
+                        if (currentWaveTargetCard) players.forEach(pl => recordPlayerWrong(pl, currentWaveTargetCard));
+                        if (playerCount === 1) time = Math.max(0, time - 2);
+                        waveEndedThisFrame = true;
                     }
                 }
                 obs.remove();
             }
         });
 
-        // 結算本幀動作，阻斷非同步干擾
-        if (nextAction === 'mushroom') {
-            globalMushroomActive = true; spawnQuestion(true);
-        } else if (nextAction === 'duel') {
-            startSwordDuel(eventTargetCard);
-        } else if (nextAction === 'award') {
-            awardCleanClaim(claimWinnerIdx, eventTargetCard);
-        } else if (nextAction === 'miss') {
-            sfxHitWrong(); triggerWrongEffect();
-            if (currentWaveTargetCard) players.forEach(pl => recordPlayerWrong(pl, currentWaveTargetCard));
-            if (playerCount === 1) time = Math.max(0, time - 2);
-            questionCount++; spawnQuestion();
-        } else if (currentQuestionType === 'loot' && !nextAction) {
-            if (document.querySelectorAll('.obstacle[data-resolved="false"]').length === 0) { 
-                questionCount++; spawnQuestion(); 
-            }
+        // 蘑菇特效：立刻清空畫面，以 2 選 1 模式重出當前題目！
+        if (mushroomEatenThisFrame) {
+            globalMushroomActive = true;
+            spawnQuestion(true);
+            gameLoop = requestAnimationFrame(update);
+            return;
+        }
+
+        if (waveEndedThisFrame && currentQuestionType === 'normal') { questionCount++; spawnQuestion(); }
+        else if (currentQuestionType === 'loot') {
+            if (document.querySelectorAll('.obstacle[data-resolved="false"]').length === 0) { questionCount++; spawnQuestion(); }
         }
 
         updateHudDisplay(); if (time <= 0) { endGame(); return; }
@@ -1819,14 +1852,22 @@
     }
 
     window.addEventListener('keydown', e => {
-        if(keys.hasOwnProperty(e.key)) keys[e.key] = true;
+        if(keys.hasOwnProperty(e.key)) {
+            keys[e.key] = true;
+            if (isGameRunning && e.key === 'Enter') e.preventDefault(); // 防止干擾 UI
+        }
+        if (e.code === 'Space') keys['Space'] = true;
+
         if (!isGameRunning) return;
-        if ((e.code === 'Space' || e.key === 'Enter') && duelState.active && duelState.phase === 'fighting') {
+        if (e.code === 'Space' && duelState.active && duelState.phase === 'fighting') {
             e.preventDefault(); const kbIdx = players.findIndex(p => p.controlType === 'keyboard' || p.controlType === 'kb_and_gp');
             if (kbIdx !== -1 && !e.repeat) attemptPlayerSlash(kbIdx);
         } else if ((e.key === 'q' || e.key === 'Q') && playerCount === 1) { e.preventDefault(); playQuestionAudio(); }
     });
-    window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+    window.addEventListener('keyup', e => { 
+        if(keys.hasOwnProperty(e.key)) keys[e.key] = false; 
+        if(e.code === 'Space') keys['Space'] = false;
+    });
 
     const board = document.getElementById('game-board');
     let isTouching = false, touchStartX, touchStartY, playerStartX, playerStartY;
