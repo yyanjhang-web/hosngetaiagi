@@ -42,7 +42,7 @@
         .p2-ctrl-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 3px 0; font-size: 13px; font-weight: bold; color: #1e293b; flex-wrap: wrap; }
         .p2-ctrl-select { padding: 3px 8px; border-radius: 6px; border: 1.5px solid #d97706; background: #fff; font-family: inherit; font-size: 13px; font-weight: bold; color: #0f172a; cursor: pointer; }
 
-        /* ====== 操作指南說明區 (純 CSS 刻畫手把圖示) ====== */
+        /* ====== 操作指南說明區 ====== */
         .control-guide {
             display: grid; grid-template-columns: 1fr; gap: 6px;
             font-size: 13px; color: #1e293b; background: #f8fafc;
@@ -62,16 +62,18 @@
             vertical-align: middle;
         }
         .icon-stick {
-            display: inline-block; width: 12px; height: 12px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 14px; height: 14px; border-radius: 50%;
             background: radial-gradient(circle at center, #94a3b8 30%, #475569 80%);
             border: 1px solid #1e293b; vertical-align: middle; box-sizing: border-box;
+            color: #f8fafc; font-size: 9px; font-weight: bold; font-family: Arial, sans-serif; text-shadow: 0px 1px 1px rgba(0,0,0,0.5);
         }
 
         .gp-focus { outline: 3px solid #0284c7 !important; outline-offset: 2px !important; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.45), 0 0 14px rgba(2, 132, 199, 0.75) !important; transform: scale(1.04); z-index: 5; }
         .choice-btn.gp-focus, .review-item.gp-focus, #return-menu-btn.gp-focus { outline: 3px solid #ffffff !important; outline-offset: 2px !important; box-shadow: 0 0 0 4px rgba(0, 229, 255, 0.7), 0 0 18px #00e5ff !important; transform: scale(1.06); }
         .review-item.gp-focus { background: rgba(56, 189, 248, 0.28) !important; transform: scale(1.01); }
 
-        .menu-tips-box { margin: 4px 0 3px 0; font-size: 12px; color: #1e293b; font-weight: bold; line-height: 1.55; text-align: center; }
+        .menu-tips-box { margin: 4px 0 3px 0; font-size: 13px; color: #1e293b; font-weight: bold; line-height: 1.55; text-align: center; }
         .inline-bell-icon { display: inline-flex; align-items: center; justify-content: center; background: #222; border: 1.5px solid rgba(255, 255, 255, 0.8); border-radius: 6px; padding: 1px 6px; font-size: 12px; line-height: 1.1; vertical-align: middle; margin: 0 2px; }
 
         button.start-btn { padding: 9px 30px; font-size: 18px; font-weight: bold; background: #f59e0b; color: white; border: none; border-radius: 10px; margin-top: 4px; cursor: pointer; font-family: inherit; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35); transition: 0.15s; }
@@ -116,6 +118,7 @@
         }
         .hud-left-col { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; pointer-events: auto; }
         .hud-center-col { position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; align-items: center; gap: 12px; pointer-events: auto; }
+        .sys-btn-row { display: flex; flex-direction: row; gap: 8px; align-items: center; }
         .time-badge { font-size: 20px; text-shadow: 2px 2px 4px #000; white-space: nowrap; }
         .hud-right-col { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; pointer-events: auto; }
 
@@ -144,8 +147,10 @@
 
         #sfx-toggle-btn {
             background: rgba(255, 255, 255, 0.18); border: 2px solid rgba(255, 255, 255, 0.55);
-            border-radius: 8px; padding: 2px 8px; font-size: 18px; line-height: 1.2;
+            border-radius: 8px; font-size: 18px; 
             cursor: pointer; transition: 0.15s; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; box-sizing: border-box; flex-shrink: 0; padding: 0; margin: 0;
         }
         #sfx-toggle-btn.muted { opacity: 0.5; border-color: #777; background: rgba(0, 0, 0, 0.35); }
 
@@ -153,7 +158,7 @@
             display: none; background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff;
             border: 2px solid #38bdf8; border-radius: 20px; padding: 4px 14px;
             font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
-            white-space: nowrap; transition: transform 0.1s;
+            white-space: nowrap; transition: transform 0.1s; margin: 0;
         }
         #replay-audio-btn:active { transform: scale(0.93); }
 
@@ -234,7 +239,7 @@
         
         .text-card {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            width: 220px; height: 33.334vh; background: rgba(255, 255, 255, 0.96); /* 精準對齊 1/3 高度 */
+            width: 220px; height: 33.334vh; background: rgba(255, 255, 255, 0.96);
             box-shadow: inset 0 0 0 3px #94a3b8, -4px 0 15px rgba(0,0,0,0.35);
             border-radius: 12px 0 0 12px; padding: 10px; box-sizing: border-box; text-align: center;
         }
@@ -300,9 +305,9 @@
 <body>
 
 <div id="menu">
-    <div id="version-tag">Ver 5.8</div>
+    <div id="version-tag">Ver 5.9</div>
     <div class="menu-content">
-        <h2 class="game-title">🥷 台語跑酷 (忍者對決)</h2>
+        <h2 class="game-title">🥷 台語跑酷</h2>
         
         <div id="lessons"></div>
         
@@ -310,14 +315,14 @@
             <p class="menu-card-title">遊玩模式</p>
             <div class="radio-row-wrap">
                 <label class="radio-label" id="lbl-pcount-1"><input type="radio" name="pcount" value="1" checked onchange="onPlayerCountChange()"> 👤 單人遊玩</label>
-                <label class="radio-label" id="lbl-pcount-2"><input type="radio" name="pcount" value="2" onchange="onPlayerCountChange()"> ⚔️ 雙人對戰 (同起點搶答)</label>
+                <label class="radio-label" id="lbl-pcount-2"><input type="radio" name="pcount" value="2" onchange="onPlayerCountChange()"> ⚔️ 雙人對戰</label>
             </div>
         </div>
 
         <div class="menu-card card-mode">
-            <p class="menu-card-title">出題類型 (聽音補齊羅馬字結構)</p>
+            <p class="menu-card-title">出題類型</p>
             <div class="radio-row-wrap">
-                <label class="radio-label" id="lbl-qtype-rnd"><input type="radio" name="qtype" value="random" checked onchange="saveMenuSettings()"> 🎲 綜合隨機</label>
+                <label class="radio-label" id="lbl-qtype-rnd"><input type="radio" name="qtype" value="random" checked onchange="saveMenuSettings()"> 🎲 隨機</label>
                 <label class="radio-label" id="lbl-qtype-ini"><input type="radio" name="qtype" value="initial" onchange="saveMenuSettings()"> 🔤 聲母</label>
                 <label class="radio-label" id="lbl-qtype-fin"><input type="radio" name="qtype" value="final" onchange="saveMenuSettings()"> 🎵 韻母</label>
                 <label class="radio-label" id="lbl-qtype-ton"><input type="radio" name="qtype" value="tone" onchange="saveMenuSettings()"> 📈 聲調</label>
@@ -325,7 +330,7 @@
             <div class="hanzi-toggle-row">
                 <label class="radio-label" id="lbl-show-hanzi" style="color: #0369a1;">
                     <input type="checkbox" id="show-hanzi-toggle" onchange="saveMenuSettings()" style="transform: scale(1.2); margin-right: 4px;">
-                    👀 選項卡片顯示漢字提示
+                    👀 顯示漢字
                 </label>
             </div>
         </div>
@@ -334,15 +339,15 @@
             <p class="menu-card-title">操作裝置</p>
             <div id="ctrl-1p-box">
                 <div class="radio-row-wrap">
-                    <label class="radio-label" id="lbl-ctrl-kb"><input type="radio" name="ctrl1p" value="keyboard" id="ctrl-keyboard" checked onchange="saveMenuSettings()"> ⌨️ 鍵盤 / 🎮 手把</label>
-                    <label class="radio-label" id="lbl-ctrl-tc"><input type="radio" name="ctrl1p" value="touch" id="ctrl-touch" onchange="saveMenuSettings()"> 📱 平板 / 觸控螢幕</label>
+                    <label class="radio-label" id="lbl-ctrl-kb"><input type="radio" name="ctrl1p" value="keyboard" id="ctrl-keyboard" checked onchange="saveMenuSettings()"> ⌨️ 拍字盤 / 🎮 手把</label>
+                    <label class="radio-label" id="lbl-ctrl-tc"><input type="radio" name="ctrl1p" value="touch" id="ctrl-touch" onchange="saveMenuSettings()"> 📱 點控螢幕</label>
                 </div>
             </div>
             <div id="ctrl-2p-box" style="display: none;">
                 <div class="p2-ctrl-row">
                     <span>🥷 玩家 1 (藍)：</span>
                     <select id="p1-ctrl-select" class="p2-ctrl-select" onchange="sync2PControls('p1')">
-                        <option value="keyboard" selected>⌨️ 鍵盤</option>
+                        <option value="keyboard" selected>⌨️ 拍字盤</option>
                         <option value="gamepad">🎮 遊戲手把</option>
                     </select>
                 </div>
@@ -350,14 +355,14 @@
                     <span>🥷 玩家 2 (金)：</span>
                     <select id="p2-ctrl-select" class="p2-ctrl-select" onchange="sync2PControls('p2')">
                         <option value="gamepad" selected>🎮 遊戲手把</option>
-                        <option value="keyboard">⌨️ 鍵盤</option>
+                        <option value="keyboard">⌨️ 拍字盤</option>
                     </select>
                 </div>
             </div>
 
             <!-- 純 CSS 手把操作指南 -->
             <div class="control-guide">
-                <div class="cg-item"><div class="cg-label">🕹️ 方向</div><div class="cg-value">WASD <span class="cg-slash">/</span> <span class="icon-dpad"></span> <span class="icon-stick"></span></div></div>
+                <div class="cg-item"><div class="cg-label">🕹️ 方向</div><div class="cg-value">WASD <span class="cg-slash">/</span> <span class="icon-dpad"></span> <span class="icon-stick">L</span></div></div>
                 <div class="cg-item"><div class="cg-label">⚔️ PK揮刀</div><div class="cg-value">空白鍵 <span class="cg-slash">/</span> <span class="btn-diamond"><i class="btn-dot top"></i><i class="btn-dot left"></i><i class="btn-dot right"></i><i class="btn-dot bottom active"></i></span></div></div>
                 <div class="cg-item"><div class="cg-label">🕸️ 蜘蛛網</div><div class="cg-value">Ctrl <span class="cg-slash">/</span> <span class="btn-diamond"><i class="btn-dot top"></i><i class="btn-dot left"></i><i class="btn-dot right active"></i><i class="btn-dot bottom"></i></span></div></div>
                 <div class="cg-item"><div class="cg-label">🍌 香蕉皮</div><div class="cg-value">Enter <span class="cg-slash">/</span> <span class="btn-diamond"><i class="btn-dot top active"></i><i class="btn-dot left"></i><i class="btn-dot right"></i><i class="btn-dot bottom"></i></span></div></div>
@@ -366,8 +371,7 @@
 
         <div class="menu-tips-box">
             <div>揤鈃仔 <span class="inline-bell-icon">🔔</span> 會使開關音效</div>
-            <div style="color: #0369a1;">每題語音播完後，字卡才會出發。全場會有 1 波專屬補給！</div>
-            <div style="color: #991b1b;">⚔️ 雙人同時搶著答案時進入「凍結擂台」，倒數完 PK 抽刀決鬥！</div>
+            <div style="color: #991b1b;">⚔️ 雙人對戰時，若同齊搶著答案，愛抽刀仔戰贏對方</div>
         </div>
 
         <button class="start-btn" id="main-start-btn" onclick="startGame()">開始遊戲</button>
@@ -1209,6 +1213,7 @@
         if (playerCount === 2 && players[1]) document.getElementById('p2-score-display').innerText = `P2 分數: ${players[1].score}`;
     }
 
+    // 將卡片生成的動作封裝，語音結束後呼叫
     function triggerCardSpawn() {
         if (!isGameRunning || waveState === 'playing' || !pendingWaveData) return;
         waveState = 'playing';
@@ -1250,13 +1255,16 @@
 
     function spawnQuestion(keepCurrentCard = false) {
         if (!isGameRunning) return;
+        // 嚴格鎖定：如果正在決鬥中，強制中止生成新題目，確保不會干擾倒數！
         if (duelState.active) return;
         
         currentWaveAnswered = false; waveState = 'waiting_audio';
         document.querySelectorAll('.obstacle').forEach(e => e.remove());
-        // 強制中斷並清空上一個音檔，確保 Loot wave 等情況不會殘留播放
+        
+        // 強制中斷並清空舊語音，確保 Loot Wave 時不會殘留發聲
         questionAudio.pause();
         questionAudio.currentTime = 0;
+        questionAudio.src = '';
         
         if (!keepCurrentCard) {
             currentQuestionType = 'normal'; 
@@ -1272,7 +1280,7 @@
         if (currentQuestionType === 'loot') {
             currentWaveTargetCard = null;
             pendingWaveData = { isLoot: true, screenWidth: screenWidth };
-            triggerCardSpawn();
+            triggerCardSpawn(); // Loot波無語音直接出發
             return;
         }
 
@@ -1287,7 +1295,7 @@
 
         const optionCount = globalMushroomActive ? 2 : 3;
         const currentWaveIsMushroom = globalMushroomActive;
-        globalMushroomActive = false; 
+        globalMushroomActive = false; // 消耗蘑菇效果
         
         let options = shuffleArray([qData.options.find(o => o.isCorrect), ...qData.options.filter(o => !o.isCorrect).slice(0, optionCount - 1)]);
         let availableLanes = shuffleArray([0, 1, 2]);
@@ -1302,8 +1310,9 @@
             waveId: 'text_' + Date.now()
         };
 
+        // 播放語音，等播完再呼叫 triggerCardSpawn
         clearTimeout(audioTimeout); 
-        audioTimeout = setTimeout(triggerCardSpawn, 2500); 
+        audioTimeout = setTimeout(triggerCardSpawn, 2500); // 防呆機制
         questionAudio.onended = () => { clearTimeout(audioTimeout); triggerCardSpawn(); };
         
         const rawUrl = currentQuestionAudioUrl; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
@@ -1326,6 +1335,7 @@
         return el;
     }
 
+    // 飛行道具動畫生成 (拋物線與旋轉追蹤)
     function spawnProjectile(type, fromP, toP) {
         const el = document.createElement('div');
         el.className = 'flying-projectile';
@@ -1337,7 +1347,7 @@
         flyingItems.push({
             type: type, to: toP, el: el,
             startX: fromP.x + 16, startY: fromP.y + 16,
-            startTime: Date.now(), duration: 350
+            startTime: Date.now(), duration: 350 // 0.35 秒飛行時間
         });
     }
 
@@ -1351,7 +1361,7 @@
     function startSwordDuel(cardEl) {
         duelState.active = true; 
         duelState.phase = 'countdown';
-        duelState.countdownEnds = Date.now() + 3000;
+        duelState.countdownEnds = Date.now() + 3000; // 3 秒緊湊倒數
         duelState.lastTick = -1;
         duelState.pendingHitBy = -1; 
         duelState.pendingHitAt = 0; 
@@ -1362,6 +1372,7 @@
         document.getElementById('duel-banner').style.display = 'none';
 
         players.forEach((p, idx) => {
+            // 解除所有異常狀態，補滿血條
             p.bananaSliding = false; 
             p.webbedUntil = 0; 
             p.stunnedUntil = 0;
@@ -1370,13 +1381,14 @@
             p.el.classList.remove('player-stunned', 'is-webbed', 'dimmed', 'slow-flash');
             document.getElementById(`p${idx + 1}-duel-hp`).style.width = '100%';
             
+            // 傳送到場中央面對面
             p.y = window.innerHeight / 2 - 32;
             if (idx === 0) {
                 p.x = window.innerWidth / 2 - 200;
                 p.el.classList.remove('facing-left');
             } else {
                 p.x = window.innerWidth / 2 + 150;
-                p.el.classList.add('facing-left');
+                p.el.classList.add('facing-left'); // P2 轉向面向 P1
             }
             p.el.style.left = p.x + 'px';
             p.el.style.top = p.y + 'px';
@@ -1400,6 +1412,7 @@
                 duelState.pendingHitBy = attackerIdx; duelState.pendingHitAt = now;
                 document.getElementById(`p${defender.id + 1}-duel-hp`).style.width = '0%';
             } else if (duelState.pendingHitBy !== attackerIdx && (now - duelState.pendingHitAt <= CLASH_WINDOW_MS)) {
+                // 雙方在 130ms 內同時砍中彼此 ➔ 觸發「鏘！拚刀平手！」血條重置並彈開
                 sfxSwordClash();
                 duelState.pendingHitBy = -1;
                 duelState.pendingHitAt = 0;
@@ -1429,12 +1442,14 @@
         const winRect = winner.el.getBoundingClientRect();
         triggerCorrectEffect((winRect.left + 32) / window.innerWidth, (winRect.top + 32) / window.innerHeight);
 
+        // 清除決鬥 UI
         document.getElementById('duel-overlay').style.display = 'none'; 
         document.getElementById('duel-center-text').style.display = 'none';
         document.getElementById('duel-banner').style.display = 'none';
         
         players.forEach((p, idx) => {
             p.el.classList.remove('in-duel', 'slashing', 'facing-left');
+            // 將玩家重置回上下跑道 (使用 CenterY)
             p.x = 80;
             p.y = getLaneCenterY(idx === 0 ? 0 : 2);
         });
@@ -1500,6 +1515,7 @@
     }
 
     function handlePlayerMovements(now) {
+        // 倒數期間凍結行動
         if (duelState.active && duelState.phase === 'countdown') return;
 
         const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
@@ -1509,16 +1525,19 @@
             applyPlayerDebuffVisual(p);
             p.el.classList.toggle('is-webbed', now < p.webbedUntil);
 
+            // 如果踩到香蕉皮，強制極速往前滑
             if (p.bananaSliding) {
                 p.x += 22; 
                 if (p.x >= window.innerWidth - 64) p.bananaSliding = false;
             } 
+            // 否則正常移動（受蜘蛛網定身限制）
             else if (now >= p.webbedUntil) {
                 if (p.controlType === 'keyboard' || p.controlType === 'kb_and_gp') {
                     if (keys.ArrowUp || keys.w || keys.W) p.y -= p.speed;
                     if (keys.ArrowDown || keys.s || keys.S) p.y += p.speed;
                     if (keys.ArrowLeft || keys.a || keys.A) p.x -= p.speed;
                     if (keys.ArrowRight || keys.d || keys.D) p.x += p.speed;
+                    // 鍵盤陷害道具按鍵
                     if (keys.Control && playerCount === 2) { useWeb(idx); keys.Control = false; }
                     if (keys.Enter && playerCount === 2) { useBanana(idx); keys.Enter = false; }
                 }
@@ -1639,7 +1658,7 @@
                     obs.style.top = currentY + 'px';
                 } else if (obs.dataset.type === 'star') {
                     let erraticY = getLaneCenterY(1) + Math.sin(x / 65) * (window.innerHeight / 3.2) * phase;
-                    obs.style.top = erraticY + 'px';
+                    obs.style.top = erraticY + 'px'; // 星星持續蛇行
                 }
             }
 
