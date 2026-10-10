@@ -4,9 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>台語課文系統</title>
+
+<!-- 引入 豆腐烏 (Tauhu-Oo) 官方網頁字型 -->
+<link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
+<link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
+
 <style>
     body {
-        font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+        /* 套用您提供的字型設定，優先使用豆腐烏字型以確保台語漢字與羅馬字完美顯示 */
+        font-family: tauhu-oo, tauhu-oo-bold, PingFangTC-Bold, "Microsoft JhengHei Bold", sans-serif;
         line-height: 2.8;
         font-size: 24px;
         margin: 0;
@@ -34,6 +40,7 @@
         color: #2c3e50;
         border: none;
         padding: 10px 20px;
+        font-family: inherit;
         font-size: 18px;
         font-weight: bold;
         border-radius: 5px;
@@ -58,17 +65,15 @@
         background-color: white;
         border-radius: 10px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        min-height: 50vh; /* 確保內容區有一定高度，讓 footer 沉在下方 */
     }
     
     .lesson-content {
-        display: none; /* 預設全部隱藏，由 JavaScript 控制顯示 */
+        display: none; 
         animation: fadeIn 0.3s ease-in-out;
     }
     
-    /* 讓第一課預設顯示 */
-    #B1L1 {
-        display: block; 
-    }
+    #B1L1 { display: block; }
     
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(5px); }
@@ -80,6 +85,7 @@
         border-bottom: 2px solid #eee;
         padding-bottom: 10px;
         margin-top: 0;
+        font-family: tauhu-oo-bold, sans-serif;
     }
     
     p {
@@ -88,7 +94,7 @@
         word-wrap: break-word;
     }
     
-    /* 拼音排版設定 (維持前一版的自然空白排版) */
+    /* 拼音排版設定 */
     ruby {
         margin: 0;
         padding: 0;
@@ -96,8 +102,9 @@
     }
     
     rt {
-        font-family: "Segoe UI", Arial, sans-serif;
-        font-size: 0.6em;
+        /* 讓拼音也繼承豆腐烏字型，完美支援台羅聲調符號 */
+        font-family: tauhu-oo, sans-serif; 
+        font-size: 0.55em;
         color: #c0392b;
         padding-bottom: 2px;
         letter-spacing: 0px; 
@@ -108,6 +115,38 @@
         color: #7f8c8d;
         font-style: italic;
         margin-top: 50px;
+        text-indent: 0;
+    }
+
+    /* 頁尾版權與計數器區域設計 */
+    .footer {
+        margin-top: 60px;
+        padding: 30px 20px;
+        text-align: center;
+        background-color: #f1f5f9;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .footer p {
+        text-indent: 0; /* 取消段落首行縮排，讓文字完美置中 */
+        margin: 5px 0;
+        line-height: 1.5;
+    }
+
+    .footer .author-info {
+        font-size: 14px;
+        color: #475569;
+        font-weight: bold;
+    }
+
+    .counter-container {
+        margin-top: 15px;
+        opacity: 0.6; /* 讓計數器微透明，視覺上更柔和 */
+        transition: opacity 0.3s;
+    }
+
+    .counter-container:hover {
+        opacity: 1;
     }
 </style>
 </head>
@@ -173,28 +212,36 @@
         
     </div>
 
+    <!-- 頁尾區塊 -->
+    <div class="footer">
+        <p class="author-info">設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">
+            Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
+            未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
+        </p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+    </div>
+
     <!-- JavaScript 切換邏輯 -->
     <script>
         function showLesson(lessonId, btnElement) {
-            // 1. 隱藏所有的課文區塊
             var contents = document.getElementsByClassName('lesson-content');
             for (var i = 0; i < contents.length; i++) {
                 contents[i].style.display = 'none';
             }
             
-            // 2. 移除所有按鈕的 active 狀態 (也就是紅底白字的樣式)
             var btns = document.getElementsByClassName('nav-btn');
             for (var i = 0; i < btns.length; i++) {
                 btns[i].classList.remove('active');
             }
             
-            // 3. 顯示被點擊的課文區塊
             document.getElementById(lessonId).style.display = 'block';
-            
-            // 4. 將被點擊的按鈕加上 active 狀態
             btnElement.classList.add('active');
             
-            // 平滑滾動回頂部
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
