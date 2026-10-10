@@ -11,7 +11,6 @@
 
 <style>
     body {
-        /* 套用您提供的字型設定，優先使用豆腐烏字型以確保台語漢字與羅馬字完美顯示 */
         font-family: tauhu-oo, tauhu-oo-bold, PingFangTC-Bold, "Microsoft JhengHei Bold", sans-serif;
         line-height: 2.8;
         font-size: 24px;
@@ -31,6 +30,7 @@
         flex-wrap: wrap;
         gap: 10px;
         justify-content: center;
+        align-items: center;
         z-index: 1000;
         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
@@ -56,6 +56,25 @@
         background-color: #e74c3c;
         color: white;
     }
+
+    /* 漢字開關樣式 */
+    .toggle-container {
+        display: flex;
+        align-items: center;
+        color: white;
+        font-size: 16px;
+        margin-left: 20px;
+        background-color: rgba(0,0,0,0.2);
+        padding: 5px 15px;
+        border-radius: 20px;
+    }
+
+    .toggle-container input {
+        margin-right: 8px;
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+    }
     
     /* 課文內容區 */
     .content-container {
@@ -65,7 +84,8 @@
         background-color: white;
         border-radius: 10px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        min-height: 50vh; /* 確保內容區有一定高度，讓 footer 沉在下方 */
+        min-height: 50vh;
+        position: relative;
     }
     
     .lesson-content {
@@ -92,6 +112,7 @@
         margin-bottom: 30px;
         text-indent: 2em;
         word-wrap: break-word;
+        transition: all 0.3s;
     }
     
     /* 拼音排版設定 */
@@ -102,12 +123,32 @@
     }
     
     rt {
-        /* 讓拼音也繼承豆腐烏字型，完美支援台羅聲調符號 */
         font-family: tauhu-oo, sans-serif; 
         font-size: 0.55em;
         color: #c0392b;
         padding-bottom: 2px;
         letter-spacing: 0px; 
+    }
+
+    /* === 純羅馬字模式的魔法 === */
+    /* 當 body 有 .hide-hanzi 類別時，隱藏漢字，並讓羅馬字變成一般文字排版 */
+    body.hide-hanzi ruby {
+        display: inline-block;
+        color: transparent; /* 將漢字變透明 */
+        font-size: 0; /* 縮小漢字佔用的空間 */
+    }
+
+    body.hide-hanzi rt {
+        display: inline;
+        font-size: 24px; /* 將羅馬字放大到原本漢字的大小 */
+        color: #333; /* 羅馬字變成主色 */
+        line-height: 1.8;
+    }
+
+    /* 純羅馬字模式下，段落樣式微調 */
+    body.hide-hanzi p {
+        line-height: 1.8;
+        word-spacing: 0.1em;
     }
     
     .placeholder-text {
@@ -118,17 +159,18 @@
         text-indent: 0;
     }
 
-    /* 頁尾版權與計數器區域設計 */
+    /* 頁尾與版本宣告區 */
     .footer {
         margin-top: 60px;
         padding: 30px 20px;
         text-align: center;
         background-color: #f1f5f9;
         border-top: 1px solid #e2e8f0;
+        position: relative;
     }
 
     .footer p {
-        text-indent: 0; /* 取消段落首行縮排，讓文字完美置中 */
+        text-indent: 0;
         margin: 5px 0;
         line-height: 1.5;
     }
@@ -141,18 +183,28 @@
 
     .counter-container {
         margin-top: 15px;
-        opacity: 0.6; /* 讓計數器微透明，視覺上更柔和 */
+        opacity: 0.6;
         transition: opacity 0.3s;
     }
 
     .counter-container:hover {
         opacity: 1;
     }
+
+    /* 版本號標示 */
+    .version-tag {
+        position: absolute;
+        bottom: 10px;
+        right: 15px;
+        font-size: 12px;
+        color: #cbd5e1;
+        font-family: monospace;
+    }
 </style>
 </head>
 <body>
 
-    <!-- 按鈕區 -->
+    <!-- 按鈕與開關區 -->
     <nav class="navbar">
         <button class="nav-btn active" onclick="showLesson('B1L1', this)">B1L1</button>
         <button class="nav-btn" onclick="showLesson('B1L2', this)">B1L2</button>
@@ -162,6 +214,12 @@
         <button class="nav-btn" onclick="showLesson('B3L2', this)">B3L2</button>
         <button class="nav-btn" onclick="showLesson('B3L3', this)">B3L3</button>
         <button class="nav-btn" onclick="showLesson('literacy', this)">素養</button>
+        
+        <!-- 漢字顯示開關 -->
+        <label class="toggle-container">
+            <input type="checkbox" id="hanziToggle" checked onchange="toggleHanzi()">
+            顯示漢字
+        </label>
     </nav>
 
     <!-- 內容區 -->
@@ -224,6 +282,8 @@
                 <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
             </a>
         </div>
+        <!-- 版本號 -->
+        <div class="version-tag">Ver 5.0</div>
     </div>
 
     <!-- JavaScript 切換邏輯 -->
@@ -243,6 +303,15 @@
             btnElement.classList.add('active');
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleHanzi() {
+            var isChecked = document.getElementById('hanziToggle').checked;
+            if (isChecked) {
+                document.body.classList.remove('hide-hanzi');
+            } else {
+                document.body.classList.add('hide-hanzi');
+            }
         }
     </script>
 </body>
