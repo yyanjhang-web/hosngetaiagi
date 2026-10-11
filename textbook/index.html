@@ -13,7 +13,7 @@
     body {
         font-family: tauhu-oo, tauhu-oo-bold, PingFangTC-Bold, "Microsoft JhengHei Bold", sans-serif;
         line-height: 2.8;
-        font-size: 24px;
+        font-size: 22px; /* [Ver 7.2修改] 漢字稍微縮小，讓羅馬字成為視覺主體 */
         margin: 0;
         padding: 0;
         background-color: #f9f9f9;
@@ -207,14 +207,15 @@
         margin: 0;
         padding: 0;
         ruby-align: center;
+        margin-right: 0.05em; /* [Ver 7.2修改] 加上極微小的右邊距防沾黏 */
     }
     
     rt {
         font-family: tauhu-oo, sans-serif; 
-        font-size: 0.55em;
+        font-size: 0.75em; /* [Ver 7.2修改] 大幅放大羅馬字，從 0.55em 改為 0.75em */
         color: #c0392b;
         padding-bottom: 2px;
-        letter-spacing: 0px; 
+        letter-spacing: -0.3px; /* [Ver 7.2修改] 微調收緊字母間距，減輕拼音過長的負擔 */
     }
 
     /* === 純羅馬字模式的魔法 === */
@@ -226,9 +227,10 @@
 
     body.hide-hanzi rt {
         display: inline;
-        font-size: 24px; 
+        font-size: 22px; /* [Ver 7.2修改] 配合基礎字體大小 */
         color: #333; 
         line-height: 1.8;
+        letter-spacing: 0; /* 純羅馬字模式時恢復正常間距 */
     }
 
     body.hide-hanzi p {
@@ -672,7 +674,7 @@
             </a>
         </div>
         <!-- 版本號 -->
-        <div class="version-tag">Ver 7.1</div>
+        <div class="version-tag">Ver 7.2</div>
     </div>
 
     <!-- JavaScript 邏輯 (包含音訊播放控制) -->
