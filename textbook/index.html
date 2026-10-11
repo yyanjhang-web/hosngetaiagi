@@ -210,18 +210,12 @@
         margin-right: 0.05em; 
     }
     
-    /* 單數格拼音顏色（主色：深紅色） */
+    /* [Ver 7.4] 移除 CSS 的 nth-child 變色，改由 JavaScript 動態寫入行內 style 控制顏色 */
     rt {
         font-family: tauhu-oo, sans-serif; 
         font-size: 0.75em; 
-        color: #c0392b; /* 主色：深紅 */
         padding-bottom: 2px;
         letter-spacing: -0.3px; 
-    }
-
-    /* 雙數格拼音顏色（中性色：深岩藍綠色）[Ver 7.3 新增防沾黏魔法] */
-    ruby:nth-child(even) rt {
-        color: #335c67; /* 輔色：深岩藍綠，柔和且具辨識度 */
     }
 
     /* === 純羅馬字模式的魔法 === */
@@ -231,17 +225,13 @@
         font-size: 0; 
     }
 
+    /* 純羅馬字模式下，覆蓋 JS 寫入的內聯樣式，統一為深灰色 */
     body.hide-hanzi rt {
-        display: inline;
-        font-size: 22px; 
-        color: #333; 
-        line-height: 1.8;
-        letter-spacing: 0; 
-    }
-
-    /* 純羅馬字模式下，關閉雙色交錯（避免像彩虹） */
-    body.hide-hanzi ruby:nth-child(even) rt {
-        color: #333; 
+        display: inline !important;
+        font-size: 22px !important; 
+        color: #333 !important; 
+        line-height: 1.8 !important;
+        letter-spacing: 0 !important; 
     }
 
     body.hide-hanzi p {
@@ -466,7 +456,7 @@
                 </div>
                 <audio preload="metadata" ontimeupdate="updateProgress(this)" onloadedmetadata="setDuration(this)" onended="audioEnded(this)"></audio>
             </div>
-            <p><ruby>我<rt>Guá</rt></ruby> <ruby>印<rt>ìn-</rt></ruby><ruby>象<rt>siōng</rt></ruby> <ruby>上<rt>siōng-</rt></ruby><ruby>蓋<rt>kài</rt></ruby> <ruby>深<rt>tshim</rt></ruby> <ruby>的<rt>ê</rt></ruby> <ruby>是<rt>sī</rt></ruby> <ruby>世<rt>sè-</rt></ruby><ruby>界<rt>kài</rt></ruby> <ruby>大<rt>tuā-</rt></ruby><ruby>欉<rt>tsâng</rt></ruby> <ruby>的<rt>ê</rt></ruby> <ruby>海<rt>hái-</rt></ruby><ruby>菜<rt>tshài</rt></ruby>，<ruby>真<rt>tsin-</rt></ruby><ruby>正<rt>tsiànn</rt></ruby> <ruby>是<rt>sī</rt></ruby> <ruby>生<rt>senn</rt></ruby> <ruby>目<rt>ba̍k-</rt></ruby><ruby>睭<rt>tsiu</rt></ruby> <ruby>都<rt></rt></ruby><ruby>毋<rt>m̄-</rt></ruby><ruby>捌<rt>bat</rt></ruby> <ruby>看<rt>khuànn--</rt></ruby><ruby>過<rt>kuè</rt></ruby> <ruby>呢<rt></rt></ruby>！<ruby>日<rt>Ji̍t-</rt></ruby><ruby>頭<rt>thâu</rt></ruby> <ruby>的<rt>ê</rt></ruby> <ruby>光<rt>kng-</rt></ruby><ruby>線<rt>suànn</rt></ruby> <ruby>對<rt>tuì</rt></ruby> <ruby>面<rt>bīn-</rt></ruby><ruby>頂<rt>tíng</rt></ruby> <ruby>照<rt>tsiò</rt></ruby> <ruby>落<rt>lo̍h-</rt></ruby><ruby>來<rt>lâi</rt></ruby>，<ruby>彼<rt>hit-</rt></ruby><ruby>个<rt>ê</rt></ruby> <ruby>畫<rt>uē-</rt></ruby><ruby>面<rt>bīn</rt></ruby> <ruby>若<rt>ná-</rt></ruby><ruby>親<rt>tshin-</rt></ruby><ruby>像<rt>tshiūnn</rt></ruby> <ruby>咧<rt>leh</rt></ruby> <ruby>拍<rt>phah</rt></ruby> <ruby>電<rt>tiān-</rt></ruby><ruby>影<rt>iánn</rt></ruby> <ruby>仝<rt>kāng-</rt></ruby><ruby>款<rt>khuán</rt></ruby>，<ruby>予<rt>hōo</rt></ruby> <ruby>我<rt>guá</rt></ruby> <ruby>佇<rt>tī</rt></ruby> <ruby>遮<rt>tsia</rt></ruby> <ruby>加<rt>ke</rt></ruby> <ruby>翕<rt>hip</rt></ruby> <ruby>足<rt>tsiok</rt></ruby> <ruby>濟<rt>tsē</rt></ruby> <ruby>張<rt>tiunn</rt></ruby> <ruby>相<rt>siòng-</rt></ruby><ruby>片<rt>phìnn</rt></ruby>。</p>
+            <p><ruby>我<rt>Guá</rt></ruby> <ruby>印<rt>ìn-</rt></ruby><ruby>象<rt>siōng</rt></ruby> <ruby>上<rt>siōng-</rt></ruby><ruby>蓋<rt>kài</rt></ruby> <ruby>深<rt>tshim</rt></ruby> <ruby>的<rt>ê</rt></ruby> <ruby>是<rt>sī</rt></ruby> <ruby>世<rt>sè-</rt></ruby><ruby>界<rt>kài</rt></ruby> <ruby>大<rt>tuā-</rt></ruby><ruby>欉<rt>tsâng</rt></ruby> <ruby>的<rt>ê</rt></ruby> <ruby>海<rt>hái-</rt></ruby><ruby>菜<rt>tshài</rt></ruby>，<ruby>真<rt>tsin-</rt></ruby><ruby>正<rt>tsiànn</rt></ruby> <ruby>是<rt>sī</rt></ruby> <ruby>生<rt>senn</rt></ruby> <ruby>目<rt>ba̍k-</rt></ruby><ruby>睭<rt>tsiu</rt></ruby> <ruby>都<rt>to</rt></ruby><ruby>毋<rt>m̄-</rt></ruby><ruby>捌<rt>bat</rt></ruby> <ruby>看<rt>khuànn--</rt></ruby><ruby>過<rt>kuè</rt></ruby> <ruby>呢<rt>neh</rt></ruby>！<ruby>日<rt>Ji̍t-</rt></ruby><ruby>頭<rt>thâu</rt></ruby> <ruby>的<rt>ê</rt></ruby> <ruby>光<rt>kng-</rt></ruby><ruby>線<rt>suànn</rt></ruby> <ruby>對<rt>tuì</rt></ruby> <ruby>面<rt>bīn-</rt></ruby><ruby>頂<rt>tíng</rt></ruby> <ruby>照<rt>tsiò</rt></ruby> <ruby>落<rt>lo̍h-</rt></ruby><ruby>來<rt>lâi</rt></ruby>，<ruby>彼<rt>hit-</rt></ruby><ruby>个<rt>ê</rt></ruby> <ruby>畫<rt>uē-</rt></ruby><ruby>面<rt>bīn</rt></ruby> <ruby>若<rt>ná-</rt></ruby><ruby>親<rt>tshin-</rt></ruby><ruby>像<rt>tshiūnn</rt></ruby> <ruby>咧<rt>leh</rt></ruby> <ruby>拍<rt>phah</rt></ruby> <ruby>電<rt>tiān-</rt></ruby><ruby>影<rt>iánn</rt></ruby> <ruby>仝<rt>kāng-</rt></ruby><ruby>款<rt>khuán</rt></ruby>，<ruby>予<rt>hōo</rt></ruby> <ruby>我<rt>guá</rt></ruby> <ruby>佇<rt>tī</rt></ruby> <ruby>遮<rt>tsia</rt></ruby> <ruby>加<rt>ke</rt></ruby> <ruby>翕<rt>hip</rt></ruby> <ruby>足<rt>tsiok</rt></ruby> <ruby>濟<rt>tsē</rt></ruby> <ruby>張<rt>tiunn</rt></ruby> <ruby>相<rt>siòng-</rt></ruby><ruby>片<rt>phìnn</rt></ruby>。</p>
             
             <div class="audio-player" data-src="https://raw.githubusercontent.com/yyanjhang-web/hosngetaiagi/main/textbook/mp3/B1L2/06.mp3">
                 <button class="player-btn play-pause-btn" onclick="togglePlay(this)" title="播放/暫停"><i class="fas fa-play"></i></button>
@@ -685,10 +675,10 @@
             </a>
         </div>
         <!-- 版本號 -->
-        <div class="version-tag">Ver 7.3</div>
+        <div class="version-tag">Ver 7.4</div>
     </div>
 
-    <!-- JavaScript 邏輯 (包含音訊播放控制) -->
+    <!-- JavaScript 邏輯 (包含音訊與智慧斷詞變色) -->
     <script>
         // 切換課文
         function showLesson(lessonId, btnElement) {
@@ -705,9 +695,7 @@
             document.getElementById(lessonId).style.display = 'block';
             btnElement.classList.add('active');
             
-            // 切換頁面時停止所有正在播放的音檔
             stopAllAudio();
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -721,20 +709,65 @@
             }
         }
 
+        /* --- 智慧斷詞交錯變色邏輯 (Ver 7.4) --- */
+        function applyWordColoring() {
+            const COLOR_A = '#992d22'; // 顏色A：深磚紅 (主色)
+            const COLOR_B = '#335c67'; // 顏色B：深岩藍綠 (中性色)
+            
+            // 掃描所有的段落和標題
+            const textContainers = document.querySelectorAll('.lesson-content p, .lesson-content h3');
+            
+            textContainers.forEach(container => {
+                const rubies = container.querySelectorAll('ruby');
+                let currentColor = COLOR_A;
+                
+                for (let i = 0; i < rubies.length; i++) {
+                    const rt = rubies[i].querySelector('rt');
+                    if (!rt) continue;
+                    
+                    const text = rt.textContent.trim();
+                    
+                    // 套用目前的顏色
+                    rt.style.color = currentColor;
+                    
+                    // 判斷是否為「詞的結尾」
+                    // 如果目前羅馬字結尾有 "-"，或者下一個羅馬字開頭有 "--" (輕聲)
+                    // 就代表同屬一個詞，顏色「不改變」。
+                    // 反之，如果沒有連字符，代表這個詞結束了，下一個 ruby 就要換顏色。
+                    let hasHyphenAtEnd = text.endsWith('-');
+                    let nextHasLightTone = false;
+                    
+                    if (i + 1 < rubies.length) {
+                        const nextRt = rubies[i + 1].querySelector('rt');
+                        if (nextRt && nextRt.textContent.trim().startsWith('--')) {
+                            nextHasLightTone = true;
+                        }
+                    }
+                    
+                    if (!hasHyphenAtEnd && !nextHasLightTone) {
+                        // 詞彙結束，切換顏色
+                        currentColor = (currentColor === COLOR_A) ? COLOR_B : COLOR_A;
+                    }
+                }
+            });
+        }
+
         /* --- 音訊播放控制邏輯 --- */
         let currentlyPlaying = null;
 
-        // 初始化所有播放器
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化播放器
             const players = document.querySelectorAll('.audio-player');
             players.forEach(player => {
                 const audio = player.querySelector('audio');
                 const src = player.getAttribute('data-src');
                 audio.src = src;
             });
+            
+            // 執行智慧斷詞上色
+            applyWordColoring();
         });
 
-        // 格式化時間 (秒 -> m:ss)
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
             const m = Math.floor(seconds / 60);
@@ -742,14 +775,12 @@
             return m + ':' + (s < 10 ? '0' : '') + s;
         }
 
-        // 載入元數據後設定總時間
         function setDuration(audio) {
             const player = audio.closest('.audio-player');
             const durationDisplay = player.querySelector('.duration');
             durationDisplay.textContent = formatTime(audio.duration);
         }
 
-        // 更新進度條與目前時間
         function updateProgress(audio) {
             const player = audio.closest('.audio-player');
             const progressBar = player.querySelector('.progress-bar');
@@ -762,7 +793,6 @@
             }
         }
 
-        // 點擊進度條跳轉時間
         function seekAudio(event, container) {
             const player = container.closest('.audio-player');
             const audio = player.querySelector('audio');
@@ -772,7 +802,6 @@
             }
         }
 
-        // 播放結束時的重置動作
         function audioEnded(audio) {
             const player = audio.closest('.audio-player');
             const icon = player.querySelector('.play-pause-btn i');
@@ -780,7 +809,6 @@
             currentlyPlaying = null;
         }
 
-        // 停止所有音訊
         function stopAllAudio() {
             const allAudios = document.querySelectorAll('audio');
             allAudios.forEach(a => {
@@ -794,19 +822,16 @@
             currentlyPlaying = null;
         }
 
-        // 播放/暫停切換
         function togglePlay(btn) {
             const player = btn.closest('.audio-player');
             const audio = player.querySelector('audio');
             const icon = btn.querySelector('i');
 
             if (audio.paused) {
-                // 若有其他音檔在播放，先暫停它 (不重置時間，只暫停)
                 if (currentlyPlaying && currentlyPlaying !== audio) {
                     currentlyPlaying.pause();
                     currentlyPlaying.closest('.audio-player').querySelector('.play-pause-btn i').className = 'fas fa-play';
                 }
-                
                 audio.play();
                 icon.className = 'fas fa-pause';
                 currentlyPlaying = audio;
@@ -817,7 +842,6 @@
             }
         }
 
-        // 停止目前的音訊
         function stopAudio(btn) {
             const player = btn.closest('.audio-player');
             const audio = player.querySelector('audio');
