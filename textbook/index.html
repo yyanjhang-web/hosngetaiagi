@@ -13,7 +13,7 @@
     body {
         font-family: tauhu-oo, tauhu-oo-bold, PingFangTC-Bold, "Microsoft JhengHei Bold", sans-serif;
         line-height: 2.8;
-        font-size: 22px; /* [Ver 7.2修改] 漢字稍微縮小，讓羅馬字成為視覺主體 */
+        font-size: 22px; 
         margin: 0;
         padding: 0;
         background-color: #f9f9f9;
@@ -125,17 +125,17 @@
         background-color: #f1f5f9;
         padding: 5px 15px;
         border-radius: 25px;
-        margin-bottom: 10px; /* 播放器與文字的間距 */
+        margin-bottom: 10px; 
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        font-size: 16px; /* 播放器內文字大小 */
+        font-size: 16px; 
         line-height: 1.5;
-        width: fit-content; /* 寬度配合內容 */
+        width: fit-content; 
     }
 
     .player-btn {
         background: none;
         border: none;
-        color: #3b82f6; /* 按鈕顏色 */
+        color: #3b82f6; 
         cursor: pointer;
         font-size: 18px;
         padding: 5px 10px;
@@ -160,7 +160,7 @@
 
     /* 播放進度條 */
     .progress-bar-container {
-        width: 150px; /* 進度條寬度 */
+        width: 150px; 
         height: 6px;
         background-color: #cbd5e1;
         border-radius: 3px;
@@ -187,12 +187,12 @@
         height: 12px;
         background-color: #2563eb;
         border-radius: 50%;
-        opacity: 0; /* 預設隱藏 */
+        opacity: 0; 
         transition: opacity 0.2s;
     }
 
     .progress-bar-container:hover .progress-bar::after {
-        opacity: 1; /* 游標滑過時顯示 */
+        opacity: 1; 
     }
     
     p {
@@ -207,15 +207,21 @@
         margin: 0;
         padding: 0;
         ruby-align: center;
-        margin-right: 0.05em; /* [Ver 7.2修改] 加上極微小的右邊距防沾黏 */
+        margin-right: 0.05em; 
     }
     
+    /* 單數格拼音顏色（主色：深紅色） */
     rt {
         font-family: tauhu-oo, sans-serif; 
-        font-size: 0.75em; /* [Ver 7.2修改] 大幅放大羅馬字，從 0.55em 改為 0.75em */
-        color: #c0392b;
+        font-size: 0.75em; 
+        color: #c0392b; /* 主色：深紅 */
         padding-bottom: 2px;
-        letter-spacing: -0.3px; /* [Ver 7.2修改] 微調收緊字母間距，減輕拼音過長的負擔 */
+        letter-spacing: -0.3px; 
+    }
+
+    /* 雙數格拼音顏色（中性色：深岩藍綠色）[Ver 7.3 新增防沾黏魔法] */
+    ruby:nth-child(even) rt {
+        color: #335c67; /* 輔色：深岩藍綠，柔和且具辨識度 */
     }
 
     /* === 純羅馬字模式的魔法 === */
@@ -227,10 +233,15 @@
 
     body.hide-hanzi rt {
         display: inline;
-        font-size: 22px; /* [Ver 7.2修改] 配合基礎字體大小 */
+        font-size: 22px; 
         color: #333; 
         line-height: 1.8;
-        letter-spacing: 0; /* 純羅馬字模式時恢復正常間距 */
+        letter-spacing: 0; 
+    }
+
+    /* 純羅馬字模式下，關閉雙色交錯（避免像彩虹） */
+    body.hide-hanzi ruby:nth-child(even) rt {
+        color: #333; 
     }
 
     body.hide-hanzi p {
@@ -674,7 +685,7 @@
             </a>
         </div>
         <!-- 版本號 -->
-        <div class="version-tag">Ver 7.2</div>
+        <div class="version-tag">Ver 7.3</div>
     </div>
 
     <!-- JavaScript 邏輯 (包含音訊播放控制) -->
@@ -813,8 +824,8 @@
             const playIcon = player.querySelector('.play-pause-btn i');
             
             audio.pause();
-            audio.currentTime = 0; // 時間歸零
-            playIcon.className = 'fas fa-play'; // 恢復播放圖示
+            audio.currentTime = 0; 
+            playIcon.className = 'fas fa-play'; 
             
             if (currentlyPlaying === audio) {
                 currentlyPlaying = null;
