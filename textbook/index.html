@@ -57,16 +57,23 @@
         color: white;
     }
 
-    /* 漢字開關樣式 */
+    /* 漢字與重點詞語開關樣式 */
     .toggle-container {
         display: flex;
         align-items: center;
         color: white;
         font-size: 16px;
-        margin-left: 20px;
+        margin-left: 10px;
         background-color: rgba(0,0,0,0.2);
         padding: 5px 15px;
         border-radius: 20px;
+        gap: 15px; /* 控制兩個開關之間的間距 */
+    }
+
+    .toggle-container label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
     }
 
     .toggle-container input {
@@ -76,6 +83,19 @@
         height: 18px;
     }
     
+    /* 重點詞語標示樣式 */
+    .vocab-highlight {
+        background-color: #fff0b3; /* 柔和的淺黃色底 */
+        border-radius: 3px;
+        padding: 0 2px;
+        transition: background-color 0.3s;
+    }
+
+    /* 當隱藏重點詞語時，移除背景色 */
+    body.hide-highlight .vocab-highlight {
+        background-color: transparent;
+    }
+
     /* 課文內容區 */
     .content-container {
         max-width: 900px;
@@ -304,11 +324,17 @@
         <button class="nav-btn" onclick="showLesson('B3L3', this)">B3L3</button>
         <button class="nav-btn" onclick="showLesson('literacy', this)">素養</button>
         
-        <!-- 漢字顯示開關 -->
-        <label class="toggle-container">
-            <input type="checkbox" id="hanziToggle" checked onchange="toggleHanzi()">
-            顯示漢字
-        </label>
+        <!-- 漢字與重點詞語顯示開關 -->
+        <div class="toggle-container">
+            <label>
+                <input type="checkbox" id="hanziToggle" checked onchange="toggleHanzi()">
+                顯示漢字
+            </label>
+            <label>
+                <input type="checkbox" id="highlightToggle" checked onchange="toggleHighlight()">
+                重點詞語
+            </label>
+        </div>
     </nav>
 
     <!-- 內容區 -->
@@ -411,7 +437,7 @@
                 </div>
                 <audio preload="metadata" ontimeupdate="updateProgress(this)" onloadedmetadata="setDuration(this)" onended="audioEnded(this)"></audio>
             </div>
-            <p><ruby>歇<rt>Hioh-</rt></ruby><ruby>熱<rt>jua̍h</rt></ruby>，<ruby>是<rt>sī</rt></ruby> <ruby>做<rt>tsò</rt></ruby> <ruby>學<rt>ha̍k-</rt></ruby><ruby>生<rt>sing</rt></ruby> <ruby>上<rt>siōng</rt></ruby> <ruby>期<rt>kî-</rt></ruby><ruby>待<rt>thāi</rt></ruby> <ruby>的<rt>ê</rt></ruby>，<ruby>逐<rt>ta̍k-</rt></ruby><ruby>家<rt>ke</rt></ruby> <ruby>講<rt>kóng-</rt></ruby><ruby>著<rt>tio̍h</rt></ruby> <ruby>歇<rt>hioh-</rt></ruby><ruby>熱<rt>lua̍h</rt></ruby> <ruby>攏<rt>lóng</rt></ruby> <ruby>嘛<rt>mā-</rt></ruby><ruby>是<rt>sī</rt></ruby> <ruby>歡<rt>huann-</rt></ruby><ruby>頭<rt>thâu-</rt></ruby><ruby>喜<rt>hí-</rt></ruby><ruby>面<rt>bīn</rt></ruby>。<ruby>不<rt>Put-</rt></ruby><ruby>而<rt>jî-</rt></ruby><ruby>過<rt>kò</rt></ruby>，<ruby>這<rt>tsit-</rt></ruby><ruby>馬<rt>má</rt></ruby> <ruby>熱<rt>jua̍h-</rt></ruby><ruby>天<rt>thinn</rt></ruby> <ruby>的<rt>ê</rt></ruby> <ruby>氣<rt>khì-</rt></ruby><ruby>溫<rt>un</rt></ruby> <ruby>有<rt>ū-</rt></ruby><ruby>夠<rt>kàu</rt></ruby> <ruby>懸<rt>kuân</rt></ruby>，<ruby>磕<rt>kha̍p-</rt></ruby><ruby>袂<rt>bē-</rt></ruby><ruby>著<rt>tio̍h</rt></ruby> <ruby>就<rt>tō</rt></ruby> <ruby>三<rt>sann-</rt></ruby><ruby>十<rt>tsa̍p-</rt></ruby><ruby>七<rt>tshit</rt></ruby> <ruby>度<rt>tōo</rt></ruby>，<ruby>強<rt>kiōng-</rt></ruby><ruby>欲<rt>beh</rt></ruby> <ruby>共<rt>kā</rt></ruby> <ruby>人<rt>lâng</rt></ruby> <ruby>熁<rt>hannh</rt></ruby> <ruby>甲<rt>kah</rt></ruby> <ruby>昏<rt>hūn-</rt></ruby><ruby>昏<rt>hūn</rt></ruby><ruby>去<rt>--khì</rt></ruby>。</p>
+            <p><ruby>歇<rt>Hioh-</rt></ruby><ruby>熱<rt>jua̍h</rt></ruby>，<ruby>是<rt>sī</rt></ruby> <ruby>做<rt>tsò</rt></ruby> <ruby>學<rt>ha̍k-</rt></ruby><ruby>生<rt>sing</rt></ruby> <ruby>上<rt>siōng</rt></ruby> <ruby>期<rt>kî-</rt></ruby><ruby>待<rt>thāi</rt></ruby> <ruby>的<rt>ê</rt></ruby>，<ruby>逐<rt>ta̍k-</rt></ruby><ruby>家<rt>ke</rt></ruby> <ruby>講<rt>kóng-</rt></ruby><ruby>著<rt>tio̍h</rt></ruby> <ruby>歇<rt>hioh-</rt></ruby><ruby>熱<rt>lua̍h</rt></ruby> <ruby>拢<rt>lóng</rt></ruby> <ruby>嘛<rt>mā-</rt></ruby><ruby>是<rt>sī</rt></ruby> <ruby>歡<rt>huann-</rt></ruby><ruby>頭<rt>thâu-</rt></ruby><ruby>喜<rt>hí-</rt></ruby><ruby>面<rt>bīn</rt></ruby>。<ruby>不<rt>Put-</rt></ruby><ruby>而<rt>jî-</rt></ruby><ruby>過<rt>kò</rt></ruby>，<ruby>這<rt>tsit-</rt></ruby><ruby>馬<rt>má</rt></ruby> <ruby>熱<rt>jua̍h-</rt></ruby><ruby>天<rt>thinn</rt></ruby> <ruby>的<rt>ê</rt></ruby> <ruby>氣<rt>khì-</rt></ruby><ruby>溫<rt>un</rt></ruby> <ruby>有<rt>ū-</rt></ruby><ruby>夠<rt>kàu</rt></ruby> <ruby>懸<rt>kuân</rt></ruby>，<ruby>磕<rt>kha̍p-</rt></ruby><ruby>袂<rt>bē-</rt></ruby><ruby>著<rt>tio̍h</rt></ruby> <ruby>就<rt>tō</rt></ruby> <ruby>三<rt>sann-</rt></ruby><ruby>十<rt>tsa̍p-</rt></ruby><ruby>七<rt>tshit</rt></ruby> <ruby>度<rt>tōo</rt></ruby>，<ruby>強<rt>kiōng-</rt></ruby><ruby>欲<rt>beh</rt></ruby> <ruby>共<rt>kā</rt></ruby> <ruby>人<rt>lâng</rt></ruby> <ruby>熁<rt>hannh</rt></ruby> <ruby>甲<rt>kah</rt></ruby> <ruby>昏<rt>hūn-</rt></ruby><ruby>昏<rt>hūn</rt></ruby><ruby>去<rt>--khì</rt></ruby>。</p>
             
             <div class="audio-player" data-src="https://raw.githubusercontent.com/yyanjhang-web/hosngetaiagi/main/textbook/mp3/B1L2/02.mp3">
                 <button class="player-btn play-pause-btn" onclick="togglePlay(this)" title="播放/暫停"><i class="fas fa-play"></i></button>
@@ -674,11 +700,17 @@
             </a>
         </div>
         <!-- 版本號 -->
-        <div class="version-tag">Ver 7.5</div>
+        <div class="version-tag">Ver 8.0</div>
     </div>
 
-    <!-- JavaScript 邏輯 (包含音訊與智慧斷詞變色) -->
+    <!-- JavaScript 邏輯 -->
     <script>
+        // 設定 Spreadsheet ID
+        const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc"; 
+
+        // 儲存各課的重點詞彙
+        const lessonVocabs = {};
+
         // 切換課文
         function showLesson(lessonId, btnElement) {
             var contents = document.getElementsByClassName('lesson-content');
@@ -696,6 +728,9 @@
             
             stopAllAudio();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // 載入該課的重點詞彙
+            loadVocabForLesson(lessonId);
         }
 
         // 切換漢字/羅馬字顯示
@@ -708,12 +743,141 @@
             }
         }
 
+        // 切換重點詞語顯示
+        function toggleHighlight() {
+            var isChecked = document.getElementById('highlightToggle').checked;
+            if (isChecked) {
+                document.body.classList.remove('hide-highlight');
+            } else {
+                document.body.classList.add('hide-highlight');
+            }
+        }
+
+        // 讀取特定課程的試算表重點詞彙
+        async function loadVocabForLesson(lessonId) {
+            if (lessonVocabs[lessonId]) {
+                applyHighlight(lessonId, lessonVocabs[lessonId]);
+                return;
+            }
+
+            try {
+                const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(lessonId)}`;
+                const response = await fetch(queryUrl);
+                
+                if (!response.ok) {
+                    console.warn(`無法讀取 ${lessonId} 的生詞資料。`);
+                    return;
+                }
+
+                const text = await response.text();
+                const lines = text.split(/\r?\n/);
+                const vocabs = lines.map(line => {
+                    const parts = line.replace(/"/g, '').split(',');
+                    return parts[0] ? parts[0].trim() : null;
+                }).filter(v => v && v !== "");
+
+                // 將詞彙依長度排序 (長的優先比對，避免被短詞干擾)
+                vocabs.sort((a, b) => b.length - a.length);
+                lessonVocabs[lessonId] = vocabs;
+                
+                applyHighlight(lessonId, vocabs);
+
+            } catch (error) {
+                console.error(`讀取 ${lessonId} 詞彙失敗：`, error);
+            }
+        }
+
+        // 核心邏輯：將讀取到的詞彙在課文中上色
+        function applyHighlight(lessonId, vocabs) {
+            const container = document.getElementById(lessonId);
+            if (!container) return;
+
+            // 先清除舊的標記 (避免重複切換時出錯)
+            const oldHighlights = container.querySelectorAll('.vocab-highlight');
+            oldHighlights.forEach(span => {
+                const parent = span.parentNode;
+                while (span.firstChild) parent.insertBefore(span.firstChild, span);
+                parent.removeChild(span);
+            });
+
+            // 取得所有段落 (排除標題與作者)
+            const paragraphs = container.querySelectorAll('p');
+            
+            vocabs.forEach(vocab => {
+                // 因為課文是一個字一個 ruby 包起來，我們需要掃描所有 ruby
+                paragraphs.forEach(p => {
+                    const childNodes = Array.from(p.childNodes);
+                    let textNodesAndRubies = [];
+                    
+                    // 將段落內的文字節點和 ruby 節點展開，方便連續比對
+                    for (let node of childNodes) {
+                        if (node.nodeName === 'RUBY') {
+                            // 提取 ruby 內的第一個文本節點（通常是漢字）
+                            let hanziText = '';
+                            for (let n of node.childNodes) {
+                                if (n.nodeType === Node.TEXT_NODE) {
+                                    hanziText += n.textContent;
+                                }
+                            }
+                            textNodesAndRubies.push({ type: 'ruby', text: hanziText.trim(), node: node });
+                        } else if (node.nodeType === Node.TEXT_NODE) {
+                            const chars = node.textContent.split('');
+                            chars.forEach(char => {
+                                textNodesAndRubies.push({ type: 'text', text: char, parent: node });
+                            });
+                        }
+                    }
+
+                    // 尋找連續匹配的字元
+                    for (let i = 0; i <= textNodesAndRubies.length - vocab.length; i++) {
+                        let match = true;
+                        for (let j = 0; j < vocab.length; j++) {
+                            if (textNodesAndRubies[i + j].text !== vocab[j]) {
+                                match = false;
+                                break;
+                            }
+                        }
+
+                        // 如果完全匹配
+                        if (match) {
+                            for (let j = 0; j < vocab.length; j++) {
+                                let targetItem = textNodesAndRubies[i + j];
+                                if (targetItem.type === 'ruby') {
+                                    // 確保不會重複包覆
+                                    if (!targetItem.node.innerHTML.includes('vocab-highlight')) {
+                                        // 找出 ruby 內的純文字節點並包裝
+                                        const rts = targetItem.node.querySelectorAll('rt');
+                                        let hanziContent = '';
+                                        let currentChild = targetItem.node.firstChild;
+                                        
+                                        // 提取非 rt 的內容 (即漢字部分)
+                                        while (currentChild) {
+                                            if (currentChild.nodeName !== 'RT') {
+                                                hanziContent += currentChild.textContent;
+                                            }
+                                            currentChild = currentChild.nextSibling;
+                                        }
+
+                                        // 重建 ruby 內容
+                                        targetItem.node.innerHTML = `<span class="vocab-highlight">${hanziContent}</span>`;
+                                        rts.forEach(rt => targetItem.node.appendChild(rt));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // 由於我們修改了 DOM 結構，必須重新套用智慧斷詞變色 (Ver 7.4 功能)
+            applyWordColoring();
+        }
+
         /* --- 智慧斷詞交錯變色邏輯 (Ver 7.4) --- */
         function applyWordColoring() {
-            const COLOR_A = '#992d22'; // 顏色A：深磚紅 (主色)
-            const COLOR_B = '#335c67'; // 顏色B：深岩藍綠 (中性色)
+            const COLOR_A = '#992d22'; 
+            const COLOR_B = '#335c67'; 
             
-            // 掃描所有的段落和標題
             const textContainers = document.querySelectorAll('.lesson-content p, .lesson-content h3');
             
             textContainers.forEach(container => {
@@ -725,14 +889,8 @@
                     if (!rt) continue;
                     
                     const text = rt.textContent.trim();
-                    
-                    // 套用目前的顏色
                     rt.style.color = currentColor;
                     
-                    // 判斷是否為「詞的結尾」
-                    // 如果目前羅馬字結尾有 "-"，或者下一個羅馬字開頭有 "--" (輕聲)
-                    // 就代表同屬一個詞，顏色「不改變」。
-                    // 反之，如果沒有連字符，代表這個詞結束了，下一個 ruby 就要換顏色。
                     let hasHyphenAtEnd = text.endsWith('-');
                     let nextHasLightTone = false;
                     
@@ -744,7 +902,6 @@
                     }
                     
                     if (!hasHyphenAtEnd && !nextHasLightTone) {
-                        // 詞彙結束，切換顏色
                         currentColor = (currentColor === COLOR_A) ? COLOR_B : COLOR_A;
                     }
                 }
@@ -755,7 +912,6 @@
         let currentlyPlaying = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            // 初始化播放器
             const players = document.querySelectorAll('.audio-player');
             players.forEach(player => {
                 const audio = player.querySelector('audio');
@@ -763,8 +919,8 @@
                 audio.src = src;
             });
             
-            // 執行智慧斷詞上色
-            applyWordColoring();
+            // 預設觸發第一課的資料讀取與變色
+            loadVocabForLesson('B1L1');
         });
 
         function formatTime(seconds) {
