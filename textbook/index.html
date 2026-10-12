@@ -67,7 +67,7 @@
         background-color: rgba(0,0,0,0.2);
         padding: 5px 15px;
         border-radius: 20px;
-        gap: 15px; /* 控制兩個開關之間的間距 */
+        gap: 15px;
     }
 
     .toggle-container label {
@@ -244,7 +244,6 @@
         font-size: 0; 
     }
 
-    /* 純羅馬字模式下，覆蓋 JS 寫入的內聯樣式，統一為深灰色 */
     body.hide-hanzi rt {
         display: inline !important;
         font-size: 22px !important; 
@@ -308,7 +307,7 @@
         font-family: monospace;
     }
 </style>
-<!-- 載入 Font Awesome 圖示庫 (用於播放器按鈕) -->
+<!-- 載入 Font Awesome 圖示庫 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -409,7 +408,7 @@
                 </div>
                 <audio preload="metadata" ontimeupdate="updateProgress(this)" onloadedmetadata="setDuration(this)" onended="audioEnded(this)"></audio>
             </div>
-            <p><ruby>佇<rt>Tī</rt></ruby> <ruby>古<rt>kóo-</rt></ruby><ruby>早<rt>tsá</rt></ruby>，<ruby>愛<rt>ài</rt></ruby> <ruby>先<rt>sing</rt></ruby> <ruby>共<rt>kā</rt></ruby> <ruby>秫<rt>tsu̍t-</rt></ruby><ruby>米<rt>bí</rt></ruby> <ruby>浸<rt>tsìm</rt></ruby><ruby>一<rt>--tsi̍t-</rt></ruby><ruby>站<rt>tsām-</rt></ruby><ruby>仔<rt>á</rt></ruby>，<ruby>紲<rt>suà</rt></ruby><ruby>落<rt>--lo̍h-</rt></ruby><ruby>來<rt>lâi</rt></ruby> <ruby>挨<rt>e-</rt></ruby><ruby>米<rt>bí</rt></ruby>，<ruby>硩<rt>teh</rt></ruby> <ruby>米<rt>bí-</rt></ruby><ruby>漿<rt>tsiunn</rt></ruby>，<ruby>做<rt>tsò</rt></ruby> <ruby>粿<rt>kué-</rt></ruby><ruby>粞<rt>tshè</rt></ruby>，<ruby>搦<rt>jio̍k</rt></ruby> <ruby>做<rt>tsò</rt></ruby> <ruby>規<rt>kui</rt></ruby> <ruby>丸<rt>uân</rt></ruby> <ruby>才<rt>tsiah-</rt></ruby><ruby>閣<rt>koh</rt></ruby> <ruby>捻<rt>liàm</rt></ruby> <ruby>做<rt>tsò</rt></ruby> <ruby>一<rt>tsi̍t</rt></ruby> <ruby>塊<rt>tè</rt></ruby> <ruby>一<rt>tsi̍t</rt></ruby> <ruby>塊<rt>tè</rt></ruby> <ruby>落<rt>lo̍h-</rt></ruby><ruby>去<rt>khì</rt></ruby> <ruby>糋<rt>tsìnn</rt></ruby>，<ruby>上<rt>siōng-</rt></ruby><ruby>尾<rt>bué</rt></ruby> <ruby>囥<rt>khǹg</rt></ruby> <ruby>佇<rt>tī</rt></ruby> <ruby>塗<rt>thôo-</rt></ruby><ruby>豆<rt>tau-</rt></ruby><ruby>糖<rt>thn̂g-</rt></ruby><ruby>粉<rt>hún</rt></ruby> <ruby>內<rt>lāi-</rt></ruby><ruby>底<rt>té</rt></ruby> <ruby>滒<rt>kō-</rt></ruby><ruby>滒<rt>kō</rt></ruby><ruby>咧<rt>--leh</rt></ruby>，<ruby>按<rt>án-</rt></ruby><ruby>呢<rt>ne</rt></ruby> <ruby>芳<rt>phang-</rt></ruby><ruby>貢<rt>kòng-</rt></ruby><ruby>貢<rt>kòng</rt></ruby>、<ruby>燒<rt>sio-</rt></ruby><ruby>燙<rt>thǹg-</rt></ruby><ruby>燙<rt>thǹg</rt></ruby> <ruby>的<rt>ê</rt></ruby> <ruby>白<rt>pe̍h-</rt></ruby><ruby>糖<rt>thn̂g-</rt></ruby><ruby>粿<rt>kué</rt></ruby> <ruby>就<rt>tō</rt></ruby> <ruby>完<rt>uân-</rt></ruby><ruby>成<rt>sîng</rt></ruby><ruby>矣<rt>--ah</rt></ruby>，<ruby>予<rt>hōo</rt></ruby> <ruby>人<rt>lâng</rt></ruby> <ruby>看<rt>khuànn</rt></ruby> <ruby>甲<rt>kah</rt></ruby> <ruby>喙<rt>tshuì-</rt></ruby><ruby>瀾<rt>nuā</rt></ruby> <ruby>插<rt>tsha̍p-</rt></ruby><ruby>插<rt>tsha̍p-</rt></ruby><ruby>津<rt>tin</rt></ruby><ruby>呢<rt>--neh</rt></ruby>！</p>
+            <p><ruby>佇<rt>Tī</rt></ruby> <ruby>古<rt>kóo-</rt></ruby><ruby>早<rt>tsá</rt></ruby>，<ruby>愛<rt>ài</rt></ruby> <ruby>先<rt>sing</rt></ruby> <ruby>共<rt>kā</rt></ruby> <ruby>秫<rt>tsu̍t-</rt></ruby><ruby>米<rt>bí</rt></ruby> <ruby>浸<rt>tsìm</rt></ruby><ruby>一<rt>--tsi̍t-</rt></ruby><ruby>站<rt>tsām-</rt></ruby><ruby>仔<rt>á</rt></ruby>，<ruby>紲<rt>suà</rt></ruby><ruby>落<rt>--lo̍h-</rt></ruby><ruby>來<rt>lâi</rt></ruby> <ruby>挨<rt>e-</rt></ruby><ruby>米<rt>bí</rt></ruby>，<ruby>硩<rt>teh</rt></ruby> <ruby>米<rt>bí-</rt></ruby><ruby>漿<rt>tsiunn</rt></ruby>，<ruby>做<rt>tsò</rt></ruby> <ruby>粿<rt>kué-</rt></ruby><ruby>粞<rt>tshè</rt></ruby>，<ruby>搙<rt>jio̍k</rt></ruby> <ruby>做<rt>tsò</rt></ruby> <ruby>規<rt>kui</rt></ruby> <ruby>丸<rt>uân</rt></ruby> <ruby>才<rt>tsiah-</rt></ruby><ruby>閣<rt>koh</rt></ruby> <ruby>捻<rt>liàm</rt></ruby> <ruby>做<rt>tsò</rt></ruby> <ruby>一<rt>tsi̍t</rt></ruby> <ruby>塊<rt>tè</rt></ruby> <ruby>一<rt>tsi̍t</rt></ruby> <ruby>塊<rt>tè</rt></ruby> <ruby>落<rt>lo̍h-</rt></ruby><ruby>去<rt>khì</rt></ruby> <ruby>糋<rt>tsìnn</rt></ruby>，<ruby>上<rt>siōng-</rt></ruby><ruby>尾<rt>bué</rt></ruby> <ruby>囥<rt>khǹg</rt></ruby> <ruby>佇<rt>tī</rt></ruby> <ruby>塗<rt>thôo-</rt></ruby><ruby>豆<rt>tau-</rt></ruby><ruby>糖<rt>thn̂g-</rt></ruby><ruby>粉<rt>hún</rt></ruby> <ruby>內<rt>lāi-</rt></ruby><ruby>底<rt>té</rt></ruby> <ruby>滒<rt>kō-</rt></ruby><ruby>滒<rt>kō</rt></ruby><ruby>咧<rt>--leh</rt></ruby>，<ruby>按<rt>án-</rt></ruby><ruby>呢<rt>ne</rt></ruby> <ruby>芳<rt>phang-</rt></ruby><ruby>貢<rt>kòng-</rt></ruby><ruby>貢<rt>kòng</rt></ruby>、<ruby>燒<rt>sio-</rt></ruby><ruby>燙<rt>thǹg-</rt></ruby><ruby>燙<rt>thǹg</rt></ruby> <ruby>的<rt>ê</rt></ruby> <ruby>白<rt>pe̍h-</rt></ruby><ruby>糖<rt>thn̂g-</rt></ruby><ruby>粿<rt>kué</rt></ruby> <ruby>就<rt>tō</rt></ruby> <ruby>完<rt>uân-</rt></ruby><ruby>成<rt>sîng</rt></ruby><ruby>矣<rt>--ah</rt></ruby>，<ruby>予<rt>hōo</rt></ruby> <ruby>人<rt>lâng</rt></ruby> <ruby>看<rt>khuànn</rt></ruby> <ruby>甲<rt>kah</rt></ruby> <ruby>喙<rt>tshuì-</rt></ruby><ruby>瀾<rt>nuā</rt></ruby> <ruby>插<rt>tsha̍p-</rt></ruby><ruby>插<rt>tsha̍p-</rt></ruby><ruby>津<rt>tin</rt></ruby><ruby>呢<rt>--neh</rt></ruby>！</p>
             
             <div class="audio-player" data-src="https://raw.githubusercontent.com/yyanjhang-web/hosngetaiagi/main/textbook/mp3/B1L1/07.mp3">
                 <button class="player-btn play-pause-btn" onclick="togglePlay(this)" title="播放/暫停"><i class="fas fa-play"></i></button>
@@ -700,7 +699,7 @@
             </a>
         </div>
         <!-- 版本號 -->
-        <div class="version-tag">Ver 8.1</div>
+        <div class="version-tag">Ver 8.2</div>
     </div>
 
     <!-- JavaScript 邏輯 -->
@@ -776,8 +775,8 @@
                     return parts[0] ? parts[0].trim() : null;
                 }).filter(v => v && v !== "");
 
-                // 將詞彙依長度排序 (長的優先比對，避免被短詞干擾)
-                vocabs.sort((a, b) => b.length - a.length);
+                // 將詞彙依長度排序 (長的優先比對，避免被短詞干擾。使用 Array.from 精準計算擴展字元長度)
+                vocabs.sort((a, b) => Array.from(b).length - Array.from(a).length);
                 lessonVocabs[lessonId] = vocabs;
                 
                 applyHighlight(lessonId, vocabs);
@@ -804,7 +803,10 @@
             const paragraphs = container.querySelectorAll('p');
             
             vocabs.forEach(vocab => {
-                // 因為課文是一個字一個 ruby 包起來，我們需要掃描所有 ruby
+                // 使用 Array.from 處理擴展漢字（如 𩑾）
+                const vocabChars = Array.from(vocab);
+
+                // 掃描所有 ruby
                 paragraphs.forEach(p => {
                     const childNodes = Array.from(p.childNodes);
                     let textNodesAndRubies = [];
@@ -821,18 +823,21 @@
                             }
                             textNodesAndRubies.push({ type: 'ruby', text: hanziText.trim(), node: node });
                         } else if (node.nodeType === Node.TEXT_NODE) {
-                            const chars = node.textContent.split('');
+                            // 過濾掉排版用的空白字元與換行，確保像「掰 無路」這種中間有空白的情況也能連在一起比對
+                            const chars = Array.from(node.textContent);
                             chars.forEach(char => {
-                                textNodesAndRubies.push({ type: 'text', text: char, parent: node });
+                                if (char.trim() !== '') {
+                                    textNodesAndRubies.push({ type: 'text', text: char, parent: node });
+                                }
                             });
                         }
                     }
 
                     // 尋找連續匹配的字元
-                    for (let i = 0; i <= textNodesAndRubies.length - vocab.length; i++) {
+                    for (let i = 0; i <= textNodesAndRubies.length - vocabChars.length; i++) {
                         let match = true;
-                        for (let j = 0; j < vocab.length; j++) {
-                            if (textNodesAndRubies[i + j].text !== vocab[j]) {
+                        for (let j = 0; j < vocabChars.length; j++) {
+                            if (textNodesAndRubies[i + j].text !== vocabChars[j]) {
                                 match = false;
                                 break;
                             }
@@ -840,7 +845,7 @@
 
                         // 如果完全匹配
                         if (match) {
-                            for (let j = 0; j < vocab.length; j++) {
+                            for (let j = 0; j < vocabChars.length; j++) {
                                 let targetItem = textNodesAndRubies[i + j];
                                 if (targetItem.type === 'ruby') {
                                     // 確保不會重複包覆
@@ -869,7 +874,7 @@
                 });
             });
             
-            // 由於我們修改了 DOM 結構，必須重新套用智慧斷詞變色 (Ver 7.4 功能)
+            // 由於我們修改了 DOM 結構，必須重新套用智慧斷詞變色
             applyWordColoring();
         }
 
