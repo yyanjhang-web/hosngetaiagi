@@ -109,7 +109,7 @@
         @keyframes popIn { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
         /* ========================================================= */
-        /* 3. 主辦方大屏：遊戲主舞台 (縮小左右玩家區 + 新增右側積分榜) */
+        /* 3. 主辦方大屏：遊戲主舞台 */
         /* ========================================================= */
         #host-game-screen { justify-content: space-between; padding: 10px 18px 12px 18px; overflow: hidden; }
         
@@ -123,7 +123,7 @@
         #hud-q-progress { white-space: nowrap; font-weight: bold; }
         #hud-phase-hint { white-space: nowrap; font-size: 19px; font-weight: bold; }
 
-        /* 音樂與音效按鈕 (亮起 vs 變暗+紅斜線劃過圖示) */
+        /* 音樂與音效按鈕 */
         .media-toggle-btn {
             background: linear-gradient(180deg, #1e293b, #0f172a); border: 2px solid #38bdf8; color: #fff;
             border-radius: 10px; padding: 4px 12px; font-size: 15px; font-weight: bold;
@@ -173,19 +173,22 @@
         #host-timer-wrap { width: 100%; max-width: 1380px; height: 10px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-bottom: 8px; display: none; border: 1px solid #475569; flex-shrink: 0; }
         #host-timer-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); transition: width 0.1s linear; }
 
-        /* 三欄式對戰舞台：左玩家(縮小) + 右玩家(縮小) + 右側即時積分榜 */
+        /* 對戰舞台：左側雙玩家容器 (內嵌不擋計分板的橫幅) + 右側目前分數面板 */
         #split-arena {
             display: none; width: 100%; max-width: 1380px; flex: 1; gap: 14px;
             align-items: stretch; justify-content: center; min-height: 0; overflow: hidden;
         }
+        .players-pair-wrapper {
+            flex: 1.84; display: flex; gap: 14px; position: relative; min-height: 0; min-width: 0;
+        }
         .arena-half {
-            flex: 0.92; background: rgba(30, 41, 59, 0.9); border: 2.5px solid #38bdf8; border-radius: 16px;
+            flex: 1; background: rgba(30, 41, 59, 0.9); border: 2.5px solid #38bdf8; border-radius: 16px;
             padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between;
-            position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.4); min-height: 0;
+            position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.4); min-height: 0; min-width: 0;
         }
         .arena-half.tone-side { border-color: #f59e0b; }
 
-        /* 右側：截至上一題積分面板 */
+        /* 右側：目前分數面板 */
         .arena-scoreboard {
             flex: 0.68; min-width: 250px; max-width: 340px;
             background: rgba(15, 23, 42, 0.92); border: 2.5px solid #475569; border-radius: 16px;
@@ -193,7 +196,7 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.4); min-height: 0; overflow: hidden;
         }
         .sb-side-header {
-            font-size: 15px; font-weight: bold; color: #fde047; text-align: center;
+            font-size: 16px; font-weight: bold; color: #fde047; text-align: center;
             background: #1e293b; padding: 7px 10px; border-radius: 10px; margin-bottom: 8px;
             border: 1px solid #334155; flex-shrink: 0; white-space: nowrap;
         }
@@ -263,7 +266,7 @@
         .checked-tone-group-lg { display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
         .checked-tone-grid-lg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px; font-size: 13px; line-height: 0.95; font-family: Arial, sans-serif; color: #fde047; }
 
-        /* 底部陪考組即時狀態列與開獎橫幅 */
+        /* 底部陪考組即時狀態列與開獎橫幅 (限制於左側雙人區內，絕不擋住右側目前分數) */
         #crowd-status-bar {
             width: 100%; max-width: 1380px; margin-top: 8px; background: rgba(15, 23, 42, 0.9);
             border: 1.5px solid #334155; border-radius: 10px; padding: 6px 16px;
@@ -271,12 +274,14 @@
             flex-shrink: 0;
         }
         #combo-banner {
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: max-content; max-width: 94%;
             background: linear-gradient(90deg, #dc2626, #f59e0b, #dc2626); color: #fff;
-            border: 4px solid #fde047; border-radius: 30px; padding: 16px 40px;
-            font-size: clamp(24px, 3.8vw, 44px); font-weight: bold; z-index: 60;
-            box-shadow: 0 0 50px rgba(245, 158, 11, 0.9); text-shadow: 2px 2px 6px #000;
-            white-space: nowrap; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid #fde047; border-radius: 26px; padding: 14px 28px;
+            font-size: clamp(20px, 2.7vw, 36px); font-weight: bold; z-index: 60;
+            box-shadow: 0 0 45px rgba(245, 158, 11, 0.95); text-shadow: 2px 2px 6px #000;
+            text-align: center; line-height: 1.3; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
         }
         #combo-banner.fail-mode {
             background: linear-gradient(90deg, #1e293b, #475569, #1e293b);
@@ -327,7 +332,7 @@
 
         .opportunity-badge {
             background: linear-gradient(135deg, #fde047, #f59e0b); color: #000;
-            font-size: clamp(28px, 6vw, 42px); font-weight: bold; padding: 10px 28px;
+            font-size: clamp(26px, 5.5vw, 38px); font-weight: bold; padding: 10px 26px;
             border-radius: 30px; border: 3px solid #fff; box-shadow: 0 0 35px #fde047;
         }
 
@@ -350,10 +355,20 @@
             0% { transform: translateX(-6px); }
             100% { transform: translateX(12px); }
         }
+        .dizzy-stars-anim { transform-origin: 48px 16px; animation: dizzySpin 1.2s linear infinite; }
+        @keyframes dizzySpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .sweat-drop-anim { animation: sweatFall 0.8s ease-in-out infinite; }
+        @keyframes sweatFall {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(8px); opacity: 0.2; }
+        }
 
         #pad-role-banner {
             width: 100%; text-align: center; padding: 6px 10px; border-radius: 10px;
-            font-size: clamp(16px, 4vw, 21px); font-weight: bold; margin-top: 4px;
+            font-size: clamp(16px, 4vw, 20px); font-weight: bold; margin-top: 4px;
             background: rgba(15, 23, 42, 0.85); color: #cbd5e1; border: 1.5px solid #475569;
         }
         #pad-role-banner.main-spelling { background: #0284c7; color: #fff; border-color: #fde047; }
@@ -378,22 +393,35 @@
         .pad-btn.disabled { opacity: 0.35; pointer-events: none; }
 
         /* ========================================================= */
-        /* 5. 最終結算排行榜畫面 */
+        /* 5. 最終結算排行榜畫面 (含 Combo 最多次前3組榮譽榜) */
         /* ========================================================= */
-        #host-gameover-screen { justify-content: flex-start; padding-top: 20px; }
+        #host-gameover-screen { justify-content: flex-start; padding-top: 14px; }
+        .combo-kings-box {
+            width: 100%; max-width: 960px; background: linear-gradient(135deg, rgba(185, 28, 28, 0.35), rgba(217, 119, 6, 0.35));
+            border: 2.5px solid #f59e0b; border-radius: 16px; padding: 10px 16px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+        }
+        .ck-title { font-size: 19px; font-weight: bold; color: #fde047; white-space: nowrap; }
+        .ck-list { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .ck-badge {
+            background: #0f172a; border: 1.5px solid #fde047; border-radius: 12px;
+            padding: 5px 12px; font-size: 17px; font-weight: bold; color: #fff;
+            display: flex; align-items: center; gap: 6px;
+        }
+
         .leaderboard-box {
             width: 100%; max-width: 960px; background: #1e293b; border: 3px solid #fde047;
-            border-radius: 20px; padding: 18px; max-height: 68vh; overflow-y: auto; margin-bottom: 16px;
+            border-radius: 20px; padding: 14px 18px; max-height: 55vh; overflow-y: auto; margin-bottom: 12px;
         }
         .lb-row {
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-            padding: 12px 16px; border-bottom: 1px solid #334155; font-size: 20px; border-radius: 10px;
+            padding: 10px 14px; border-bottom: 1px solid #334155; font-size: 19px; border-radius: 10px;
         }
-        .lb-row:nth-child(1) { background: rgba(250, 204, 21, 0.2); color: #fde047; font-size: 24px; }
+        .lb-row:nth-child(1) { background: rgba(250, 204, 21, 0.2); color: #fde047; font-size: 23px; }
         .lb-row:nth-child(2) { background: rgba(148, 163, 184, 0.2); color: #e2e8f0; }
         .lb-row:nth-child(3) { background: rgba(180, 83, 9, 0.25); color: #fdba74; }
         .combo-pill { background: #dc2626; color: #fde047; border: 1px solid #fde047; padding: 2px 10px; border-radius: 14px; font-size: 15px; margin-left: 8px; }
-        .acc-pill { background: #0f172a; color: #38bdf8; border: 1px solid #38bdf8; padding: 3px 12px; border-radius: 14px; font-size: 16px; }
+        .acc-pill { background: #0f172a; color: #38bdf8; border: 1px solid #38bdf8; padding: 3px 12px; border-radius: 14px; font-size: 15px; }
         .gameover-btn-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
 
         /* 第8聲緊貼字母樣式 */
@@ -406,7 +434,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 1.3</div>
+<div id="version-tag">Ver 1.4</div>
 
 <!-- ========================================================= -->
 <!-- 1. 首頁：選擇身分 -->
@@ -504,52 +532,62 @@
     <!-- 5秒倒數條 -->
     <div id="host-timer-wrap"><div id="host-timer-bar"></div></div>
 
-    <!-- 三欄對戰舞台：左玩家(縮小) + 右玩家(縮小) + 最右側截至上一題積分榜 -->
+    <!-- 對戰舞台：左雙欄玩家容器 + 右欄目前分數 -->
     <div id="split-arena">
-        <!-- 左欄：拼寫主秀 -->
-        <div class="arena-half">
-            <div class="spotlight-header">
-                <div>
-                    <div class="role-tag">🔤 負責【羅馬字拼寫】</div>
-                    <div class="assigned-team" id="main-team-spelling">甲組</div>
+        <div class="players-pair-wrapper">
+            <!-- 左欄：拼寫組 -->
+            <div class="arena-half">
+                <div class="spotlight-header">
+                    <div>
+                        <div class="role-tag">🔤 負責【羅馬字拼寫】</div>
+                        <div class="assigned-team" id="main-team-spelling">甲組</div>
+                    </div>
+                    <div class="team-status-pill" id="status-pill-spelling">🤔 思考中...</div>
                 </div>
-                <div class="team-status-pill" id="status-pill-spelling">🤔 思考中...</div>
+                <div class="options-grid" id="host-spelling-grid"></div>
             </div>
-            <div class="options-grid" id="host-spelling-grid"></div>
+
+            <!-- 中欄：聲調組 -->
+            <div class="arena-half tone-side">
+                <div class="spotlight-header">
+                    <div>
+                        <div class="role-tag">📈 負責【聲調號碼】</div>
+                        <div class="assigned-team" id="main-team-tone">乙組</div>
+                    </div>
+                    <div class="team-status-pill" id="status-pill-tone">🤔 思考中...</div>
+                </div>
+                <div class="options-grid" id="host-tone-grid"></div>
+            </div>
+
+            <!-- 橫幅置於雙人作答區正中央，絕不遮擋右側目前分數面板 -->
+            <div id="combo-banner">⚡ 小兵立大功！combo +150 分！ ⚡</div>
         </div>
 
-        <!-- 中欄：聲調主秀 -->
-        <div class="arena-half tone-side">
-            <div class="spotlight-header">
-                <div>
-                    <div class="role-tag">📈 負責【聲調號碼】</div>
-                    <div class="assigned-team" id="main-team-tone">乙組</div>
-                </div>
-                <div class="team-status-pill" id="status-pill-tone">🤔 思考中...</div>
-            </div>
-            <div class="options-grid" id="host-tone-grid"></div>
-        </div>
-
-        <!-- 右欄：截至上一題積分榜 -->
+        <!-- 右欄：目前分數面板 -->
         <div class="arena-scoreboard">
-            <div class="sb-side-header">📊 戰況積分 (截至上一題)</div>
+            <div class="sb-side-header">📊 目前分數</div>
             <div id="live-scoreboard-list"></div>
         </div>
     </div>
 
     <div id="crowd-status-bar">
-        <span id="crowd-progress-text">👀 小兵助陣進度：0 / 0 組已鎖定</span>
-        <span id="round-result-summary" style="color: #fde047; font-weight: bold;">大將各 +100 分｜雙組全對 combo 再 +50 分｜小兵答對 +20 分</span>
+        <span id="crowd-progress-text">👀 台下配對小兵作答進度：0 / 0 組已鎖定</span>
+        <span id="round-result-summary" style="color: #fde047; font-weight: bold;">每題兩兩一組！只要 combo 成功「小兵立大功」即加分！</span>
     </div>
-
-    <div id="combo-banner">⚡ 大神啦！combo！雙組 +150 分！ ⚡</div>
 </div>
 
 <!-- ========================================================= -->
-<!-- 4. 主辦方大屏：最終成績結算畫面 -->
+<!-- 4. 主辦方大屏：最終成績結算畫面 (含 Combo 最多次前3組) -->
 <!-- ========================================================= -->
 <div id="host-gameover-screen" class="screen">
-    <h1 style="color: #fde047; font-size: 38px; margin: 0 0 12px 0;">🏆 論功行賞 🏆</h1>
+    <h1 style="color: #fde047; font-size: 34px; margin: 0 0 8px 0;">🏆 論功行賞 🏆</h1>
+    
+    <!-- COMBO 最多次前 3 組榮譽榜 -->
+    <div class="combo-kings-box">
+        <div class="ck-title">🔥 小兵立大功・COMBO 王前三名：</div>
+        <div class="ck-list" id="combo-top3-list"></div>
+    </div>
+
     <div class="leaderboard-box" id="leaderboard-list"></div>
     <div class="gameover-btn-row">
         <button class="btn-excel" onclick="exportGradesToExcel()">📥 匯出成績單 (Excel)</button>
@@ -577,19 +615,19 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- 6. 學生平板端：小兵/大將舞台 + 作答控制器 -->
+<!-- 6. 學生平板端：小兵 4 狀態動態舞台 + 作答控制器 -->
 <!-- ========================================================= -->
 <div id="student-pad-screen" class="screen">
     <div class="pad-top-bar">
         <span class="pad-team-name" id="pad-my-name">組別</span>
-        <span class="pad-score" id="pad-my-score">0 分｜答對率 0%</span>
+        <span class="pad-score" id="pad-my-score">0 分｜0 combo｜答對率 0%</span>
     </div>
 
-    <!-- 小兵拿刀砍 ➔ 立功機會 ➔ 騎馬拿槍(矛)大將 動態舞台 -->
+    <!-- 小兵 4 狀態舞台 (揮刀衝鋒 ➔ 立大功變騎馬大將 / 冒汗 / 暈倒) -->
     <div id="pad-hero-stage">
         <div id="pad-opportunity-overlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.8); z-index:10; align-items:center; justify-content:center; flex-direction:column;">
             <div class="opportunity-badge">🌟 立功機會 🌟</div>
-            <div style="color:#fde047; font-size:18px; margin-top:8px; font-weight:bold;">小兵轉大將！準備衝鋒！</div>
+            <div style="color:#fde047; font-size:18px; margin-top:8px; font-weight:bold;">小兵上陣！同齊答對立大功！</div>
         </div>
         <div id="pad-avatar-figure"></div>
         <div id="pad-role-banner">⏳ 請先號名、等候開始...</div>
@@ -605,15 +643,17 @@
 
 <script>
     // =========================================================
-    // 🎨 小兵拿刀砍 vs 騎馬拿槍(矛)大將 動態 SVG 圖形庫
+    // 🎨 平板上方人物 4 狀態動態 SVG 圖形庫
+    // (1.揮刀小兵 2.立大功騎馬大將 3.冒汗小兵 4.暈倒小兵)
     // =========================================================
     const CUTE_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
 
+    // 狀態 1：作答衝鋒中（小兵拿刀揮砍）
     function getSoldierSlashSvg() {
         return `
         <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
             <ellipse cx="45" cy="90" rx="26" ry="6" fill="rgba(0,0,0,0.4)" />
-            <path d="M 32 55 L 58 55 L 62 85 L 28 85 Z" fill="#0284c7" stroke="#bae6fd" stroke-width="2" border-radius="4"/>
+            <path d="M 32 55 L 58 55 L 62 85 L 28 85 Z" fill="#0284c7" stroke="#bae6fd" stroke-width="2"/>
             <line x1="30" y1="70" x2="60" y2="70" stroke="#fde047" stroke-width="3"/>
             <circle cx="45" cy="40" r="14" fill="#fde68a" stroke="#fff" stroke-width="1.5"/>
             <circle cx="41" cy="39" r="2" fill="#0f172a"/>
@@ -630,6 +670,7 @@
         </svg>`;
     }
 
+    // 狀態 2：小兵立大功！（Combo 成功瞬間升官變身「騎馬拿槍(矛)大將」）
     function getGeneralHorseSvg() {
         return `
         <svg viewBox="0 0 150 110" width="145" height="108" overflow="visible">
@@ -657,6 +698,48 @@
                     <path d="M 122 48 L 112 41 L 114 55 Z" fill="#ef4444"/>
                     <polygon points="122,42 146,48 122,54" fill="#f8fafc" stroke="#38bdf8" stroke-width="1.5"/>
                 </g>
+            </g>
+        </svg>`;
+    }
+
+    // 狀態 3：自己答對但搭檔失誤（小兵收刀冒汗嘆氣 💦）
+    function getSoldierSweatSvg() {
+        return `
+        <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
+            <ellipse cx="48" cy="90" rx="26" ry="6" fill="rgba(0,0,0,0.4)" />
+            <path d="M 35 55 L 61 55 L 65 85 L 31 85 Z" fill="#0284c7" stroke="#bae6fd" stroke-width="2"/>
+            <line x1="33" y1="70" x2="63" y2="70" stroke="#fde047" stroke-width="3"/>
+            <circle cx="48" cy="40" r="14" fill="#fde68a" stroke="#fff" stroke-width="1.5"/>
+            <line x1="41" y1="38" x2="45" y2="40" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+            <line x1="55" y1="38" x2="51" y2="40" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 44 47 Q 48 44 52 47" stroke="#b45309" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M 25 32 Q 48 14 71 32 Z" fill="#475569" stroke="#cbd5e1" stroke-width="2"/>
+            <!-- 拄在地上的刀 -->
+            <rect x="68" y="48" width="5" height="40" rx="2" fill="#94a3b8"/>
+            <!-- 動態大汗滴 -->
+            <g class="sweat-drop-anim">
+                <path d="M 72 22 Q 78 32 72 36 Q 66 32 72 22 Z" fill="#38bdf8" stroke="#fff" stroke-width="1"/>
+            </g>
+        </svg>`;
+    }
+
+    // 狀態 4：自己答錯或超時（小兵頭盔歪掉、眼冒金星 💫）
+    function getSoldierDizzySvg() {
+        return `
+        <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
+            <ellipse cx="48" cy="90" rx="28" ry="6" fill="rgba(0,0,0,0.4)" />
+            <path d="M 35 58 L 61 58 L 65 86 L 31 86 Z" fill="#475569" stroke="#94a3b8" stroke-width="2"/>
+            <circle cx="48" cy="42" r="14" fill="#fde68a" stroke="#fff" stroke-width="1.5"/>
+            <!-- X X 暈眩眼 -->
+            <path d="M 40 38 L 45 43 M 45 38 L 40 43" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M 51 38 L 56 43 M 56 38 L 51 43" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="48" cy="48" r="3" fill="#78350f"/>
+            <!-- 歪掉的鬥笠盔 -->
+            <path d="M 22 30 Q 48 14 70 36 Z" fill="#334155" stroke="#94a3b8" stroke-width="2" transform="rotate(16 48 28)"/>
+            <!-- 頭頂旋轉金星 -->
+            <g class="dizzy-stars-anim">
+                <text x="26" y="18" font-size="14">⭐</text>
+                <text x="58" y="18" font-size="14">💫</text>
             </g>
         </svg>`;
     }
@@ -1011,12 +1094,12 @@
         });
     }
 
-    // 渲染右側「截至上一題」即時積分榜
+    // 渲染右側「目前分數」面板
     function renderLiveScoreboard() {
         const listEl = document.getElementById('live-scoreboard-list');
         if (!listEl) return;
         listEl.classList.toggle('two-cols', teams.length > 7);
-        const sorted = [...teams].sort((a, b) => b.score - a.score);
+        const sorted = [...teams].sort((a, b) => b.score - a.score || b.combos - a.combos);
         listEl.innerHTML = '';
         sorted.forEach((t, idx) => {
             const rankClass = idx === 0 ? 'top-1' : (idx === 1 ? 'top-2' : (idx === 2 ? 'top-3' : ''));
@@ -1030,7 +1113,7 @@
     }
 
     // =========================================================
-    // 🚀 分輪抽籤袋排程 + 主秀/陪考角色平衡機制
+    // 🚀 分輪抽籤袋排程 + 主秀/台下小兵兩兩配對平衡機制
     // =========================================================
     async function startHostGame() {
         if (selectedLessons.length === 0) return alert("請至少選擇一課！");
@@ -1104,7 +1187,7 @@
     }
 
     // =========================================================
-    // 🎬 單題四階段流程
+    // 🎬 單題四階段流程 (每題全班兩兩配對，有 Combo 才加分)
     // =========================================================
     let countdownTimer = null;
 
@@ -1114,7 +1197,6 @@
             return;
         }
 
-        // 在每題開始時更新右側積分榜，確保顯示的是「截至上一題為止」的分數
         renderLiveScoreboard();
 
         const schedule = matchSchedule[currentMatchIdx];
@@ -1140,16 +1222,35 @@
             return formatTailoHtml(p);
         }).join('');
 
+        // 建立本題的「兩兩配對網」(主秀 2 組一對，台下其餘組別也隨機兩兩配對！)
         const rolesMap = {};
-        teams.forEach((t, idx) => {
-            if (t.id === schedule.spellingTeamId) rolesMap[t.id] = 'MAIN_SPELLING';
-            else if (t.id === schedule.toneTeamId) rolesMap[t.id] = 'MAIN_TONE';
-            else rolesMap[t.id] = ((idx + currentMatchIdx) % 2 === 0) ? 'CROWD_SPELLING' : 'CROWD_TONE';
-        });
+        const partnerMap = {}; // teamId -> partnerTeamId
+        rolesMap[schedule.spellingTeamId] = 'MAIN_SPELLING';
+        rolesMap[schedule.toneTeamId] = 'MAIN_TONE';
+        partnerMap[schedule.spellingTeamId] = schedule.toneTeamId;
+        partnerMap[schedule.toneTeamId] = schedule.spellingTeamId;
+
+        const crowdPool = shuffleArray(teams.filter(t => t.id !== schedule.spellingTeamId && t.id !== schedule.toneTeamId));
+        for (let i = 0; i < crowdPool.length; i += 2) {
+            const cA = crowdPool[i];
+            const cB = crowdPool[i + 1];
+            if (cB) {
+                const aIsSp = ((i + currentMatchIdx) % 2 === 0);
+                rolesMap[cA.id] = aIsSp ? 'CROWD_SPELLING' : 'CROWD_TONE';
+                rolesMap[cB.id] = aIsSp ? 'CROWD_TONE' : 'CROWD_SPELLING';
+                partnerMap[cA.id] = cB.id;
+                partnerMap[cB.id] = cA.id;
+            } else {
+                // 若台下剩單數最後 1 組，隨機與台上一位主秀組組成連攜搭檔
+                const aIsSp = (currentMatchIdx % 2 === 0);
+                rolesMap[cA.id] = aIsSp ? 'CROWD_SPELLING' : 'CROWD_TONE';
+                partnerMap[cA.id] = aIsSp ? schedule.toneTeamId : schedule.spellingTeamId;
+            }
+        }
 
         currentMatchData = {
             schedule, card, targetSyl, coopOpts, maskedHtml, fullRevealedHtml,
-            rolesMap, answers: {}, acceptingAnswers: false
+            rolesMap, partnerMap, answers: {}, acceptingAnswers: false
         };
 
         broadcastPreparePacket();
@@ -1198,7 +1299,7 @@
         questionAudio.play().catch(() => {});
     }
 
-    // 階段 2：題目縮小移至上方 + 小兵轉大將點名緩衝 (2秒)
+    // 階段 2：題目縮小移至上方 + 點名緩衝 (2秒)
     function startPhase2Spotlight() {
         sfxSpotlight();
         document.getElementById('question-stage').classList.add('shrunk');
@@ -1268,7 +1369,7 @@
                 const role = currentMatchData.rolesMap[bot.id];
                 const isSpelling = role.includes('SPELLING');
                 const correctIdx = isSpelling ? currentMatchData.coopOpts.correctSpellingIdx : currentMatchData.coopOpts.correctToneIdx;
-                const botPick = (Math.random() < 0.75) ? correctIdx : Math.floor(Math.random() * 4);
+                const botPick = (Math.random() < 0.78) ? correctIdx : Math.floor(Math.random() * 4);
                 recordTeamAnswer(bot.id, botPick);
             }, 900 + Math.random() * 3200);
         });
@@ -1309,16 +1410,24 @@
         if (!currentMatchData) return;
         const crowdTeams = teams.filter(t => t.id !== currentMatchData.schedule.spellingTeamId && t.id !== currentMatchData.schedule.toneTeamId);
         const answeredCrowd = crowdTeams.filter(t => currentMatchData.answers[t.id] !== undefined).length;
-        document.getElementById('crowd-progress-text').innerText = `👀 小兵助陣進度：${answeredCrowd} / ${crowdTeams.length} 組已鎖定`;
+        document.getElementById('crowd-progress-text').innerText = `👀 台下配對小兵作答進度：${answeredCrowd} / ${crowdTeams.length} 組已鎖定`;
     }
 
-    // 階段 4：開獎結算、計算答對率與 COMBO 成敗顯示
+    function isTeamAnswerCorrect(teamId) {
+        const { coopOpts, answers, rolesMap } = currentMatchData;
+        const role = rolesMap[teamId];
+        const pick = answers[teamId];
+        if (pick === undefined) return false;
+        return role.includes('SPELLING') ? (pick === coopOpts.correctSpellingIdx) : (pick === coopOpts.correctToneIdx);
+    }
+
+    // 階段 4：開獎結算（只要與搭檔達成 Combo 就加分並顯示「小兵立大功」！）
     function resolveMatchQuestion() {
         if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
         currentMatchData.acceptingAnswers = false;
         bgmMode = 'ducked';
 
-        const { schedule, coopOpts, fullRevealedHtml, answers, rolesMap } = currentMatchData;
+        const { schedule, coopOpts, fullRevealedHtml, answers, rolesMap, partnerMap } = currentMatchData;
         document.getElementById('host-tailo-prompt').innerHTML = fullRevealedHtml;
 
         const spTeam = teams.find(t => t.id === schedule.spellingTeamId);
@@ -1326,9 +1435,9 @@
         const spPick = answers[schedule.spellingTeamId];
         const tnPick = answers[schedule.toneTeamId];
 
-        const spCorrect = (spPick === coopOpts.correctSpellingIdx);
-        const tnCorrect = (tnPick === coopOpts.correctToneIdx);
-        const isCombo = (spCorrect && tnCorrect);
+        const spCorrect = isTeamAnswerCorrect(schedule.spellingTeamId);
+        const tnCorrect = isTeamAnswerCorrect(schedule.toneTeamId);
+        const isMainCombo = (spCorrect && tnCorrect);
 
         for (let i = 0; i < 4; i++) {
             const spCard = document.getElementById(`host-sp-opt-${i}`);
@@ -1348,29 +1457,31 @@
             }
         }
 
-        let crowdCorrectCount = 0;
+        // 計算全班各配對組別是否達成 Combo（只要有 Combo 就加分！）
+        let crowdComboTeamCount = 0;
         teams.forEach(t => {
             const role = rolesMap[t.id];
-            const pick = answers[t.id];
-            let gotRight = false;
-            let delta = 0;
+            const myRight = isTeamAnswerCorrect(t.id);
+            const partnerId = partnerMap[t.id];
+            const partnerRight = partnerId ? isTeamAnswerCorrect(partnerId) : false;
+            const pairCombo = (myRight && partnerRight);
 
             t.totalQ++;
+            if (myRight) {
+                t.correctQ++;
+                if (role.startsWith('MAIN_')) t.mainCorrect++;
+                else t.crowdCorrect++;
+            }
 
-            if (role === 'MAIN_SPELLING') {
-                gotRight = spCorrect;
-                if (gotRight) { delta = isCombo ? 150 : 100; t.correctQ++; t.mainCorrect++; }
-                if (isCombo) t.combos++;
-            } else if (role === 'MAIN_TONE') {
-                gotRight = tnCorrect;
-                if (gotRight) { delta = isCombo ? 150 : 100; t.correctQ++; t.mainCorrect++; }
-                if (isCombo) t.combos++;
-            } else if (role === 'CROWD_SPELLING') {
-                gotRight = (pick === coopOpts.correctSpellingIdx);
-                if (gotRight) { delta = 20; t.correctQ++; t.crowdCorrect++; crowdCorrectCount++; }
-            } else if (role === 'CROWD_TONE') {
-                gotRight = (pick === coopOpts.correctToneIdx);
-                if (gotRight) { delta = 20; t.correctQ++; t.crowdCorrect++; crowdCorrectCount++; }
+            let delta = 0;
+            if (pairCombo) {
+                t.combos++;
+                if (role.startsWith('MAIN_')) {
+                    delta = 150; // 舞台主秀搭檔 Combo 立大功 +150 分
+                } else {
+                    delta = 30;  // 台下配對小兵 Combo 立功 +30 分
+                    crowdComboTeamCount++;
+                }
             }
 
             t.score += delta;
@@ -1378,24 +1489,27 @@
 
             if (t.conn && t.conn.open) {
                 t.conn.send({
-                    type: 'RESULT', correct: gotRight, delta: delta,
-                    totalScore: t.score, combos: t.combos,
-                    accRate: accRate, correctQ: t.correctQ, totalQ: t.totalQ,
-                    isCombo: isCombo && role.startsWith('MAIN_'),
-                    globalCombo: isCombo
+                    type: 'RESULT',
+                    myRight: myRight,
+                    pairCombo: pairCombo,
+                    delta: delta,
+                    totalScore: t.score,
+                    combos: t.combos,
+                    accRate: accRate,
+                    correctQ: t.correctQ,
+                    totalQ: t.totalQ
                 });
             }
         });
 
         const banner = document.getElementById('combo-banner');
-        if (isCombo) {
+        if (isMainCombo) {
             sfxComboFanfare();
             confetti({ particleCount: 100, spread: 80, origin: { y: 0.55 } });
             banner.classList.remove('fail-mode');
-            // 移除兩組之間的 & 符號，改用空格分隔
-            banner.innerHTML = `⚡ <span style="margin-right:18px;">${spTeam.name}</span><span>${tnTeam.name}</span>  大神啦！combo +150 分！ ⚡`;
+            banner.innerHTML = `⚡ <span style="margin-right:16px;">${spTeam.name}</span><span>${tnTeam.name}</span><br>小兵立大功！combo +150 分！ ⚡`;
             banner.style.display = 'block';
-            document.getElementById('hud-phase-hint').innerText = "🎉 大神啦！combo";
+            document.getElementById('hud-phase-hint').innerText = "🎉 小兵立大功！combo";
         } else {
             if (spCorrect || tnCorrect) sfxPartialHit();
             else sfxAllMiss();
@@ -1405,7 +1519,7 @@
             document.getElementById('hud-phase-hint').innerText = `💔 真可惜 combo失敗`;
         }
 
-        document.getElementById('round-result-summary').innerText = `👏 本題另有 ${crowdCorrectCount} 組小兵答對 (+20分)！`;
+        document.getElementById('round-result-summary').innerText = `👏 本題台下另有 ${crowdComboTeamCount} 組達成小兵立大功 (+30分)！`;
 
         setTimeout(() => {
             currentMatchIdx++;
@@ -1414,19 +1528,18 @@
     }
 
     function broadcastPreparePacket() {
-        const { coopOpts, rolesMap, schedule } = currentMatchData;
-        const spTeam = teams.find(t => t.id === schedule.spellingTeamId);
-        const tnTeam = teams.find(t => t.id === schedule.toneTeamId);
+        const { coopOpts, rolesMap, partnerMap } = currentMatchData;
 
         teams.forEach(t => {
             if (!t.conn || !t.conn.open) return;
             const role = rolesMap[t.id];
             const isSpelling = role.includes('SPELLING');
+            const partnerObj = teams.find(x => x.id === partnerMap[t.id]);
             t.conn.send({
                 type: 'PREPARE',
                 role: role,
                 isTone: !isSpelling,
-                partnerName: (role === 'MAIN_SPELLING') ? (tnTeam ? tnTeam.name : '') : (spTeam ? spTeam.name : ''),
+                partnerName: partnerObj ? partnerObj.name : 'AI將領',
                 options: isSpelling ? coopOpts.spellingOptions : coopOpts.toneOptions
             });
         });
@@ -1446,12 +1559,22 @@
         confetti({ particleCount: 140, spread: 100, origin: { y: 0.5 } });
         switchScreen('host-gameover-screen');
 
-        const sorted = [...teams].sort((a, b) => b.score - a.score);
+        // 1. 顯示 COMBO 最多次的前 3 組榮譽榜
+        const comboSorted = [...teams].sort((a, b) => b.combos - a.combos || b.score - a.score).slice(0, 3);
+        const ckBox = document.getElementById('combo-top3-list');
+        ckBox.innerHTML = '';
+        comboSorted.forEach((t, i) => {
+            const crown = i === 0 ? '👑' : (i === 1 ? '⚡' : '🔥');
+            ckBox.innerHTML += `<div class="ck-badge"><span>${crown} 第${i+1}名：${t.name}</span><span style="color:#fde047;">(${t.combos} 次 combo)</span></div>`;
+        });
+
+        // 2. 顯示總分與答對率排行榜
+        const sorted = [...teams].sort((a, b) => b.score - a.score || b.combos - a.combos);
         const box = document.getElementById('leaderboard-list');
         box.innerHTML = '';
         sorted.forEach((t, idx) => {
             const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
-            const comboHtml = t.combos > 0 ? `<span class="combo-pill">⚡ combo x${t.combos}</span>` : '';
+            const comboHtml = `<span class="combo-pill">⚡ combo x${t.combos}</span>`;
             const accRate = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
             box.innerHTML += `
                 <div class="lb-row">
@@ -1469,16 +1592,16 @@
 
     function exportGradesToExcel() {
         if (teams.length === 0) return alert("目前沒有成績資料可匯出！");
-        const sorted = [...teams].sort((a, b) => b.score - a.score);
+        const sorted = [...teams].sort((a, b) => b.score - a.score || b.combos - a.combos);
         const lessonStr = selectedLessons.join('、');
 
         let csvContent = "\uFEFF";
-        csvContent += "排名,組別名稱,答對率(平時成績),總答對題數,總題數,遊戲總分,大將主秀答對數,小兵陪考答對數,COMBO立功次數,範圍\r\n";
+        csvContent += "排名,組別名稱,COMBO立功次數,遊戲總分,個人答對率(平時成績),個人答對題數,總題數,範圍\r\n";
 
         sorted.forEach((t, idx) => {
             const accRate = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
             const cleanName = t.name.replace(/,/g, ' ');
-            csvContent += `${idx + 1},"${cleanName}",${accRate}%,${t.correctQ},${t.totalQ},${t.score},${t.mainCorrect},${t.crowdCorrect},${t.combos},"${lessonStr}"\r\n`;
+            csvContent += `${idx + 1},"${cleanName}",${t.combos},${t.score},${accRate}%,${t.correctQ},${t.totalQ},"${lessonStr}"\r\n`;
         });
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1495,7 +1618,7 @@
     }
 
     // =========================================================
-    // 📱 學生平板端邏輯
+    // 📱 學生平板端邏輯 (小兵揮刀 ➔ 立大功變身騎馬大將 / 冒汗 / 暈倒)
     // =========================================================
     let studentPeer = null;
     let hostConn = null;
@@ -1550,6 +1673,7 @@
             myCurrentRole = data.role;
             heroStage.className = '';
             oppOverlay.style.display = 'none';
+            // 作答前全員皆為「揮刀小兵」
             avatarFig.innerHTML = getSoldierSlashSvg();
             banner.className = '';
             banner.style.background = '';
@@ -1571,29 +1695,15 @@
             if (data.phase === 'SPOTLIGHT') {
                 banner.style.background = '';
                 banner.style.color = '';
-                if (myCurrentRole === 'MAIN_SPELLING' || myCurrentRole === 'MAIN_TONE') {
+                const taskName = myCurrentRole.includes('SPELLING') ? '【拼寫】' : '【聲調】';
+                if (myCurrentRole.startsWith('MAIN_')) {
                     oppOverlay.style.display = 'flex';
-                    setTimeout(() => {
-                        oppOverlay.style.display = 'none';
-                        heroStage.classList.add('general-mode');
-                        avatarFig.innerHTML = getGeneralHorseSvg();
-                    }, 850);
-
-                    if (myCurrentRole === 'MAIN_SPELLING') {
-                        banner.className = 'main-spelling';
-                        banner.innerText = `🐴 小兵轉大將！選【拼寫】(搭檔：${banner.dataset.partner})`;
-                    } else {
-                        banner.className = 'main-tone';
-                        banner.innerText = `🐴 小兵轉大將！選【聲調】(搭檔：${banner.dataset.partner})`;
-                    }
+                    setTimeout(() => { oppOverlay.style.display = 'none'; }, 900);
+                    banner.className = myCurrentRole === 'MAIN_SPELLING' ? 'main-spelling' : 'main-tone';
+                    banner.innerText = `🔥 舞台主秀！選${taskName} (搭檔：${banner.dataset.partner})`;
                 } else {
-                    avatarFig.innerHTML = getSoldierSlashSvg();
                     banner.className = 'crowd-role';
-                    if (myCurrentRole === 'CROWD_SPELLING') {
-                        banner.innerText = `🗡️ 小兵拿刀助陣 (+20分)：選【拼寫】`;
-                    } else {
-                        banner.innerText = `🗡️ 小兵拿刀助陣 (+20分)：選【聲調】`;
-                    }
+                    banner.innerText = `🗡️ 配對合擊！選${taskName} (搭檔：${banner.dataset.partner})`;
                 }
             } else if (data.phase === 'COUNTDOWN') {
                 oppOverlay.style.display = 'none';
@@ -1602,29 +1712,28 @@
         } else if (data.type === 'RESULT') {
             oppOverlay.style.display = 'none';
             btns.forEach(btn => btn.classList.add('disabled'));
-            document.getElementById('pad-my-score').innerText = `${data.totalScore} 分｜答對率 ${data.accRate}% (${data.correctQ}/${data.totalQ})`;
+            document.getElementById('pad-my-score').innerText = `${data.totalScore} 分｜${data.combos} combo｜答對率 ${data.accRate}%`;
             banner.className = '';
 
-            if (data.globalCombo) {
+            if (data.pairCombo) {
+                // 小兵立大功！瞬間變身為「騎戰馬拿長槍(矛)的大將」！
                 heroStage.classList.add('combo-mode');
+                avatarFig.innerHTML = getGeneralHorseSvg();
                 if (typeof confetti === 'function') {
-                    confetti({ particleCount: 55, spread: 65, origin: { y: 0.6 } });
+                    confetti({ particleCount: 65, spread: 70, origin: { y: 0.6 } });
                 }
-            }
-
-            if (data.isCombo) {
                 banner.style.background = '#d97706'; banner.style.color = '#fff';
-                banner.innerText = `🎉 大神啦！combo 立大功！ +${data.delta} 分！`;
-            } else if (data.correct) {
-                banner.style.background = '#16a34a'; banner.style.color = '#fff';
-                banner.innerText = data.globalCombo
-                    ? `🎉 大神啦！combo！你也答對 +${data.delta} 分！`
-                    : `⭕ 答對 +${data.delta} 分！(真可惜 combo失敗)`;
+                banner.innerText = `🎉 小兵立大功！combo +${data.delta} 分！`;
+            } else if (data.myRight) {
+                // 自己答對但搭檔失誤：小兵收刀流汗 💦
+                avatarFig.innerHTML = getSoldierSweatSvg();
+                banner.style.background = '#475569'; banner.style.color = '#fde047';
+                banner.innerText = `💦 真可惜 combo失敗 (你答對，但搭檔失誤 +0分)`;
             } else {
+                // 自己答錯或超時：小兵頭盔歪掉眼冒金星 💫
+                avatarFig.innerHTML = getSoldierDizzySvg();
                 banner.style.background = '#dc2626'; banner.style.color = '#fff';
-                banner.innerText = data.globalCombo
-                    ? `⚡ 場上達成 combo！(你本題未中)`
-                    : `💔 真可惜 combo失敗 (你本題未中)`;
+                banner.innerText = `💫 真可惜 combo失敗 (本題答錯或超時 +0分)`;
             }
         }
     }
