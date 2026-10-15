@@ -454,7 +454,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 1.5</div>
+<div id="version-tag">Ver 1.6</div>
 
 <!-- ========================================================= -->
 <!-- 1. 首頁：選擇身分 -->
@@ -563,7 +563,7 @@
     <!-- 5秒倒數條 -->
     <div id="host-timer-wrap"><div id="host-timer-bar"></div></div>
 
-    <!-- 對戰舞台：左雙欄選項容器 (全班平權，無單獨組名) + 右欄目前分數 -->
+    <!-- 對戰舞台：左雙欄選項容器 + 右欄目前分數 -->
     <div id="split-arena">
         <div class="players-pair-wrapper">
             <!-- 左欄：拼寫選項 -->
@@ -672,7 +672,6 @@
     // =========================================================
     const CUTE_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
 
-    // 狀態 1：作答衝鋒中（小兵拿刀揮砍）
     function getSoldierSlashSvg() {
         return `
         <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
@@ -694,7 +693,6 @@
         </svg>`;
     }
 
-    // 狀態 2：小兵立大功！（Combo 成功瞬間升官變身「騎馬拿槍(矛)大將」）
     function getGeneralHorseSvg() {
         return `
         <svg viewBox="0 0 150 110" width="145" height="108" overflow="visible">
@@ -726,7 +724,6 @@
         </svg>`;
     }
 
-    // 狀態 3：自己答對但搭檔失誤（小兵收刀冒汗嘆氣 💦）
     function getSoldierSweatSvg() {
         return `
         <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
@@ -745,7 +742,6 @@
         </svg>`;
     }
 
-    // 狀態 4：自己答錯或超時（小兵頭盔歪掉、眼冒金星 💫）
     function getSoldierDizzySvg() {
         return `
         <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
@@ -764,7 +760,7 @@
     }
 
     // =========================================================
-    // 📚 題庫設定與教育部台語羅馬字拆解引擎
+    // 📚 題庫設定與「台語迷思概念誘答引擎」(Ver 1.6 升級版)
     // =========================================================
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
@@ -775,28 +771,79 @@
     };
 
     const MOE_INITIALS = ['p', 'ph', 'b', 'm', 't', 'th', 'n', 'l', 'k', 'kh', 'g', 'ng', 'h', 'ts', 'tsh', 's', 'j'];
-    const INITIAL_GROUPS = [
-        ['p', 'ph', 'b', 'm'], ['t', 'th', 'n', 'l'], ['k', 'kh', 'g', 'ng', 'h'], ['ts', 'tsh', 's', 'j']
-    ];
-    const MOE_UNCHECKED_FINALS = [
-        'a', 'ann', 'am', 'an', 'ang', 'ai', 'ainn', 'au', 'aunn', 'e', 'enn',
-        'i', 'inn', 'im', 'in', 'ing', 'ia', 'iann', 'iam', 'ian', 'iang', 'iau', 'iaunn', 'io', 'iong', 'iu', 'iunn',
-        'm', 'ng', 'o', 'onn', 'om', 'ong', 'oo', 'u', 'un', 'ua', 'uann', 'uan', 'uang', 'uai', 'uainn', 'ue', 'ui', 'uinn'
-    ];
-    const MOE_CHECKED_FINALS = [
-        'ah', 'annh', 'ap', 'at', 'ak', 'aih', 'ainnh', 'auh', 'aunnh', 'eh', 'ennh',
-        'ih', 'ip', 'it', 'ik', 'iah', 'iannh', 'iap', 'iat', 'iak', 'iauh', 'ioh', 'iok', 'iuh',
-        'mh', 'ngh', 'oh', 'onnh', 'op', 'ok', 'ooh', 'uh', 'ut', 'uah', 'uat', 'uainnh', 'ueh', 'uih'
-    ];
 
-    function isValidInitialFinalCombo(initial, finalStr) {
-        if (finalStr === 'm' || finalStr === 'mh') return initial === '';
-        if (finalStr === 'ng' || finalStr === 'ngh') return !['b', 'g', 'j', 'ng'].includes(initial);
-        if (finalStr.includes('nn') && ['b', 'g', 'l', 'j', 'm', 'n', 'ng'].includes(initial)) return false;
-        if (['m', 'n', 'ng'].includes(initial) && /[mngptk]$/.test(finalStr)) return false;
-        if (['p', 'ph', 'b', 'm'].includes(initial) && /[mp]$/.test(finalStr)) return false;
-        return true;
-    }
+    // 學生最常搞混的聲母迷思對照表 (含清濁、送氣、鼻化、華語注音與英拼借音 d, z, tr, sh, hs, c)
+    const INITIAL_TRAP_MAP = {
+        'p':   ['b', 'ph', 'm'],
+        'ph':  ['p', 'b', 'h', 'f'],
+        'b':   ['m', 'p', 'ph', 'v'],
+        'm':   ['b', 'n', 'p', 'ng'],
+        't':   ['d', 'th', 'l', 'n'],
+        'th':  ['t', 'd', 'kh', 'h'],
+        'n':   ['l', 'ng', 'm', 'b'],
+        'l':   ['n', 'd', 'j', 'r'],
+        'k':   ['g', 'kh', 't', 'c'],
+        'kh':  ['k', 'g', 'h', 'th'],
+        'g':   ['ng', 'k', 'kh', 'b'],
+        'ng':  ['g', 'n', 'm', ''],
+        'h':   ['kh', 'ph', 'th', 's', 'f'],
+        'ts':  ['tsh', 'z', 'j', 'tr', 'c', 's'],
+        'tsh': ['ts', 'c', 'ch', 's', 'sh', 'z'],
+        's':   ['sh', 'hs', 'ts', 'tsh', 'x'],
+        'j':   ['ts', 'z', 'l', 'r', 'g'],
+        '':    ['ng', 'g', 'h', 'm', 'n']
+    };
+
+    // 學生最常搞混的韻母與韻尾迷思對照表 (含假台羅 ou, uo, iung, ioo, aing, eng, ei, wei, iao, ien)
+    const FINAL_TRAP_MAP = {
+        // 單母音與假台羅混淆
+        'a':     ['ah', 'ann', 'an', 'o', 'e'],
+        'i':     ['ih', 'inn', 'in', 'e', 'ui'],
+        'u':     ['oo', 'uh', 'un', 'ou', 'o', 'ui'],
+        'e':     ['eh', 'ei', 'enn', 'i', 'a', 'ue'],
+        'o':     ['oo', 'ou', 'uo', 'oh', 'e', 'u'],
+        'oo':    ['o', 'ou', 'uo', 'ooh', 'u', 'onn'],
+        // 雙母音與複合母音混淆
+        'ai':    ['ainn', 'an', 'ang', 'aing', 'aih', 'au'],
+        'au':    ['ao', 'ou', 'aunn', 'ang', 'auh', 'iau'],
+        'ia':    ['iah', 'iann', 'ian', 'io', 'ua'],
+        'ua':    ['oa', 'uo', 'uah', 'uann', 'uan', 'ue'],
+        'ue':    ['oe', 'ua', 'ui', 'ueh', 'wei', 'e'],
+        'io':    ['ioo', 'iong', 'iung', 'iu', 'ioh', 'ia'],
+        'iu':    ['io', 'iou', 'iunn', 'ui', 'iuh', 'u'],
+        'ui':    ['uinn', 'ue', 'iu', 'un', 'uih', 'i'],
+        'iau':   ['iao', 'iaunn', 'io', 'au', 'iauh', 'iang'],
+        'uai':   ['uainn', 'uan', 'ua', 'ai', 'wai', 'uang'],
+        // 三種鼻音韻尾 (-m, -n, -ng) 與鼻化音 (-nn) 及聽覺近似音混淆
+        'am':    ['an', 'ang', 'ann', 'ap', 'ah', 'om'],
+        'an':    ['ang', 'am', 'ann', 'at', 'ai', 'ainn'],
+        'ang':   ['an', 'ann', 'am', 'ai', 'aing', 'ainn', 'ak', 'ong'],
+        'ann':   ['an', 'ang', 'am', 'a', 'ah', 'ainn'],
+        'im':    ['in', 'ing', 'inn', 'ip', 'iam', 'em'],
+        'in':    ['ing', 'im', 'inn', 'it', 'ian', 'un', 'en'],
+        'ing':   ['in', 'im', 'inn', 'eng', 'ik', 'iang', 'ong'],
+        'inn':   ['in', 'ing', 'im', 'i', 'ih', 'enn'],
+        'un':    ['ung', 'ui', 'uan', 'ut', 'in', 'u', 'on'],
+        'ong':   ['onn', 'om', 'ung', 'ok', 'ang', 'iong', 'oo'],
+        'om':    ['ong', 'op', 'am', 'onn', 'o'],
+        'iong':  ['iung', 'ioo', 'io', 'ong', 'iok', 'iang', 'iunn'],
+        'iam':   ['ian', 'iang', 'iann', 'iap', 'im', 'am'],
+        'ian':   ['ien', 'iang', 'iam', 'iann', 'iat', 'in'],
+        'iang':  ['ian', 'iam', 'iann', 'iong', 'iak', 'ang'],
+        'uan':   ['uang', 'uann', 'uat', 'un', 'ua', 'ian'],
+        'uang':  ['uan', 'uann', 'ong', 'ang', 'uai'],
+        // 鼻化韻母群
+        'enn':   ['inn', 'e', 'eh', 'en', 'eng', 'ann'],
+        'onn':   ['oo', 'o', 'ong', 'ooh', 'oh', 'ann'],
+        'ainn':  ['ai', 'aing', 'ang', 'an', 'ann', 'aih'],
+        'aunn':  ['au', 'ao', 'ann', 'ang', 'auh'],
+        'iann':  ['ia', 'ian', 'iang', 'iah', 'iunn', 'inn'],
+        'iunn':  ['iu', 'iong', 'iung', 'iann', 'uinn', 'inn'],
+        'uann':  ['uan', 'uang', 'ua', 'uah', 'ann'],
+        'uinn':  ['ui', 'uann', 'un', 'inn', 'ue'],
+        'iaunn': ['iau', 'iao', 'iann', 'iunn', 'aunn'],
+        'uainn': ['uai', 'uann', 'uan', 'ainn', 'uai']
+    };
 
     function parseSingleSyllable(rawSyl) {
         const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
@@ -814,7 +861,7 @@
             for (let ini of sortedInitials) {
                 if (base.startsWith(ini)) {
                     const rest = base.slice(ini.length);
-                    if (rest.length > 0 && (/[aeiou]/.test(rest) || rest === 'ng' || rest === 'ngh')) {
+                    if (rest.length > 0 && (/[aeiou]/.test(rest) || rest === 'ng' || rest === 'ngh' || rest === 'm' || rest === 'mh')) {
                         initial = ini; final = rest; break;
                     }
                 }
@@ -862,55 +909,147 @@
         return a;
     }
 
+    // 針對指定韻母取得最具誘答力的混淆韻母清單
+    function getConfusingFinalsList(fin, isChecked) {
+        let list = [];
+        if (FINAL_TRAP_MAP[fin]) {
+            list.push(...FINAL_TRAP_MAP[fin]);
+        }
+
+        // 若為入聲韻尾 (-p, -t, -k, -h)，優先加入「同母音的其他入聲尾」與「去掉入聲尾的開放母音」與「對應鼻音尾」
+        if (isChecked) {
+            const core = fin.slice(0, -1); // 例如 pit -> i, khuah -> ua, ooh -> oo
+            const end = fin.slice(-1);     // p, t, k, h
+
+            // 1. 優先加入開放母音 (例如 pit -> pi, khuah -> khua)
+            if (core.length > 0) {
+                if (core === 'oo') list.unshift('oo', 'o');
+                else list.unshift(core);
+            }
+
+            // 2. 加入其他入聲尾互換 (例如 pit -> pik, pih, pip)
+            const stopOrder = (end === 't') ? ['k', 'h', 'p'] :
+                              (end === 'k') ? ['t', 'h', 'p'] :
+                              (end === 'p') ? ['t', 'k', 'h'] : ['t', 'k', 'p'];
+            stopOrder.forEach(s => {
+                if (core === 'oo' && s !== 'h') {
+                    list.push('o' + s); // ooh -> ok, ot, op
+                } else {
+                    list.unshift(core + s);
+                }
+            });
+
+            // 3. 加入對應鼻音韻尾 (例如 pit -> pin, lak -> lang, tsap -> tsam)
+            const nasalMap = { 'p': 'm', 't': 'n', 'k': 'ng', 'h': 'nn' };
+            if (nasalMap[end]) {
+                list.push(core + nasalMap[end]);
+            }
+        }
+
+        // 去重並排除正解本身
+        return [...new Set(list)].filter(f => f && f !== fin);
+    }
+
+    // 🔥 Ver 1.6 核心：台語迷思概念誘答產生器
     function generateCoopOptions(targetSyl) {
         const correctBase = targetSyl.base;
         const ini = targetSyl.initial;
         const fin = targetSyl.final;
+        let distractors = [];
 
-        const allFinals = [...MOE_UNCHECKED_FINALS, ...MOE_CHECKED_FINALS];
-        const firstVowel = fin[0];
-        const similarFinals = shuffleArray(allFinals.filter(f => 
-            f !== fin && isValidInitialFinalCombo(ini, f) && f[0] === firstVowel
-        ));
-        const otherFinals = shuffleArray(allFinals.filter(f => 
-            f !== fin && isValidInitialFinalCombo(ini, f) && f[0] !== firstVowel
-        ));
-
-        let baseDistractors = [];
-        for (let f of [...similarFinals, ...otherFinals]) {
-            const candidate = ini + f;
-            if (candidate !== correctBase && !baseDistractors.includes(candidate)) {
-                baseDistractors.push(candidate);
-                if (baseDistractors.length >= 2) break;
+        // 【特例 1】單獨的聲化韻母 m, mh, ng, ngh (如 m̄ 毋 -> m, em, mu, eng)
+        if (correctBase === 'm') {
+            distractors = ['em', 'mu', 'eng'];
+        } else if (correctBase === 'mh') {
+            distractors = ['m', 'emh', 'muh'];
+        } else if (correctBase === 'ng') {
+            distractors = ['eng', 'ing', 'en'];
+        } else if (correctBase === 'ngh') {
+            distractors = ['ng', 'engh', 'ingh'];
+        }
+        // 【特例 2】子音 + 聲化韻母 ng (如 pn̄g 飯、sng 酸、kng 光 -> 學生極易偷加 e, i, u)
+        else if (fin === 'ng' && ini !== '') {
+            const altInis = INITIAL_TRAP_MAP[ini] || ['p', 't', 'k'];
+            const altIni = altInis[0];
+            if (Math.random() < 0.65) {
+                distractors = [ini + 'eng', ini + 'ing', ini + 'un'];
+            } else {
+                // 2x2 聲韻交叉 (例如 png, peng, bng, beng)
+                distractors = [ini + 'eng', altIni + 'ng', altIni + 'eng'];
             }
         }
-        const group = INITIAL_GROUPS.find(g => g.includes(ini)) || MOE_INITIALS;
-        for (let altIni of shuffleArray(group)) {
-            if (altIni !== ini && isValidInitialFinalCombo(altIni, fin)) {
-                const candidate = altIni + fin;
-                if (!baseDistractors.includes(candidate)) {
-                    baseDistractors.push(candidate); break;
+        // 【一般音節】根據有無聲母與隨機策略產生最具誘答力的 3 個選項
+        else {
+            const finTraps = getConfusingFinalsList(fin, targetSyl.isChecked);
+            const iniTraps = INITIAL_TRAP_MAP[ini] || ['p', 't', 'k', 'ts', 's'];
+
+            if (ini === '') {
+                // 零聲母詞 (如 ang, oo, io, it)：優先考韻母與韻尾混淆
+                const pickedFins = finTraps.slice(0, 4);
+                distractors = shuffleArray(pickedFins).slice(0, 3);
+            } else {
+                const strategyRoll = Math.random();
+
+                // 策略 A (45% 機率)：【韻母/韻尾專精局】4 個選項同聲母，專考韻尾/母音混淆 (如 pik / pit / pih / pi，或 tio / tiong / tiung / tioo)
+                if (strategyRoll < 0.45 && finTraps.length >= 3) {
+                    const topFinTraps = finTraps.slice(0, 4);
+                    distractors = shuffleArray(topFinTraps).slice(0, 3).map(f => ini + f);
+                }
+                // 策略 B (40% 機率)：【2×2 聲韻雙陷阱局】2 個易混聲母 × 2 個易混韻母 (如 bit / bik / pi / pit，防止多數決猜題！)
+                else if (strategyRoll < 0.85 && iniTraps.length >= 1 && finTraps.length >= 2) {
+                    const altIni = iniTraps[Math.floor(Math.random() * Math.min(2, iniTraps.length))];
+                    const altFin1 = finTraps[0]; // 最強第一誘答韻母 (如 pit 的 ik 或 i)
+                    const altFin2 = finTraps[1]; // 第二誘答韻母
+                    if (Math.random() < 0.5) {
+                        // 正交 2x2：ini+fin(正解), ini+altFin1, altIni+fin, altIni+altFin1
+                        distractors = [ini + altFin1, altIni + fin, altIni + altFin1];
+                    } else {
+                        // 變化型 2x2 (如 pit, pi, bit, bik)
+                        distractors = [ini + altFin2, altIni + fin, altIni + altFin1];
+                    }
+                }
+                // 策略 C (15% 機率)：【聲母專精局】4 個選項同韻母，專考易混聲母 (如 pit / bit / phit / dit，或 sua / shua / hsua / tsua)
+                else {
+                    const topIniTraps = iniTraps.slice(0, 4);
+                    distractors = shuffleArray(topIniTraps).slice(0, 3).map(i => i + fin);
                 }
             }
         }
-        while (baseDistractors.length < 3) {
-            const fallback = ini + otherFinals[baseDistractors.length];
-            if (fallback && !baseDistractors.includes(fallback)) baseDistractors.push(fallback);
-            else break;
+
+        // 防呆補齊：確保 3 個誘答項不重複且不等於正解
+        distractors = [...new Set(distractors)].filter(d => d && d !== correctBase);
+        const fallbackPool = ['a', 'i', 'u', 'e', 'o', 'oo', 'an', 'ang', 'ann', 'am', 'in', 'ing', 'un', 'ong', 'it', 'ik', 'at', 'ak', 'ah', 'oh'];
+        for (let fb of fallbackPool) {
+            if (distractors.length >= 3) break;
+            const cand = ini + fb;
+            if (cand !== correctBase && !distractors.includes(cand)) {
+                distractors.push(cand);
+            }
         }
 
-        const spellingOptions = shuffleArray([correctBase, ...baseDistractors.slice(0, 3)]);
+        const spellingOptions = shuffleArray([correctBase, ...distractors.slice(0, 3)]);
         const correctSpellingIdx = spellingOptions.indexOf(correctBase);
 
+        // 2. 產生聲調 4 選項（入聲 4、8 必互為誘答；非入聲依高低平/高低降對比誘答）
         const correctTone = targetSyl.tone;
         let tonePool = [];
         if (targetSyl.isChecked || correctTone === '4' || correctTone === '8') {
             const otherChecked = (correctTone === '4') ? '8' : '4';
-            const uncheckedPick = shuffleArray(['1', '2', '3', '5', '7']).slice(0, 2);
+            const uncheckedPick = shuffleArray(['2', '3', '1', '7', '5']).slice(0, 2);
             tonePool = [correctTone, otherChecked, ...uncheckedPick];
         } else {
-            const otherTones = shuffleArray(['1', '2', '3', '5', '7', '4', '8'].filter(t => t !== correctTone)).slice(0, 3);
-            tonePool = [correctTone, ...otherTones];
+            // 針對不同聲調安排最易混淆的夥伴聲調 (如 1配7、2配3、5配7/2)
+            const toneTrapPref = {
+                '1': ['7', '2', '3', '5'],
+                '2': ['3', '1', '4', '5'],
+                '3': ['2', '7', '4', '1'],
+                '5': ['7', '2', '3', '1'],
+                '7': ['1', '3', '5', '2'],
+                '9': ['5', '2', '1', '7']
+            };
+            const prefList = toneTrapPref[correctTone] || ['1', '2', '3', '5', '7'];
+            const pickedTones = [prefList[0], ...shuffleArray(prefList.slice(1)).slice(0, 2)];
+            tonePool = [correctTone, ...pickedTones];
         }
         const toneOptions = shuffleArray(tonePool);
         const correctToneIdx = toneOptions.indexOf(correctTone);
@@ -1216,7 +1355,7 @@
         // 全班公平兩兩隨機配對（且讓每組嚴格交替分配「拼寫」與「聲調」）
         const rolesMap = {};
         const partnerMap = {};
-        const pairsList = []; // [{ spId, tnId }]
+        const pairsList = [];
 
         const spPool = [];
         const tnPool = [];
@@ -1238,7 +1377,6 @@
                 partnerMap[tnTeam.id] = spTeam.id;
                 pairsList.push({ spId: spTeam.id, tnId: tnTeam.id });
             } else if (spTeam) {
-                // 若總組數為奇數，最後一組隨機與已配對的一位聲調組組成聯軍
                 const luckyTn = shuffledTn[0];
                 rolesMap[spTeam.id] = 'SPELLING';
                 partnerMap[spTeam.id] = luckyTn.id;
@@ -1437,7 +1575,6 @@
         const { coopOpts, fullRevealedHtml, answers, rolesMap, partnerMap, pairsList } = currentMatchData;
         document.getElementById('host-tailo-prompt').innerHTML = fullRevealedHtml;
 
-        // 標示正確選項並列出各組選擇
         for (let i = 0; i < 4; i++) {
             const spCard = document.getElementById(`host-sp-opt-${i}`);
             if (i === coopOpts.correctSpellingIdx) spCard.classList.add('correct-glow');
@@ -1458,7 +1595,7 @@
             }
         });
 
-        // 找出本題所有達成 Combo 的配對 (例如：甲 乙、丙 丁)
+        // 找出本題所有達成 Combo 的配對
         const successfulPairsHtml = [];
         pairsList.forEach(pair => {
             if (isTeamAnswerCorrect(pair.spId) && isTeamAnswerCorrect(pair.tnId)) {
@@ -1470,7 +1607,6 @@
             }
         });
 
-        // 結算各組分數與答對率（所有配對一視同仁：達成 Combo 即得 +150 分！）
         teams.forEach(t => {
             const myRight = isTeamAnswerCorrect(t.id);
             const partnerId = partnerMap[t.id];
