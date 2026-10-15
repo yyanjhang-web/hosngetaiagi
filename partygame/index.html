@@ -109,12 +109,12 @@
         @keyframes popIn { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
         /* ========================================================= */
-        /* 3. 主辦方大屏：遊戲主舞台 */
+        /* 3. 主辦方大屏：遊戲主舞台 (縮小左右玩家區 + 新增右側積分榜) */
         /* ========================================================= */
-        #host-game-screen { justify-content: space-between; padding: 10px 20px 12px 20px; overflow: hidden; }
+        #host-game-screen { justify-content: space-between; padding: 10px 18px 12px 18px; overflow: hidden; }
         
         .game-hud {
-            width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center;
+            width: 100%; max-width: 1380px; display: flex; justify-content: space-between; align-items: center;
             background: rgba(30, 41, 59, 0.9); border: 1.5px solid #334155; border-radius: 12px;
             padding: 6px 16px; font-size: 17px; z-index: 10; flex-shrink: 0; gap: 10px;
         }
@@ -163,7 +163,6 @@
         .q-tailo-text { font-size: clamp(42px, 5.8vw, 72px); font-weight: bold; color: #fff; letter-spacing: 2px; line-height: 1.15; display: flex; align-items: baseline; }
         #question-stage.shrunk .q-tailo-text { font-size: clamp(24px, 3.2vw, 36px); }
         
-        /* 乾淨的粉紅底線 (無 ____ 文字疊加) */
         .blank-slot {
             display: inline-block; width: 110px; height: 0.85em; border-bottom: 6px solid #ec4899;
             margin: 0 6px; vertical-align: baseline;
@@ -171,40 +170,72 @@
         #question-stage.shrunk .blank-slot { width: 72px; border-bottom-width: 4px; }
 
         /* 倒數計時條 */
-        #host-timer-wrap { width: 100%; max-width: 1200px; height: 10px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-bottom: 8px; display: none; border: 1px solid #475569; flex-shrink: 0; }
+        #host-timer-wrap { width: 100%; max-width: 1380px; height: 10px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-bottom: 8px; display: none; border: 1px solid #475569; flex-shrink: 0; }
         #host-timer-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); transition: width 0.1s linear; }
 
-        /* 左右分割對戰舞台 */
+        /* 三欄式對戰舞台：左玩家(縮小) + 右玩家(縮小) + 右側即時積分榜 */
         #split-arena {
-            display: none; width: 100%; max-width: 1200px; flex: 1; gap: 16px;
+            display: none; width: 100%; max-width: 1380px; flex: 1; gap: 14px;
             align-items: stretch; justify-content: center; min-height: 0; overflow: hidden;
         }
         .arena-half {
-            flex: 1; background: rgba(30, 41, 59, 0.9); border: 3px solid #38bdf8; border-radius: 18px;
-            padding: 10px 14px; display: flex; flex-direction: column; justify-content: space-between;
+            flex: 0.92; background: rgba(30, 41, 59, 0.9); border: 2.5px solid #38bdf8; border-radius: 16px;
+            padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between;
             position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.4); min-height: 0;
         }
         .arena-half.tone-side { border-color: #f59e0b; }
 
+        /* 右側：截至上一題積分面板 */
+        .arena-scoreboard {
+            flex: 0.68; min-width: 250px; max-width: 340px;
+            background: rgba(15, 23, 42, 0.92); border: 2.5px solid #475569; border-radius: 16px;
+            padding: 10px 12px; display: flex; flex-direction: column;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4); min-height: 0; overflow: hidden;
+        }
+        .sb-side-header {
+            font-size: 15px; font-weight: bold; color: #fde047; text-align: center;
+            background: #1e293b; padding: 7px 10px; border-radius: 10px; margin-bottom: 8px;
+            border: 1px solid #334155; flex-shrink: 0; white-space: nowrap;
+        }
+        #live-scoreboard-list {
+            flex: 1; overflow-y: auto; display: grid; grid-template-columns: 1fr; gap: 5px;
+            align-content: start; padding-right: 2px;
+        }
+        #live-scoreboard-list.two-cols {
+            grid-template-columns: 1fr 1fr; gap: 5px;
+        }
+        .live-sb-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+            padding: 5px 8px; font-size: 14px; color: #e2e8f0; white-space: nowrap; overflow: hidden;
+        }
+        .live-sb-item.top-1 { border-color: #fde047; background: rgba(250, 204, 21, 0.14); color: #fde047; }
+        .live-sb-item.top-2 { border-color: #cbd5e1; background: rgba(148, 163, 184, 0.14); }
+        .live-sb-item.top-3 { border-color: #fdba74; background: rgba(180, 83, 9, 0.16); }
+        .live-sb-name { overflow: hidden; text-overflow: ellipsis; max-width: 115px; font-weight: bold; }
+        #live-scoreboard-list.two-cols .live-sb-name { max-width: 78px; font-size: 12.5px; }
+        .live-sb-pts { font-weight: bold; color: #38bdf8; margin-left: 4px; flex-shrink: 0; font-size: 13.5px; }
+        .live-sb-item.top-1 .live-sb-pts { color: #fde047; }
+
         .spotlight-header {
             display: flex; justify-content: space-between; align-items: center;
-            background: #0f172a; padding: 8px 14px; border-radius: 12px; margin-bottom: 10px;
-            border-left: 6px solid #38bdf8; flex-shrink: 0;
+            background: #0f172a; padding: 7px 12px; border-radius: 10px; margin-bottom: 8px;
+            border-left: 5px solid #38bdf8; flex-shrink: 0;
         }
         .arena-half.tone-side .spotlight-header { border-left-color: #f59e0b; }
-        .role-tag { font-size: 15px; color: #94a3b8; }
-        .assigned-team { font-size: clamp(20px, 2.4vw, 28px); color: #fde047; font-weight: bold; text-shadow: 0 0 10px rgba(253, 224, 71, 0.4); }
-        .team-status-pill { font-size: 14px; padding: 4px 12px; border-radius: 20px; background: #334155; color: #cbd5e1; white-space: nowrap; }
+        .role-tag { font-size: 14px; color: #94a3b8; }
+        .assigned-team { font-size: clamp(18px, 2.1vw, 25px); color: #fde047; font-weight: bold; text-shadow: 0 0 10px rgba(253, 224, 71, 0.4); }
+        .team-status-pill { font-size: 13px; padding: 3px 10px; border-radius: 20px; background: #334155; color: #cbd5e1; white-space: nowrap; }
         .team-status-pill.locked { background: #059669; color: #fff; box-shadow: 0 0 10px #10b981; }
 
         /* 4 選項格狀佈局 */
         .options-grid {
             display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
-            gap: 10px; flex: 1; min-height: 0;
+            gap: 8px; flex: 1; min-height: 0;
         }
         .opt-card {
-            border-radius: 14px; display: flex; align-items: center; justify-content: center;
-            font-size: clamp(24px, 3.2vw, 40px); font-weight: bold; color: #fff; position: relative;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: clamp(22px, 2.8vw, 36px); font-weight: bold; color: #fff; position: relative;
             border: 2.5px solid rgba(255,255,255,0.25); box-shadow: 0 4px 12px rgba(0,0,0,0.35);
             transition: transform 0.2s, opacity 0.2s, border-color 0.2s; min-height: 0; overflow: hidden;
         }
@@ -213,28 +244,28 @@
         .opt-color-2 { background: linear-gradient(135deg, #d97706, #b45309); }
         .opt-color-3 { background: linear-gradient(135deg, #16a34a, #15803d); }
 
-        .opt-label-corner { position: absolute; top: 6px; left: 10px; font-size: 14px; opacity: 0.8; font-family: Arial, sans-serif; }
+        .opt-label-corner { position: absolute; top: 5px; left: 9px; font-size: 13px; opacity: 0.8; font-family: Arial, sans-serif; }
 
         /* 開獎狀態樣式 */
         .opt-card.dimmed { opacity: 0.22; filter: grayscale(0.8); transform: scale(0.96); }
         .opt-card.correct-glow { border-color: #fde047; box-shadow: 0 0 25px #fde047, inset 0 0 15px rgba(255,255,255,0.5); transform: scale(1.02); z-index: 5; }
         .opt-pick-tag {
-            position: absolute; bottom: 5px; right: 8px; background: rgba(0,0,0,0.85);
-            color: #fde047; border: 1.5px solid #fde047; padding: 1px 8px; border-radius: 10px;
-            font-size: 14px; display: none;
+            position: absolute; bottom: 4px; right: 6px; background: rgba(0,0,0,0.85);
+            color: #fde047; border: 1.5px solid #fde047; padding: 1px 7px; border-radius: 10px;
+            font-size: 13px; display: none;
         }
         .opt-card.picked .opt-pick-tag { display: block; }
 
-        /* 一體成形 SVG 聲調樣式 (大屏與平板共用) */
-        .tone-opt-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; pointer-events: none; }
-        .tone-opt-num { font-size: clamp(20px, 2.5vw, 26px); color: rgba(255,255,255,0.95); }
-        .tone-svg-large { width: 36px; height: 48px; overflow: visible; display: block; }
+        /* 一體成形 SVG 聲調樣式 */
+        .tone-opt-wrap { display: flex; align-items: center; justify-content: center; gap: 6px; pointer-events: none; }
+        .tone-opt-num { font-size: clamp(18px, 2.2vw, 24px); color: rgba(255,255,255,0.95); }
+        .tone-svg-large { width: 32px; height: 44px; overflow: visible; display: block; }
         .checked-tone-group-lg { display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
-        .checked-tone-grid-lg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px; font-size: 14px; line-height: 0.95; font-family: Arial, sans-serif; color: #fde047; }
+        .checked-tone-grid-lg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px; font-size: 13px; line-height: 0.95; font-family: Arial, sans-serif; color: #fde047; }
 
         /* 底部陪考組即時狀態列與開獎橫幅 */
         #crowd-status-bar {
-            width: 100%; max-width: 1200px; margin-top: 8px; background: rgba(15, 23, 42, 0.9);
+            width: 100%; max-width: 1380px; margin-top: 8px; background: rgba(15, 23, 42, 0.9);
             border: 1.5px solid #334155; border-radius: 10px; padding: 6px 16px;
             display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: #94a3b8;
             flex-shrink: 0;
@@ -242,14 +273,19 @@
         #combo-banner {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: linear-gradient(90deg, #dc2626, #f59e0b, #dc2626); color: #fff;
-            border: 4px solid #fde047; border-radius: 30px; padding: 16px 42px;
-            font-size: clamp(26px, 4.2vw, 48px); font-weight: bold; z-index: 60;
+            border: 4px solid #fde047; border-radius: 30px; padding: 16px 40px;
+            font-size: clamp(24px, 3.8vw, 44px); font-weight: bold; z-index: 60;
             box-shadow: 0 0 50px rgba(245, 158, 11, 0.9); text-shadow: 2px 2px 6px #000;
             white-space: nowrap; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        #combo-banner.fail-mode {
+            background: linear-gradient(90deg, #1e293b, #475569, #1e293b);
+            border-color: #94a3b8; color: #f8fafc;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.85);
+        }
 
         /* ========================================================= */
-        /* 4. 學生平板端畫面 (小兵拿刀 vs 騎馬拿槍大將 + 縮小4選項) */
+        /* 4. 學生平板端畫面 */
         /* ========================================================= */
         .student-Join-card {
             background: #1e293b; border: 2px solid #4ade80; border-radius: 20px;
@@ -274,7 +310,6 @@
         .pad-team-name { font-size: 18px; color: #4ade80; font-weight: bold; }
         .pad-score { font-size: 16px; color: #fde047; font-weight: bold; }
 
-        /* 學生平板中央：小兵拿刀 / 騎馬拿槍大將 動態舞台 */
         #pad-hero-stage {
             width: 100%; flex: 1; max-height: 42vh; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 85%);
             border: 2px solid #334155; border-radius: 16px; margin: 8px 0; padding: 8px;
@@ -290,12 +325,6 @@
             border-color: #fde047; box-shadow: 0 0 35px #fde047;
         }
 
-        /* 立功機會 閃耀全屏遮罩橫幅 */
-        #pad-opportunity- overlay {
-            display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.75);
-            z-index: 10; align-items: center; justify-content: center; flex-direction: column;
-            animation: popIn 0.25s ease-out;
-        }
         .opportunity-badge {
             background: linear-gradient(135deg, #fde047, #f59e0b); color: #000;
             font-size: clamp(28px, 6vw, 42px); font-weight: bold; padding: 10px 28px;
@@ -306,13 +335,11 @@
             width: 135px; height: 115px; display: flex; align-items: center; justify-content: center;
             position: relative;
         }
-        /* 小兵揮刀動畫 */
         .soldier-slash-anim { transform-origin: 45px 65px; animation: bladeSlash 0.65s ease-in-out infinite alternate; }
         @keyframes bladeSlash {
             0% { transform: rotate(-28deg); }
             100% { transform: rotate(32deg) scale(1.05); }
         }
-        /* 大將騎馬衝鋒與刺槍動畫 */
         .general-gallop-anim { animation: horseGallop 0.45s ease-in-out infinite alternate; }
         @keyframes horseGallop {
             0% { transform: translateY(2px) rotate(-3deg); }
@@ -333,7 +360,6 @@
         #pad-role-banner.main-tone { background: #d97706; color: #fff; border-color: #fde047; }
         #pad-role-banner.crowd-role { background: #065f46; color: #a7f3d0; border-color: #34d399; }
 
-        /* 學生平板 4 選項縮小高度以突顯上方小兵/大將 */
         #pad-options-grid {
             width: 100%; height: 42vh; max-height: 290px;
             display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
@@ -380,7 +406,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 1.2</div>
+<div id="version-tag">Ver 1.3</div>
 
 <!-- ========================================================= -->
 <!-- 1. 首頁：選擇身分 -->
@@ -466,7 +492,7 @@
         </div>
     </div>
 
-    <!-- 題目展示區 (先大字置中，點名後自動縮小移至上方) -->
+    <!-- 題目展示區 -->
     <div id="question-stage">
         <div class="q-hanzi-hint" id="host-hanzi-hint">紅筆</div>
         <div class="q-word-box">
@@ -478,9 +504,9 @@
     <!-- 5秒倒數條 -->
     <div id="host-timer-wrap"><div id="host-timer-bar"></div></div>
 
-    <!-- 左右分割選項舞台 -->
+    <!-- 三欄對戰舞台：左玩家(縮小) + 右玩家(縮小) + 最右側截至上一題積分榜 -->
     <div id="split-arena">
-        <!-- 左半部：拼寫主秀 -->
+        <!-- 左欄：拼寫主秀 -->
         <div class="arena-half">
             <div class="spotlight-header">
                 <div>
@@ -492,7 +518,7 @@
             <div class="options-grid" id="host-spelling-grid"></div>
         </div>
 
-        <!-- 右半部：聲調主秀 -->
+        <!-- 中欄：聲調主秀 -->
         <div class="arena-half tone-side">
             <div class="spotlight-header">
                 <div>
@@ -502,6 +528,12 @@
                 <div class="team-status-pill" id="status-pill-tone">🤔 思考中...</div>
             </div>
             <div class="options-grid" id="host-tone-grid"></div>
+        </div>
+
+        <!-- 右欄：截至上一題積分榜 -->
+        <div class="arena-scoreboard">
+            <div class="sb-side-header">📊 戰況積分 (截至上一題)</div>
+            <div id="live-scoreboard-list"></div>
         </div>
     </div>
 
@@ -580,26 +612,19 @@
     function getSoldierSlashSvg() {
         return `
         <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
-            <!-- 地面陰影 -->
             <ellipse cx="45" cy="90" rx="26" ry="6" fill="rgba(0,0,0,0.4)" />
-            <!-- 小兵身體與戰袍 -->
             <path d="M 32 55 L 58 55 L 62 85 L 28 85 Z" fill="#0284c7" stroke="#bae6fd" stroke-width="2" border-radius="4"/>
             <line x1="30" y1="70" x2="60" y2="70" stroke="#fde047" stroke-width="3"/>
-            <!-- 小兵頭臉與可愛鬥笠盔 -->
             <circle cx="45" cy="40" r="14" fill="#fde68a" stroke="#fff" stroke-width="1.5"/>
             <circle cx="41" cy="39" r="2" fill="#0f172a"/>
             <circle cx="50" cy="39" r="2" fill="#0f172a"/>
             <path d="M 42 45 Q 45.5 48 49 45" stroke="#b45309" stroke-width="2" fill="none" stroke-linecap="round"/>
             <path d="M 22 32 Q 45 14 68 32 Z" fill="#475569" stroke="#cbd5e1" stroke-width="2"/>
             <circle cx="45" cy="21" r="3.5" fill="#ef4444"/>
-            <!-- 揮砍的大刀與手臂 (動態揮舞) -->
             <g class="soldier-slash-anim">
                 <circle cx="56" cy="58" r="5" fill="#fde68a"/>
-                <!-- 刀柄 -->
                 <rect x="54" y="46" width="6" height="16" rx="2" fill="#78350f" stroke="#fde047" stroke-width="1.5"/>
-                <!-- 寬刃大刀 -->
                 <path d="M 55 46 L 55 12 Q 76 18 70 46 Z" fill="#e2e8f0" stroke="#38bdf8" stroke-width="2"/>
-                <!-- 刀光特效 -->
                 <path d="M 68 10 Q 98 30 78 62" fill="none" stroke="#38bdf8" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="6,4" opacity="0.85"/>
             </g>
         </svg>`;
@@ -610,36 +635,26 @@
         <svg viewBox="0 0 150 110" width="145" height="108" overflow="visible">
             <ellipse cx="75" cy="102" rx="48" ry="7" fill="rgba(250, 204, 21, 0.28)" />
             <g class="general-gallop-anim">
-                <!-- 戰馬尾巴与後腿 -->
                 <path d="M 26 65 Q 10 55 14 78" stroke="#78350f" stroke-width="6" fill="none" stroke-linecap="round"/>
                 <line x1="36" y1="78" x2="26" y2="98" stroke="#92400e" stroke-width="6" stroke-linecap="round"/>
                 <line x1="48" y1="78" x2="44" y2="98" stroke="#78350f" stroke-width="6" stroke-linecap="round"/>
-                <!-- 戰馬前腿 (奔騰揚起) -->
                 <path d="M 92 75 L 112 85 L 106 98" stroke="#92400e" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M 98 72 L 122 72 L 126 84" stroke="#b45309" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                <!-- 戰馬身軀與馬鞍 -->
                 <rect x="32" y="56" width="68" height="26" rx="13" fill="#b45309" stroke="#fde68a" stroke-width="2"/>
                 <path d="M 52 55 L 78 55 L 74 72 L 56 72 Z" fill="#dc2626" stroke="#fde047" stroke-width="1.5"/>
-                <!-- 戰馬頸部與馬頭 -->
                 <path d="M 88 64 L 105 34 L 124 42 L 105 68 Z" fill="#b45309" stroke="#fde68a" stroke-width="2" stroke-linejoin="round"/>
                 <polygon points="102,34 106,24 111,34" fill="#92400e"/>
                 <circle cx="112" cy="40" r="2.2" fill="#fff"/>
-                <!-- 大將披風 (飄揚) -->
                 <path d="M 55 38 Q 22 34 16 56 Q 34 58 55 56 Z" fill="#ef4444" opacity="0.9"/>
-                <!-- 大將黃金甲身軀 -->
                 <path d="M 52 34 L 76 34 L 78 62 L 50 62 Z" fill="#f59e0b" stroke="#fef08a" stroke-width="2"/>
-                <!-- 大將臉龐與威武頭盔+紅纓 -->
                 <circle cx="64" cy="22" r="11" fill="#fde68a" stroke="#fff" stroke-width="1.5"/>
                 <circle cx="61" cy="21" r="1.8" fill="#0f172a"/>
                 <circle cx="68" cy="21" r="1.8" fill="#0f172a"/>
                 <path d="M 48 16 Q 64 2 80 16 Z" fill="#fbbf24" stroke="#fff" stroke-width="2"/>
                 <path d="M 64 6 Q 50 -6 40 4" stroke="#dc2626" stroke-width="4" fill="none" stroke-linecap="round"/>
-                <!-- 刺出的紅纓長槍(矛) -->
                 <g class="spear-thrust-anim">
                     <line x1="35" y1="48" x2="128" y2="48" stroke="#fde047" stroke-width="4" stroke-linecap="round"/>
-                    <!-- 紅纓 -->
                     <path d="M 122 48 L 112 41 L 114 55 Z" fill="#ef4444"/>
-                    <!-- 閃亮銀槍頭(矛) -->
                     <polygon points="122,42 146,48 122,54" fill="#f8fafc" stroke="#38bdf8" stroke-width="1.5"/>
                 </g>
             </g>
@@ -715,7 +730,6 @@
         return res.normalize('NFC');
     }
 
-    // 除魔咒術一體成形 SVG 聲調繪製系統 (大屏與學生平板同步使用)
     function getToneCardHtml(toneStr) {
         const tone = parseInt(toneStr, 10);
         let markPath = '';
@@ -840,7 +854,7 @@
     function sfxComboFanfare() {
         [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playSynthTone(f, f, 0.18, 'triangle', 0.26, i * 0.09));
     }
-    function sfxPartialHit() { playSynthTone(523.25, 659.25, 0.15, 'sine', 0.2, 0); }
+    function sfxPartialHit() { playSynthTone(523.25, 440, 0.18, 'sine', 0.2, 0); }
     function sfxAllMiss() { playSynthTone(180, 90, 0.28, 'sawtooth', 0.22, 0); }
 
     function startBgmEngine() {
@@ -961,7 +975,6 @@
                 existing.conn = conn;
                 finalName = existing.name;
             } else {
-                // 隨機給真人玩家加上可愛動物頭像
                 const cuteIcon = CUTE_AVATARS[teams.length % CUTE_AVATARS.length];
                 finalName = `${rawName} ${cuteIcon}`;
                 teams.push(createTeamObject(finalName, conn, false));
@@ -995,6 +1008,24 @@
             div.className = 'team-badge' + (t.isBot ? ' bot' : '');
             div.innerText = t.name;
             list.appendChild(div);
+        });
+    }
+
+    // 渲染右側「截至上一題」即時積分榜
+    function renderLiveScoreboard() {
+        const listEl = document.getElementById('live-scoreboard-list');
+        if (!listEl) return;
+        listEl.classList.toggle('two-cols', teams.length > 7);
+        const sorted = [...teams].sort((a, b) => b.score - a.score);
+        listEl.innerHTML = '';
+        sorted.forEach((t, idx) => {
+            const rankClass = idx === 0 ? 'top-1' : (idx === 1 ? 'top-2' : (idx === 2 ? 'top-3' : ''));
+            const rankLabel = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
+            listEl.innerHTML += `
+                <div class="live-sb-item ${rankClass}">
+                    <span class="live-sb-name">${rankLabel} ${t.name}</span>
+                    <span class="live-sb-pts">${t.score}分</span>
+                </div>`;
         });
     }
 
@@ -1083,6 +1114,9 @@
             return;
         }
 
+        // 在每題開始時更新右側積分榜，確保顯示的是「截至上一題為止」的分數
+        renderLiveScoreboard();
+
         const schedule = matchSchedule[currentMatchIdx];
         const card = drawQuestionCard();
         const showHanzi = document.getElementById('show-hanzi-toggle').checked;
@@ -1096,7 +1130,6 @@
         const targetSyl = parseSingleSyllable(parts[targetPartIdx]);
         const coopOpts = generateCoopOptions(targetSyl);
 
-        // 只保留乾淨粉紅底線，不再疊加 ____ 文字
         const maskedHtml = parts.map((p, idx) => {
             if (idx === targetPartIdx) return `<span class="blank-slot"></span>`;
             return formatTailoHtml(p);
@@ -1123,7 +1156,10 @@
 
         // 階段 1：大字展示題目並播音
         bgmMode = 'ducked';
-        document.getElementById('combo-banner').style.display = 'none';
+        const banner = document.getElementById('combo-banner');
+        banner.style.display = 'none';
+        banner.classList.remove('fail-mode');
+
         document.getElementById('hud-round-text').innerText = `第 ${schedule.round} / 3 回合`;
         document.getElementById('hud-q-progress').innerText = `題目: ${currentMatchIdx + 1} / ${matchSchedule.length}`;
         document.getElementById('hud-phase-hint').innerText = "🎧 斟酌聽";
@@ -1276,7 +1312,7 @@
         document.getElementById('crowd-progress-text').innerText = `👀 小兵助陣進度：${answeredCrowd} / ${crowdTeams.length} 組已鎖定`;
     }
 
-    // 階段 4：開獎結算、計算答對率與 COMBO
+    // 階段 4：開獎結算、計算答對率與 COMBO 成敗顯示
     function resolveMatchQuestion() {
         if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
         currentMatchData.acceptingAnswers = false;
@@ -1351,20 +1387,22 @@
             }
         });
 
+        const banner = document.getElementById('combo-banner');
         if (isCombo) {
             sfxComboFanfare();
             confetti({ particleCount: 100, spread: 80, origin: { y: 0.55 } });
-            const banner = document.getElementById('combo-banner');
-            banner.innerText = `⚡ ${spTeam.name} & ${tnTeam.name} 大神啦！combo +150 分！ ⚡`;
+            banner.classList.remove('fail-mode');
+            // 移除兩組之間的 & 符號，改用空格分隔
+            banner.innerHTML = `⚡ <span style="margin-right:18px;">${spTeam.name}</span><span>${tnTeam.name}</span>  大神啦！combo +150 分！ ⚡`;
             banner.style.display = 'block';
             document.getElementById('hud-phase-hint').innerText = "🎉 大神啦！combo";
-        } else if (spCorrect || tnCorrect) {
-            sfxPartialHit();
-            const whoRight = spCorrect ? `${spTeam.name}(⭕) 通過、${tnTeam.name}(❌) 失誤` : `${spTeam.name}(❌) 失誤、${tnTeam.name}(⭕) 通過`;
-            document.getElementById('hud-phase-hint').innerText = `💡 ${whoRight}`;
         } else {
-            sfxAllMiss();
-            document.getElementById('hud-phase-hint').innerText = `💥 雙將失誤！請看正解`;
+            if (spCorrect || tnCorrect) sfxPartialHit();
+            else sfxAllMiss();
+            banner.classList.add('fail-mode');
+            banner.innerText = `💔 真可惜 combo失敗`;
+            banner.style.display = 'block';
+            document.getElementById('hud-phase-hint').innerText = `💔 真可惜 combo失敗`;
         }
 
         document.getElementById('round-result-summary').innerText = `👏 本題另有 ${crowdCorrectCount} 組小兵答對 (+20分)！`;
@@ -1429,7 +1467,6 @@
         });
     }
 
-    // 📥 一鍵匯出 Excel (.csv 內嵌 UTF-8 BOM)
     function exportGradesToExcel() {
         if (teams.length === 0) return alert("目前沒有成績資料可匯出！");
         const sorted = [...teams].sort((a, b) => b.score - a.score);
@@ -1458,7 +1495,7 @@
     }
 
     // =========================================================
-    // 📱 學生平板端邏輯 (小兵拿刀 ➔ 立功機會 ➔ 騎馬拿槍大將)
+    // 📱 學生平板端邏輯
     // =========================================================
     let studentPeer = null;
     let hostConn = null;
@@ -1513,9 +1550,10 @@
             myCurrentRole = data.role;
             heroStage.className = '';
             oppOverlay.style.display = 'none';
-            // 初始統一顯示「小兵拿刀砍」
             avatarFig.innerHTML = getSoldierSlashSvg();
             banner.className = '';
+            banner.style.background = '';
+            banner.style.color = '';
             banner.innerText = "🎧 斟酌聽";
 
             btns.forEach((btn, idx) => {
@@ -1523,7 +1561,6 @@
                 btn.classList.remove('selected');
                 const optVal = data.options[idx];
                 if (data.isTone) {
-                    // 平板端同步顯示虛線圓圈與符號的 SVG 聲調樣式
                     btn.innerHTML = getToneCardHtml(optVal);
                 } else {
                     btn.innerHTML = `<span>${optVal || ''}</span>`;
@@ -1532,8 +1569,9 @@
             banner.dataset.partner = data.partnerName || '';
         } else if (data.type === 'PHASE') {
             if (data.phase === 'SPOTLIGHT') {
+                banner.style.background = '';
+                banner.style.color = '';
                 if (myCurrentRole === 'MAIN_SPELLING' || myCurrentRole === 'MAIN_TONE') {
-                    // 聚光燈點到的玩家：先顯示「立功機會」，然後小兵變成「騎馬拿槍(矛)大將」
                     oppOverlay.style.display = 'flex';
                     setTimeout(() => {
                         oppOverlay.style.display = 'none';
@@ -1549,7 +1587,6 @@
                         banner.innerText = `🐴 小兵轉大將！選【聲調】(搭檔：${banner.dataset.partner})`;
                     }
                 } else {
-                    // 未被點到的玩家：維持小兵拿刀砍
                     avatarFig.innerHTML = getSoldierSlashSvg();
                     banner.className = 'crowd-role';
                     if (myCurrentRole === 'CROWD_SPELLING') {
@@ -1568,7 +1605,6 @@
             document.getElementById('pad-my-score').innerText = `${data.totalScore} 分｜答對率 ${data.accRate}% (${data.correctQ}/${data.totalQ})`;
             banner.className = '';
 
-            // 若本題達成 COMBO，平板同步顯示大神 combo 特效與彩帶
             if (data.globalCombo) {
                 heroStage.classList.add('combo-mode');
                 if (typeof confetti === 'function') {
@@ -1583,12 +1619,12 @@
                 banner.style.background = '#16a34a'; banner.style.color = '#fff';
                 banner.innerText = data.globalCombo
                     ? `🎉 大神啦！combo！你也答對 +${data.delta} 分！`
-                    : `⭕ 答對了！ +${data.delta} 分！`;
+                    : `⭕ 答對 +${data.delta} 分！(真可惜 combo失敗)`;
             } else {
                 banner.style.background = '#dc2626'; banner.style.color = '#fff';
                 banner.innerText = data.globalCombo
-                    ? `⚡ 場上達成 combo！(你本題未中，請看大屏)`
-                    : `❌ 答錯或超時了！請看大屏正解`;
+                    ? `⚡ 場上達成 combo！(你本題未中)`
+                    : `💔 真可惜 combo失敗 (你本題未中)`;
             }
         }
     }
