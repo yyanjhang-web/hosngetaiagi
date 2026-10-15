@@ -66,13 +66,18 @@
             flex: 1.5; min-width: 340px; background: #1e293b; border: 2px solid #38bdf8; border-radius: 16px;
             padding: 14px 18px; display: flex; flex-direction: column; justify-content: space-between;
         }
-        .lesson-config-title { font-size: 18px; color: #38bdf8; margin: 0 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
+        .lesson-config-title { font-size: 18px; color: #38bdf8; margin: 0 0 8px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
         #lessons-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
         .lesson-btn {
             padding: 6px 13px; background: #334155; color: #e2e8f0; border: 1.5px solid #64748b;
             border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.15s;
         }
         .lesson-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+
+        .qcount-select {
+            background: #0f172a; color: #fde047; border: 1.5px solid #38bdf8; border-radius: 8px;
+            padding: 3px 8px; font-size: 14px; font-weight: bold; font-family: inherit; cursor: pointer;
+        }
 
         .lobby-controls-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-top: 1px dashed #475569; padding-top: 10px; }
         .btn-primary {
@@ -173,7 +178,7 @@
         #host-timer-wrap { width: 100%; max-width: 1380px; height: 10px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-bottom: 8px; display: none; border: 1px solid #475569; flex-shrink: 0; }
         #host-timer-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); transition: width 0.1s linear; }
 
-        /* 對戰舞台：左側雙玩家容器 (內嵌不擋計分板的橫幅) + 右側目前分數面板 */
+        /* 對戰舞台：左側雙區容器 + 右側目前分數面板 */
         #split-arena {
             display: none; width: 100%; max-width: 1380px; flex: 1; gap: 14px;
             align-items: stretch; justify-content: center; min-height: 0; overflow: hidden;
@@ -222,13 +227,12 @@
 
         .spotlight-header {
             display: flex; justify-content: space-between; align-items: center;
-            background: #0f172a; padding: 7px 12px; border-radius: 10px; margin-bottom: 8px;
+            background: #0f172a; padding: 8px 14px; border-radius: 10px; margin-bottom: 8px;
             border-left: 5px solid #38bdf8; flex-shrink: 0;
         }
         .arena-half.tone-side .spotlight-header { border-left-color: #f59e0b; }
-        .role-tag { font-size: 14px; color: #94a3b8; }
-        .assigned-team { font-size: clamp(18px, 2.1vw, 25px); color: #fde047; font-weight: bold; text-shadow: 0 0 10px rgba(253, 224, 71, 0.4); }
-        .team-status-pill { font-size: 13px; padding: 3px 10px; border-radius: 20px; background: #334155; color: #cbd5e1; white-space: nowrap; }
+        .role-tag { font-size: clamp(16px, 1.8vw, 20px); color: #fde047; font-weight: bold; }
+        .team-status-pill { font-size: 14px; padding: 4px 12px; border-radius: 20px; background: #334155; color: #cbd5e1; white-space: nowrap; }
         .team-status-pill.locked { background: #059669; color: #fff; box-shadow: 0 0 10px #10b981; }
 
         /* 4 選項格狀佈局 */
@@ -237,10 +241,11 @@
             gap: 8px; flex: 1; min-height: 0;
         }
         .opt-card {
-            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-size: clamp(22px, 2.8vw, 36px); font-weight: bold; color: #fff; position: relative;
             border: 2.5px solid rgba(255,255,255,0.25); box-shadow: 0 4px 12px rgba(0,0,0,0.35);
             transition: transform 0.2s, opacity 0.2s, border-color 0.2s; min-height: 0; overflow: hidden;
+            padding: 4px;
         }
         .opt-color-0 { background: linear-gradient(135deg, #e11d48, #be123c); }
         .opt-color-1 { background: linear-gradient(135deg, #0284c7, #0369a1); }
@@ -249,15 +254,18 @@
 
         .opt-label-corner { position: absolute; top: 5px; left: 9px; font-size: 13px; opacity: 0.8; font-family: Arial, sans-serif; }
 
-        /* 開獎狀態樣式 */
+        /* 開獎狀態樣式與多組選擇標籤列 */
         .opt-card.dimmed { opacity: 0.22; filter: grayscale(0.8); transform: scale(0.96); }
         .opt-card.correct-glow { border-color: #fde047; box-shadow: 0 0 25px #fde047, inset 0 0 15px rgba(255,255,255,0.5); transform: scale(1.02); z-index: 5; }
-        .opt-pick-tag {
-            position: absolute; bottom: 4px; right: 6px; background: rgba(0,0,0,0.85);
-            color: #fde047; border: 1.5px solid #fde047; padding: 1px 7px; border-radius: 10px;
-            font-size: 13px; display: none;
+        .opt-pick-list {
+            position: absolute; bottom: 4px; left: 6px; right: 6px;
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 3px;
+            max-height: 44%; overflow: hidden; pointer-events: none;
         }
-        .opt-card.picked .opt-pick-tag { display: block; }
+        .opt-pick-badge {
+            background: rgba(0,0,0,0.82); color: #fde047; border: 1px solid #fde047;
+            padding: 1px 6px; border-radius: 8px; font-size: 11.5px; white-space: nowrap;
+        }
 
         /* 一體成形 SVG 聲調樣式 */
         .tone-opt-wrap { display: flex; align-items: center; justify-content: center; gap: 6px; pointer-events: none; }
@@ -266,27 +274,40 @@
         .checked-tone-group-lg { display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
         .checked-tone-grid-lg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px; font-size: 13px; line-height: 0.95; font-family: Arial, sans-serif; color: #fde047; }
 
-        /* 底部陪考組即時狀態列與開獎橫幅 (限制於左側雙人區內，絕不擋住右側目前分數) */
+        /* 底部全班配對狀態列與多組 COMBO 橫幅 */
         #crowd-status-bar {
             width: 100%; max-width: 1380px; margin-top: 8px; background: rgba(15, 23, 42, 0.9);
             border: 1.5px solid #334155; border-radius: 10px; padding: 6px 16px;
-            display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: #94a3b8;
-            flex-shrink: 0;
+            display: flex; justify-content: space-between; align-items: center; font-size: 14.5px; color: #cbd5e1;
+            flex-shrink: 0; gap: 12px; overflow-x: auto; white-space: nowrap;
         }
+        .pair-chip {
+            display: inline-flex; align-items: center; gap: 4px; background: #1e293b;
+            border: 1px solid #475569; border-radius: 12px; padding: 2px 9px; font-size: 13px; margin-right: 6px;
+        }
+        .pair-chip.combo-win { border-color: #fde047; background: rgba(217, 119, 6, 0.35); color: #fde047; font-weight: bold; }
+
         #combo-banner {
             display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: max-content; max-width: 94%;
             background: linear-gradient(90deg, #dc2626, #f59e0b, #dc2626); color: #fff;
-            border: 4px solid #fde047; border-radius: 26px; padding: 14px 28px;
-            font-size: clamp(20px, 2.7vw, 36px); font-weight: bold; z-index: 60;
+            border: 4px solid #fde047; border-radius: 26px; padding: 14px 26px;
+            font-size: clamp(20px, 2.5vw, 34px); font-weight: bold; z-index: 60;
             box-shadow: 0 0 45px rgba(245, 158, 11, 0.95); text-shadow: 2px 2px 6px #000;
-            text-align: center; line-height: 1.3; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center; line-height: 1.35; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
         }
         #combo-banner.fail-mode {
             background: linear-gradient(90deg, #1e293b, #475569, #1e293b);
             border-color: #94a3b8; color: #f8fafc;
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.85);
+        }
+        .combo-pairs-wrap {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 14px; margin-bottom: 6px;
+        }
+        .combo-pair-pill {
+            background: rgba(0, 0, 0, 0.45); border: 2px solid #fde047; border-radius: 16px;
+            padding: 3px 14px; font-size: clamp(18px, 2.2vw, 28px); color: #fde047; white-space: nowrap;
         }
 
         /* ========================================================= */
@@ -373,7 +394,6 @@
         }
         #pad-role-banner.main-spelling { background: #0284c7; color: #fff; border-color: #fde047; }
         #pad-role-banner.main-tone { background: #d97706; color: #fff; border-color: #fde047; }
-        #pad-role-banner.crowd-role { background: #065f46; color: #a7f3d0; border-color: #34d399; }
 
         #pad-options-grid {
             width: 100%; height: 42vh; max-height: 290px;
@@ -434,7 +454,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 1.4</div>
+<div id="version-tag">Ver 1.5</div>
 
 <!-- ========================================================= -->
 <!-- 1. 首頁：選擇身分 -->
@@ -477,9 +497,20 @@
             <div>
                 <div class="lesson-config-title">
                     <span>📚 範圍</span>
-                    <label style="font-size: 15px; color: #fde047; cursor: pointer;">
-                        <input type="checkbox" id="show-hanzi-toggle" checked style="transform: scale(1.2);"> 顯示漢字
-                    </label>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <label style="font-size: 14px; color: #cbd5e1;">
+                            題數：
+                            <select id="total-q-select" class="qcount-select">
+                                <option value="9">9 題 (3回合)</option>
+                                <option value="12" selected>12 題 (3回合)</option>
+                                <option value="18">18 題 (3回合)</option>
+                                <option value="24">24 題 (3回合)</option>
+                            </select>
+                        </label>
+                        <label style="font-size: 15px; color: #fde047; cursor: pointer;">
+                            <input type="checkbox" id="show-hanzi-toggle" checked style="transform: scale(1.2);"> 顯示漢字
+                        </label>
+                    </div>
                 </div>
                 <div id="lessons-container"></div>
             </div>
@@ -505,7 +536,7 @@
     <div class="game-hud">
         <div class="hud-group">
             <span class="round-pill" id="hud-round-text">第 1 / 3 回合</span>
-            <span id="hud-q-progress">題目: 1 / 9</span>
+            <span id="hud-q-progress">題目: 1 / 12</span>
         </div>
         <div class="hud-group">
             <span id="hud-phase-hint" style="color: #fde047;">🎧 斟酌聽</span>
@@ -532,35 +563,29 @@
     <!-- 5秒倒數條 -->
     <div id="host-timer-wrap"><div id="host-timer-bar"></div></div>
 
-    <!-- 對戰舞台：左雙欄玩家容器 + 右欄目前分數 -->
+    <!-- 對戰舞台：左雙欄選項容器 (全班平權，無單獨組名) + 右欄目前分數 -->
     <div id="split-arena">
         <div class="players-pair-wrapper">
-            <!-- 左欄：拼寫組 -->
+            <!-- 左欄：拼寫選項 -->
             <div class="arena-half">
                 <div class="spotlight-header">
-                    <div>
-                        <div class="role-tag">🔤 負責【羅馬字拼寫】</div>
-                        <div class="assigned-team" id="main-team-spelling">甲組</div>
-                    </div>
-                    <div class="team-status-pill" id="status-pill-spelling">🤔 思考中...</div>
+                    <div class="role-tag">🔤 負責【羅馬字拼寫】</div>
+                    <div class="team-status-pill" id="status-pill-spelling">🤔 已鎖定 0 / 0 組</div>
                 </div>
                 <div class="options-grid" id="host-spelling-grid"></div>
             </div>
 
-            <!-- 中欄：聲調組 -->
+            <!-- 中欄：聲調選項 -->
             <div class="arena-half tone-side">
                 <div class="spotlight-header">
-                    <div>
-                        <div class="role-tag">📈 負責【聲調號碼】</div>
-                        <div class="assigned-team" id="main-team-tone">乙組</div>
-                    </div>
-                    <div class="team-status-pill" id="status-pill-tone">🤔 思考中...</div>
+                    <div class="role-tag">📈 負責【聲調號碼】</div>
+                    <div class="team-status-pill" id="status-pill-tone">🤔 已鎖定 0 / 0 組</div>
                 </div>
                 <div class="options-grid" id="host-tone-grid"></div>
             </div>
 
-            <!-- 橫幅置於雙人作答區正中央，絕不遮擋右側目前分數面板 -->
-            <div id="combo-banner">⚡ 小兵立大功！combo +150 分！ ⚡</div>
+            <!-- 橫幅置於雙人作答區正中央，支援顯示多組 Combo 成功名單，且不擋住右側目前分數 -->
+            <div id="combo-banner"></div>
         </div>
 
         <!-- 右欄：目前分數面板 -->
@@ -570,9 +595,9 @@
         </div>
     </div>
 
+    <!-- 底部顯示本題隨機兩兩配對組合 -->
     <div id="crowd-status-bar">
-        <span id="crowd-progress-text">👀 台下配對小兵作答進度：0 / 0 組已鎖定</span>
-        <span id="round-result-summary" style="color: #fde047; font-weight: bold;">每題兩兩一組！只要 combo 成功「小兵立大功」即加分！</span>
+        <div id="pairs-preview-bar">🤝 本題隨機配對：等待配對中...</div>
     </div>
 </div>
 
@@ -644,7 +669,6 @@
 <script>
     // =========================================================
     // 🎨 平板上方人物 4 狀態動態 SVG 圖形庫
-    // (1.揮刀小兵 2.立大功騎馬大將 3.冒汗小兵 4.暈倒小兵)
     // =========================================================
     const CUTE_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
 
@@ -714,9 +738,7 @@
             <line x1="55" y1="38" x2="51" y2="40" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
             <path d="M 44 47 Q 48 44 52 47" stroke="#b45309" stroke-width="2" fill="none" stroke-linecap="round"/>
             <path d="M 25 32 Q 48 14 71 32 Z" fill="#475569" stroke="#cbd5e1" stroke-width="2"/>
-            <!-- 拄在地上的刀 -->
             <rect x="68" y="48" width="5" height="40" rx="2" fill="#94a3b8"/>
-            <!-- 動態大汗滴 -->
             <g class="sweat-drop-anim">
                 <path d="M 72 22 Q 78 32 72 36 Q 66 32 72 22 Z" fill="#38bdf8" stroke="#fff" stroke-width="1"/>
             </g>
@@ -730,13 +752,10 @@
             <ellipse cx="48" cy="90" rx="28" ry="6" fill="rgba(0,0,0,0.4)" />
             <path d="M 35 58 L 61 58 L 65 86 L 31 86 Z" fill="#475569" stroke="#94a3b8" stroke-width="2"/>
             <circle cx="48" cy="42" r="14" fill="#fde68a" stroke="#fff" stroke-width="1.5"/>
-            <!-- X X 暈眩眼 -->
             <path d="M 40 38 L 45 43 M 45 38 L 40 43" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round"/>
             <path d="M 51 38 L 56 43 M 56 38 L 51 43" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round"/>
             <circle cx="48" cy="48" r="3" fill="#78350f"/>
-            <!-- 歪掉的鬥笠盔 -->
             <path d="M 22 30 Q 48 14 70 36 Z" fill="#334155" stroke="#94a3b8" stroke-width="2" transform="rotate(16 48 28)"/>
-            <!-- 頭頂旋轉金星 -->
             <g class="dizzy-stars-anim">
                 <text x="26" y="18" font-size="14">⭐</text>
                 <text x="58" y="18" font-size="14">💫</text>
@@ -937,7 +956,6 @@
     function sfxComboFanfare() {
         [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playSynthTone(f, f, 0.18, 'triangle', 0.26, i * 0.09));
     }
-    function sfxPartialHit() { playSynthTone(523.25, 440, 0.18, 'sine', 0.2, 0); }
     function sfxAllMiss() { playSynthTone(180, 90, 0.28, 'sawtooth', 0.22, 0); }
 
     function startBgmEngine() {
@@ -979,7 +997,7 @@
     let selectedLessons = ["B1L1"];
     let teams = [];
     let questionDeck = [];
-    let matchSchedule = [];
+    let totalGameQuestions = 12;
     let currentMatchIdx = 0;
     let currentMatchData = null;
     const questionAudio = new Audio();
@@ -1040,10 +1058,6 @@
             combos: 0,
             totalQ: 0,
             correctQ: 0,
-            mainCorrect: 0,
-            crowdCorrect: 0,
-            mainSpellingCnt: 0,
-            mainToneCnt: 0,
             conn: conn,
             isBot: isBot
         };
@@ -1113,13 +1127,15 @@
     }
 
     // =========================================================
-    // 🚀 分輪抽籤袋排程 + 主秀/台下小兵兩兩配對平衡機制
+    // 🚀 啟動遊戲：全班每題公平兩兩隨機配對
     // =========================================================
     async function startHostGame() {
         if (selectedLessons.length === 0) return alert("請至少選擇一課！");
         if (teams.length < 2) return alert("至少需要 2 組才能開始！(您可以點擊『➕ 加入AI試驗員』來立即測試)");
 
         getAudioCtx();
+        totalGameQuestions = parseInt(document.getElementById('total-q-select').value, 10) || 12;
+
         const fetchPromises = selectedLessons.map(sheet => 
             fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
                 .then(res => res.text()).then(text => ({ sheet, text }))
@@ -1147,32 +1163,7 @@
 
         teams.forEach(t => {
             t.score = 0; t.combos = 0; t.totalQ = 0; t.correctQ = 0;
-            t.mainCorrect = 0; t.crowdCorrect = 0; t.mainSpellingCnt = 0; t.mainToneCnt = 0;
         });
-
-        matchSchedule = [];
-        for (let round = 1; round <= 3; round++) {
-            let bag = shuffleArray(teams.map(t => t.id));
-            if (bag.length % 2 !== 0) {
-                const lucky = shuffleArray(teams.filter(t => t.id !== bag[bag.length - 1]))[0];
-                bag.push(lucky.id);
-            }
-            for (let i = 0; i < bag.length; i += 2) {
-                let tA = teams.find(t => t.id === bag[i]);
-                let tB = teams.find(t => t.id === bag[i + 1]);
-                let spId = tA.id;
-                let tnId = tB.id;
-
-                if (tA.mainSpellingCnt > tB.mainSpellingCnt || tB.mainToneCnt > tA.mainToneCnt) {
-                    spId = tB.id;
-                    tnId = tA.id;
-                }
-                teams.find(t => t.id === spId).mainSpellingCnt++;
-                teams.find(t => t.id === tnId).mainToneCnt++;
-
-                matchSchedule.push({ round: round, spellingTeamId: spId, toneTeamId: tnId });
-            }
-        }
 
         currentMatchIdx = 0;
         switchScreen('host-game-screen');
@@ -1187,19 +1178,19 @@
     }
 
     // =========================================================
-    // 🎬 單題四階段流程 (每題全班兩兩配對，有 Combo 才加分)
+    // 🎬 單題四階段流程 (全班兩兩隨機配對，所有達成 Combo 的組別通通顯示於大屏！)
     // =========================================================
     let countdownTimer = null;
 
     function runNextMatchQuestion() {
-        if (currentMatchIdx >= matchSchedule.length) {
+        if (currentMatchIdx >= totalGameQuestions) {
             showFinalLeaderboard();
             return;
         }
 
         renderLiveScoreboard();
 
-        const schedule = matchSchedule[currentMatchIdx];
+        const roundNum = Math.min(3, Math.floor((currentMatchIdx / totalGameQuestions) * 3) + 1);
         const card = drawQuestionCard();
         const showHanzi = document.getElementById('show-hanzi-toggle').checked;
 
@@ -1222,35 +1213,47 @@
             return formatTailoHtml(p);
         }).join('');
 
-        // 建立本題的「兩兩配對網」(主秀 2 組一對，台下其餘組別也隨機兩兩配對！)
+        // 全班公平兩兩隨機配對（且讓每組嚴格交替分配「拼寫」與「聲調」）
         const rolesMap = {};
-        const partnerMap = {}; // teamId -> partnerTeamId
-        rolesMap[schedule.spellingTeamId] = 'MAIN_SPELLING';
-        rolesMap[schedule.toneTeamId] = 'MAIN_TONE';
-        partnerMap[schedule.spellingTeamId] = schedule.toneTeamId;
-        partnerMap[schedule.toneTeamId] = schedule.spellingTeamId;
+        const partnerMap = {};
+        const pairsList = []; // [{ spId, tnId }]
 
-        const crowdPool = shuffleArray(teams.filter(t => t.id !== schedule.spellingTeamId && t.id !== schedule.toneTeamId));
-        for (let i = 0; i < crowdPool.length; i += 2) {
-            const cA = crowdPool[i];
-            const cB = crowdPool[i + 1];
-            if (cB) {
-                const aIsSp = ((i + currentMatchIdx) % 2 === 0);
-                rolesMap[cA.id] = aIsSp ? 'CROWD_SPELLING' : 'CROWD_TONE';
-                rolesMap[cB.id] = aIsSp ? 'CROWD_TONE' : 'CROWD_SPELLING';
-                partnerMap[cA.id] = cB.id;
-                partnerMap[cB.id] = cA.id;
-            } else {
-                // 若台下剩單數最後 1 組，隨機與台上一位主秀組組成連攜搭檔
-                const aIsSp = (currentMatchIdx % 2 === 0);
-                rolesMap[cA.id] = aIsSp ? 'CROWD_SPELLING' : 'CROWD_TONE';
-                partnerMap[cA.id] = aIsSp ? schedule.toneTeamId : schedule.spellingTeamId;
+        const spPool = [];
+        const tnPool = [];
+        teams.forEach((t, idx) => {
+            if ((idx + currentMatchIdx) % 2 === 0) spPool.push(t);
+            else tnPool.push(t);
+        });
+        const shuffledSp = shuffleArray(spPool);
+        const shuffledTn = shuffleArray(tnPool);
+
+        const maxLen = Math.max(shuffledSp.length, shuffledTn.length);
+        for (let i = 0; i < maxLen; i++) {
+            const spTeam = shuffledSp[i];
+            const tnTeam = shuffledTn[i];
+            if (spTeam && tnTeam) {
+                rolesMap[spTeam.id] = 'SPELLING';
+                rolesMap[tnTeam.id] = 'TONE';
+                partnerMap[spTeam.id] = tnTeam.id;
+                partnerMap[tnTeam.id] = spTeam.id;
+                pairsList.push({ spId: spTeam.id, tnId: tnTeam.id });
+            } else if (spTeam) {
+                // 若總組數為奇數，最後一組隨機與已配對的一位聲調組組成聯軍
+                const luckyTn = shuffledTn[0];
+                rolesMap[spTeam.id] = 'SPELLING';
+                partnerMap[spTeam.id] = luckyTn.id;
+                pairsList.push({ spId: spTeam.id, tnId: luckyTn.id });
+            } else if (tnTeam) {
+                const luckySp = shuffledSp[0];
+                rolesMap[tnTeam.id] = 'TONE';
+                partnerMap[tnTeam.id] = luckySp.id;
+                pairsList.push({ spId: luckySp.id, tnId: tnTeam.id });
             }
         }
 
         currentMatchData = {
-            schedule, card, targetSyl, coopOpts, maskedHtml, fullRevealedHtml,
-            rolesMap, partnerMap, answers: {}, acceptingAnswers: false
+            roundNum, card, targetSyl, coopOpts, maskedHtml, fullRevealedHtml,
+            rolesMap, partnerMap, pairsList, answers: {}, acceptingAnswers: false
         };
 
         broadcastPreparePacket();
@@ -1261,8 +1264,8 @@
         banner.style.display = 'none';
         banner.classList.remove('fail-mode');
 
-        document.getElementById('hud-round-text').innerText = `第 ${schedule.round} / 3 回合`;
-        document.getElementById('hud-q-progress').innerText = `題目: ${currentMatchIdx + 1} / ${matchSchedule.length}`;
+        document.getElementById('hud-round-text').innerText = `第 ${roundNum} / 3 回合`;
+        document.getElementById('hud-q-progress').innerText = `題目: ${currentMatchIdx + 1} / ${totalGameQuestions}`;
         document.getElementById('hud-phase-hint').innerText = "🎧 斟酌聽";
 
         const qStage = document.getElementById('question-stage');
@@ -1274,7 +1277,7 @@
 
         document.getElementById('split-arena').style.display = 'none';
         document.getElementById('host-timer-wrap').style.display = 'none';
-        updateCrowdStatusUI();
+        renderPairsPreviewBar(false);
 
         let phase1Done = false;
         const advanceToPhase2 = () => {
@@ -1299,21 +1302,26 @@
         questionAudio.play().catch(() => {});
     }
 
-    // 階段 2：題目縮小移至上方 + 點名緩衝 (2秒)
+    function renderPairsPreviewBar(showResult) {
+        if (!currentMatchData) return;
+        const bar = document.getElementById('pairs-preview-bar');
+        const chipsHtml = currentMatchData.pairsList.map(pair => {
+            const tSp = teams.find(t => t.id === pair.spId);
+            const tTn = teams.find(t => t.id === pair.tnId);
+            if (!tSp || !tTn) return '';
+            const isWin = showResult && isTeamAnswerCorrect(pair.spId) && isTeamAnswerCorrect(pair.tnId);
+            return `<span class="pair-chip ${isWin ? 'combo-win' : ''}">${tSp.name} × ${tTn.name}${isWin ? ' ⚡' : ''}</span>`;
+        }).join('');
+        bar.innerHTML = `<span style="color:#fde047; font-weight:bold; margin-right:6px;">🤝 本題兩兩配對：</span>${chipsHtml}`;
+    }
+
+    // 階段 2：題目縮小移至上方 + 配對揭曉緩衝 (2秒)
     function startPhase2Spotlight() {
         sfxSpotlight();
         document.getElementById('question-stage').classList.add('shrunk');
         document.getElementById('hud-phase-hint').innerText = "🎯 小兵轉大將";
 
-        const spTeam = teams.find(t => t.id === currentMatchData.schedule.spellingTeamId);
-        const tnTeam = teams.find(t => t.id === currentMatchData.schedule.toneTeamId);
-        document.getElementById('main-team-spelling').innerText = spTeam ? spTeam.name : '';
-        document.getElementById('main-team-tone').innerText = tnTeam ? tnTeam.name : '';
-
-        const pilSp = document.getElementById('status-pill-spelling');
-        const pilTn = document.getElementById('status-pill-tone');
-        pilSp.innerText = "⚡ 準備中..."; pilSp.classList.remove('locked');
-        pilTn.innerText = "⚡ 準備中..."; pilTn.classList.remove('locked');
+        updateLockInStatusPills();
 
         const spGrid = document.getElementById('host-spelling-grid');
         const tnGrid = document.getElementById('host-tone-grid');
@@ -1325,7 +1333,7 @@
         document.getElementById('split-arena').style.display = 'flex';
 
         broadcastStartPhase('SPOTLIGHT');
-        setTimeout(startPhase3Countdown, 2100);
+        setTimeout(startPhase3Countdown, 2000);
     }
 
     // 階段 3：正式亮出選項 + 限時5秒
@@ -1334,8 +1342,7 @@
         currentMatchData.acceptingAnswers = true;
         document.getElementById('hud-phase-hint').innerText = "🔥 限時5秒";
 
-        document.getElementById('status-pill-spelling').innerText = "🤔 思考中...";
-        document.getElementById('status-pill-tone').innerText = "🤔 思考中...";
+        updateLockInStatusPills();
 
         const spGrid = document.getElementById('host-spelling-grid');
         const tnGrid = document.getElementById('host-tone-grid');
@@ -1347,7 +1354,7 @@
                 <div class="opt-card opt-color-${idx}" id="host-sp-opt-${idx}">
                     <span class="opt-label-corner">${labels[idx]}</span>
                     <span>${optText}</span>
-                    <span class="opt-pick-tag" id="pick-tag-sp-${idx}"></span>
+                    <div class="opt-pick-list" id="pick-list-sp-${idx}"></div>
                 </div>`;
         });
 
@@ -1356,7 +1363,7 @@
                 <div class="opt-card opt-color-${idx}" id="host-tn-opt-${idx}">
                     <span class="opt-label-corner">${labels[idx]}</span>
                     ${getToneCardHtml(toneDigit)}
-                    <span class="opt-pick-tag" id="pick-tag-tn-${idx}"></span>
+                    <div class="opt-pick-list" id="pick-list-tn-${idx}"></div>
                 </div>`;
         });
 
@@ -1367,7 +1374,7 @@
             setTimeout(() => {
                 if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
                 const role = currentMatchData.rolesMap[bot.id];
-                const isSpelling = role.includes('SPELLING');
+                const isSpelling = (role === 'SPELLING');
                 const correctIdx = isSpelling ? currentMatchData.coopOpts.correctSpellingIdx : currentMatchData.coopOpts.correctToneIdx;
                 const botPick = (Math.random() < 0.78) ? correctIdx : Math.floor(Math.random() * 4);
                 recordTeamAnswer(bot.id, botPick);
@@ -1395,22 +1402,22 @@
         if (currentMatchData.answers[teamId] !== undefined) return;
         currentMatchData.answers[teamId] = choiceIdx;
         sfxLockIn();
-
-        if (teamId === currentMatchData.schedule.spellingTeamId) {
-            const pil = document.getElementById('status-pill-spelling');
-            pil.innerText = "✅ 已鎖定！"; pil.classList.add('locked');
-        } else if (teamId === currentMatchData.schedule.toneTeamId) {
-            const pil = document.getElementById('status-pill-tone');
-            pil.innerText = "✅ 已鎖定！"; pil.classList.add('locked');
-        }
-        updateCrowdStatusUI();
+        updateLockInStatusPills();
     }
 
-    function updateCrowdStatusUI() {
+    function updateLockInStatusPills() {
         if (!currentMatchData) return;
-        const crowdTeams = teams.filter(t => t.id !== currentMatchData.schedule.spellingTeamId && t.id !== currentMatchData.schedule.toneTeamId);
-        const answeredCrowd = crowdTeams.filter(t => currentMatchData.answers[t.id] !== undefined).length;
-        document.getElementById('crowd-progress-text').innerText = `👀 台下配對小兵作答進度：${answeredCrowd} / ${crowdTeams.length} 組已鎖定`;
+        const spTeams = teams.filter(t => currentMatchData.rolesMap[t.id] === 'SPELLING');
+        const tnTeams = teams.filter(t => currentMatchData.rolesMap[t.id] === 'TONE');
+        const spDone = spTeams.filter(t => currentMatchData.answers[t.id] !== undefined).length;
+        const tnDone = tnTeams.filter(t => currentMatchData.answers[t.id] !== undefined).length;
+
+        const pilSp = document.getElementById('status-pill-spelling');
+        const pilTn = document.getElementById('status-pill-tone');
+        pilSp.innerText = `✅ 已鎖定 ${spDone} / ${spTeams.length} 組`;
+        pilSp.classList.toggle('locked', spDone === spTeams.length && spTeams.length > 0);
+        pilTn.innerText = `✅ 已鎖定 ${tnDone} / ${tnTeams.length} 組`;
+        pilTn.classList.toggle('locked', tnDone === tnTeams.length && tnTeams.length > 0);
     }
 
     function isTeamAnswerCorrect(teamId) {
@@ -1418,70 +1425,65 @@
         const role = rolesMap[teamId];
         const pick = answers[teamId];
         if (pick === undefined) return false;
-        return role.includes('SPELLING') ? (pick === coopOpts.correctSpellingIdx) : (pick === coopOpts.correctToneIdx);
+        return (role === 'SPELLING') ? (pick === coopOpts.correctSpellingIdx) : (pick === coopOpts.correctToneIdx);
     }
 
-    // 階段 4：開獎結算（只要與搭檔達成 Combo 就加分並顯示「小兵立大功」！）
+    // 階段 4：開獎結算（把所有達成 Combo 的組別通通顯示於大屏橫幅！）
     function resolveMatchQuestion() {
         if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
         currentMatchData.acceptingAnswers = false;
         bgmMode = 'ducked';
 
-        const { schedule, coopOpts, fullRevealedHtml, answers, rolesMap, partnerMap } = currentMatchData;
+        const { coopOpts, fullRevealedHtml, answers, rolesMap, partnerMap, pairsList } = currentMatchData;
         document.getElementById('host-tailo-prompt').innerHTML = fullRevealedHtml;
 
-        const spTeam = teams.find(t => t.id === schedule.spellingTeamId);
-        const tnTeam = teams.find(t => t.id === schedule.toneTeamId);
-        const spPick = answers[schedule.spellingTeamId];
-        const tnPick = answers[schedule.toneTeamId];
-
-        const spCorrect = isTeamAnswerCorrect(schedule.spellingTeamId);
-        const tnCorrect = isTeamAnswerCorrect(schedule.toneTeamId);
-        const isMainCombo = (spCorrect && tnCorrect);
-
+        // 標示正確選項並列出各組選擇
         for (let i = 0; i < 4; i++) {
             const spCard = document.getElementById(`host-sp-opt-${i}`);
             if (i === coopOpts.correctSpellingIdx) spCard.classList.add('correct-glow');
             else spCard.classList.add('dimmed');
-            if (i === spPick && spTeam) {
-                spCard.classList.add('picked');
-                document.getElementById(`pick-tag-sp-${i}`).innerText = `${spTeam.name} ${spCorrect ? '⭕' : '❌'}`;
-            }
 
             const tnCard = document.getElementById(`host-tn-opt-${i}`);
             if (i === coopOpts.correctToneIdx) tnCard.classList.add('correct-glow');
             else tnCard.classList.add('dimmed');
-            if (i === tnPick && tnTeam) {
-                tnCard.classList.add('picked');
-                document.getElementById(`pick-tag-tn-${i}`).innerText = `${tnTeam.name} ${tnCorrect ? '⭕' : '❌'}`;
-            }
         }
 
-        // 計算全班各配對組別是否達成 Combo（只要有 Combo 就加分！）
-        let crowdComboTeamCount = 0;
         teams.forEach(t => {
-            const role = rolesMap[t.id];
+            const pick = answers[t.id];
+            if (pick === undefined) return;
+            const isSp = (rolesMap[t.id] === 'SPELLING');
+            const listContainer = document.getElementById(isSp ? `pick-list-sp-${pick}` : `pick-list-tn-${pick}`);
+            if (listContainer) {
+                listContainer.innerHTML += `<span class="opt-pick-badge">${t.name}</span>`;
+            }
+        });
+
+        // 找出本題所有達成 Combo 的配對 (例如：甲 乙、丙 丁)
+        const successfulPairsHtml = [];
+        pairsList.forEach(pair => {
+            if (isTeamAnswerCorrect(pair.spId) && isTeamAnswerCorrect(pair.tnId)) {
+                const tSp = teams.find(t => t.id === pair.spId);
+                const tTn = teams.find(t => t.id === pair.tnId);
+                if (tSp && tTn) {
+                    successfulPairsHtml.push(`<span class="combo-pair-pill">${tSp.name}   ${tTn.name}</span>`);
+                }
+            }
+        });
+
+        // 結算各組分數與答對率（所有配對一視同仁：達成 Combo 即得 +150 分！）
+        teams.forEach(t => {
             const myRight = isTeamAnswerCorrect(t.id);
             const partnerId = partnerMap[t.id];
             const partnerRight = partnerId ? isTeamAnswerCorrect(partnerId) : false;
             const pairCombo = (myRight && partnerRight);
 
             t.totalQ++;
-            if (myRight) {
-                t.correctQ++;
-                if (role.startsWith('MAIN_')) t.mainCorrect++;
-                else t.crowdCorrect++;
-            }
+            if (myRight) t.correctQ++;
 
             let delta = 0;
             if (pairCombo) {
                 t.combos++;
-                if (role.startsWith('MAIN_')) {
-                    delta = 150; // 舞台主秀搭檔 Combo 立大功 +150 分
-                } else {
-                    delta = 30;  // 台下配對小兵 Combo 立功 +30 分
-                    crowdComboTeamCount++;
-                }
+                delta = 150;
             }
 
             t.score += delta;
@@ -1502,29 +1504,31 @@
             }
         });
 
+        renderPairsPreviewBar(true);
+
         const banner = document.getElementById('combo-banner');
-        if (isMainCombo) {
+        if (successfulPairsHtml.length > 0) {
             sfxComboFanfare();
             confetti({ particleCount: 100, spread: 80, origin: { y: 0.55 } });
             banner.classList.remove('fail-mode');
-            banner.innerHTML = `⚡ <span style="margin-right:16px;">${spTeam.name}</span><span>${tnTeam.name}</span><br>小兵立大功！combo +150 分！ ⚡`;
+            banner.innerHTML = `
+                <div class="combo-pairs-wrap">${successfulPairsHtml.join('')}</div>
+                <div>⚡ 小兵立大功！combo +150 分！ ⚡</div>
+            `;
             banner.style.display = 'block';
-            document.getElementById('hud-phase-hint').innerText = "🎉 小兵立大功！combo";
+            document.getElementById('hud-phase-hint').innerText = `🎉 小兵立大功！共 ${successfulPairsHtml.length} 對達成 combo！`;
         } else {
-            if (spCorrect || tnCorrect) sfxPartialHit();
-            else sfxAllMiss();
+            sfxAllMiss();
             banner.classList.add('fail-mode');
             banner.innerText = `💔 真可惜 combo失敗`;
             banner.style.display = 'block';
             document.getElementById('hud-phase-hint').innerText = `💔 真可惜 combo失敗`;
         }
 
-        document.getElementById('round-result-summary').innerText = `👏 本題台下另有 ${crowdComboTeamCount} 組達成小兵立大功 (+30分)！`;
-
         setTimeout(() => {
             currentMatchIdx++;
             runNextMatchQuestion();
-        }, 3200);
+        }, 3300);
     }
 
     function broadcastPreparePacket() {
@@ -1533,13 +1537,13 @@
         teams.forEach(t => {
             if (!t.conn || !t.conn.open) return;
             const role = rolesMap[t.id];
-            const isSpelling = role.includes('SPELLING');
+            const isSpelling = (role === 'SPELLING');
             const partnerObj = teams.find(x => x.id === partnerMap[t.id]);
             t.conn.send({
                 type: 'PREPARE',
                 role: role,
                 isTone: !isSpelling,
-                partnerName: partnerObj ? partnerObj.name : 'AI將領',
+                partnerName: partnerObj ? partnerObj.name : 'AI隊友',
                 options: isSpelling ? coopOpts.spellingOptions : coopOpts.toneOptions
             });
         });
@@ -1618,7 +1622,7 @@
     }
 
     // =========================================================
-    // 📱 學生平板端邏輯 (小兵揮刀 ➔ 立大功變身騎馬大將 / 冒汗 / 暈倒)
+    // 📱 學生平板端邏輯
     // =========================================================
     let studentPeer = null;
     let hostConn = null;
@@ -1673,7 +1677,6 @@
             myCurrentRole = data.role;
             heroStage.className = '';
             oppOverlay.style.display = 'none';
-            // 作答前全員皆為「揮刀小兵」
             avatarFig.innerHTML = getSoldierSlashSvg();
             banner.className = '';
             banner.style.background = '';
@@ -1695,16 +1698,12 @@
             if (data.phase === 'SPOTLIGHT') {
                 banner.style.background = '';
                 banner.style.color = '';
-                const taskName = myCurrentRole.includes('SPELLING') ? '【拼寫】' : '【聲調】';
-                if (myCurrentRole.startsWith('MAIN_')) {
-                    oppOverlay.style.display = 'flex';
-                    setTimeout(() => { oppOverlay.style.display = 'none'; }, 900);
-                    banner.className = myCurrentRole === 'MAIN_SPELLING' ? 'main-spelling' : 'main-tone';
-                    banner.innerText = `🔥 舞台主秀！選${taskName} (搭檔：${banner.dataset.partner})`;
-                } else {
-                    banner.className = 'crowd-role';
-                    banner.innerText = `🗡️ 配對合擊！選${taskName} (搭檔：${banner.dataset.partner})`;
-                }
+                const isSp = (myCurrentRole === 'SPELLING');
+                const taskName = isSp ? '🔤【拼寫】' : '📈【聲調】';
+                oppOverlay.style.display = 'flex';
+                setTimeout(() => { oppOverlay.style.display = 'none'; }, 900);
+                banner.className = isSp ? 'main-spelling' : 'main-tone';
+                banner.innerText = `🗡️ 選${taskName}｜本題搭檔：${banner.dataset.partner}`;
             } else if (data.phase === 'COUNTDOWN') {
                 oppOverlay.style.display = 'none';
                 btns.forEach(btn => btn.classList.remove('disabled'));
