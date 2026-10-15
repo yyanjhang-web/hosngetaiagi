@@ -413,36 +413,74 @@
         .pad-btn.disabled { opacity: 0.35; pointer-events: none; }
 
         /* ========================================================= */
-        /* 5. 最終結算排行榜畫面 (含 Combo 最多次前3組榮譽榜) */
+        /* 5. 最終結算排行榜畫面 (含 Combo 王前3名 + 最多人錯前5題) */
         /* ========================================================= */
-        #host-gameover-screen { justify-content: flex-start; padding-top: 14px; }
+        #host-gameover-screen { justify-content: flex-start; padding-top: 12px; }
         .combo-kings-box {
-            width: 100%; max-width: 960px; background: linear-gradient(135deg, rgba(185, 28, 28, 0.35), rgba(217, 119, 6, 0.35));
-            border: 2.5px solid #f59e0b; border-radius: 16px; padding: 10px 16px; margin-bottom: 10px;
+            width: 100%; max-width: 1260px; background: linear-gradient(135deg, rgba(185, 28, 28, 0.35), rgba(217, 119, 6, 0.35));
+            border: 2.5px solid #f59e0b; border-radius: 16px; padding: 8px 16px; margin-bottom: 10px;
             display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+            flex-shrink: 0;
         }
-        .ck-title { font-size: 19px; font-weight: bold; color: #fde047; white-space: nowrap; }
+        .ck-title { font-size: 18px; font-weight: bold; color: #fde047; white-space: nowrap; }
         .ck-list { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         .ck-badge {
             background: #0f172a; border: 1.5px solid #fde047; border-radius: 12px;
-            padding: 5px 12px; font-size: 17px; font-weight: bold; color: #fff;
+            padding: 4px 12px; font-size: 16px; font-weight: bold; color: #fff;
             display: flex; align-items: center; gap: 6px;
         }
 
+        /* 左右雙欄結算容器：左邊總分榜、右邊最多人錯前 5 題 */
+        .gameover-main-grid {
+            width: 100%; max-width: 1260px; display: flex; gap: 16px;
+            align-items: stretch; justify-content: center; flex: 1; min-height: 0;
+            margin-bottom: 12px; flex-wrap: wrap;
+        }
         .leaderboard-box {
-            width: 100%; max-width: 960px; background: #1e293b; border: 3px solid #fde047;
-            border-radius: 20px; padding: 14px 18px; max-height: 55vh; overflow-y: auto; margin-bottom: 12px;
+            flex: 1.35; min-width: 340px; background: #1e293b; border: 3px solid #fde047;
+            border-radius: 20px; padding: 14px 16px; max-height: 56vh; overflow-y: auto;
+            display: flex; flex-direction: column;
         }
+        .top-missed-box {
+            flex: 1; min-width: 320px; background: #1e293b; border: 3px solid #38bdf8;
+            border-radius: 20px; padding: 14px 16px; max-height: 56vh; overflow-y: auto;
+            display: flex; flex-direction: column;
+        }
+        .box-panel-title {
+            font-size: 18px; font-weight: bold; color: #fde047; text-align: center;
+            padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1.5px solid #334155;
+            flex-shrink: 0;
+        }
+        .top-missed-box .box-panel-title { color: #38bdf8; }
+
         .lb-row {
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-            padding: 10px 14px; border-bottom: 1px solid #334155; font-size: 19px; border-radius: 10px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+            padding: 9px 12px; border-bottom: 1px solid #334155; font-size: 18px; border-radius: 10px;
         }
-        .lb-row:nth-child(1) { background: rgba(250, 204, 21, 0.2); color: #fde047; font-size: 23px; }
+        .lb-row:nth-child(1) { background: rgba(250, 204, 21, 0.2); color: #fde047; font-size: 21px; }
         .lb-row:nth-child(2) { background: rgba(148, 163, 184, 0.2); color: #e2e8f0; }
         .lb-row:nth-child(3) { background: rgba(180, 83, 9, 0.25); color: #fdba74; }
-        .combo-pill { background: #dc2626; color: #fde047; border: 1px solid #fde047; padding: 2px 10px; border-radius: 14px; font-size: 15px; margin-left: 8px; }
-        .acc-pill { background: #0f172a; color: #38bdf8; border: 1px solid #38bdf8; padding: 3px 12px; border-radius: 14px; font-size: 15px; }
-        .gameover-btn-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+        .combo-pill { background: #dc2626; color: #fde047; border: 1px solid #fde047; padding: 2px 9px; border-radius: 14px; font-size: 14px; margin-left: 6px; }
+        .acc-pill { background: #0f172a; color: #38bdf8; border: 1px solid #38bdf8; padding: 2px 10px; border-radius: 14px; font-size: 14.5px; }
+
+        /* 最多人錯前 5 題卡片列 */
+        .missed-item-row {
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+            padding: 10px 12px; margin-bottom: 6px; background: rgba(15, 23, 42, 0.75);
+            border: 1.5px solid #334155; border-radius: 12px; cursor: pointer; transition: 0.15s;
+        }
+        .missed-item-row:hover, .missed-item-row:active {
+            border-color: #38bdf8; background: rgba(56, 189, 248, 0.15); transform: translateX(3px);
+        }
+        .missed-word-info { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+        .missed-hanzi { font-size: 20px; font-weight: bold; color: #fb923c; }
+        .missed-tailo { font-size: 22px; font-weight: bold; color: #f8fafc; letter-spacing: 0.5px; }
+        .missed-err-badge {
+            background: rgba(220, 38, 38, 0.25); color: #fca5a5; border: 1px solid #ef4444;
+            padding: 3px 10px; border-radius: 12px; font-size: 14px; font-weight: bold; white-space: nowrap;
+        }
+
+        .gameover-btn-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; flex-shrink: 0; }
 
         /* 第8聲緊貼字母樣式 */
         .t8, .t8-i { position: relative; display: inline-block; line-height: 1; }
@@ -454,7 +492,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 1.6</div>
+<div id="version-tag">Ver 1.7</div>
 
 <!-- ========================================================= -->
 <!-- 1. 首頁：選擇身分 -->
@@ -602,10 +640,10 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- 4. 主辦方大屏：最終成績結算畫面 (含 Combo 最多次前3組) -->
+<!-- 4. 主辦方大屏：最終成績結算畫面 (含 Combo 王前3名 + 最多人錯前5題) -->
 <!-- ========================================================= -->
 <div id="host-gameover-screen" class="screen">
-    <h1 style="color: #fde047; font-size: 34px; margin: 0 0 8px 0;">🏆 論功行賞 🏆</h1>
+    <h1 style="color: #fde047; font-size: 32px; margin: 0 0 6px 0;">🏆 論功行賞 🏆</h1>
     
     <!-- COMBO 最多次前 3 組榮譽榜 -->
     <div class="combo-kings-box">
@@ -613,7 +651,19 @@
         <div class="ck-list" id="combo-top3-list"></div>
     </div>
 
-    <div class="leaderboard-box" id="leaderboard-list"></div>
+    <!-- 左欄：各組總分與答對率排行榜 ｜ 右欄：最多人錯的前 5 題 (點擊可聽音) -->
+    <div class="gameover-main-grid">
+        <div class="leaderboard-box">
+            <div class="box-panel-title">📊 各組積分與答對率</div>
+            <div id="leaderboard-list"></div>
+        </div>
+
+        <div class="top-missed-box">
+            <div class="box-panel-title">🧐 最多人錯的前 5 題 (揤詞語聽發音)</div>
+            <div id="top-missed-list"></div>
+        </div>
+    </div>
+
     <div class="gameover-btn-row">
         <button class="btn-excel" onclick="exportGradesToExcel()">📥 匯出成績單 (Excel)</button>
         <button class="btn-primary" onclick="location.reload()">🔄 閣耍一擺</button>
@@ -760,7 +810,7 @@
     }
 
     // =========================================================
-    // 📚 題庫設定與「台語迷思概念誘答引擎」(Ver 1.6 升級版)
+    // 📚 題庫設定與「台語迷思概念誘答引擎」(Ver 1.7 升級版)
     // =========================================================
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
@@ -815,19 +865,19 @@
         'iau':   ['iao', 'iaunn', 'io', 'au', 'iauh', 'iang'],
         'uai':   ['uainn', 'uan', 'ua', 'ai', 'wai', 'uang'],
         // 三種鼻音韻尾 (-m, -n, -ng) 與鼻化音 (-nn) 及聽覺近似音混淆
-        'am':    ['an', 'ang', 'ann', 'ap', 'ah', 'om'],
+        'am':    ['ang', 'an', 'ann', 'ap', 'ah', 'om'],
         'an':    ['ang', 'am', 'ann', 'at', 'ai', 'ainn'],
         'ang':   ['an', 'ann', 'am', 'ai', 'aing', 'ainn', 'ak', 'ong'],
         'ann':   ['an', 'ang', 'am', 'a', 'ah', 'ainn'],
-        'im':    ['in', 'ing', 'inn', 'ip', 'iam', 'em'],
+        'im':    ['ing', 'in', 'inn', 'ip', 'iam', 'em'],
         'in':    ['ing', 'im', 'inn', 'it', 'ian', 'un', 'en'],
         'ing':   ['in', 'im', 'inn', 'eng', 'ik', 'iang', 'ong'],
         'inn':   ['in', 'ing', 'im', 'i', 'ih', 'enn'],
         'un':    ['ung', 'ui', 'uan', 'ut', 'in', 'u', 'on'],
         'ong':   ['onn', 'om', 'ung', 'ok', 'ang', 'iong', 'oo'],
-        'om':    ['ong', 'op', 'am', 'onn', 'o'],
+        'om':    ['ong', 'on', 'op', 'am', 'onn', 'o'],
         'iong':  ['iung', 'ioo', 'io', 'ong', 'iok', 'iang', 'iunn'],
-        'iam':   ['ian', 'iang', 'iann', 'iap', 'im', 'am'],
+        'iam':   ['iang', 'ian', 'iann', 'iap', 'im', 'am'],
         'ian':   ['ien', 'iang', 'iam', 'iann', 'iat', 'in'],
         'iang':  ['ian', 'iam', 'iann', 'iong', 'iak', 'ang'],
         'uan':   ['uang', 'uann', 'uat', 'un', 'ua', 'ian'],
@@ -916,41 +966,36 @@
             list.push(...FINAL_TRAP_MAP[fin]);
         }
 
-        // 若為入聲韻尾 (-p, -t, -k, -h)，優先加入「同母音的其他入聲尾」與「去掉入聲尾的開放母音」與「對應鼻音尾」
         if (isChecked) {
-            const core = fin.slice(0, -1); // 例如 pit -> i, khuah -> ua, ooh -> oo
-            const end = fin.slice(-1);     // p, t, k, h
+            const core = fin.slice(0, -1);
+            const end = fin.slice(-1);
 
-            // 1. 優先加入開放母音 (例如 pit -> pi, khuah -> khua)
             if (core.length > 0) {
                 if (core === 'oo') list.unshift('oo', 'o');
                 else list.unshift(core);
             }
 
-            // 2. 加入其他入聲尾互換 (例如 pit -> pik, pih, pip)
             const stopOrder = (end === 't') ? ['k', 'h', 'p'] :
                               (end === 'k') ? ['t', 'h', 'p'] :
                               (end === 'p') ? ['t', 'k', 'h'] : ['t', 'k', 'p'];
             stopOrder.forEach(s => {
                 if (core === 'oo' && s !== 'h') {
-                    list.push('o' + s); // ooh -> ok, ot, op
+                    list.push('o' + s);
                 } else {
                     list.unshift(core + s);
                 }
             });
 
-            // 3. 加入對應鼻音韻尾 (例如 pit -> pin, lak -> lang, tsap -> tsam)
             const nasalMap = { 'p': 'm', 't': 'n', 'k': 'ng', 'h': 'nn' };
             if (nasalMap[end]) {
                 list.push(core + nasalMap[end]);
             }
         }
 
-        // 去重並排除正解本身
         return [...new Set(list)].filter(f => f && f !== fin);
     }
 
-    // 🔥 Ver 1.6 核心：台語迷思概念誘答產生器
+    // 🔥 Ver 1.7 核心：台語迷思概念誘答產生器 (強化雙唇鼻音 -m 的多元防猜題陣型)
     function generateCoopOptions(targetSyl) {
         const correctBase = targetSyl.base;
         const ini = targetSyl.initial;
@@ -967,15 +1012,40 @@
         } else if (correctBase === 'ngh') {
             distractors = ['ng', 'engh', 'ingh'];
         }
-        // 【特例 2】子音 + 聲化韻母 ng (如 pn̄g 飯、sng 酸、kng 光 -> 學生極易偷加 e, i, u)
+        // 【特例 2】子音 + 聲化韻母 ng (如 pn̄g 飯、sng 酸、kng 光)
         else if (fin === 'ng' && ini !== '') {
             const altInis = INITIAL_TRAP_MAP[ini] || ['p', 't', 'k'];
             const altIni = altInis[0];
             if (Math.random() < 0.65) {
                 distractors = [ini + 'eng', ini + 'ing', ini + 'un'];
             } else {
-                // 2x2 聲韻交叉 (例如 png, peng, bng, beng)
                 distractors = [ini + 'eng', altIni + 'ng', altIni + 'eng'];
+            }
+        }
+        // 【特例 3】雙唇鼻音韻尾 -m (如 lim, kam, tiam, som)
+        // 學生常聽成 -ng 或 -n，採用 3 種動態隨機陣型，避免學生看到 -m/-n/-ng 就直接猜 -m
+        else if (fin.endsWith('m') && fin !== 'm') {
+            const core = fin.slice(0, -1); // 'i', 'a', 'ia', 'o'
+            const nFin = (core === 'o') ? 'on' : core + 'n';
+            const ngFin = core + 'ng';
+            const pFin = core + 'p';
+            const nnFin = core + 'nn';
+            const iniTraps = INITIAL_TRAP_MAP[ini] || ['p', 't', 'k', 'l', 's'];
+            const altIni = iniTraps[Math.floor(Math.random() * Math.min(2, iniTraps.length))];
+
+            const mRoll = Math.random();
+            if (mRoll < 0.45) {
+                // 陣型 1 (45% 機率)：同時加入 -ng 與 -n，第 4 個搭配入聲 -p 或開放母音 (如 lim / ling / lin / lip)
+                const thirdTrap = (Math.random() < 0.55) ? (ini + pFin) : (ini + core);
+                distractors = [ini + ngFin, ini + nFin, thirdTrap];
+            } else if (mRoll < 0.80 && ini !== '') {
+                // 陣型 2 (35% 機率)：2x2 聲韻交叉掩護，挑 -ng 或 -n 其中之一，搭配易混聲母 (如 lim / ling / nim / ning)，完全防堵刪去法猜題
+                const chosenNasal = (Math.random() < 0.55) ? ngFin : nFin;
+                distractors = [ini + chosenNasal, altIni + fin, altIni + chosenNasal];
+            } else {
+                // 陣型 3 (20% 機率)：挑 -ng 或 -n 其中之一，搭配開放母音與鼻化音 (如 lim / lin / li / linn)
+                const chosenNasal = (Math.random() < 0.5) ? ngFin : nFin;
+                distractors = [ini + chosenNasal, ini + core, ini + nnFin];
             }
         }
         // 【一般音節】根據有無聲母與隨機策略產生最具誘答力的 3 個選項
@@ -984,31 +1054,28 @@
             const iniTraps = INITIAL_TRAP_MAP[ini] || ['p', 't', 'k', 'ts', 's'];
 
             if (ini === '') {
-                // 零聲母詞 (如 ang, oo, io, it)：優先考韻母與韻尾混淆
                 const pickedFins = finTraps.slice(0, 4);
                 distractors = shuffleArray(pickedFins).slice(0, 3);
             } else {
                 const strategyRoll = Math.random();
 
-                // 策略 A (45% 機率)：【韻母/韻尾專精局】4 個選項同聲母，專考韻尾/母音混淆 (如 pik / pit / pih / pi，或 tio / tiong / tiung / tioo)
+                // 策略 A (45% 機率)：【韻母/韻尾專精局】4 個選項同聲母，專考韻尾/母音混淆 (如 pik / pit / pih / pi)
                 if (strategyRoll < 0.45 && finTraps.length >= 3) {
                     const topFinTraps = finTraps.slice(0, 4);
                     distractors = shuffleArray(topFinTraps).slice(0, 3).map(f => ini + f);
                 }
-                // 策略 B (40% 機率)：【2×2 聲韻雙陷阱局】2 個易混聲母 × 2 個易混韻母 (如 bit / bik / pi / pit，防止多數決猜題！)
+                // 策略 B (40% 機率)：【2×2 聲韻雙陷阱局】2 個易混聲母 × 2 個易混韻母 (如 bit / bik / pi / pit)
                 else if (strategyRoll < 0.85 && iniTraps.length >= 1 && finTraps.length >= 2) {
                     const altIni = iniTraps[Math.floor(Math.random() * Math.min(2, iniTraps.length))];
-                    const altFin1 = finTraps[0]; // 最強第一誘答韻母 (如 pit 的 ik 或 i)
-                    const altFin2 = finTraps[1]; // 第二誘答韻母
+                    const altFin1 = finTraps[0];
+                    const altFin2 = finTraps[1];
                     if (Math.random() < 0.5) {
-                        // 正交 2x2：ini+fin(正解), ini+altFin1, altIni+fin, altIni+altFin1
                         distractors = [ini + altFin1, altIni + fin, altIni + altFin1];
                     } else {
-                        // 變化型 2x2 (如 pit, pi, bit, bik)
                         distractors = [ini + altFin2, altIni + fin, altIni + altFin1];
                     }
                 }
-                // 策略 C (15% 機率)：【聲母專精局】4 個選項同韻母，專考易混聲母 (如 pit / bit / phit / dit，或 sua / shua / hsua / tsua)
+                // 策略 C (15% 機率)：【聲母專精局】4 個選項同韻母，專考易混聲母
                 else {
                     const topIniTraps = iniTraps.slice(0, 4);
                     distractors = shuffleArray(topIniTraps).slice(0, 3).map(i => i + fin);
@@ -1016,7 +1083,7 @@
             }
         }
 
-        // 防呆補齊：確保 3 個誘答項不重複且不等於正解
+        // 防呆補齊
         distractors = [...new Set(distractors)].filter(d => d && d !== correctBase);
         const fallbackPool = ['a', 'i', 'u', 'e', 'o', 'oo', 'an', 'ang', 'ann', 'am', 'in', 'ing', 'un', 'ong', 'it', 'ik', 'at', 'ak', 'ah', 'oh'];
         for (let fb of fallbackPool) {
@@ -1030,7 +1097,7 @@
         const spellingOptions = shuffleArray([correctBase, ...distractors.slice(0, 3)]);
         const correctSpellingIdx = spellingOptions.indexOf(correctBase);
 
-        // 2. 產生聲調 4 選項（入聲 4、8 必互為誘答；非入聲依高低平/高低降對比誘答）
+        // 2. 產生聲調 4 選項
         const correctTone = targetSyl.tone;
         let tonePool = [];
         if (targetSyl.isChecked || correctTone === '4' || correctTone === '8') {
@@ -1038,7 +1105,6 @@
             const uncheckedPick = shuffleArray(['2', '3', '1', '7', '5']).slice(0, 2);
             tonePool = [correctTone, otherChecked, ...uncheckedPick];
         } else {
-            // 針對不同聲調安排最易混淆的夥伴聲調 (如 1配7、2配3、5配7/2)
             const toneTrapPref = {
                 '1': ['7', '2', '3', '5'],
                 '2': ['3', '1', '4', '5'],
@@ -1139,6 +1205,7 @@
     let totalGameQuestions = 12;
     let currentMatchIdx = 0;
     let currentMatchData = null;
+    let matchQuestionStats = []; // 紀錄每題失誤組數，供結算列出最多人錯的前 5 題
     const questionAudio = new Audio();
 
     function switchScreen(screenId) {
@@ -1303,6 +1370,7 @@
         teams.forEach(t => {
             t.score = 0; t.combos = 0; t.totalQ = 0; t.correctQ = 0;
         });
+        matchQuestionStats = [];
 
         currentMatchIdx = 0;
         switchScreen('host-game-screen');
@@ -1317,7 +1385,7 @@
     }
 
     // =========================================================
-    // 🎬 單題四階段流程 (全班兩兩隨機配對，所有達成 Combo 的組別通通顯示於大屏！)
+    // 🎬 單題四階段流程
     // =========================================================
     let countdownTimer = null;
 
@@ -1436,6 +1504,13 @@
     function replayCurrentAudio() {
         if (!currentMatchData) return;
         const safeUrl = currentMatchData.card.a.includes('%') ? currentMatchData.card.a : encodeURI(currentMatchData.card.a);
+        questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
+        questionAudio.play().catch(() => {});
+    }
+
+    function playReviewAudio(rawUrl) {
+        if (!rawUrl) return;
+        const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
         questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
         questionAudio.play().catch(() => {});
     }
@@ -1566,13 +1641,13 @@
         return (role === 'SPELLING') ? (pick === coopOpts.correctSpellingIdx) : (pick === coopOpts.correctToneIdx);
     }
 
-    // 階段 4：開獎結算（把所有達成 Combo 的組別通通顯示於大屏橫幅！）
+    // 階段 4：開獎結算（把所有達成 Combo 的組別顯示於大屏橫幅，並統計本題失誤組數）
     function resolveMatchQuestion() {
         if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
         currentMatchData.acceptingAnswers = false;
         bgmMode = 'ducked';
 
-        const { coopOpts, fullRevealedHtml, answers, rolesMap, partnerMap, pairsList } = currentMatchData;
+        const { card, coopOpts, fullRevealedHtml, answers, rolesMap, partnerMap, pairsList } = currentMatchData;
         document.getElementById('host-tailo-prompt').innerHTML = fullRevealedHtml;
 
         for (let i = 0; i < 4; i++) {
@@ -1607,6 +1682,8 @@
             }
         });
 
+        // 統計各組答題結果與本題總失誤組數
+        let wrongTeamsThisQ = 0;
         teams.forEach(t => {
             const myRight = isTeamAnswerCorrect(t.id);
             const partnerId = partnerMap[t.id];
@@ -1615,6 +1692,7 @@
 
             t.totalQ++;
             if (myRight) t.correctQ++;
+            else wrongTeamsThisQ++;
 
             let delta = 0;
             if (pairCombo) {
@@ -1638,6 +1716,16 @@
                     totalQ: t.totalQ
                 });
             }
+        });
+
+        // 紀錄本題失誤統計（供遊戲結束時挑出最多人錯的前 5 題）
+        matchQuestionStats.push({
+            h: card.h,
+            r: card.r,
+            a: card.a,
+            fullRevealedHtml: fullRevealedHtml,
+            wrongCount: wrongTeamsThisQ,
+            totalTeams: teams.length
         });
 
         renderPairsPreviewBar(true);
@@ -1722,12 +1810,45 @@
                         <strong>${medal} ${t.name}</strong>
                         ${comboHtml}
                     </div>
-                    <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
                         <span class="acc-pill">🎯 答對率：${accRate}% (${t.correctQ}/${t.totalQ})</span>
-                        <span style="font-weight:bold; min-width:95px; text-align:right;">${t.score} 分</span>
+                        <span style="font-weight:bold; min-width:85px; text-align:right;">${t.score} 分</span>
                     </div>
                 </div>`;
         });
+
+        // 3. 顯示最多人錯的前 5 題 (依錯題組數排序、去重，點擊可重播語音)
+        const missedContainer = document.getElementById('top-missed-list');
+        missedContainer.innerHTML = '';
+        const uniqueMap = new Map();
+        matchQuestionStats.forEach(item => {
+            if (item.wrongCount <= 0) return;
+            const key = `${item.h}_${item.r}`;
+            if (!uniqueMap.has(key) || item.wrongCount > uniqueMap.get(key).wrongCount) {
+                uniqueMap.set(key, item);
+            }
+        });
+        const top5Missed = Array.from(uniqueMap.values())
+            .sort((a, b) => b.wrongCount - a.wrongCount)
+            .slice(0, 5);
+
+        if (top5Missed.length === 0) {
+            missedContainer.innerHTML = `<div style="text-align:center; color:#4ade80; font-size:20px; padding:30px 10px;">✨ 全軍表現完美，無任何失誤題目！ ✨</div>`;
+        } else {
+            top5Missed.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.className = 'missed-item-row';
+                row.onclick = () => playReviewAudio(item.a);
+                row.innerHTML = `
+                    <div class="missed-word-info">
+                        <span class="missed-hanzi">🔊 ${idx + 1}. ${item.h}</span>
+                        <span class="missed-tailo">${item.fullRevealedHtml}</span>
+                    </div>
+                    <span class="missed-err-badge">❌ 錯 ${item.wrongCount} 組</span>
+                `;
+                missedContainer.appendChild(row);
+            });
+        }
     }
 
     function exportGradesToExcel() {
