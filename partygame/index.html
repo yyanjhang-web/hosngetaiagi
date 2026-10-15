@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>台語合擊派對 - 羅馬字與聲調連線大作戰</title>
+    <!-- 引入 豆腐烏 (Tauhu-Oo) 官方網頁字型 -->
+    <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
+    <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
+    <!-- 引入彩帶特效、PeerJS 連線核心、QRCode 產生器 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body {
+            font-family: 'tauhu-oo-bold', 'tauhu-oo', PingFangTC-Bold, "Microsoft JhengHei Bold", sans-serif;
+            margin: 0; padding: 0; background-color: #0f172a; color: #f8fafc;
+            width: 100vw; height: 100vh; height: 100dvh; overflow: hidden;
+        }
+
+        #version-tag { position: fixed; top: 10px; right: 16px; font-size: 14px; color: #38bdf8; font-weight: bold; z-index: 100; pointer-events: none; opacity: 0.8; }
+
+        /* 共用畫面容器 */
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 16px; position: relative; overflow-y: auto; }
+        .screen.active { display: flex; }
+
+        /* ========================================================= */
+        /* 1. 入口選擇畫面 (老師大屏 vs 學生平板) */
+        /* ========================================================= */
+        .title-banner { text-align: center; margin-bottom: 24px; }
+        .title-banner h1 { font-size: clamp(28px, 4.5vw, 48px); margin: 0 0 8px 0; color: #fde047; text-shadow: 0 4px 15px rgba(250, 204, 21, 0.4); }
+        .title-banner p { font-size: clamp(15px, 2vw, 20px); color: #38bdf8; margin: 0; }
+
+        .role-cards { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 760px; }
+        .role-card {
+            flex: 1; min-width: 260px; background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 3px solid #38bdf8; border-radius: 20px; padding: 28px 20px; text-align: center;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .role-card:hover, .role-card:active { transform: translateY(-6px) scale(1.02); border-color: #fde047; box-shadow: 0 0 25px rgba(253, 224, 71, 0.4); }
+        .role-card.student-card { border-color: #4ade80; }
+        .role-card .icon { font-size: 64px; margin-bottom: 12px; }
+        .role-card h2 { font-size: 26px; margin: 0 0 8px 0; color: #fff; }
+        .role-card p { font-size: 15px; color: #94a3b8; margin: 0; line-height: 1.4; }
+
+        .footer { position: absolute; bottom: 8px; text-align: center; width: 100%; font-size: 11px; color: #64748b; pointer-events: none; }
+
+        /* ========================================================= */
+        /* 2. 老師大屏：等待室與課次設定 */
+        /* ========================================================= */
+        #host-lobby-screen { justify-content: flex-start; padding-top: 20px; }
+        .lobby-top-bar { display: flex; gap: 20px; width: 100%; max-width: 1150px; align-items: stretch; flex-wrap: wrap; margin-bottom: 14px; }
+        
+        .room-pin-box {
+            flex: 1; min-width: 300px; background: #1e293b; border: 3px solid #fde047; border-radius: 16px;
+            padding: 14px 20px; display: flex; align-items: center; justify-content: space-around; gap: 16px;
+            box-shadow: 0 0 20px rgba(253, 224, 71, 0.2);
+        }
+        .pin-text-area { text-align: left; }
+        .pin-label { font-size: 16px; color: #cbd5e1; }
+        .pin-code { font-size: clamp(44px, 5vw, 68px); font-weight: bold; color: #fde047; letter-spacing: 6px; line-height: 1.1; text-shadow: 0 0 15px rgba(253, 224, 71, 0.5); }
+        #qrcode-box { background: #fff; padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+
+        .lesson-config-box {
+            flex: 1.5; min-width: 340px; background: #1e293b; border: 2px solid #38bdf8; border-radius: 16px;
+            padding: 14px 18px; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .lesson-config-title { font-size: 17px; color: #38bdf8; margin: 0 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
+        #lessons-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .lesson-btn {
+            padding: 6px 13px; background: #334155; color: #e2e8f0; border: 1.5px solid #64748b;
+            border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.15s;
+        }
+        .lesson-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+
+        .lobby-controls-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-top: 1px dashed #475569; padding-top: 10px; }
+        .btn-primary {
+            padding: 10px 28px; font-size: 20px; font-weight: bold; background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff; border: 2px solid #fde047; border-radius: 12px; cursor: pointer; font-family: inherit;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); transition: 0.15s;
+        }
+        .btn-primary:active { transform: scale(0.95); }
+        .btn-bot {
+            padding: 7px 14px; font-size: 14px; font-weight: bold; background: #334155; color: #94a3b8;
+            border: 1.5px solid #64748b; border-radius: 8px; cursor: pointer; font-family: inherit;
+        }
+        .btn-bot:hover { color: #fff; border-color: #cbd5e1; }
+
+        .teams-grid-box {
+            width: 100%; max-width: 1150px; flex: 1; background: rgba(15, 23, 42, 0.7);
+            border: 2px dashed #475569; border-radius: 16px; padding: 14px; overflow-y: auto;
+            display: flex; flex-direction: column;
+        }
+        .teams-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 18px; color: #cbd5e1; }
+        #lobby-teams-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+        .team-badge {
+            background: #1e293b; border: 2px solid #4ade80; border-radius: 10px; padding: 10px 12px;
+            font-size: 18px; font-weight: bold; color: #4ade80; text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popIn 0.25s ease-out;
+        }
+        .team-badge.bot { border-color: #a855f7; color: #d8b4fe; }
+        @keyframes popIn { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* ========================================================= */
+        /* 3. 老師大屏：遊戲主舞台 */
+        /* ========================================================= */
+        #host-game-screen { justify-content: space-between; padding: 12px 24px 18px 24px; }
+        
+        .game-hud {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(30, 41, 59, 0.85); border: 1.5px solid #334155; border-radius: 12px;
+            padding: 8px 18px; font-size: 18px; z-index: 10;
+        }
+        .hud-group { display: flex; align-items: center; gap: 14px; }
+        .round-pill { background: #0284c7; color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 16px; }
+        .icon-btn {
+            background: #334155; border: 1.5px solid #94a3b8; color: #fff; border-radius: 8px;
+            padding: 4px 10px; font-size: 16px; cursor: pointer; font-family: inherit;
+        }
+
+        /* 題目展示區：支援「中央巨大展示」與「縮小移至上方」的平滑動畫 */
+        #question-stage {
+            width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+            margin: auto 0; z-index: 8;
+        }
+        #question-stage.shrunk {
+            margin: 6px 0 10px 0; transform: scale(0.95);
+        }
+        .q-hanzi-hint { font-size: clamp(24px, 3vw, 36px); color: #fb923c; margin-bottom: 6px; font-weight: bold; }
+        #question-stage.shrunk .q-hanzi-hint { font-size: 22px; margin-bottom: 2px; }
+
+        .q-word-box {
+            background: #1e293b; border: 4px solid #38bdf8; border-radius: 24px;
+            padding: 24px 48px; display: flex; align-items: center; gap: 24px;
+            box-shadow: 0 0 35px rgba(56, 189, 248, 0.3); transition: all 0.45s ease;
+        }
+        #question-stage.shrunk .q-word-box { padding: 8px 28px; border-width: 2.5px; border-radius: 16px; }
+
+        .q-speaker { font-size: 54px; cursor: pointer; animation: pulse 1.2s infinite; }
+        #question-stage.shrunk .q-speaker { font-size: 32px; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+
+        .q-tailo-text { font-size: clamp(44px, 6vw, 76px); font-weight: bold; color: #fff; letter-spacing: 2px; }
+        #question-stage.shrunk .q-tailo-text { font-size: clamp(28px, 3.5vw, 42px); }
+        .blank-slot {
+            display: inline-block; min-width: 120px; border-bottom: 6px solid #ec4899;
+            color: #ec4899; text-align: center; margin: 0 8px; padding: 0 6px;
+        }
+        #question-stage.shrunk .blank-slot { min-width: 80px; border-bottom-width: 4px; }
+
+        /* 倒數計時條 */
+        #host-timer-wrap { width: 100%; max-width: 1100px; height: 14px; background: #1e293b; border-radius: 8px; overflow: hidden; margin-bottom: 10px; display: none; border: 1px solid #475569; }
+        #host-timer-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); transition: width 0.1s linear; }
+
+        /* 左右分割對戰舞台 (左：拼寫，右：聲調) */
+        #split-arena {
+            display: none; width: 100%; max-width: 1200px; flex: 1; gap: 20px;
+            align-items: stretch; justify-content: center; min-height: 0;
+        }
+        .arena-half {
+            flex: 1; background: rgba(30, 41, 59, 0.9); border: 3px solid #38bdf8; border-radius: 20px;
+            padding: 14px 18px; display: flex; flex-direction: column; justify-content: space-between;
+            position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        .arena-half.tone-side { border-color: #f59e0b; }
+
+        .spotlight-header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #0f172a; padding: 10px 16px; border-radius: 12px; margin-bottom: 12px;
+            border-left: 6px solid #38bdf8;
+        }
+        .arena-half.tone-side .spotlight-header { border-left-color: #f59e0b; }
+        .role-tag { font-size: 18px; color: #94a3b8; }
+        .assigned-team { font-size: clamp(22px, 2.8vw, 32px); color: #fde047; font-weight: bold; text-shadow: 0 0 10px rgba(253, 224, 71, 0.4); }
+        .team-status-pill { font-size: 15px; padding: 4px 12px; border-radius: 20px; background: #334155; color: #cbd5e1; }
+        .team-status-pill.locked { background: #059669; color: #fff; box-shadow: 0 0 10px #10b981; }
+
+        /* 4 選項格狀佈局 */
+        .options-grid {
+            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+            gap: 12px; flex: 1; min-height: 0;
+        }
+        .opt-card {
+            border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            font-size: clamp(28px, 3.8vw, 46px); font-weight: bold; color: #fff; position: relative;
+            border: 3px solid rgba(255,255,255,0.25); box-shadow: 0 6px 15px rgba(0,0,0,0.35);
+            transition: transform 0.2s, opacity 0.2s, border-color 0.2s;
+        }
+        .opt-color-0 { background: linear-gradient(135deg, #e11d48, #be123c); }
+        .opt-color-1 { background: linear-gradient(135deg, #0284c7, #0369a1); }
+        .opt-color-2 { background: linear-gradient(135deg, #d97706, #b45309); }
+        .opt-color-3 { background: linear-gradient(135deg, #16a34a, #15803d); }
+
+        .opt-label-corner { position: absolute; top: 8px; left: 12px; font-size: 16px; opacity: 0.75; font-family: Arial, sans-serif; }
+
+        /* 開獎狀態樣式 */
+        .opt-card.dimmed { opacity: 0.22; filter: grayscale(0.8); transform: scale(0.95); }
+        .opt-card.correct-glow { border-color: #fde047; box-shadow: 0 0 30px #fde047, inset 0 0 15px rgba(255,255,255,0.5); transform: scale(1.04); z-index: 5; }
+        .opt-pick-tag {
+            position: absolute; bottom: 8px; right: 10px; background: rgba(0,0,0,0.8);
+            color: #fde047; border: 1.5px solid #fde047; padding: 2px 10px; border-radius: 12px;
+            font-size: 16px; display: none;
+        }
+        .opt-card.picked .opt-pick-tag { display: block; }
+
+        /* 除魔咒術一體成形 SVG 聲調樣式放大版 */
+        .tone-opt-wrap { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .tone-opt-num { font-size: 26px; color: rgba(255,255,255,0.85); }
+        .tone-svg-large { width: 42px; height: 56px; overflow: visible; display: block; }
+        .checked-tone-group-lg { display: flex; align-items: flex-end; justify-content: center; gap: 4px; }
+        .checked-tone-grid-lg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 3px; font-size: 16px; line-height: 0.95; font-family: Arial, sans-serif; color: #fde047; }
+
+        /* 底部陪考組即時狀態列與開獎橫幅 */
+        #crowd-status-bar {
+            width: 100%; max-width: 1200px; margin-top: 10px; background: rgba(15, 23, 42, 0.85);
+            border: 1.5px solid #334155; border-radius: 12px; padding: 8px 16px;
+            display: flex; justify-content: space-between; align-items: center; font-size: 16px; color: #94a3b8;
+        }
+        #combo-banner {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: linear-gradient(90deg, #dc2626, #f59e0b, #dc2626); color: #fff;
+            border: 4px solid #fde047; border-radius: 30px; padding: 16px 42px;
+            font-size: clamp(28px, 4.5vw, 52px); font-weight: bold; z-index: 60;
+            box-shadow: 0 0 50px rgba(245, 158, 11, 0.9); text-shadow: 2px 2px 6px #000;
+            white-space: nowrap; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* ========================================================= */
+        /* 4. 學生平板端畫面 (加入房間 + 手把控制器) */
+        /* ========================================================= */
+        .student-Join-card {
+            background: #1e293b; border: 2px solid #4ade80; border-radius: 20px;
+            padding: 24px; width: 100%; max-width: 400px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .input-group { margin-bottom: 16px; text-align: left; }
+        .input-group label { display: block; font-size: 15px; color: #94a3b8; margin-bottom: 6px; }
+        .input-group input {
+            width: 100%; padding: 12px 14px; font-size: 22px; font-weight: bold;
+            background: #0f172a; border: 2px solid #475569; border-radius: 10px;
+            color: #fff; text-align: center; font-family: inherit;
+        }
+        .input-group input:focus { outline: none; border-color: #4ade80; }
+
+        #student-pad-screen { justify-content: space-between; padding: 12px; }
+        .pad-top-bar {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            background: #1e293b; padding: 10px 16px; border-radius: 12px; border: 1.5px solid #334155;
+        }
+        .pad-team-name { font-size: 20px; color: #4ade80; font-weight: bold; }
+        .pad-score { font-size: 20px; color: #fde047; font-weight: bold; }
+
+        /* 學生平板角色提示橫幅 (主秀閃爍特效) */
+        #pad-role-banner {
+            width: 100%; text-align: center; padding: 12px; border-radius: 14px;
+            font-size: 22px; font-weight: bold; margin: 10px 0; background: #334155; color: #cbd5e1;
+            transition: 0.2s;
+        }
+        #pad-role-banner.main-spelling {
+            background: linear-gradient(90deg, #0284c7, #2563eb); color: #fff;
+            border: 3px solid #fde047; animation: alertFlash 0.5s infinite alternate;
+        }
+        #pad-role-banner.main-tone {
+            background: linear-gradient(90deg, #d97706, #ea580c); color: #fff;
+            border: 3px solid #fde047; animation: alertFlash 0.5s infinite alternate;
+        }
+        #pad-role-banner.crowd-role {
+            background: #065f46; color: #a7f3d0; border: 2px solid #34d399;
+        }
+        @keyframes alertFlash { 0% { box-shadow: 0 0 5px #fde047; transform: scale(0.99); } 100% { box-shadow: 0 0 25px #fde047; transform: scale(1.01); } }
+
+        #pad-options-grid {
+            width: 100%; flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+            gap: 12px; min-height: 0;
+        }
+        .pad-btn {
+            border-radius: 18px; border: 3px solid rgba(255,255,255,0.3); color: #fff;
+            font-size: clamp(26px, 5vw, 42px); font-weight: bold; font-family: inherit;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; position: relative; box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        }
+        .pad-btn:active { transform: scale(0.95); }
+        .pad-btn.selected { border-color: #fde047; box-shadow: 0 0 25px #fde047; transform: scale(1.02); }
+        .pad-btn.disabled { opacity: 0.35; pointer-events: none; }
+
+        /* ========================================================= */
+        /* 5. 最終結算排行榜畫面 */
+        /* ========================================================= */
+        #host-gameover-screen { justify-content: flex-start; padding-top: 24px; }
+        .leaderboard-box {
+            width: 100%; max-width: 900px; background: #1e293b; border: 3px solid #fde047;
+            border-radius: 20px; padding: 20px; max-height: 70vh; overflow-y: auto; margin-bottom: 16px;
+        }
+        .lb-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 18px; border-bottom: 1px solid #334155; font-size: 22px; border-radius: 10px;
+        }
+        .lb-row:nth-child(1) { background: rgba(250, 204, 21, 0.2); color: #fde047; font-size: 26px; }
+        .lb-row:nth-child(2) { background: rgba(148, 163, 184, 0.2); color: #e2e8f0; }
+        .lb-row:nth-child(3) { background: rgba(180, 83, 9, 0.25); color: #fdba74; }
+        .combo-pill { background: #dc2626; color: #fde047; border: 1px solid #fde047; padding: 2px 10px; border-radius: 14px; font-size: 16px; margin-left: 10px; }
+
+        /* 第8聲緊貼字母樣式 */
+        .t8, .t8-i { position: relative; display: inline-block; line-height: 1; }
+        .t8::after, .t8-i::after {
+            content: ''; position: absolute; top: 0.03em; left: 50%; transform: translateX(-50%);
+            width: 2.5px; height: 0.22em; background-color: currentColor; border-radius: 1px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="version-tag">Ver 1.0</div>
+
+<!-- ========================================================= -->
+<!-- 1. 首頁：選擇身分 -->
+<!-- ========================================================= -->
+<div id="entry-screen" class="screen active">
+    <div class="title-banner">
+        <h1>⚡ 台語羅馬字・雙人合擊派對 ⚡</h1>
+        <p>全班連線合作！一組選拼寫、一組選聲調，創造最強 COMBO！</p>
+    </div>
+    <div class="role-cards">
+        <div class="role-card" onclick="initTeacherHost()">
+            <div class="icon">🖥️</div>
+            <h2>我是老師 (大屏主機)</h2>
+            <p>建立遊戲房間、選擇課次範圍、播放語音並在大螢幕主持全班對戰</p>
+        </div>
+        <div class="role-card student-card" onclick="showStudentJoin()">
+            <div class="icon">📱</div>
+            <h2>我是學生 (平板控制器)</h2>
+            <p>輸入房間號碼與組別名稱，兩人一組看著大螢幕合擊搶分</p>
+        </div>
+    </div>
+    <div class="footer">設計者：Iônn, Àn-tsiong | 技術支援：Gemini</div>
+</div>
+
+<!-- ========================================================= -->
+<!-- 2. 老師大屏：等待大廳與設定 -->
+<!-- ========================================================= -->
+<div id="host-lobby-screen" class="screen">
+    <div class="lobby-top-bar">
+        <div class="room-pin-box">
+            <div class="pin-text-area">
+                <div class="pin-label">📱 平板連線房間號碼</div>
+                <div class="pin-code" id="room-pin-display">----</div>
+                <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">請掃描右側 QR Code 或輸入房號加入</div>
+            </div>
+            <div id="qrcode-box"></div>
+        </div>
+
+        <div class="lesson-config-box">
+            <div>
+                <div class="lesson-config-title">
+                    <span>📚 選擇出題課次 (全體至少輪流上場 3 回合)</span>
+                    <label style="font-size: 14px; color: #fde047; cursor: pointer;">
+                        <input type="checkbox" id="show-hanzi-toggle" checked style="transform: scale(1.2);"> 顯示漢字提示
+                    </label>
+                </div>
+                <div id="lessons-container"></div>
+            </div>
+            <div class="lobby-controls-row">
+                <button class="btn-bot" onclick="addBotTeam()">🤖 ➕ 加入測試機器人組別</button>
+                <button class="btn-primary" onclick="startHostGame()">🚀 全員到齊，開始派對！</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="teams-grid-box">
+        <div class="teams-header">
+            <span>👥 已連線組別 (<span id="team-count-num" style="color:#4ade80;">0</span> 組) — 建議 2 人一組使用一台平板</span>
+            <span style="font-size: 14px; color: #94a3b8;">每回合自動洗牌配對，保證每組皆有 3 次主秀機會！</span>
+        </div>
+        <div id="lobby-teams-list"></div>
+    </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- 3. 老師大屏：遊戲進行畫面 -->
+<!-- ========================================================= -->
+<div id="host-game-screen" class="screen">
+    <div class="game-hud">
+        <div class="hud-group">
+            <span class="round-pill" id="hud-round-text">第 1 / 3 回合</span>
+            <span id="hud-q-progress">題目: 1 / 9</span>
+        </div>
+        <div class="hud-group">
+            <span id="hud-phase-hint" style="color: #fde047;">🎧 請仔細聽音...</span>
+        </div>
+        <div class="hud-group">
+            <button class="icon-btn" id="bgm-toggle-btn" onclick="toggleBgm()">🎵 音樂: 開</button>
+            <button class="icon-btn" id="sfx-toggle-btn" onclick="toggleSfx()">🔔 音效: 開</button>
+        </div>
+    </div>
+
+    <!-- 題目展示區 (先大字置中，點名後自動縮小移至上方) -->
+    <div id="question-stage">
+        <div class="q-hanzi-hint" id="host-hanzi-hint">紅筆</div>
+        <div class="q-word-box">
+            <div class="q-speaker" onclick="replayCurrentAudio()" title="點擊重播語音">🔊</div>
+            <div class="q-tailo-text" id="host-tailo-prompt"><span class="blank-slot">?</span> pit</div>
+        </div>
+    </div>
+
+    <!-- 5秒倒數條 -->
+    <div id="host-timer-wrap"><div id="host-timer-bar"></div></div>
+
+    <!-- 左右分割選項舞台 -->
+    <div id="split-arena">
+        <!-- 左半部：拼寫主秀 -->
+        <div class="arena-half">
+            <div class="spotlight-header">
+                <div>
+                    <div class="role-tag">🔤 負責【羅馬字拼寫】</div>
+                    <div class="assigned-team" id="main-team-spelling">甲組</div>
+                </div>
+                <div class="team-status-pill" id="status-pill-spelling">🤔 思考中...</div>
+            </div>
+            <div class="options-grid" id="host-spelling-grid"></div>
+        </div>
+
+        <!-- 右半部：聲調主秀 -->
+        <div class="arena-half tone-side">
+            <div class="spotlight-header">
+                <div>
+                    <div class="role-tag">📈 負責【聲調號碼】</div>
+                    <div class="assigned-team" id="main-team-tone">乙組</div>
+                </div>
+                <div class="team-status-pill" id="status-pill-tone">🤔 思考中...</div>
+            </div>
+            <div class="options-grid" id="host-tone-grid"></div>
+        </div>
+    </div>
+
+    <div id="crowd-status-bar">
+        <span id="crowd-progress-text">👀 陪考組作答進度：0 / 0 組已鎖定</span>
+        <span id="round-result-summary" style="color: #fde047; font-weight: bold;">主秀各 +100 分｜雙組全對觸發 COMBO 再 +50 分｜陪考答對 +20 分</span>
+    </div>
+
+    <div id="combo-banner">⚡ COMBO 合擊成功！雙組 +150 分！ ⚡</div>
+</div>
+
+<!-- ========================================================= -->
+<!-- 4. 老師大屏：最終成績結算畫面 -->
+<!-- ========================================================= -->
+<div id="host-gameover-screen" class="screen">
+    <h1 style="color: #fde047; font-size: 38px; margin: 0 0 12px 0;">🏆 派對結束・總成績排行榜 🏆</h1>
+    <div class="leaderboard-box" id="leaderboard-list"></div>
+    <button class="btn-primary" onclick="location.reload()">🔄 返回大廳再玩一局</button>
+</div>
+
+<!-- ========================================================= -->
+<!-- 5. 學生平板端：輸入房號與組名 -->
+<!-- ========================================================= -->
+<div id="student-join-screen" class="screen">
+    <div class="student-Join-card">
+        <h2 style="color: #4ade80; margin: 0 0 18px 0; font-size: 26px;">📱 加入合擊派對</h2>
+        <div class="input-group">
+            <label>1. 輸入大螢幕上的 4 位數房間號碼：</label>
+            <input type="text" id="join-pin-input" placeholder="例如：8899" maxlength="6" inputmode="numeric">
+        </div>
+        <div class="input-group">
+            <label>2. 輸入你們的組別名稱 (如座號 15&23 或 甲組)：</label>
+            <input type="text" id="join-name-input" placeholder="例如：15&23" maxlength="12">
+        </div>
+        <button class="btn-primary" id="student-connect-btn" style="width: 100%; background: #16a34a; border-color: #4ade80;" onclick="connectToHost()">連線進入房間</button>
+        <p id="student-join-msg" style="color: #fb923c; font-size: 14px; margin-top: 12px; min-height: 20px;"></p>
+    </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- 6. 學生平板端：作答控制器 -->
+<!-- ========================================================= -->
+<div id="student-pad-screen" class="screen">
+    <div class="pad-top-bar">
+        <span class="pad-team-name" id="pad-my-name">組別</span>
+        <span class="pad-score" id="pad-my-score">0 分 (0 Combo)</span>
+    </div>
+
+    <div id="pad-role-banner">⏳ 等待老師開始題目...</div>
+
+    <div id="pad-options-grid">
+        <button class="pad-btn opt-color-0 disabled" onclick="submitStudentAnswer(0)">A</button>
+        <button class="pad-btn opt-color-1 disabled" onclick="submitStudentAnswer(1)">B</button>
+        <button class="pad-btn opt-color-2 disabled" onclick="submitStudentAnswer(2)">C</button>
+        <button class="pad-btn opt-color-3 disabled" onclick="submitStudentAnswer(3)">D</button>
+    </div>
+</div>
+
+<script>
+    // =========================================================
+    // 📚 題庫設定與教育部台語羅馬字拆解引擎
+    // =========================================================
+    const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
+    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
+    const audioFolderMap = {
+        "B1L1": "育達B1L1音檔", "B1L2": "育達B1L2音檔", "B1L3": "育達B1L3音檔", "B1L4": "育達B1L4音檔",
+        "B3L1": "康軒B3L1音檔", "B3L2": "康軒B3L2音檔", "B3L3": "康軒B3L3音檔",
+        "防災素一": "康軒防災素一音檔", "拼音練習": "拼音練習音檔"
+    };
+
+    const MOE_INITIALS = ['p', 'ph', 'b', 'm', 't', 'th', 'n', 'l', 'k', 'kh', 'g', 'ng', 'h', 'ts', 'tsh', 's', 'j'];
+    const INITIAL_GROUPS = [
+        ['p', 'ph', 'b', 'm'], ['t', 'th', 'n', 'l'], ['k', 'kh', 'g', 'ng', 'h'], ['ts', 'tsh', 's', 'j']
+    ];
+    const MOE_UNCHECKED_FINALS = [
+        'a', 'ann', 'am', 'an', 'ang', 'ai', 'ainn', 'au', 'aunn', 'e', 'enn',
+        'i', 'inn', 'im', 'in', 'ing', 'ia', 'iann', 'iam', 'ian', 'iang', 'iau', 'iaunn', 'io', 'iong', 'iu', 'iunn',
+        'm', 'ng', 'o', 'onn', 'om', 'ong', 'oo', 'u', 'un', 'ua', 'uann', 'uan', 'uang', 'uai', 'uainn', 'ue', 'ui', 'uinn'
+    ];
+    const MOE_CHECKED_FINALS = [
+        'ah', 'annh', 'ap', 'at', 'ak', 'aih', 'ainnh', 'auh', 'aunnh', 'eh', 'ennh',
+        'ih', 'ip', 'it', 'ik', 'iah', 'iannh', 'iap', 'iat', 'iak', 'iauh', 'ioh', 'iok', 'iuh',
+        'mh', 'ngh', 'oh', 'onnh', 'op', 'ok', 'ooh', 'uh', 'ut', 'uah', 'uat', 'uainnh', 'ueh', 'uih'
+    ];
+
+    function isValidInitialFinalCombo(initial, finalStr) {
+        if (finalStr === 'm' || finalStr === 'mh') return initial === '';
+        if (finalStr === 'ng' || finalStr === 'ngh') return !['b', 'g', 'j', 'ng'].includes(initial);
+        if (finalStr.includes('nn') && ['b', 'g', 'l', 'j', 'm', 'n', 'ng'].includes(initial)) return false;
+        if (['m', 'n', 'ng'].includes(initial) && /[mngptk]$/.test(finalStr)) return false;
+        if (['p', 'ph', 'b', 'm'].includes(initial) && /[mp]$/.test(finalStr)) return false;
+        return true;
+    }
+
+    function parseSingleSyllable(rawSyl) {
+        const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
+        let nfd = rawSyl.toLowerCase().normalize('NFD');
+        let base = ''; let tone = null;
+        for (let ch of nfd) {
+            if (toneMap[ch]) tone = toneMap[ch];
+            else if (/[a-z]/.test(ch)) base += ch;
+        }
+        if (!tone) tone = /[ptkh]$/.test(base) ? '4' : '1';
+
+        let initial = ''; let final = base;
+        if (!['m', 'mh', 'ng', 'ngh'].includes(base)) {
+            const sortedInitials = [...MOE_INITIALS].sort((a, b) => b.length - a.length);
+            for (let ini of sortedInitials) {
+                if (base.startsWith(ini)) {
+                    const rest = base.slice(ini.length);
+                    if (rest.length > 0 && (/[aeiou]/.test(rest) || rest === 'ng' || rest === 'ngh')) {
+                        initial = ini; final = rest; break;
+                    }
+                }
+            }
+        }
+        const isChecked = /[ptkh]$/.test(final);
+        return { initial, final, base, tone, isChecked, raw: rawSyl };
+    }
+
+    function formatTailoHtml(str) {
+        if (!str) return '';
+        let nfd = str.normalize('NFD');
+        let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>');
+        res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
+        return res.normalize('NFC');
+    }
+
+    // 除魔咒術一體成形 SVG 聲調繪製系統
+    function getToneCardHtml(toneStr) {
+        const tone = parseInt(toneStr, 10);
+        let markPath = '';
+        switch(tone) {
+            case 2: markPath = `<line x1="12.5" y1="3.5" x2="8" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
+            case 3: markPath = `<line x1="7.5" y1="3.5" x2="12" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
+            case 5: markPath = `<path d="M 6.2 9 L 10 3.8 L 13.8 9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />`; break;
+            case 7: markPath = `<line x1="6.2" y1="6.8" x2="13.8" y2="6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
+            case 8: markPath = `<line x1="10" y1="3" x2="10" y2="9.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />`; break;
+            case 9: markPath = `<line x1="9.8" y1="3.5" x2="6.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" /><line x1="13.8" y1="3.5" x2="10.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />`; break;
+        }
+        const isChecked = (tone === 4 || tone === 8);
+        const vb = isChecked ? "3.5 0 13 26" : "0 0 20 26";
+        const svgHtml = `<svg class="tone-svg-large" viewBox="${vb}">${markPath}<circle cx="10" cy="18" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2.5,2" /></svg>`;
+        
+        if (isChecked) {
+            return `<div class="tone-opt-wrap"><span class="tone-opt-num">${tone}聲</span><div class="checked-tone-group-lg">${svgHtml}<div class="checked-tone-grid-lg"><span>p</span><span>t</span><span>k</span><span>h</span></div></div></div>`;
+        }
+        return `<div class="tone-opt-wrap"><span class="tone-opt-num">${tone}聲</span>${svgHtml}</div>`;
+    }
+
+    function shuffleArray(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    // 產生高誘答力的「拼寫 4 選項」與「聲調 4 選項」
+    function generateCoopOptions(targetSyl) {
+        const correctBase = targetSyl.base;
+        const ini = targetSyl.initial;
+        const fin = targetSyl.final;
+
+        // 1. 尋找高度相似的韻母（例如 ang -> an, am, ann, ak, at, ap, ah）
+        const allFinals = [...MOE_UNCHECKED_FINALS, ...MOE_CHECKED_FINALS];
+        const firstVowel = fin[0];
+        const similarFinals = shuffleArray(allFinals.filter(f => 
+            f !== fin && isValidInitialFinalCombo(ini, f) && f[0] === firstVowel
+        ));
+        const otherFinals = shuffleArray(allFinals.filter(f => 
+            f !== fin && isValidInitialFinalCombo(ini, f) && f[0] !== firstVowel
+        ));
+
+        let baseDistractors = [];
+        for (let f of [...similarFinals, ...otherFinals]) {
+            const candidate = ini + f;
+            if (candidate !== correctBase && !baseDistractors.includes(candidate)) {
+                baseDistractors.push(candidate);
+                if (baseDistractors.length >= 2) break;
+            }
+        }
+        // 再加 1 個同組近似聲母的誘答項 (如 p -> ph/b)
+        const group = INITIAL_GROUPS.find(g => g.includes(ini)) || MOE_INITIALS;
+        for (let altIni of shuffleArray(group)) {
+            if (altIni !== ini && isValidInitialFinalCombo(altIni, fin)) {
+                const candidate = altIni + fin;
+                if (!baseDistractors.includes(candidate)) {
+                    baseDistractors.push(candidate); break;
+                }
+            }
+        }
+        while (baseDistractors.length < 3) {
+            const fallback = ini + otherFinals[baseDistractors.length];
+            if (fallback && !baseDistractors.includes(fallback)) baseDistractors.push(fallback);
+            else break;
+        }
+
+        const spellingOptions = shuffleArray([correctBase, ...baseDistractors.slice(0, 3)]);
+        const correctSpellingIdx = spellingOptions.indexOf(correctBase);
+
+        // 2. 產生聲調 4 選項（若為入聲 4 或 8，強制放入另一個入聲作為誘答）
+        const correctTone = targetSyl.tone;
+        let tonePool = [];
+        if (targetSyl.isChecked || correctTone === '4' || correctTone === '8') {
+            const otherChecked = (correctTone === '4') ? '8' : '4';
+            const uncheckedPick = shuffleArray(['1', '2', '3', '5', '7']).slice(0, 2);
+            tonePool = [correctTone, otherChecked, ...uncheckedPick];
+        } else {
+            const otherTones = shuffleArray(['1', '2', '3', '5', '7', '4', '8'].filter(t => t !== correctTone)).slice(0, 3);
+            tonePool = [correctTone, ...otherTones];
+        }
+        const toneOptions = shuffleArray(tonePool);
+        const correctToneIdx = toneOptions.indexOf(correctTone);
+
+        return { spellingOptions, correctSpellingIdx, toneOptions, correctToneIdx };
+    }
+
+    // =========================================================
+    // 🎵 Web Audio 合成音效與「智慧音場閃避 BGM」
+    // =========================================================
+    let audioCtx = null;
+    let sfxMuted = false;
+    let bgmMuted = false;
+    let bgmInterval = null;
+    let bgmMode = 'off'; // 'off', 'ducked', 'active'
+    let bgmStep = 0;
+
+    function getAudioCtx() {
+        if (!audioCtx) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (Ctx) audioCtx = new Ctx();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+    }
+
+    function playSynthTone(freqStart, freqEnd, duration, type = 'sine', maxGain = 0.2, delay = 0) {
+        if (sfxMuted) return;
+        const ctx = getAudioCtx(); if (!ctx) return;
+        const t0 = ctx.currentTime + delay;
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freqStart, t0);
+        if (freqEnd !== freqStart) osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
+        gain.gain.setValueAtTime(0.001, t0);
+        gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2));
+        gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t0); osc.stop(t0 + duration + 0.02);
+    }
+
+    function sfxSpotlight() { playSynthTone(440, 660, 0.12, 'triangle', 0.2, 0); playSynthTone(660, 880, 0.18, 'triangle', 0.24, 0.1); }
+    function sfxLockIn() { playSynthTone(587.33, 880, 0.08, 'sine', 0.15, 0); }
+    function sfxComboFanfare() {
+        [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playSynthTone(f, f, 0.18, 'triangle', 0.26, i * 0.09));
+    }
+    function sfxPartialHit() { playSynthTone(523.25, 659.25, 0.15, 'sine', 0.2, 0); }
+    function sfxAllMiss() { playSynthTone(180, 90, 0.28, 'sawtooth', 0.22, 0); }
+
+    // 智慧 BGM 循環器：播題時自動壓低音量(ducked)，倒數時拉高音量(active)
+    function startBgmEngine() {
+        stopBgmEngine();
+        const bassline = [261.63, 329.63, 392.00, 329.63, 293.66, 349.23, 440.00, 349.23];
+        bgmInterval = setInterval(() => {
+            if (bgmMuted || bgmMode === 'off') return;
+            const ctx = getAudioCtx(); if (!ctx) return;
+            const vol = (bgmMode === 'active') ? 0.11 : 0.012; // 播題時降到極小聲
+            const note = bassline[bgmStep % bassline.length];
+            const t0 = ctx.currentTime;
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.type = (bgmMode === 'active') ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(note, t0);
+            gain.gain.setValueAtTime(0.001, t0);
+            gain.gain.linearRampToValueAtTime(vol, t0 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(t0); osc.stop(t0 + 0.2);
+            bgmStep++;
+        }, 220);
+    }
+    function stopBgmEngine() { if (bgmInterval) clearInterval(bgmInterval); bgmInterval = null; }
+
+    function toggleBgm() {
+        bgmMuted = !bgmMuted;
+        document.getElementById('bgm-toggle-btn').innerText = bgmMuted ? '🔇 音樂: 關' : '🎵 音樂: 開';
+    }
+    function toggleSfx() {
+        sfxMuted = !sfxMuted;
+        document.getElementById('sfx-toggle-btn').innerText = sfxMuted ? '🔕 音效: 關' : '🔔 音效: 開';
+    }
+
+    // =========================================================
+    // 🌐 PeerJS 網路連線與大廳管理
+    // =========================================================
+    let peer = null;
+    let roomPin = "";
+    let selectedLessons = ["B1L1"];
+    let teams = []; // { id, name, score, combos, conn, isBot }
+    let questionDeck = [];
+    let matchSchedule = []; // 3回合配對表
+    let currentMatchIdx = 0;
+    let currentMatchData = null;
+    const questionAudio = new Audio();
+
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // 初始化課次按鈕
+    const lessonsContainer = document.getElementById('lessons-container');
+    lessons.forEach(l => {
+        const btn = document.createElement('button');
+        btn.className = 'lesson-btn' + (selectedLessons.includes(l) ? ' active' : '');
+        btn.innerText = l;
+        btn.onclick = () => {
+            btn.classList.toggle('active');
+            if (selectedLessons.includes(l)) selectedLessons = selectedLessons.filter(x => x !== l);
+            else selectedLessons.push(l);
+        };
+        lessonsContainer.appendChild(btn);
+    });
+
+    // 若網址帶有 ?room=XXXX，自動導向學生加入畫面
+    window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const pinParam = params.get('room');
+        if (pinParam) {
+            showStudentJoin();
+            document.getElementById('join-pin-input').value = pinParam;
+        }
+    });
+
+    function initTeacherHost() {
+        getAudioCtx();
+        switchScreen('host-lobby-screen');
+        roomPin = String(Math.floor(1000 + Math.random() * 9000));
+        document.getElementById('room-pin-display').innerText = roomPin;
+
+        // 產生學生掃描用 QR Code
+        const joinUrl = `${window.location.origin}${window.location.pathname}?room=${roomPin}`;
+        const qrBox = document.getElementById('qrcode-box');
+        qrBox.innerHTML = '';
+        new QRCode(qrBox, { text: joinUrl, width: 96, height: 96 });
+
+        peer = new Peer(`taigi-coop-${roomPin}`);
+        peer.on('connection', conn => {
+            conn.on('data', data => handleHostReceiveData(conn, data));
+            conn.on('close', () => {
+                teams = teams.filter(t => t.conn !== conn);
+                renderLobbyTeams();
+            });
+        });
+    }
+
+    function handleHostReceiveData(conn, data) {
+        if (data.type === 'JOIN') {
+            let existing = teams.find(t => t.name === data.name);
+            if (existing) {
+                existing.conn = conn;
+            } else {
+                teams.push({
+                    id: 'team_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                    name: data.name, score: 0, combos: 0, conn: conn, isBot: false
+                });
+            }
+            conn.send({ type: 'JOINED_OK', name: data.name });
+            sfxLockIn();
+            renderLobbyTeams();
+        } else if (data.type === 'ANSWER') {
+            const team = teams.find(t => t.conn === conn);
+            if (team && currentMatchData && currentMatchData.acceptingAnswers) {
+                recordTeamAnswer(team.id, data.choiceIdx);
+            }
+        }
+    }
+
+    function addBotTeam() {
+        getAudioCtx();
+        const botNames = ["01&02", "03&04", "05&06", "07&08", "09&10", "11&12", "13&14", "15&16", "甲組", "乙組", "丙組", "丁組"];
+        const name = botNames[teams.length % botNames.length] + (teams.length >= botNames.length ? `-${teams.length}` : '');
+        teams.push({
+            id: 'bot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            name: name + "🤖", score: 0, combos: 0, conn: null, isBot: true
+        });
+        sfxLockIn();
+        renderLobbyTeams();
+    }
+
+    function renderLobbyTeams() {
+        document.getElementById('team-count-num').innerText = teams.length;
+        const list = document.getElementById('lobby-teams-list');
+        list.innerHTML = '';
+        teams.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'team-badge' + (t.isBot ? ' bot' : '');
+            div.innerText = t.name;
+            list.appendChild(div);
+        });
+    }
+
+    // =========================================================
+    // 🚀 盲點一解法：分輪抽籤袋排程與題目載入
+    // =========================================================
+    async function startHostGame() {
+        if (selectedLessons.length === 0) return alert("請至少選擇一課！");
+        if (teams.length < 2) return alert("至少需要 2 組才能開始合擊派對！(您可以點擊『➕ 加入測試機器人組別』來立即測試)");
+
+        getAudioCtx();
+        const fetchPromises = selectedLessons.map(sheet => 
+            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
+                .then(res => res.text()).then(text => ({ sheet, text }))
+        );
+
+        const results = await Promise.all(fetchPromises);
+        let rawCards = [];
+        results.forEach(({ sheet, text }) => {
+            let rowNumber = 0;
+            text.split(/\r?\n/).forEach(l => {
+                const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
+                if(p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
+                    rowNumber++;
+                    const numStr = String(rowNumber).padStart(2, '0');
+                    const folderName = audioFolderMap[sheet] || `${sheet}音檔`;
+                    const fallbackAudioUrl = `https://yyanjhang-web.github.io/hosngetaiagi/${folderName}/-${numStr}.mp3`;
+                    const colCAudioUrl = (p.length >= 3 && p[2].trim() !== "") ? p[2].trim() : fallbackAudioUrl;
+                    rawCards.push({ h: p[0].trim(), r: p[1].trim().split('(')[0].trim(), a: colCAudioUrl });
+                }
+            });
+        });
+
+        if (rawCards.length === 0) return alert("題庫載入失敗！");
+        questionDeck = shuffleArray(rawCards);
+
+        // 建立 3 回合的「分輪抽籤袋」，保證每組在每一回合都上場 1 次（共 3 次）
+        matchSchedule = [];
+        for (let round = 1; round <= 3; round++) {
+            let bag = shuffleArray(teams.map(t => t.id));
+            if (bag.length % 2 !== 0) {
+                // 若組數為單數，隨機抽另一組支援配對，確保人人有得玩
+                constlucky = shuffleArray(teams.filter(t => t.id !== bag[bag.length - 1]))[0];
+                bag.push(constlucky.id);
+            }
+            for (let i = 0; i < bag.length; i += 2) {
+                matchSchedule.push({ round: round, spellingTeamId: bag[i], toneTeamId: bag[i + 1] });
+            }
+        }
+
+        currentMatchIdx = 0;
+        switchScreen('host-game-screen');
+        startBgmEngine();
+        runNextMatchQuestion();
+    }
+
+    function drawQuestionCard() {
+        if (questionDeck.length === 0) {
+            // 若題庫抽完則重新洗牌
+            document.querySelectorAll('.lesson-btn.active');
+        }
+        const card = questionDeck.shift();
+        questionDeck.push(card); // 循環放回牌底
+        return card;
+    }
+
+    // =========================================================
+    // 🎬 單題四階段流程 (含預載防Lag、聚光燈緩衝、全班陪考、音場閃避)
+    // =========================================================
+    let countdownTimer = null;
+
+    function runNextMatchQuestion() {
+        if (currentMatchIdx >= matchSchedule.length) {
+            showFinalLeaderboard();
+            return;
+        }
+
+        const schedule = matchSchedule[currentMatchIdx];
+        const card = drawQuestionCard();
+        const showHanzi = document.getElementById('show-hanzi-toggle').checked;
+
+        // 拆解音節並隨機挖空其中 1 個字 (例如 ____ pit)
+        const parts = card.r.split(/([\s\-–—]+)/);
+        const sylIndices = [];
+        parts.forEach((p, idx) => {
+            if (p && !/^[\s\-–—]+$/.test(p) && /[a-zA-Z]/.test(p)) sylIndices.push(idx);
+        });
+        const targetPartIdx = sylIndices[Math.floor(Math.random() * sylIndices.length)];
+        const targetSyl = parseSingleSyllable(parts[targetPartIdx]);
+        const coopOpts = generateCoopOptions(targetSyl);
+
+        const maskedHtml = parts.map((p, idx) => {
+            if (idx === targetPartIdx) return `<span class="blank-slot">____</span>`;
+            return formatTailoHtml(p);
+        }).join('');
+
+        const fullRevealedHtml = parts.map((p, idx) => {
+            if (idx === targetPartIdx) return `<span style="color:#4ade80; text-decoration:underline;">${formatTailoHtml(p)}</span>`;
+            return formatTailoHtml(p);
+        }).join('');
+
+        // 為陪考組隨機分配「支援拼寫」或「支援聲調」
+        const rolesMap = {};
+        teams.forEach((t, idx) => {
+            if (t.id === schedule.spellingTeamId) rolesMap[t.id] = 'MAIN_SPELLING';
+            else if (t.id === schedule.toneTeamId) rolesMap[t.id] = 'MAIN_TONE';
+            else rolesMap[t.id] = (idx % 2 === 0) ? 'CROWD_SPELLING' : 'CROWD_TONE';
+        });
+
+        currentMatchData = {
+            schedule, card, targetSyl, coopOpts, maskedHtml, fullRevealedHtml,
+            rolesMap, answers: {}, acceptingAnswers: false
+        };
+
+        // 【防Lag關鍵】：在播音階段就提早把選項封包預載到所有平板！
+        broadcastPreparePacket();
+
+        // 階段 1：大字展示題目並播音（BGM 自動閃避壓低）
+        bgmMode = 'ducked';
+        document.getElementById('combo-banner').style.display = 'none';
+        document.getElementById('hud-round-text').innerText = `第 ${schedule.round} / 3 回合`;
+        document.getElementById('hud-q-progress').innerText = `題目: ${currentMatchIdx + 1} / ${matchSchedule.length}`;
+        document.getElementById('hud-phase-hint').innerText = "🎧 仔細聽音！準備抽籤點名...";
+
+        const qStage = document.getElementById('question-stage');
+        qStage.classList.remove('shrunk');
+        const hanziEl = document.getElementById('host-hanzi-hint');
+        hanziEl.innerText = card.h;
+        hanziEl.style.display = showHanzi ? 'block' : 'none';
+        document.getElementById('host-tailo-prompt').innerHTML = maskedHtml;
+
+        document.getElementById('split-arena').style.display = 'none';
+        document.getElementById('host-timer-wrap').style.display = 'none';
+        updateCrowdStatusUI();
+
+        // 播放題目語音，播完後進入「階段 2：聚光燈點名緩衝」
+        let phase1Done = false;
+        const advanceToPhase2 = () => {
+            if (phase1Done) return;
+            phase1Done = true;
+            setTimeout(startPhase2Spotlight, 400);
+        };
+
+        const safeUrl = card.a.includes('%') ? card.a : encodeURI(card.a);
+        questionAudio.pause();
+        questionAudio.src = safeUrl;
+        questionAudio.currentTime = 0;
+        questionAudio.onended = advanceToPhase2;
+        setTimeout(advanceToPhase2, 2600);
+        questionAudio.play().catch(() => advanceToPhase2());
+    }
+
+    function replayCurrentAudio() {
+        if (!currentMatchData) return;
+        const safeUrl = currentMatchData.card.a.includes('%') ? currentMatchData.card.a : encodeURI(currentMatchData.card.a);
+        questionAudio.pause(); questionAudio.src = safeUrl; questionAudio.currentTime = 0;
+        questionAudio.play().catch(() => {});
+    }
+
+    // 階段 2：題目縮小移至上方 + 聚光燈點名緩衝 (2秒，讓學生回神看平板)
+    function startPhase2Spotlight() {
+        sfxSpotlight();
+        document.getElementById('question-stage').classList.add('shrunk');
+        document.getElementById('hud-phase-hint').innerText = "🎯 聚光燈點名！請看平板準備作答！";
+
+        const spTeam = teams.find(t => t.id === currentMatchData.schedule.spellingTeamId);
+        const tnTeam = teams.find(t => t.id === currentMatchData.schedule.toneTeamId);
+        document.getElementById('main-team-spelling').innerText = spTeam ? spTeam.name : '';
+        document.getElementById('main-team-tone').innerText = tnTeam ? tnTeam.name : '';
+
+        const pilSp = document.getElementById('status-pill-spelling');
+        const pilTn = document.getElementById('status-pill-tone');
+        pilSp.innerText = "⚡ 準備中..."; pilSp.classList.remove('locked');
+        pilTn.innerText = "⚡ 準備中..."; pilTn.classList.remove('locked');
+
+        // 先顯示左右舞台框架，但選項先蓋牌
+        const spGrid = document.getElementById('host-spelling-grid');
+        const tnGrid = document.getElementById('host-tone-grid');
+        spGrid.innerHTML = ''; tnGrid.innerHTML = '';
+        ['A', 'B', 'C', 'D'].forEach((label, idx) => {
+            spGrid.innerHTML += `<div class="opt-card opt-color-${idx}"><span class="opt-label-corner">${label}</span>?</div>`;
+            tnGrid.innerHTML += `<div class="opt-card opt-color-${idx}"><span class="opt-label-corner">${label}</span>?</div>`;
+        });
+        document.getElementById('split-arena').style.display = 'flex';
+
+        // 通知平板閃爍點名提示
+        broadcastStartPhase('SPOTLIGHT');
+
+        // 2 秒緩衝後正式進入 5 秒限時作答
+        setTimeout(startPhase3Countdown, 2000);
+    }
+
+    // 階段 3：正式亮出選項 + 5秒倒數 + BGM 音量拉高
+    function startPhase3Countdown() {
+        bgmMode = 'active';
+        currentMatchData.acceptingAnswers = true;
+        document.getElementById('hud-phase-hint').innerText = "🔥 限時 5 秒！快按平板選出正確組合！";
+
+        document.getElementById('status-pill-spelling').innerText = "🤔 思考中...";
+        document.getElementById('status-pill-tone').innerText = "🤔 思考中...";
+
+        // 渲染左邊拼寫選項與右邊聲調選項
+        const spGrid = document.getElementById('host-spelling-grid');
+        const tnGrid = document.getElementById('host-tone-grid');
+        spGrid.innerHTML = ''; tnGrid.innerHTML = '';
+        const labels = ['A', 'B', 'C', 'D'];
+
+        currentMatchData.coopOpts.spellingOptions.forEach((optText, idx) => {
+            spGrid.innerHTML += `
+                <div class="opt-card opt-color-${idx}" id="host-sp-opt-${idx}">
+                    <span class="opt-label-corner">${labels[idx]}</span>
+                    <span>${optText}</span>
+                    <span class="opt-pick-tag" id="pick-tag-sp-${idx}"></span>
+                </div>`;
+        });
+
+        currentMatchData.coopOpts.toneOptions.forEach((toneDigit, idx) => {
+            tnGrid.innerHTML += `
+                <div class="opt-card opt-color-${idx}" id="host-tn-opt-${idx}">
+                    <span class="opt-label-corner">${labels[idx]}</span>
+                    ${getToneCardHtml(toneDigit)}
+                    <span class="opt-pick-tag" id="pick-tag-tn-${idx}"></span>
+                </div>`;
+        });
+
+        // 啟動平板按鈕
+        broadcastStartPhase('COUNTDOWN');
+
+        // 機器人自動作答模擬
+        teams.filter(t => t.isBot).forEach(bot => {
+            setTimeout(() => {
+                if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
+                const role = currentMatchData.rolesMap[bot.id];
+                const isSpelling = role.includes('SPELLING');
+                const correctIdx = isSpelling ? currentMatchData.coopOpts.correctSpellingIdx : currentMatchData.coopOpts.correctToneIdx;
+                // 機器人有 75% 機率答對
+                const botPick = (Math.random() < 0.75) ? correctIdx : Math.floor(Math.random() * 4);
+                recordTeamAnswer(bot.id, botPick);
+            }, 900 + Math.random() * 3200);
+        });
+
+        // 5 秒倒數計時條
+        const timerWrap = document.getElementById('host-timer-wrap');
+        const timerBar = document.getElementById('host-timer-bar');
+        timerWrap.style.display = 'block';
+        timerBar.style.width = '100%';
+
+        let timeLeft = 5.0;
+        clearInterval(countdownTimer);
+        countdownTimer = setInterval(() => {
+            timeLeft = Math.round((timeLeft - 0.1) * 10) / 10;
+            timerBar.style.width = `${Math.max(0, (timeLeft / 5.0) * 100)}%`;
+            if (timeLeft <= 0) {
+                clearInterval(countdownTimer);
+                // 預留 0.6 秒網路緩衝期給壓線送出的平板封包
+                setTimeout(resolveMatchQuestion, 600);
+            }
+        }, 100);
+    }
+
+    function recordTeamAnswer(teamId, choiceIdx) {
+        if (currentMatchData.answers[teamId] !== undefined) return;
+        currentMatchData.answers[teamId] = choiceIdx;
+        sfxLockIn();
+
+        if (teamId === currentMatchData.schedule.spellingTeamId) {
+            const pil = document.getElementById('status-pill-spelling');
+            pil.innerText = "✅ 已鎖定！"; pil.classList.add('locked');
+        } else if (teamId === currentMatchData.schedule.toneTeamId) {
+            const pil = document.getElementById('status-pill-tone');
+            pil.innerText = "✅ 已鎖定！"; pil.classList.add('locked');
+        }
+        updateCrowdStatusUI();
+    }
+
+    function updateCrowdStatusUI() {
+        if (!currentMatchData) return;
+        const crowdTeams = teams.filter(t => t.id !== currentMatchData.schedule.spellingTeamId && t.id !== currentMatchData.schedule.toneTeamId);
+        const answeredCrowd = crowdTeams.filter(t => currentMatchData.answers[t.id] !== undefined).length;
+        document.getElementById('crowd-progress-text').innerText = `👀 陪考組作答進度：${answeredCrowd} / ${crowdTeams.length} 組已鎖定`;
+    }
+
+    // 階段 4：開獎結算與 COMBO 判定
+    function resolveMatchQuestion() {
+        if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
+        currentMatchData.acceptingAnswers = false;
+        bgmMode = 'ducked';
+
+        const { schedule, coopOpts, fullRevealedHtml, answers, rolesMap } = currentMatchData;
+        document.getElementById('host-tailo-prompt').innerHTML = fullRevealedHtml;
+
+        const spTeam = teams.find(t => t.id === schedule.spellingTeamId);
+        const tnTeam = teams.find(t => t.id === schedule.toneTeamId);
+        const spPick = answers[schedule.spellingTeamId];
+        const tnPick = answers[schedule.toneTeamId];
+
+        const spCorrect = (spPick === coopOpts.correctSpellingIdx);
+        const tnCorrect = (tnPick === coopOpts.correctToneIdx);
+        const isCombo = (spCorrect && tnCorrect);
+
+        // 視覺化顯示左右正確答案與主秀選擇
+        for (let i = 0; i < 4; i++) {
+            const spCard = document.getElementById(`host-sp-opt-${i}`);
+            if (i === coopOpts.correctSpellingIdx) spCard.classList.add('correct-glow');
+            else spCard.classList.add('dimmed');
+            if (i === spPick && spTeam) {
+                spCard.classList.add('picked');
+                document.getElementById(`pick-tag-sp-${i}`).innerText = `${spTeam.name} ${spCorrect ? '⭕' : '❌'}`;
+            }
+
+            const tnCard = document.getElementById(`host-tn-opt-${i}`);
+            if (i === coopOpts.correctToneIdx) tnCard.classList.add('correct-glow');
+            else tnCard.classList.add('dimmed');
+            if (i === tnPick && tnTeam) {
+                tnCard.classList.add('picked');
+                document.getElementById(`pick-tag-tn-${i}`).innerText = `${tnTeam.name} ${tnCorrect ? '⭕' : '❌'}`;
+            }
+        }
+
+        // 計算全班得分
+        let crowdCorrectCount = 0;
+        teams.forEach(t => {
+            const role = rolesMap[t.id];
+            const pick = answers[t.id];
+            let gotRight = false;
+            let delta = 0;
+
+            if (role === 'MAIN_SPELLING') {
+                gotRight = spCorrect;
+                if (gotRight) delta = isCombo ? 150 : 100;
+                if (isCombo) t.combos++;
+            } else if (role === 'MAIN_TONE') {
+                gotRight = tnCorrect;
+                if (gotRight) delta = isCombo ? 150 : 100;
+                if (isCombo) t.combos++;
+            } else if (role === 'CROWD_SPELLING') {
+                gotRight = (pick === coopOpts.correctSpellingIdx);
+                if (gotRight) { delta = 20; crowdCorrectCount++; }
+            } else if (role === 'CROWD_TONE') {
+                gotRight = (pick === coopOpts.correctToneIdx);
+                if (gotRight) { delta = 20; crowdCorrectCount++; }
+            }
+
+            t.score += delta;
+            if (t.conn && t.conn.open) {
+                t.conn.send({
+                    type: 'RESULT', correct: gotRight, delta: delta,
+                    totalScore: t.score, combos: t.combos, isCombo: isCombo && role.startsWith('MAIN_')
+                });
+            }
+        });
+
+        // 大螢幕音效與結果橫幅
+        if (isCombo) {
+            sfxComboFanfare();
+            confetti({ particleCount: 100, spread: 80, origin: { y: 0.55 } });
+            const banner = document.getElementById('combo-banner');
+            banner.innerText = `⚡ ${spTeam.name} & ${tnTeam.name} 合擊 COMBO！各 +150 分！ ⚡`;
+            banner.style.display = 'block';
+            document.getElementById('hud-phase-hint').innerText = "🎉 太神啦！雙組完美合擊！";
+        } else if (spCorrect || tnCorrect) {
+            sfxPartialHit();
+            const whoRight = spCorrect ? `${spTeam.name}(拼寫⭕) 通過、${tnTeam.name}(聲調❌) 失誤` : `${spTeam.name}(拼寫❌) 失誤、${tnTeam.name}(聲調⭕) 通過`;
+            document.getElementById('hud-phase-hint').innerText = `💡 結果：${whoRight}`;
+        } else {
+            sfxAllMiss();
+            document.getElementById('hud-phase-hint').innerText = `💥 兩組皆未通過！正解已標示於畫面上`;
+        }
+
+        document.getElementById('round-result-summary').innerText = `👏 本題另有 ${crowdCorrectCount} 組陪考答對 (+20分)！`;
+
+        setTimeout(() => {
+            currentMatchIdx++;
+            runNextMatchQuestion();
+        }, 3200);
+    }
+
+    function broadcastPreparePacket() {
+        const { coopOpts, rolesMap, schedule } = currentMatchData;
+        const spTeam = teams.find(t => t.id === schedule.spellingTeamId);
+        const tnTeam = teams.find(t => t.id === schedule.toneTeamId);
+
+        teams.forEach(t => {
+            if (!t.conn || !t.conn.open) return;
+            const role = rolesMap[t.id];
+            const isSpelling = role.includes('SPELLING');
+            t.conn.send({
+                type: 'PREPARE',
+                role: role,
+                partnerName: (role === 'MAIN_SPELLING') ? (tnTeam ? tnTeam.name : '') : (spTeam ? spTeam.name : ''),
+                options: isSpelling ? coopOpts.spellingOptions : coopOpts.toneOptions.map(d => `${d} 聲`)
+            });
+        });
+    }
+
+    function broadcastStartPhase(phaseName) {
+        teams.forEach(t => {
+            if (t.conn && t.conn.open) {
+                t.conn.send({ type: 'PHASE', phase: phaseName });
+            }
+        });
+    }
+
+    function showFinalLeaderboard() {
+        stopBgmEngine();
+        sfxComboFanfare();
+        confetti({ particleCount: 140, spread: 100, origin: { y: 0.5 } });
+        switchScreen('host-gameover-screen');
+
+        const sorted = [...teams].sort((a, b) => b.score - a.score);
+        const box = document.getElementById('leaderboard-list');
+        box.innerHTML = '';
+        sorted.forEach((t, idx) => {
+            const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
+            const comboHtml = t.combos > 0 ? `<span class="combo-pill">⚡ COMBO x${t.combos}</span>` : '';
+            box.innerHTML += `
+                <div class="lb-row">
+                    <div><strong>${medal} ${t.name}</strong> ${comboHtml}</div>
+                    <div style="font-weight:bold;">${t.score} 分</div>
+                </div>`;
+        });
+    }
+
+    // =========================================================
+    // 📱 學生平板端邏輯
+    // =========================================================
+    let studentPeer = null;
+    let hostConn = null;
+    let myCurrentRole = '';
+
+    function showStudentJoin() {
+        switchScreen('student-join-screen');
+    }
+
+    function connectToHost() {
+        const pin = document.getElementById('join-pin-input').value.trim();
+        const name = document.getElementById('join-name-input').value.trim();
+        const msgEl = document.getElementById('student-join-msg');
+
+        if (!pin || !name) {
+            msgEl.innerText = "⚠️ 請完整輸入 4 位數房號與組別名稱！";
+            return;
+        }
+        msgEl.innerText = "⏳ 正在連線至教室大屏...";
+        document.getElementById('student-connect-btn').disabled = true;
+
+        studentPeer = new Peer();
+        studentPeer.on('open', () => {
+            hostConn = studentPeer.connect(`taigi-coop-${pin}`, { reliable: true });
+            hostConn.on('open', () => {
+                hostConn.send({ type: 'JOIN', name: name });
+            });
+            hostConn.on('data', data => handleStudentReceiveData(data));
+            hostConn.on('close', () => {
+                alert("與老師大屏的連線已中斷！");
+                location.reload();
+            });
+        });
+        studentPeer.on('error', () => {
+            msgEl.innerText = "❌ 找不到該房間號碼，請確認老師大屏是否已開啟！";
+            document.getElementById('student-connect-btn').disabled = false;
+        });
+    }
+
+    function handleStudentReceiveData(data) {
+        const banner = document.getElementById('pad-role-banner');
+        const btns = document.querySelectorAll('#pad-options-grid .pad-btn');
+
+        if (data.type === 'JOINED_OK') {
+            document.getElementById('pad-my-name').innerText = data.name;
+            switchScreen('student-pad-screen');
+        } else if (data.type === 'PREPARE') {
+            // 預載題目選項，但鎖定按鈕直到倒數開始
+            myCurrentRole = data.role;
+            banner.className = '';
+            banner.innerText = "🎧 請聽大螢幕發音...";
+            btns.forEach((btn, idx) => {
+                btn.classList.add('disabled');
+                btn.classList.remove('selected');
+                btn.innerText = data.options[idx] || '';
+            });
+            banner.dataset.partner = data.partnerName || '';
+        } else if (data.type === 'PHASE') {
+            if (data.phase === 'SPOTLIGHT') {
+                if (myCurrentRole === 'MAIN_SPELLING') {
+                    banner.className = 'main-spelling';
+                    banner.innerText = `🔥 輪到你們主秀！負責【拼寫】(搭檔：${banner.dataset.partner})`;
+                } else if (myCurrentRole === 'MAIN_TONE') {
+                    banner.className = 'main-tone';
+                    banner.innerText = `🔥 輪到你們主秀！負責【聲調】(搭檔：${banner.dataset.partner})`;
+                } else if (myCurrentRole === 'CROWD_SPELLING') {
+                    banner.className = 'crowd-role';
+                    banner.innerText = `👀 陪考賺分 (+20分)：請選【拼寫】`;
+                } else {
+                    banner.className = 'crowd-role';
+                    banner.innerText = `👀 陪考賺分 (+20分)：請選【聲調】`;
+                }
+            } else if (data.phase === 'COUNTDOWN') {
+                btns.forEach(btn => btn.classList.remove('disabled'));
+            }
+        } else if (data.type === 'RESULT') {
+            btns.forEach(btn => btn.classList.add('disabled'));
+            document.getElementById('pad-my-score').innerText = `${data.totalScore} 分 (${data.combos} Combo)`;
+            banner.className = '';
+            if (data.isCombo) {
+                banner.style.background = '#d97706'; banner.style.color = '#fff';
+                banner.innerText = `⚡ COMBO 合擊成功！ +${data.delta} 分！`;
+            } else if (data.correct) {
+                banner.style.background = '#16a34a'; banner.style.color = '#fff';
+                banner.innerText = `⭕ 答對了！ +${data.delta} 分！`;
+            } else {
+                banner.style.background = '#dc2626'; banner.style.color = '#fff';
+                banner.innerText = `❌ 答錯或超時了！請看大螢幕正解`;
+            }
+        }
+    }
+
+    function submitStudentAnswer(choiceIdx) {
+        if (!hostConn || !hostConn.open) return;
+        const btns = document.querySelectorAll('#pad-options-grid .pad-btn');
+        btns.forEach((btn, idx) => {
+            btn.classList.add('disabled');
+            if (idx === choiceIdx) btn.classList.add('selected');
+        });
+        hostConn.send({ type: 'ANSWER', choiceIdx: choiceIdx });
+    }
+</script>
+</body>
+</html>
