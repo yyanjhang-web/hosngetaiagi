@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>台語PARTY - 小兵轉大將 combo立大功</title>
+    <title>台語PARTY - 小兵轉大將 踢皮球立大功</title>
     <!-- 引入 豆腐烏 (Tauhu-Oo) 官方網頁字型 -->
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -114,7 +114,7 @@
         @keyframes popIn { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
         /* ========================================================= */
-        /* 3. 主辦方大屏：遊戲主舞台 */
+        /* 3. 主辦方大屏：遊戲主舞台 (單一超大題目舞台 + 右側目前分數) */
         /* ========================================================= */
         #host-game-screen { justify-content: space-between; padding: 10px 18px 12px 18px; overflow: hidden; }
         
@@ -174,11 +174,20 @@
         }
         #question-stage.shrunk .blank-slot { width: 72px; border-bottom-width: 4px; }
 
-        /* 倒數計時條 */
-        #host-timer-wrap { width: 100%; max-width: 1380px; height: 10px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-bottom: 8px; display: none; border: 1px solid #475569; flex-shrink: 0; }
-        #host-timer-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); transition: width 0.1s linear; }
+        /* 7秒倒數計時條 (標示前4秒踢球線) */
+        #host-timer-wrap {
+            width: 100%; max-width: 1380px; height: 12px; background: #1e293b; border-radius: 6px;
+            overflow: hidden; margin-bottom: 8px; display: none; border: 1px solid #475569;
+            flex-shrink: 0; position: relative;
+        }
+        #host-timer-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, #eab308, #22c55e); transition: width 0.1s linear; }
+        /* 倒數剩 3 秒 (即 3/7 = 42.85% 處) 的鎖球分隔線 */
+        .kick-cutoff-marker {
+            position: absolute; left: 42.85%; top: 0; bottom: 0; width: 3px;
+            background: #fff; z-index: 4; box-shadow: 0 0 6px #000;
+        }
 
-        /* 對戰舞台：左側雙區容器 + 右側目前分數面板 */
+        /* 主舞台：左邊單一考點大選項區 + 右邊目前分數面板 */
         #split-arena {
             display: none; width: 100%; max-width: 1380px; flex: 1; gap: 14px;
             align-items: stretch; justify-content: center; min-height: 0; overflow: hidden;
@@ -186,12 +195,12 @@
         .players-pair-wrapper {
             flex: 1.84; display: flex; gap: 14px; position: relative; min-height: 0; min-width: 0;
         }
-        .arena-half {
-            flex: 1; background: rgba(30, 41, 59, 0.9); border: 2.5px solid #38bdf8; border-radius: 16px;
-            padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between;
-            position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.4); min-height: 0; min-width: 0;
+        .arena-single-main {
+            flex: 1; background: rgba(30, 41, 59, 0.92); border: 3px solid #38bdf8; border-radius: 18px;
+            padding: 12px 16px; display: flex; flex-direction: column; justify-content: space-between;
+            position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.45); min-height: 0; min-width: 0;
         }
-        .arena-half.tone-side { border-color: #f59e0b; }
+        .arena-single-main.tone-side { border-color: #f59e0b; }
 
         /* 右側：目前分數面板 */
         .arena-scoreboard {
@@ -227,65 +236,68 @@
 
         .spotlight-header {
             display: flex; justify-content: space-between; align-items: center;
-            background: #0f172a; padding: 8px 14px; border-radius: 10px; margin-bottom: 8px;
-            border-left: 5px solid #38bdf8; flex-shrink: 0;
+            background: #0f172a; padding: 8px 16px; border-radius: 12px; margin-bottom: 10px;
+            border-left: 6px solid #38bdf8; flex-shrink: 0; gap: 10px; flex-wrap: wrap;
         }
-        .arena-half.tone-side .spotlight-header { border-left-color: #f59e0b; }
-        .role-tag { font-size: clamp(16px, 1.8vw, 20px); color: #fde047; font-weight: bold; }
-        .team-status-pill { font-size: 14px; padding: 4px 12px; border-radius: 20px; background: #334155; color: #cbd5e1; white-space: nowrap; }
+        .arena-single-main.tone-side .spotlight-header { border-left-color: #f59e0b; }
+        .role-tag { font-size: clamp(18px, 2.2vw, 24px); color: #fde047; font-weight: bold; }
+        .header-pills-right { display: flex; align-items: center; gap: 10px; }
+        .team-status-pill { font-size: 14.5px; padding: 4px 12px; border-radius: 20px; background: #334155; color: #cbd5e1; white-space: nowrap; font-weight: bold; }
         .team-status-pill.locked { background: #059669; color: #fff; box-shadow: 0 0 10px #10b981; }
+        .kick-window-pill { font-size: 14.5px; padding: 4px 12px; border-radius: 20px; background: #d97706; color: #fff; white-space: nowrap; font-weight: bold; }
+        .kick-window-pill.closed { background: #334155; color: #64748b; }
 
-        /* 4 選項格狀佈局 */
+        /* 4 選項格狀佈局 (單一舞台更寬敞清晰) */
         .options-grid {
             display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
-            gap: 8px; flex: 1; min-height: 0;
+            gap: 12px; flex: 1; min-height: 0;
         }
         .opt-card {
-            border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: clamp(22px, 2.8vw, 36px); font-weight: bold; color: #fff; position: relative;
-            border: 2.5px solid rgba(255,255,255,0.25); box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+            border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: clamp(28px, 3.8vw, 48px); font-weight: bold; color: #fff; position: relative;
+            border: 3px solid rgba(255,255,255,0.25); box-shadow: 0 6px 15px rgba(0,0,0,0.35);
             transition: transform 0.2s, opacity 0.2s, border-color 0.2s; min-height: 0; overflow: hidden;
-            padding: 4px;
+            padding: 6px;
         }
         .opt-color-0 { background: linear-gradient(135deg, #e11d48, #be123c); }
         .opt-color-1 { background: linear-gradient(135deg, #0284c7, #0369a1); }
         .opt-color-2 { background: linear-gradient(135deg, #d97706, #b45309); }
         .opt-color-3 { background: linear-gradient(135deg, #16a34a, #15803d); }
 
-        .opt-label-corner { position: absolute; top: 5px; left: 9px; font-size: 13px; opacity: 0.8; font-family: Arial, sans-serif; }
+        .opt-label-corner { position: absolute; top: 8px; left: 12px; font-size: 16px; opacity: 0.85; font-family: Arial, sans-serif; }
 
-        /* 開獎狀態樣式與多組選擇標籤列 */
+        /* 開獎狀態樣式與各組選擇標籤列 */
         .opt-card.dimmed { opacity: 0.22; filter: grayscale(0.8); transform: scale(0.96); }
-        .opt-card.correct-glow { border-color: #fde047; box-shadow: 0 0 25px #fde047, inset 0 0 15px rgba(255,255,255,0.5); transform: scale(1.02); z-index: 5; }
+        .opt-card.correct-glow { border-color: #fde047; box-shadow: 0 0 28px #fde047, inset 0 0 15px rgba(255,255,255,0.5); transform: scale(1.02); z-index: 5; }
         .opt-pick-list {
-            position: absolute; bottom: 4px; left: 6px; right: 6px;
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 3px;
+            position: absolute; bottom: 5px; left: 8px; right: 8px;
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 4px;
             max-height: 44%; overflow: hidden; pointer-events: none;
         }
         .opt-pick-badge {
-            background: rgba(0,0,0,0.82); color: #fde047; border: 1px solid #fde047;
-            padding: 1px 6px; border-radius: 8px; font-size: 11.5px; white-space: nowrap;
+            background: rgba(0,0,0,0.85); color: #fde047; border: 1px solid #fde047;
+            padding: 1px 8px; border-radius: 8px; font-size: 13px; white-space: nowrap;
         }
 
         /* 一體成形 SVG 聲調樣式 */
-        .tone-opt-wrap { display: flex; align-items: center; justify-content: center; gap: 6px; pointer-events: none; }
-        .tone-opt-num { font-size: clamp(18px, 2.2vw, 24px); color: rgba(255,255,255,0.95); }
-        .tone-svg-large { width: 32px; height: 44px; overflow: visible; display: block; }
-        .checked-tone-group-lg { display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
-        .checked-tone-grid-lg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px; font-size: 13px; line-height: 0.95; font-family: Arial, sans-serif; color: #fde047; }
+        .tone-opt-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; pointer-events: none; }
+        .tone-opt-num { font-size: clamp(22px, 2.8vw, 32px); color: rgba(255,255,255,0.95); }
+        .tone-svg-large { width: 40px; height: 52px; overflow: visible; display: block; }
+        .checked-tone-group-lg { display: flex; align-items: flex-end; justify-content: center; gap: 4px; }
+        .checked-tone-grid-lg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px; font-size: 15px; line-height: 0.95; font-family: Arial, sans-serif; color: #fde047; }
 
-        /* 底部全班配對狀態列與多組 COMBO 橫幅 */
+        /* 底部踢皮球實況動態列與開獎橫幅 */
         #crowd-status-bar {
             width: 100%; max-width: 1380px; margin-top: 8px; background: rgba(15, 23, 42, 0.9);
             border: 1.5px solid #334155; border-radius: 10px; padding: 6px 16px;
             display: flex; justify-content: space-between; align-items: center; font-size: 14.5px; color: #cbd5e1;
             flex-shrink: 0; gap: 12px; overflow-x: auto; white-space: nowrap;
         }
-        .pair-chip {
+        .kick-log-chip {
             display: inline-flex; align-items: center; gap: 4px; background: #1e293b;
-            border: 1px solid #475569; border-radius: 12px; padding: 2px 9px; font-size: 13px; margin-right: 6px;
+            border: 1px solid #f59e0b; border-radius: 12px; padding: 2px 10px; font-size: 13.5px;
+            color: #fde047; margin-right: 6px; animation: popIn 0.25s ease-out;
         }
-        .pair-chip.combo-win { border-color: #fde047; background: rgba(217, 119, 6, 0.35); color: #fde047; font-weight: bold; }
 
         #combo-banner {
             display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -307,11 +319,11 @@
         }
         .combo-pair-pill {
             background: rgba(0, 0, 0, 0.45); border: 2px solid #fde047; border-radius: 16px;
-            padding: 3px 14px; font-size: clamp(18px, 2.2vw, 28px); color: #fde047; white-space: nowrap;
+            padding: 3px 14px; font-size: clamp(18px, 2.2vw, 26px); color: #fde047; white-space: nowrap;
         }
 
         /* ========================================================= */
-        /* 4. 學生平板端畫面 */
+        /* 4. 學生平板端畫面 (含 4 選項正中央「⚽ 踢皮球」按鈕與滾球動畫) */
         /* ========================================================= */
         .student-Join-card {
             background: #1e293b; border: 2px solid #4ade80; border-radius: 20px;
@@ -334,10 +346,10 @@
             flex-shrink: 0;
         }
         .pad-team-name { font-size: 18px; color: #4ade80; font-weight: bold; }
-        .pad-score { font-size: 16px; color: #fde047; font-weight: bold; }
+        .pad-score { font-size: 15.5px; color: #fde047; font-weight: bold; }
 
         #pad-hero-stage {
-            width: 100%; flex: 1; max-height: 42vh; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 85%);
+            width: 100%; flex: 1; max-height: 40vh; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 85%);
             border: 2px solid #334155; border-radius: 16px; margin: 8px 0; padding: 8px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative; overflow: hidden; transition: 0.3s;
@@ -351,14 +363,35 @@
             border-color: #fde047; box-shadow: 0 0 35px #fde047;
         }
 
-        .opportunity-badge {
-            background: linear-gradient(135deg, #fde047, #f59e0b); color: #000;
-            font-size: clamp(26px, 5.5vw, 38px); font-weight: bold; padding: 10px 26px;
-            border-radius: 30px; border: 3px solid #fff; box-shadow: 0 0 35px #fde047;
+        /* 收到皮球時：頂部警示徽章與滾入火球動畫 */
+        #pad-incoming-balls-badge {
+            display: none; position: absolute; top: 8px; right: 10px;
+            background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fde047;
+            border: 2px solid #fde047; border-radius: 20px; padding: 4px 12px;
+            font-size: 15px; font-weight: bold; z-index: 12;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.8); animation: popIn 0.25s ease-out;
+        }
+        .rolling-ball-fx {
+            position: absolute; font-size: 46px; z-index: 15; pointer-events: none;
+        }
+        .ball-roll-in {
+            animation: rollInAnim 0.75s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes rollInAnim {
+            0% { transform: translate(-180px, -60px) rotate(-720deg) scale(0.4); opacity: 0; }
+            70% { transform: translate(15px, 5px) rotate(40deg) scale(1.15); opacity: 1; }
+            100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 1; }
+        }
+        .ball-kick-out {
+            animation: kickOutAnim 0.65s ease-in forwards;
+        }
+        @keyframes kickOutAnim {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translate(220px, -150px) rotate(900deg) scale(0.2); opacity: 0; }
         }
 
         #pad-avatar-figure {
-            width: 135px; height: 115px; display: flex; align-items: center; justify-content: center;
+            width: 135px; height: 110px; display: flex; align-items: center; justify-content: center;
             position: relative;
         }
         .soldier-slash-anim { transform-origin: 45px 65px; animation: bladeSlash 0.65s ease-in-out infinite alternate; }
@@ -389,19 +422,23 @@
 
         #pad-role-banner {
             width: 100%; text-align: center; padding: 6px 10px; border-radius: 10px;
-            font-size: clamp(16px, 4vw, 20px); font-weight: bold; margin-top: 4px;
+            font-size: clamp(15px, 3.8vw, 19px); font-weight: bold; margin-top: 4px;
             background: rgba(15, 23, 42, 0.85); color: #cbd5e1; border: 1.5px solid #475569;
         }
         #pad-role-banner.main-spelling { background: #0284c7; color: #fff; border-color: #fde047; }
         #pad-role-banner.main-tone { background: #d97706; color: #fff; border-color: #fde047; }
 
+        /* 學生平板 4 選項 + 正中央「⚽ 踢皮球」圓形按鈕 */
+        .pad-options-wrapper {
+            width: 100%; height: 44vh; max-height: 300px; position: relative; flex-shrink: 0;
+        }
         #pad-options-grid {
-            width: 100%; height: 42vh; max-height: 290px;
+            width: 100%; height: 100%;
             display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
-            gap: 10px; flex-shrink: 0;
+            gap: 12px;
         }
         .pad-btn {
-            border-radius: 14px; border: 2.5px solid rgba(255,255,255,0.3); color: #fff;
+            border-radius: 16px; border: 2.5px solid rgba(255,255,255,0.3); color: #fff;
             font-size: clamp(22px, 4.5vw, 34px); font-weight: bold; font-family: inherit;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer; position: relative; box-shadow: 0 5px 12px rgba(0,0,0,0.4);
@@ -412,8 +449,32 @@
         .pad-btn.selected { border-color: #fde047; box-shadow: 0 0 22px #fde047; transform: scale(1.02); }
         .pad-btn.disabled { opacity: 0.35; pointer-events: none; }
 
+        /* 四個選項正中央的「踢皮球」按鈕 */
+        #pad-kick-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 96px; height: 96px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fbbf24, #d97706 70%, #92400e 100%);
+            border: 4px solid #fef08a; color: #0f172a;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 25;
+            box-shadow: 0 0 0 6px #0f172a, 0 0 25px rgba(251, 191, 36, 0.9);
+            transition: transform 0.15s, opacity 0.25s, filter 0.25s, box-shadow 0.25s;
+            font-family: inherit; padding: 0;
+        }
+        #pad-kick-btn:active { transform: translate(-50%, -50%) scale(0.9); }
+        #pad-kick-btn .kick-icon { font-size: 32px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
+        #pad-kick-btn .kick-label { font-size: 13px; font-weight: bold; color: #0f172a; line-height: 1.15; margin-top: 2px; }
+        #pad-kick-btn .kick-count { font-size: 11.5px; font-weight: bold; color: #78350f; background: rgba(255,255,255,0.75); padding: 0 6px; border-radius: 8px; margin-top: 1px; }
+        /* 後 3 秒鎖定或無球可用時變暗 */
+        #pad-kick-btn.locked-dark {
+            filter: grayscale(1) brightness(0.45);
+            opacity: 0.65;
+            box-shadow: 0 0 0 6px #0f172a;
+            pointer-events: none;
+        }
+
         /* ========================================================= */
-        /* 5. 最終結算排行榜畫面 (含 Combo 王前3名 + 最多人錯前5題) */
+        /* 5. 最終結算排行榜畫面 (神救援王前3名 + 最多人錯前5題) */
         /* ========================================================= */
         #host-gameover-screen { justify-content: flex-start; padding-top: 12px; }
         .combo-kings-box {
@@ -430,7 +491,6 @@
             display: flex; align-items: center; gap: 6px;
         }
 
-        /* 左右雙欄結算容器：左邊總分榜、右邊最多人錯前 5 題 */
         .gameover-main-grid {
             width: 100%; max-width: 1260px; display: flex; gap: 16px;
             align-items: stretch; justify-content: center; flex: 1; min-height: 0;
@@ -492,7 +552,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 1.7</div>
+<div id="version-tag">Ver 2.0</div>
 
 <!-- ========================================================= -->
 <!-- 1. 首頁：選擇身分 -->
@@ -500,7 +560,7 @@
 <div id="entry-screen" class="screen active">
     <div class="title-banner">
         <h1>⚡ 台語PARTY ⚡</h1>
-        <p>小兵轉大將 combo立大功</p>
+        <p>小兵轉大將・踢皮球立大功</p>
     </div>
     <div class="role-cards">
         <div class="role-card" onclick="initTeacherHost()">
@@ -535,14 +595,15 @@
             <div>
                 <div class="lesson-config-title">
                     <span>📚 範圍</span>
-                    <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                         <label style="font-size: 14px; color: #cbd5e1;">
-                            題數：
+                            題數(含1/4皮球)：
                             <select id="total-q-select" class="qcount-select">
-                                <option value="9">9 題 (3回合)</option>
-                                <option value="12" selected>12 題 (3回合)</option>
-                                <option value="18">18 題 (3回合)</option>
-                                <option value="24">24 題 (3回合)</option>
+                                <option value="8">8 題 (2顆皮球)</option>
+                                <option value="12" selected>12 題 (3顆皮球)</option>
+                                <option value="16">16 題 (4顆皮球)</option>
+                                <option value="20">20 題 (5顆皮球)</option>
+                                <option value="24">24 題 (6顆皮球)</option>
                             </select>
                         </label>
                         <label style="font-size: 15px; color: #fde047; cursor: pointer;">
@@ -568,12 +629,12 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- 3. 主辦方大屏：遊戲進行畫面 -->
+<!-- 3. 主辦方大屏：遊戲進行畫面 (單一考點大舞台 + 右側目前分數) -->
 <!-- ========================================================= -->
 <div id="host-game-screen" class="screen">
     <div class="game-hud">
         <div class="hud-group">
-            <span class="round-pill" id="hud-round-text">第 1 / 3 回合</span>
+            <span class="round-pill" id="hud-round-text">🔤 拼寫題</span>
             <span id="hud-q-progress">題目: 1 / 12</span>
         </div>
         <div class="hud-group">
@@ -598,31 +659,27 @@
         </div>
     </div>
 
-    <!-- 5秒倒數條 -->
-    <div id="host-timer-wrap"><div id="host-timer-bar"></div></div>
+    <!-- 7秒倒數條 (白色刻度代表前4秒踢皮球截止線) -->
+    <div id="host-timer-wrap">
+        <div class="kick-cutoff-marker" title="前4秒可踢皮球，後3秒鎖定"></div>
+        <div id="host-timer-bar"></div>
+    </div>
 
-    <!-- 對戰舞台：左雙欄選項容器 + 右欄目前分數 -->
+    <!-- 對戰舞台：左邊單一考點大舞台 + 右邊目前分數 -->
     <div id="split-arena">
         <div class="players-pair-wrapper">
-            <!-- 左欄：拼寫選項 -->
-            <div class="arena-half">
+            <div class="arena-single-main" id="host-main-arena-card">
                 <div class="spotlight-header">
-                    <div class="role-tag">🔤 負責【羅馬字拼寫】</div>
-                    <div class="team-status-pill" id="status-pill-spelling">🤔 已鎖定 0 / 0 組</div>
+                    <div class="role-tag" id="host-arena-title">🔤 本題考點：【羅馬字拼寫】</div>
+                    <div class="header-pills-right">
+                        <div class="kick-window-pill" id="host-kick-window-pill">⚽ 前4秒可踢皮球</div>
+                        <div class="team-status-pill" id="status-pill-all">🤔 已行動 0 / 0 組</div>
+                    </div>
                 </div>
-                <div class="options-grid" id="host-spelling-grid"></div>
+                <div class="options-grid" id="host-main-grid"></div>
             </div>
 
-            <!-- 中欄：聲調選項 -->
-            <div class="arena-half tone-side">
-                <div class="spotlight-header">
-                    <div class="role-tag">📈 負責【聲調號碼】</div>
-                    <div class="team-status-pill" id="status-pill-tone">🤔 已鎖定 0 / 0 組</div>
-                </div>
-                <div class="options-grid" id="host-tone-grid"></div>
-            </div>
-
-            <!-- 橫幅置於雙人作答區正中央，支援顯示多組 Combo 成功名單，且不擋住右側目前分數 -->
+            <!-- 橫幅置於左側作答區正中央，絕不遮擋右側目前分數 -->
             <div id="combo-banner"></div>
         </div>
 
@@ -633,28 +690,28 @@
         </div>
     </div>
 
-    <!-- 底部顯示本題隨機兩兩配對組合 -->
+    <!-- 底部顯示本題踢皮球動態紀錄 -->
     <div id="crowd-status-bar">
-        <div id="pairs-preview-bar">🤝 本題隨機配對：等待配對中...</div>
+        <div id="kick-feed-bar">⚽ 踢皮球動態：尚無組別踢出皮球 (答對+100、答錯-30｜接球答對額外+80、答錯額外-15)</div>
     </div>
 </div>
 
 <!-- ========================================================= -->
-<!-- 4. 主辦方大屏：最終成績結算畫面 (含 Combo 王前3名 + 最多人錯前5題) -->
+<!-- 4. 主辦方大屏：最終成績結算畫面 (神救援王前3名 + 最多人錯前5題) -->
 <!-- ========================================================= -->
 <div id="host-gameover-screen" class="screen">
     <h1 style="color: #fde047; font-size: 32px; margin: 0 0 6px 0;">🏆 論功行賞 🏆</h1>
     
-    <!-- COMBO 最多次前 3 組榮譽榜 -->
+    <!-- 神救援王 (接球答對最多次前 3 組) 榮譽榜 -->
     <div class="combo-kings-box">
-        <div class="ck-title">🔥 小兵立大功・COMBO 王前三名：</div>
-        <div class="ck-list" id="combo-top3-list"></div>
+        <div class="ck-title">🦸‍♂️ 小兵立大功・神救援王 (接球答對前3名)：</div>
+        <div class="ck-list" id="rescue-top3-list"></div>
     </div>
 
     <!-- 左欄：各組總分與答對率排行榜 ｜ 右欄：最多人錯的前 5 題 (點擊可聽音) -->
     <div class="gameover-main-grid">
         <div class="leaderboard-box">
-            <div class="box-panel-title">📊 各組積分與答對率</div>
+            <div class="box-panel-title">📊 各組積分與答對率 (踢皮球算未答對)</div>
             <div id="leaderboard-list"></div>
         </div>
 
@@ -690,35 +747,46 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- 6. 學生平板端：小兵 4 狀態動態舞台 + 作答控制器 -->
+<!-- 6. 學生平板端：小兵動態舞台 + 4選項 + 中央踢皮球按鈕 -->
 <!-- ========================================================= -->
 <div id="student-pad-screen" class="screen">
     <div class="pad-top-bar">
         <span class="pad-team-name" id="pad-my-name">組別</span>
-        <span class="pad-score" id="pad-my-score">0 分｜0 combo｜答對率 0%</span>
+        <span class="pad-score" id="pad-my-score">0 分｜⚽剩 3｜答對率 0%</span>
     </div>
 
-    <!-- 小兵 4 狀態舞台 (揮刀衝鋒 ➔ 立大功變騎馬大將 / 冒汗 / 暈倒) -->
+    <!-- 小兵舞台 + 滾球特效區 -->
     <div id="pad-hero-stage">
+        <div id="pad-incoming-balls-badge">🔥 收到 1 顆皮球！</div>
+        <div id="pad-ball-fx-layer"></div>
         <div id="pad-opportunity-overlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.8); z-index:10; align-items:center; justify-content:center; flex-direction:column;">
-            <div class="opportunity-badge">🌟 立功機會 🌟</div>
-            <div style="color:#fde047; font-size:18px; margin-top:8px; font-weight:bold;">小兵上陣！同齊答對立大功！</div>
+            <div class="opportunity-badge" id="pad-opp-title">🌟 準備出擊 🌟</div>
+            <div style="color:#fde047; font-size:18px; margin-top:8px; font-weight:bold;" id="pad-opp-sub">前 4 秒不會寫可按中間「踢皮球」！</div>
         </div>
         <div id="pad-avatar-figure"></div>
         <div id="pad-role-banner">⏳ 請先號名、等候開始...</div>
     </div>
 
-    <div id="pad-options-grid">
-        <button class="pad-btn opt-color-0 disabled" onclick="submitStudentAnswer(0)">A</button>
-        <button class="pad-btn opt-color-1 disabled" onclick="submitStudentAnswer(1)">B</button>
-        <button class="pad-btn opt-color-2 disabled" onclick="submitStudentAnswer(2)">C</button>
-        <button class="pad-btn opt-color-3 disabled" onclick="submitStudentAnswer(3)">D</button>
+    <!-- 4 選項 + 正中央「⚽ 踢皮球」圓形按鈕 -->
+    <div class="pad-options-wrapper">
+        <div id="pad-options-grid">
+            <button class="pad-btn opt-color-0 disabled" onclick="submitStudentAnswer(0)">A</button>
+            <button class="pad-btn opt-color-1 disabled" onclick="submitStudentAnswer(1)">B</button>
+            <button class="pad-btn opt-color-2 disabled" onclick="submitStudentAnswer(2)">C</button>
+            <button class="pad-btn opt-color-3 disabled" onclick="submitStudentAnswer(3)">D</button>
+        </div>
+
+        <button id="pad-kick-btn" class="locked-dark" onclick="submitStudentKick()">
+            <span class="kick-icon">⚽</span>
+            <span class="kick-label">踢皮球</span>
+            <span class="kick-count" id="pad-kick-count-text">剩 3</span>
+        </button>
     </div>
 </div>
 
 <script>
     // =========================================================
-    // 🎨 平板上方人物 4 狀態動態 SVG 圖形庫
+    // 🎨 平板上方人物動態 SVG 圖形庫
     // =========================================================
     const CUTE_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
 
@@ -810,7 +878,7 @@
     }
 
     // =========================================================
-    // 📚 題庫設定與「台語迷思概念誘答引擎」(Ver 1.7 升級版)
+    // 📚 題庫設定與「台語迷思概念誘答引擎」
     // =========================================================
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
@@ -822,7 +890,6 @@
 
     const MOE_INITIALS = ['p', 'ph', 'b', 'm', 't', 'th', 'n', 'l', 'k', 'kh', 'g', 'ng', 'h', 'ts', 'tsh', 's', 'j'];
 
-    // 學生最常搞混的聲母迷思對照表 (含清濁、送氣、鼻化、華語注音與英拼借音 d, z, tr, sh, hs, c)
     const INITIAL_TRAP_MAP = {
         'p':   ['b', 'ph', 'm'],
         'ph':  ['p', 'b', 'h', 'f'],
@@ -844,16 +911,13 @@
         '':    ['ng', 'g', 'h', 'm', 'n']
     };
 
-    // 學生最常搞混的韻母與韻尾迷思對照表 (含假台羅 ou, uo, iung, ioo, aing, eng, ei, wei, iao, ien)
     const FINAL_TRAP_MAP = {
-        // 單母音與假台羅混淆
         'a':     ['ah', 'ann', 'an', 'o', 'e'],
         'i':     ['ih', 'inn', 'in', 'e', 'ui'],
         'u':     ['oo', 'uh', 'un', 'ou', 'o', 'ui'],
         'e':     ['eh', 'ei', 'enn', 'i', 'a', 'ue'],
         'o':     ['oo', 'ou', 'uo', 'oh', 'e', 'u'],
         'oo':    ['o', 'ou', 'uo', 'ooh', 'u', 'onn'],
-        // 雙母音與複合母音混淆
         'ai':    ['ainn', 'an', 'ang', 'aing', 'aih', 'au'],
         'au':    ['ao', 'ou', 'aunn', 'ang', 'auh', 'iau'],
         'ia':    ['iah', 'iann', 'ian', 'io', 'ua'],
@@ -864,7 +928,6 @@
         'ui':    ['uinn', 'ue', 'iu', 'un', 'uih', 'i'],
         'iau':   ['iao', 'iaunn', 'io', 'au', 'iauh', 'iang'],
         'uai':   ['uainn', 'uan', 'ua', 'ai', 'wai', 'uang'],
-        // 三種鼻音韻尾 (-m, -n, -ng) 與鼻化音 (-nn) 及聽覺近似音混淆
         'am':    ['ang', 'an', 'ann', 'ap', 'ah', 'om'],
         'an':    ['ang', 'am', 'ann', 'at', 'ai', 'ainn'],
         'ang':   ['an', 'ann', 'am', 'ai', 'aing', 'ainn', 'ak', 'ong'],
@@ -882,7 +945,6 @@
         'iang':  ['ian', 'iam', 'iann', 'iong', 'iak', 'ang'],
         'uan':   ['uang', 'uann', 'uat', 'un', 'ua', 'ian'],
         'uang':  ['uan', 'uann', 'ong', 'ang', 'uai'],
-        // 鼻化韻母群
         'enn':   ['inn', 'e', 'eh', 'en', 'eng', 'ann'],
         'onn':   ['oo', 'o', 'ong', 'ooh', 'oh', 'ann'],
         'ainn':  ['ai', 'aing', 'ang', 'an', 'ann', 'aih'],
@@ -959,7 +1021,6 @@
         return a;
     }
 
-    // 針對指定韻母取得最具誘答力的混淆韻母清單
     function getConfusingFinalsList(fin, isChecked) {
         let list = [];
         if (FINAL_TRAP_MAP[fin]) {
@@ -995,14 +1056,12 @@
         return [...new Set(list)].filter(f => f && f !== fin);
     }
 
-    // 🔥 Ver 1.7 核心：台語迷思概念誘答產生器 (強化雙唇鼻音 -m 的多元防猜題陣型)
     function generateCoopOptions(targetSyl) {
         const correctBase = targetSyl.base;
         const ini = targetSyl.initial;
         const fin = targetSyl.final;
         let distractors = [];
 
-        // 【特例 1】單獨的聲化韻母 m, mh, ng, ngh (如 m̄ 毋 -> m, em, mu, eng)
         if (correctBase === 'm') {
             distractors = ['em', 'mu', 'eng'];
         } else if (correctBase === 'mh') {
@@ -1012,7 +1071,6 @@
         } else if (correctBase === 'ngh') {
             distractors = ['ng', 'engh', 'ingh'];
         }
-        // 【特例 2】子音 + 聲化韻母 ng (如 pn̄g 飯、sng 酸、kng 光)
         else if (fin === 'ng' && ini !== '') {
             const altInis = INITIAL_TRAP_MAP[ini] || ['p', 't', 'k'];
             const altIni = altInis[0];
@@ -1022,10 +1080,8 @@
                 distractors = [ini + 'eng', altIni + 'ng', altIni + 'eng'];
             }
         }
-        // 【特例 3】雙唇鼻音韻尾 -m (如 lim, kam, tiam, som)
-        // 學生常聽成 -ng 或 -n，採用 3 種動態隨機陣型，避免學生看到 -m/-n/-ng 就直接猜 -m
         else if (fin.endsWith('m') && fin !== 'm') {
-            const core = fin.slice(0, -1); // 'i', 'a', 'ia', 'o'
+            const core = fin.slice(0, -1);
             const nFin = (core === 'o') ? 'on' : core + 'n';
             const ngFin = core + 'ng';
             const pFin = core + 'p';
@@ -1035,20 +1091,16 @@
 
             const mRoll = Math.random();
             if (mRoll < 0.45) {
-                // 陣型 1 (45% 機率)：同時加入 -ng 與 -n，第 4 個搭配入聲 -p 或開放母音 (如 lim / ling / lin / lip)
                 const thirdTrap = (Math.random() < 0.55) ? (ini + pFin) : (ini + core);
                 distractors = [ini + ngFin, ini + nFin, thirdTrap];
             } else if (mRoll < 0.80 && ini !== '') {
-                // 陣型 2 (35% 機率)：2x2 聲韻交叉掩護，挑 -ng 或 -n 其中之一，搭配易混聲母 (如 lim / ling / nim / ning)，完全防堵刪去法猜題
                 const chosenNasal = (Math.random() < 0.55) ? ngFin : nFin;
                 distractors = [ini + chosenNasal, altIni + fin, altIni + chosenNasal];
             } else {
-                // 陣型 3 (20% 機率)：挑 -ng 或 -n 其中之一，搭配開放母音與鼻化音 (如 lim / lin / li / linn)
                 const chosenNasal = (Math.random() < 0.5) ? ngFin : nFin;
                 distractors = [ini + chosenNasal, ini + core, ini + nnFin];
             }
         }
-        // 【一般音節】根據有無聲母與隨機策略產生最具誘答力的 3 個選項
         else {
             const finTraps = getConfusingFinalsList(fin, targetSyl.isChecked);
             const iniTraps = INITIAL_TRAP_MAP[ini] || ['p', 't', 'k', 'ts', 's'];
@@ -1059,12 +1111,10 @@
             } else {
                 const strategyRoll = Math.random();
 
-                // 策略 A (45% 機率)：【韻母/韻尾專精局】4 個選項同聲母，專考韻尾/母音混淆 (如 pik / pit / pih / pi)
                 if (strategyRoll < 0.45 && finTraps.length >= 3) {
                     const topFinTraps = finTraps.slice(0, 4);
                     distractors = shuffleArray(topFinTraps).slice(0, 3).map(f => ini + f);
                 }
-                // 策略 B (40% 機率)：【2×2 聲韻雙陷阱局】2 個易混聲母 × 2 個易混韻母 (如 bit / bik / pi / pit)
                 else if (strategyRoll < 0.85 && iniTraps.length >= 1 && finTraps.length >= 2) {
                     const altIni = iniTraps[Math.floor(Math.random() * Math.min(2, iniTraps.length))];
                     const altFin1 = finTraps[0];
@@ -1075,7 +1125,6 @@
                         distractors = [ini + altFin2, altIni + fin, altIni + altFin1];
                     }
                 }
-                // 策略 C (15% 機率)：【聲母專精局】4 個選項同韻母，專考易混聲母
                 else {
                     const topIniTraps = iniTraps.slice(0, 4);
                     distractors = shuffleArray(topIniTraps).slice(0, 3).map(i => i + fin);
@@ -1083,7 +1132,6 @@
             }
         }
 
-        // 防呆補齊
         distractors = [...new Set(distractors)].filter(d => d && d !== correctBase);
         const fallbackPool = ['a', 'i', 'u', 'e', 'o', 'oo', 'an', 'ang', 'ann', 'am', 'in', 'ing', 'un', 'ong', 'it', 'ik', 'at', 'ak', 'ah', 'oh'];
         for (let fb of fallbackPool) {
@@ -1097,7 +1145,6 @@
         const spellingOptions = shuffleArray([correctBase, ...distractors.slice(0, 3)]);
         const correctSpellingIdx = spellingOptions.indexOf(correctBase);
 
-        // 2. 產生聲調 4 選項
         const correctTone = targetSyl.tone;
         let tonePool = [];
         if (targetSyl.isChecked || correctTone === '4' || correctTone === '8') {
@@ -1158,6 +1205,8 @@
 
     function sfxSpotlight() { playSynthTone(440, 660, 0.12, 'triangle', 0.2, 0); playSynthTone(660, 880, 0.18, 'triangle', 0.24, 0.1); }
     function sfxLockIn() { playSynthTone(587.33, 880, 0.08, 'sine', 0.15, 0); }
+    function sfxKickBall() { playSynthTone(180, 620, 0.16, 'sine', 0.25, 0); playSynthTone(620, 310, 0.12, 'triangle', 0.18, 0.12); }
+    function sfxReceiveBall() { playSynthTone(680, 220, 0.2, 'sawtooth', 0.22, 0); }
     function sfxComboFanfare() {
         [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playSynthTone(f, f, 0.18, 'triangle', 0.26, i * 0.09));
     }
@@ -1202,10 +1251,12 @@
     let selectedLessons = ["B1L1"];
     let teams = [];
     let questionDeck = [];
+    let questionTypeBag = []; // 五五波平衡的 SPELLING / TONE 籤筒
     let totalGameQuestions = 12;
+    let initialBallsPerTeam = 3;
     let currentMatchIdx = 0;
     let currentMatchData = null;
-    let matchQuestionStats = []; // 紀錄每題失誤組數，供結算列出最多人錯的前 5 題
+    let matchQuestionStats = [];
     const questionAudio = new Audio();
 
     function switchScreen(screenId) {
@@ -1261,7 +1312,8 @@
             id: (isBot ? 'bot_' : 'team_') + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
             name: name,
             score: 0,
-            combos: 0,
+            rescues: 0,      // 接球並答對的神救援次數
+            ballsLeft: 3,    // 剩餘可踢皮球數 (1/4題數)
             totalQ: 0,
             correctQ: 0,
             conn: conn,
@@ -1289,6 +1341,11 @@
             const team = teams.find(t => t.conn === conn);
             if (team && currentMatchData && currentMatchData.acceptingAnswers) {
                 recordTeamAnswer(team.id, data.choiceIdx);
+            }
+        } else if (data.type === 'KICK') {
+            const team = teams.find(t => t.conn === conn);
+            if (team && currentMatchData && currentMatchData.acceptingAnswers && currentMatchData.kickWindowOpen) {
+                handleTeamKickBall(team.id);
             }
         }
     }
@@ -1319,7 +1376,7 @@
         const listEl = document.getElementById('live-scoreboard-list');
         if (!listEl) return;
         listEl.classList.toggle('two-cols', teams.length > 7);
-        const sorted = [...teams].sort((a, b) => b.score - a.score || b.combos - a.combos);
+        const sorted = [...teams].sort((a, b) => b.score - a.score || b.rescues - a.rescues);
         listEl.innerHTML = '';
         sorted.forEach((t, idx) => {
             const rankClass = idx === 0 ? 'top-1' : (idx === 1 ? 'top-2' : (idx === 2 ? 'top-3' : ''));
@@ -1333,14 +1390,15 @@
     }
 
     // =========================================================
-    // 🚀 啟動遊戲：全班每題公平兩兩隨機配對
+    // 🚀 啟動遊戲：五五波考點籤筒 + 1/4 皮球配額
     // =========================================================
     async function startHostGame() {
         if (selectedLessons.length === 0) return alert("請至少選擇一課！");
-        if (teams.length < 2) return alert("至少需要 2 組才能開始！(您可以點擊『➕ 加入AI試驗員』來立即測試)");
+        if (teams.length < 2) return alert("至少需要 2 組才能開始踢皮球大作戰！(您可以點擊『➕ 加入AI試驗員』來立即測試)");
 
         getAudioCtx();
         totalGameQuestions = parseInt(document.getElementById('total-q-select').value, 10) || 12;
+        initialBallsPerTeam = Math.max(1, Math.floor(totalGameQuestions / 4));
 
         const fetchPromises = selectedLessons.map(sheet => 
             fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
@@ -1367,8 +1425,19 @@
         if (rawCards.length === 0) return alert("題庫載入失敗！");
         questionDeck = shuffleArray(rawCards);
 
+        // 建立五五波（50% 拼寫、50% 聲調）隨機順序籤筒
+        questionTypeBag = [];
+        for (let i = 0; i < totalGameQuestions; i++) {
+            questionTypeBag.push(i % 2 === 0 ? 'SPELLING' : 'TONE');
+        }
+        questionTypeBag = shuffleArray(questionTypeBag);
+
         teams.forEach(t => {
-            t.score = 0; t.combos = 0; t.totalQ = 0; t.correctQ = 0;
+            t.score = 0;
+            t.rescues = 0;
+            t.ballsLeft = initialBallsPerTeam;
+            t.totalQ = 0;
+            t.correctQ = 0;
         });
         matchQuestionStats = [];
 
@@ -1385,7 +1454,7 @@
     }
 
     // =========================================================
-    // 🎬 單題四階段流程
+    // 🎬 單題流程 (單一考點 + 7秒倒數：前4秒可踢球、後3秒鎖球)
     // =========================================================
     let countdownTimer = null;
 
@@ -1397,7 +1466,7 @@
 
         renderLiveScoreboard();
 
-        const roundNum = Math.min(3, Math.floor((currentMatchIdx / totalGameQuestions) * 3) + 1);
+        const qMode = questionTypeBag[currentMatchIdx] || 'SPELLING'; // 'SPELLING' 或 'TONE'
         const card = drawQuestionCard();
         const showHanzi = document.getElementById('show-hanzi-toggle').checked;
 
@@ -1420,46 +1489,21 @@
             return formatTailoHtml(p);
         }).join('');
 
-        // 全班公平兩兩隨機配對（且讓每組嚴格交替分配「拼寫」與「聲調」）
-        const rolesMap = {};
-        const partnerMap = {};
-        const pairsList = [];
+        const activeOptions = (qMode === 'SPELLING') ? coopOpts.spellingOptions : coopOpts.toneOptions;
+        const correctIdx = (qMode === 'SPELLING') ? coopOpts.correctSpellingIdx : coopOpts.correctToneIdx;
 
-        const spPool = [];
-        const tnPool = [];
-        teams.forEach((t, idx) => {
-            if ((idx + currentMatchIdx) % 2 === 0) spPool.push(t);
-            else tnPool.push(t);
-        });
-        const shuffledSp = shuffleArray(spPool);
-        const shuffledTn = shuffleArray(tnPool);
-
-        const maxLen = Math.max(shuffledSp.length, shuffledTn.length);
-        for (let i = 0; i < maxLen; i++) {
-            const spTeam = shuffledSp[i];
-            const tnTeam = shuffledTn[i];
-            if (spTeam && tnTeam) {
-                rolesMap[spTeam.id] = 'SPELLING';
-                rolesMap[tnTeam.id] = 'TONE';
-                partnerMap[spTeam.id] = tnTeam.id;
-                partnerMap[tnTeam.id] = spTeam.id;
-                pairsList.push({ spId: spTeam.id, tnId: tnTeam.id });
-            } else if (spTeam) {
-                const luckyTn = shuffledTn[0];
-                rolesMap[spTeam.id] = 'SPELLING';
-                partnerMap[spTeam.id] = luckyTn.id;
-                pairsList.push({ spId: spTeam.id, tnId: luckyTn.id });
-            } else if (tnTeam) {
-                const luckySp = shuffledSp[0];
-                rolesMap[tnTeam.id] = 'TONE';
-                partnerMap[tnTeam.id] = luckySp.id;
-                pairsList.push({ spId: luckySp.id, tnId: tnTeam.id });
-            }
-        }
+        // 初始化本題各組的皮球與作答紀錄
+        const incomingBalls = {}; // teamId -> [fromTeamName, ...]
+        teams.forEach(t => { incomingBalls[t.id] = []; });
 
         currentMatchData = {
-            roundNum, card, targetSyl, coopOpts, maskedHtml, fullRevealedHtml,
-            rolesMap, partnerMap, pairsList, answers: {}, acceptingAnswers: false
+            qMode, card, targetSyl, activeOptions, correctIdx, maskedHtml, fullRevealedHtml,
+            answers: {},         // teamId -> 0,1,2,3
+            kickedTeams: new Set(), // 本題已按踢皮球的 teamId
+            incomingBalls,
+            kickLogs: [],
+            acceptingAnswers: false,
+            kickWindowOpen: false
         };
 
         broadcastPreparePacket();
@@ -1470,7 +1514,10 @@
         banner.style.display = 'none';
         banner.classList.remove('fail-mode');
 
-        document.getElementById('hud-round-text').innerText = `第 ${roundNum} / 3 回合`;
+        const roundPill = document.getElementById('hud-round-text');
+        roundPill.innerText = (qMode === 'SPELLING') ? '🔤 考【羅馬字拼寫】' : '📈 考【聲調號碼】';
+        roundPill.style.background = (qMode === 'SPELLING') ? '#0284c7' : '#d97706';
+
         document.getElementById('hud-q-progress').innerText = `題目: ${currentMatchIdx + 1} / ${totalGameQuestions}`;
         document.getElementById('hud-phase-hint').innerText = "🎧 斟酌聽";
 
@@ -1483,7 +1530,7 @@
 
         document.getElementById('split-arena').style.display = 'none';
         document.getElementById('host-timer-wrap').style.display = 'none';
-        renderPairsPreviewBar(false);
+        renderKickFeedBar();
 
         let phase1Done = false;
         const advanceToPhase2 = () => {
@@ -1515,83 +1562,86 @@
         questionAudio.play().catch(() => {});
     }
 
-    function renderPairsPreviewBar(showResult) {
-        if (!currentMatchData) return;
-        const bar = document.getElementById('pairs-preview-bar');
-        const chipsHtml = currentMatchData.pairsList.map(pair => {
-            const tSp = teams.find(t => t.id === pair.spId);
-            const tTn = teams.find(t => t.id === pair.tnId);
-            if (!tSp || !tTn) return '';
-            const isWin = showResult && isTeamAnswerCorrect(pair.spId) && isTeamAnswerCorrect(pair.tnId);
-            return `<span class="pair-chip ${isWin ? 'combo-win' : ''}">${tSp.name} × ${tTn.name}${isWin ? ' ⚡' : ''}</span>`;
-        }).join('');
-        bar.innerHTML = `<span style="color:#fde047; font-weight:bold; margin-right:6px;">🤝 本題兩兩配對：</span>${chipsHtml}`;
+    function renderKickFeedBar() {
+        const bar = document.getElementById('kick-feed-bar');
+        if (!currentMatchData || currentMatchData.kickLogs.length === 0) {
+            bar.innerHTML = `⚽ 踢皮球動態：尚無組別踢出皮球 (答對+100、答錯-30｜接球答對額外+80、答錯額外-15)`;
+            return;
+        }
+        const chips = currentMatchData.kickLogs.map(log => `<span class="kick-log-chip">⚽ ${log}</span>`).join('');
+        bar.innerHTML = `<span style="color:#fde047; font-weight:bold; margin-right:6px;">🔥 場上皮球亂飛：</span>${chips}`;
     }
 
-    // 階段 2：題目縮小移至上方 + 配對揭曉緩衝 (2秒)
+    // 階段 2：題目縮小移至上方 + 考點預告緩衝 (1.6秒)
     function startPhase2Spotlight() {
         sfxSpotlight();
         document.getElementById('question-stage').classList.add('shrunk');
-        document.getElementById('hud-phase-hint').innerText = "🎯 小兵轉大將";
+        const isSp = (currentMatchData.qMode === 'SPELLING');
+        document.getElementById('hud-phase-hint').innerText = isSp ? "🎯 準備選【拼寫】" : "🎯 準備選【聲調】";
+
+        const arenaCard = document.getElementById('host-main-arena-card');
+        arenaCard.classList.toggle('tone-side', !isSp);
+        document.getElementById('host-arena-title').innerText = isSp ? "🔤 本題考點：【羅馬字拼寫】" : "📈 本題考點：【聲調號碼】";
+
+        const kwPill = document.getElementById('host-kick-window-pill');
+        kwPill.innerText = "⚽ 前4秒可踢皮球";
+        kwPill.classList.remove('closed');
 
         updateLockInStatusPills();
 
-        const spGrid = document.getElementById('host-spelling-grid');
-        const tnGrid = document.getElementById('host-tone-grid');
-        spGrid.innerHTML = ''; tnGrid.innerHTML = '';
+        const mainGrid = document.getElementById('host-main-grid');
+        mainGrid.innerHTML = '';
         ['A', 'B', 'C', 'D'].forEach((label, idx) => {
-            spGrid.innerHTML += `<div class="opt-card opt-color-${idx}"><span class="opt-label-corner">${label}</span>?</div>`;
-            tnGrid.innerHTML += `<div class="opt-card opt-color-${idx}"><span class="opt-label-corner">${label}</span>?</div>`;
+            mainGrid.innerHTML += `<div class="opt-card opt-color-${idx}"><span class="opt-label-corner">${label}</span>?</div>`;
         });
         document.getElementById('split-arena').style.display = 'flex';
 
         broadcastStartPhase('SPOTLIGHT');
-        setTimeout(startPhase3Countdown, 2000);
+        setTimeout(startPhase3Countdown, 1600);
     }
 
-    // 階段 3：正式亮出選項 + 限時5秒
+    // 階段 3：正式亮出選項 + 限時 7 秒 (前 4 秒可踢皮球，後 3 秒鎖定)
     function startPhase3Countdown() {
         bgmMode = 'active';
         currentMatchData.acceptingAnswers = true;
-        document.getElementById('hud-phase-hint').innerText = "🔥 限時5秒";
+        currentMatchData.kickWindowOpen = true;
+        document.getElementById('hud-phase-hint').innerText = "🔥 限時7秒 (前4秒可踢皮球)";
 
         updateLockInStatusPills();
 
-        const spGrid = document.getElementById('host-spelling-grid');
-        const tnGrid = document.getElementById('host-tone-grid');
-        spGrid.innerHTML = ''; tnGrid.innerHTML = '';
+        const mainGrid = document.getElementById('host-main-grid');
+        mainGrid.innerHTML = '';
         const labels = ['A', 'B', 'C', 'D'];
+        const isSp = (currentMatchData.qMode === 'SPELLING');
 
-        currentMatchData.coopOpts.spellingOptions.forEach((optText, idx) => {
-            spGrid.innerHTML += `
-                <div class="opt-card opt-color-${idx}" id="host-sp-opt-${idx}">
+        currentMatchData.activeOptions.forEach((optVal, idx) => {
+            const innerHtml = isSp ? `<span>${optVal}</span>` : getToneCardHtml(optVal);
+            mainGrid.innerHTML += `
+                <div class="opt-card opt-color-${idx}" id="host-main-opt-${idx}">
                     <span class="opt-label-corner">${labels[idx]}</span>
-                    <span>${optText}</span>
-                    <div class="opt-pick-list" id="pick-list-sp-${idx}"></div>
-                </div>`;
-        });
-
-        currentMatchData.coopOpts.toneOptions.forEach((toneDigit, idx) => {
-            tnGrid.innerHTML += `
-                <div class="opt-card opt-color-${idx}" id="host-tn-opt-${idx}">
-                    <span class="opt-label-corner">${labels[idx]}</span>
-                    ${getToneCardHtml(toneDigit)}
-                    <div class="opt-pick-list" id="pick-list-tn-${idx}"></div>
+                    ${innerHtml}
+                    <div class="opt-pick-list" id="pick-list-main-${idx}"></div>
                 </div>`;
         });
 
         broadcastStartPhase('COUNTDOWN');
 
-        // AI試驗員自動作答模擬
+        // AI試驗員自動行動模擬 (前4秒有22%機率踢皮球，其餘時間作答)
         teams.filter(t => t.isBot).forEach(bot => {
-            setTimeout(() => {
-                if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
-                const role = currentMatchData.rolesMap[bot.id];
-                const isSpelling = (role === 'SPELLING');
-                const correctIdx = isSpelling ? currentMatchData.coopOpts.correctSpellingIdx : currentMatchData.coopOpts.correctToneIdx;
-                const botPick = (Math.random() < 0.78) ? correctIdx : Math.floor(Math.random() * 4);
-                recordTeamAnswer(bot.id, botPick);
-            }, 900 + Math.random() * 3200);
+            const willKick = (bot.ballsLeft > 0 && Math.random() < 0.22);
+            if (willKick) {
+                setTimeout(() => {
+                    if (!currentMatchData || !currentMatchData.acceptingAnswers || !currentMatchData.kickWindowOpen) return;
+                    handleTeamKickBall(bot.id);
+                }, 700 + Math.random() * 2600);
+            } else {
+                setTimeout(() => {
+                    if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
+                    if (currentMatchData.kickedTeams.has(bot.id)) return;
+                    const botPick = (Math.random() < 0.76) ? currentMatchData.correctIdx : Math.floor(Math.random() * 4);
+                    recordTeamAnswer(bot.id, botPick);
+                }, 1200 + Math.random() * 4800);
+            }
         });
 
         const timerWrap = document.getElementById('host-timer-wrap');
@@ -1599,20 +1649,77 @@
         timerWrap.style.display = 'block';
         timerBar.style.width = '100%';
 
-        let timeLeft = 5.0;
+        let timeLeft = 7.0;
         clearInterval(countdownTimer);
         countdownTimer = setInterval(() => {
             timeLeft = Math.round((timeLeft - 0.1) * 10) / 10;
-            timerBar.style.width = `${Math.max(0, (timeLeft / 5.0) * 100)}%`;
+            timerBar.style.width = `${Math.max(0, (timeLeft / 7.0) * 100)}%`;
+
+            // 倒數剩 3.0 秒時（已過 4 秒），關閉踢皮球權限，讓平板皮球變暗
+            if (timeLeft <= 3.0 && currentMatchData && currentMatchData.kickWindowOpen) {
+                currentMatchData.kickWindowOpen = false;
+                const kwPill = document.getElementById('host-kick-window-pill');
+                kwPill.innerText = "🔒 皮球已鎖定 (最後3秒)";
+                kwPill.classList.add('closed');
+                document.getElementById('hud-phase-hint').innerText = "⚡ 最後3秒！請作答！";
+                broadcastStartPhase('LOCK_KICK');
+            }
+
             if (timeLeft <= 0) {
                 clearInterval(countdownTimer);
-                setTimeout(resolveMatchQuestion, 600);
+                setTimeout(resolveMatchQuestion, 500);
             }
         }, 100);
     }
 
+    // 處理組別按下「⚽ 踢皮球」（含連環轉嫁邏輯）
+    function handleTeamKickBall(kickerId) {
+        if (!currentMatchData || !currentMatchData.acceptingAnswers || !currentMatchData.kickWindowOpen) return;
+        if (currentMatchData.kickedTeams.has(kickerId)) return;
+        if (currentMatchData.answers[kickerId] !== undefined) return; // 已選答案不可再踢
+
+        const kicker = teams.find(t => t.id === kickerId);
+        if (!kicker || kicker.ballsLeft <= 0) return;
+
+        kicker.ballsLeft--;
+        currentMatchData.kickedTeams.add(kickerId);
+        sfxKickBall();
+
+        // 把該組原本收到的所有皮球 + 自己踢出的這 1 顆球，一併轉嫁給場上還沒踢球的組別！
+        const ballsToTransfer = [...(currentMatchData.incomingBalls[kickerId] || []), kicker.name];
+        currentMatchData.incomingBalls[kickerId] = [];
+
+        if (kicker.conn && kicker.conn.open) {
+            kicker.conn.send({ type: 'KICKED_OK', ballsLeft: kicker.ballsLeft });
+        }
+
+        const eligibleTargets = teams.filter(t => !currentMatchData.kickedTeams.has(t.id));
+        if (eligibleTargets.length > 0) {
+            ballsToTransfer.forEach(senderName => {
+                const target = eligibleTargets[Math.floor(Math.random() * eligibleTargets.length)];
+                currentMatchData.incomingBalls[target.id].push(senderName);
+                currentMatchData.kickLogs.push(`${senderName} ➔ ${target.name}`);
+
+                if (target.conn && target.conn.open) {
+                    target.conn.send({
+                        type: 'BALL_INCOMING',
+                        fromName: senderName,
+                        totalIncoming: currentMatchData.incomingBalls[target.id].length,
+                        sendersList: currentMatchData.incomingBalls[target.id]
+                    });
+                }
+            });
+        } else {
+            currentMatchData.kickLogs.push(`${kicker.name} 踢出皮球 (全場皆踢球！)`);
+        }
+
+        renderKickFeedBar();
+        updateLockInStatusPills();
+    }
+
     function recordTeamAnswer(teamId, choiceIdx) {
         if (currentMatchData.answers[teamId] !== undefined) return;
+        if (currentMatchData.kickedTeams.has(teamId)) return;
         currentMatchData.answers[teamId] = choiceIdx;
         sfxLockIn();
         updateLockInStatusPills();
@@ -1620,84 +1727,79 @@
 
     function updateLockInStatusPills() {
         if (!currentMatchData) return;
-        const spTeams = teams.filter(t => currentMatchData.rolesMap[t.id] === 'SPELLING');
-        const tnTeams = teams.filter(t => currentMatchData.rolesMap[t.id] === 'TONE');
-        const spDone = spTeams.filter(t => currentMatchData.answers[t.id] !== undefined).length;
-        const tnDone = tnTeams.filter(t => currentMatchData.answers[t.id] !== undefined).length;
-
-        const pilSp = document.getElementById('status-pill-spelling');
-        const pilTn = document.getElementById('status-pill-tone');
-        pilSp.innerText = `✅ 已鎖定 ${spDone} / ${spTeams.length} 組`;
-        pilSp.classList.toggle('locked', spDone === spTeams.length && spTeams.length > 0);
-        pilTn.innerText = `✅ 已鎖定 ${tnDone} / ${tnTeams.length} 組`;
-        pilTn.classList.toggle('locked', tnDone === tnTeams.length && tnTeams.length > 0);
+        const doneCount = teams.filter(t => currentMatchData.answers[t.id] !== undefined || currentMatchData.kickedTeams.has(t.id)).length;
+        const pilAll = document.getElementById('status-pill-all');
+        pilAll.innerText = `✅ 已行動 ${doneCount} / ${teams.length} 組`;
+        pilAll.classList.toggle('locked', doneCount === teams.length && teams.length > 0);
     }
 
-    function isTeamAnswerCorrect(teamId) {
-        const { coopOpts, answers, rolesMap } = currentMatchData;
-        const role = rolesMap[teamId];
-        const pick = answers[teamId];
-        if (pick === undefined) return false;
-        return (role === 'SPELLING') ? (pick === coopOpts.correctSpellingIdx) : (pick === coopOpts.correctToneIdx);
-    }
-
-    // 階段 4：開獎結算（把所有達成 Combo 的組別顯示於大屏橫幅，並統計本題失誤組數）
+    // 階段 4：開獎結算
     function resolveMatchQuestion() {
         if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
         currentMatchData.acceptingAnswers = false;
+        currentMatchData.kickWindowOpen = false;
         bgmMode = 'ducked';
 
-        const { card, coopOpts, fullRevealedHtml, answers, rolesMap, partnerMap, pairsList } = currentMatchData;
+        const { card, correctIdx, fullRevealedHtml, answers, kickedTeams, incomingBalls } = currentMatchData;
         document.getElementById('host-tailo-prompt').innerHTML = fullRevealedHtml;
 
         for (let i = 0; i < 4; i++) {
-            const spCard = document.getElementById(`host-sp-opt-${i}`);
-            if (i === coopOpts.correctSpellingIdx) spCard.classList.add('correct-glow');
-            else spCard.classList.add('dimmed');
-
-            const tnCard = document.getElementById(`host-tn-opt-${i}`);
-            if (i === coopOpts.correctToneIdx) tnCard.classList.add('correct-glow');
-            else tnCard.classList.add('dimmed');
+            const optCard = document.getElementById(`host-main-opt-${i}`);
+            if (!optCard) continue;
+            if (i === correctIdx) optCard.classList.add('correct-glow');
+            else optCard.classList.add('dimmed');
         }
 
         teams.forEach(t => {
             const pick = answers[t.id];
             if (pick === undefined) return;
-            const isSp = (rolesMap[t.id] === 'SPELLING');
-            const listContainer = document.getElementById(isSp ? `pick-list-sp-${pick}` : `pick-list-tn-${pick}`);
+            const listContainer = document.getElementById(`pick-list-main-${pick}`);
             if (listContainer) {
-                listContainer.innerHTML += `<span class="opt-pick-badge">${t.name}</span>`;
+                const ballCnt = (incomingBalls[t.id] || []).length;
+                const ballTag = ballCnt > 0 ? `⚽x${ballCnt}` : '';
+                listContainer.innerHTML += `<span class="opt-pick-badge">${t.name}${ballTag}</span>`;
             }
         });
 
-        // 找出本題所有達成 Combo 的配對
-        const successfulPairsHtml = [];
-        pairsList.forEach(pair => {
-            if (isTeamAnswerCorrect(pair.spId) && isTeamAnswerCorrect(pair.tnId)) {
-                const tSp = teams.find(t => t.id === pair.spId);
-                const tTn = teams.find(t => t.id === pair.tnId);
-                if (tSp && tTn) {
-                    successfulPairsHtml.push(`<span class="combo-pair-pill">${tSp.name}   ${tTn.name}</span>`);
-                }
-            }
-        });
+        const everyoneKicked = (kickedTeams.size === teams.length && teams.length > 0);
+        const heroRescuePills = [];
+        let wrongOrKickedCountThisQ = 0;
 
-        // 統計各組答題結果與本題總失誤組數
-        let wrongTeamsThisQ = 0;
         teams.forEach(t => {
-            const myRight = isTeamAnswerCorrect(t.id);
-            const partnerId = partnerMap[t.id];
-            const partnerRight = partnerId ? isTeamAnswerCorrect(partnerId) : false;
-            const pairCombo = (myRight && partnerRight);
-
             t.totalQ++;
-            if (myRight) t.correctQ++;
-            else wrongTeamsThisQ++;
+            const didKick = kickedTeams.has(t.id);
+            const pick = answers[t.id];
+            const isCorrect = (!didKick && pick === correctIdx);
+            const ballsCount = (incomingBalls[t.id] || []).length;
 
             let delta = 0;
-            if (pairCombo) {
-                t.combos++;
-                delta = 150;
+            let statusType = '';
+
+            if (everyoneKicked) {
+                // 全班都踢皮球：全員連坐扣 100 分！
+                delta = -100;
+                statusType = 'ALL_KICK_PENALTY';
+                wrongOrKickedCountThisQ++;
+            } else if (didKick) {
+                // 按下踢皮球：0 分避險，但算未答對
+                delta = 0;
+                statusType = 'KICKED_SAFE';
+                wrongOrKickedCountThisQ++;
+            } else if (isCorrect) {
+                t.correctQ++;
+                delta = 100 + (ballsCount * 80);
+                if (ballsCount > 0) {
+                    t.rescues += ballsCount;
+                    statusType = 'RESCUE_HERO';
+                    heroRescuePills.push(`<span class="combo-pair-pill">🦸‍♂️ ${t.name} (接${ballsCount}球 +${delta}分)</span>`);
+                } else {
+                    statusType = 'NORMAL_CORRECT';
+                }
+            } else {
+                // 答錯或超時：基礎 -30，每接 1 顆球額外 -15
+                delta = -30 - (ballsCount * 15);
+                statusType = 'WRONG';
+                wrongOrKickedCountThisQ++;
             }
 
             t.score += delta;
@@ -1706,47 +1808,55 @@
             if (t.conn && t.conn.open) {
                 t.conn.send({
                     type: 'RESULT',
-                    myRight: myRight,
-                    pairCombo: pairCombo,
+                    statusType: statusType,
+                    ballsCount: ballsCount,
                     delta: delta,
                     totalScore: t.score,
-                    combos: t.combos,
-                    accRate: accRate,
-                    correctQ: t.correctQ,
-                    totalQ: t.totalQ
+                    ballsLeft: t.ballsLeft,
+                    rescues: t.rescues,
+                    accRate: accRate
                 });
             }
         });
 
-        // 紀錄本題失誤統計（供遊戲結束時挑出最多人錯的前 5 題）
         matchQuestionStats.push({
             h: card.h,
             r: card.r,
             a: card.a,
             fullRevealedHtml: fullRevealedHtml,
-            wrongCount: wrongTeamsThisQ,
+            wrongCount: wrongOrKickedCountThisQ,
             totalTeams: teams.length
         });
 
-        renderPairsPreviewBar(true);
-
         const banner = document.getElementById('combo-banner');
-        if (successfulPairsHtml.length > 0) {
+        if (everyoneKicked) {
+            sfxAllMiss();
+            banner.classList.add('fail-mode');
+            banner.innerHTML = `💥 全軍推諉！無人應戰，全體連坐 -100 分！ 💥`;
+            banner.style.display = 'block';
+            document.getElementById('hud-phase-hint').innerText = `💥 全體踢皮球！連坐處罰 -100 分！`;
+        } else if (heroRescuePills.length > 0) {
             sfxComboFanfare();
             confetti({ particleCount: 100, spread: 80, origin: { y: 0.55 } });
             banner.classList.remove('fail-mode');
             banner.innerHTML = `
-                <div class="combo-pairs-wrap">${successfulPairsHtml.join('')}</div>
-                <div>⚡ 小兵立大功！combo +150 分！ ⚡</div>
+                <div class="combo-pairs-wrap">${heroRescuePills.join('')}</div>
+                <div>⚡ 接球神救援！小兵立大功！ ⚡</div>
             `;
             banner.style.display = 'block';
-            document.getElementById('hud-phase-hint').innerText = `🎉 小兵立大功！共 ${successfulPairsHtml.length} 對達成 combo！`;
+            document.getElementById('hud-phase-hint').innerText = `🎉 小兵立大功！成功接球反殺！`;
         } else {
-            sfxAllMiss();
-            banner.classList.add('fail-mode');
-            banner.innerText = `💔 真可惜 combo失敗`;
-            banner.style.display = 'block';
-            document.getElementById('hud-phase-hint').innerText = `💔 真可惜 combo失敗`;
+            const anyCorrect = teams.some(t => !kickedTeams.has(t.id) && answers[t.id] === correctIdx);
+            if (anyCorrect) {
+                sfxLockIn();
+                document.getElementById('hud-phase-hint').innerText = `⭕ 開獎完成！請看正確答案`;
+            } else {
+                sfxAllMiss();
+                banner.classList.add('fail-mode');
+                banner.innerText = `💔 本題無人答對！請看大屏正解`;
+                banner.style.display = 'block';
+                document.getElementById('hud-phase-hint').innerText = `💔 本題無人答對！`;
+            }
         }
 
         setTimeout(() => {
@@ -1756,19 +1866,15 @@
     }
 
     function broadcastPreparePacket() {
-        const { coopOpts, rolesMap, partnerMap } = currentMatchData;
-
+        const { qMode, activeOptions } = currentMatchData;
         teams.forEach(t => {
             if (!t.conn || !t.conn.open) return;
-            const role = rolesMap[t.id];
-            const isSpelling = (role === 'SPELLING');
-            const partnerObj = teams.find(x => x.id === partnerMap[t.id]);
             t.conn.send({
                 type: 'PREPARE',
-                role: role,
-                isTone: !isSpelling,
-                partnerName: partnerObj ? partnerObj.name : 'AI隊友',
-                options: isSpelling ? coopOpts.spellingOptions : coopOpts.toneOptions
+                qMode: qMode,
+                isTone: (qMode === 'TONE'),
+                ballsLeft: t.ballsLeft,
+                options: activeOptions
             });
         });
     }
@@ -1787,28 +1893,28 @@
         confetti({ particleCount: 140, spread: 100, origin: { y: 0.5 } });
         switchScreen('host-gameover-screen');
 
-        // 1. 顯示 COMBO 最多次的前 3 組榮譽榜
-        const comboSorted = [...teams].sort((a, b) => b.combos - a.combos || b.score - a.score).slice(0, 3);
-        const ckBox = document.getElementById('combo-top3-list');
+        // 1. 顯示神救援王 (接球答對最多次前 3 名)
+        const rescueSorted = [...teams].sort((a, b) => b.rescues - a.rescues || b.score - a.score).slice(0, 3);
+        const ckBox = document.getElementById('rescue-top3-list');
         ckBox.innerHTML = '';
-        comboSorted.forEach((t, i) => {
+        rescueSorted.forEach((t, i) => {
             const crown = i === 0 ? '👑' : (i === 1 ? '⚡' : '🔥');
-            ckBox.innerHTML += `<div class="ck-badge"><span>${crown} 第${i+1}名：${t.name}</span><span style="color:#fde047;">(${t.combos} 次 combo)</span></div>`;
+            ckBox.innerHTML += `<div class="ck-badge"><span>${crown} 第${i+1}名：${t.name}</span><span style="color:#fde047;">(接球救援 ${t.rescues} 顆)</span></div>`;
         });
 
         // 2. 顯示總分與答對率排行榜
-        const sorted = [...teams].sort((a, b) => b.score - a.score || b.combos - a.combos);
+        const sorted = [...teams].sort((a, b) => b.score - a.score || b.rescues - a.rescues);
         const box = document.getElementById('leaderboard-list');
         box.innerHTML = '';
         sorted.forEach((t, idx) => {
             const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
-            const comboHtml = `<span class="combo-pill">⚡ combo x${t.combos}</span>`;
+            const rescueHtml = `<span class="combo-pill">🦸‍♂️ 救援 ${t.rescues} 球</span>`;
             const accRate = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
             box.innerHTML += `
                 <div class="lb-row">
                     <div>
                         <strong>${medal} ${t.name}</strong>
-                        ${comboHtml}
+                        ${rescueHtml}
                     </div>
                     <div style="display:flex; align-items:center; gap:10px;">
                         <span class="acc-pill">🎯 答對率：${accRate}% (${t.correctQ}/${t.totalQ})</span>
@@ -1817,7 +1923,7 @@
                 </div>`;
         });
 
-        // 3. 顯示最多人錯的前 5 題 (依錯題組數排序、去重，點擊可重播語音)
+        // 3. 顯示最多人錯的前 5 題
         const missedContainer = document.getElementById('top-missed-list');
         missedContainer.innerHTML = '';
         const uniqueMap = new Map();
@@ -1844,7 +1950,7 @@
                         <span class="missed-hanzi">🔊 ${idx + 1}. ${item.h}</span>
                         <span class="missed-tailo">${item.fullRevealedHtml}</span>
                     </div>
-                    <span class="missed-err-badge">❌ 錯 ${item.wrongCount} 組</span>
+                    <span class="missed-err-badge">❌ 未對 ${item.wrongCount} 組</span>
                 `;
                 missedContainer.appendChild(row);
             });
@@ -1853,16 +1959,16 @@
 
     function exportGradesToExcel() {
         if (teams.length === 0) return alert("目前沒有成績資料可匯出！");
-        const sorted = [...teams].sort((a, b) => b.score - a.score || b.combos - a.combos);
+        const sorted = [...teams].sort((a, b) => b.score - a.score || b.rescues - a.rescues);
         const lessonStr = selectedLessons.join('、');
 
         let csvContent = "\uFEFF";
-        csvContent += "排名,組別名稱,COMBO立功次數,遊戲總分,個人答對率(平時成績),個人答對題數,總題數,範圍\r\n";
+        csvContent += "排名,組別名稱,個人答對率(平時成績),實際答對題數,總題數,遊戲總分,接球神救援顆數,剩餘皮球數,範圍\r\n";
 
         sorted.forEach((t, idx) => {
             const accRate = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
             const cleanName = t.name.replace(/,/g, ' ');
-            csvContent += `${idx + 1},"${cleanName}",${t.combos},${t.score},${accRate}%,${t.correctQ},${t.totalQ},"${lessonStr}"\r\n`;
+            csvContent += `${idx + 1},"${cleanName}",${accRate}%,${t.correctQ},${t.totalQ},${t.score},${t.rescues},${t.ballsLeft},"${lessonStr}"\r\n`;
         });
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1879,11 +1985,13 @@
     }
 
     // =========================================================
-    // 📱 學生平板端邏輯
+    // 📱 學生平板端邏輯 (含踢皮球、滾球進入特效與前4秒開關)
     // =========================================================
     let studentPeer = null;
     let hostConn = null;
-    let myCurrentRole = '';
+    let myCurrentQMode = 'SPELLING';
+    let myBallsLeft = 3;
+    let myHasActed = false;
 
     function showStudentJoin() {
         switchScreen('student-join-screen');
@@ -1919,11 +2027,23 @@
         });
     }
 
+    function triggerStudentBallAnimation(type) {
+        const layer = document.getElementById('pad-ball-fx-layer');
+        const ball = document.createElement('div');
+        ball.className = 'rolling-ball-fx ' + (type === 'in' ? 'ball-roll-in' : 'ball-kick-out');
+        ball.innerText = type === 'in' ? '🔥⚽' : '⚽💨';
+        layer.appendChild(ball);
+        setTimeout(() => ball.remove(), 800);
+    }
+
     function handleStudentReceiveData(data) {
         const banner = document.getElementById('pad-role-banner');
         const heroStage = document.getElementById('pad-hero-stage');
         const avatarFig = document.getElementById('pad-avatar-figure');
         const oppOverlay = document.getElementById('pad-opportunity-overlay');
+        const incBadge = document.getElementById('pad-incoming-balls-badge');
+        const kickBtn = document.getElementById('pad-kick-btn');
+        const kickCntText = document.getElementById('pad-kick-count-text');
         const btns = document.querySelectorAll('#pad-options-grid .pad-btn');
 
         if (data.type === 'JOINED_OK') {
@@ -1931,14 +2051,23 @@
             avatarFig.innerHTML = getSoldierSlashSvg();
             switchScreen('student-pad-screen');
         } else if (data.type === 'PREPARE') {
-            myCurrentRole = data.role;
+            myCurrentQMode = data.qMode;
+            myBallsLeft = data.ballsLeft;
+            myHasActed = false;
+
             heroStage.className = '';
             oppOverlay.style.display = 'none';
+            incBadge.style.display = 'none';
+            document.getElementById('pad-ball-fx-layer').innerHTML = '';
             avatarFig.innerHTML = getSoldierSlashSvg();
+
             banner.className = '';
             banner.style.background = '';
             banner.style.color = '';
             banner.innerText = "🎧 斟酌聽";
+
+            kickCntText.innerText = `剩 ${myBallsLeft}`;
+            kickBtn.classList.add('locked-dark');
 
             btns.forEach((btn, idx) => {
                 btn.classList.add('disabled');
@@ -1950,58 +2079,106 @@
                     btn.innerHTML = `<span>${optVal || ''}</span>`;
                 }
             });
-            banner.dataset.partner = data.partnerName || '';
         } else if (data.type === 'PHASE') {
             if (data.phase === 'SPOTLIGHT') {
                 banner.style.background = '';
                 banner.style.color = '';
-                const isSp = (myCurrentRole === 'SPELLING');
-                const taskName = isSp ? '🔤【拼寫】' : '📈【聲調】';
+                const isSp = (myCurrentQMode === 'SPELLING');
+                document.getElementById('pad-opp-title').innerText = isSp ? '🔤 考【羅馬字拼寫】' : '📈 考【聲調號碼】';
                 oppOverlay.style.display = 'flex';
                 setTimeout(() => { oppOverlay.style.display = 'none'; }, 900);
                 banner.className = isSp ? 'main-spelling' : 'main-tone';
-                banner.innerText = `🗡️ 選${taskName}｜本題搭檔：${banner.dataset.partner}`;
+                banner.innerText = isSp ? `🗡️ 本題請選【羅馬字拼寫】` : `🗡️ 本題請選【聲調號碼】`;
             } else if (data.phase === 'COUNTDOWN') {
                 oppOverlay.style.display = 'none';
                 btns.forEach(btn => btn.classList.remove('disabled'));
+                if (myBallsLeft > 0) {
+                    kickBtn.classList.remove('locked-dark');
+                }
+            } else if (data.phase === 'LOCK_KICK') {
+                // 後 3 秒皮球變暗鎖死
+                kickBtn.classList.add('locked-dark');
             }
+        } else if (data.type === 'BALL_INCOMING') {
+            sfxReceiveBall();
+            triggerStudentBallAnimation('in');
+            incBadge.style.display = 'block';
+            incBadge.innerText = `🔥 ${data.fromName} 踢來皮球！(共 ${data.totalIncoming} 顆)`;
+            if (!myHasActed) {
+                banner.style.background = '#b91c1c';
+                banner.style.color = '#fde047';
+                banner.innerText = `⚽ ${data.fromName} 踢來皮球！答對額外 +${data.totalIncoming * 80} 分！`;
+            }
+        } else if (data.type === 'KICKED_OK') {
+            myBallsLeft = data.ballsLeft;
+            kickCntText.innerText = `剩 ${myBallsLeft}`;
+            incBadge.style.display = 'none';
+            banner.style.background = '#475569';
+            banner.style.color = '#fde047';
+            banner.innerText = `⚽💨 已把皮球踢出去！本題安全避險 (0分)`;
         } else if (data.type === 'RESULT') {
             oppOverlay.style.display = 'none';
+            kickBtn.classList.add('locked-dark');
             btns.forEach(btn => btn.classList.add('disabled'));
-            document.getElementById('pad-my-score').innerText = `${data.totalScore} 分｜${data.combos} combo｜答對率 ${data.accRate}%`;
+
+            myBallsLeft = data.ballsLeft;
+            kickCntText.innerText = `剩 ${myBallsLeft}`;
+            document.getElementById('pad-my-score').innerText = `${data.totalScore} 分｜⚽剩 ${data.ballsLeft}｜答對率 ${data.accRate}%`;
             banner.className = '';
 
-            if (data.pairCombo) {
-                // 小兵立大功！瞬間變身為「騎戰馬拿長槍(矛)的大將」！
+            if (data.statusType === 'RESCUE_HERO') {
+                // 接球並答對：小兵變身騎馬拿槍(矛)大將！
                 heroStage.classList.add('combo-mode');
                 avatarFig.innerHTML = getGeneralHorseSvg();
                 if (typeof confetti === 'function') {
                     confetti({ particleCount: 65, spread: 70, origin: { y: 0.6 } });
                 }
                 banner.style.background = '#d97706'; banner.style.color = '#fff';
-                banner.innerText = `🎉 小兵立大功！combo +${data.delta} 分！`;
-            } else if (data.myRight) {
-                // 自己答對但搭檔失誤：小兵收刀流汗 💦
+                banner.innerText = `🦸‍♂️ 接球神救援！小兵立大功 +${data.delta} 分！`;
+            } else if (data.statusType === 'NORMAL_CORRECT') {
+                heroStage.classList.add('general-mode');
+                avatarFig.innerHTML = getGeneralHorseSvg();
+                banner.style.background = '#16a34a'; banner.style.color = '#fff';
+                banner.innerText = `⭕ 答對了！ +${data.delta} 分！`;
+            } else if (data.statusType === 'KICKED_SAFE') {
                 avatarFig.innerHTML = getSoldierSweatSvg();
                 banner.style.background = '#475569'; banner.style.color = '#fde047';
-                banner.innerText = `💦 真可惜 combo失敗 (你答對，但搭檔失誤 +0分)`;
-            } else {
-                // 自己答錯或超時：小兵頭盔歪掉眼冒金星 💫
+                banner.innerText = `⚽💨 踢皮球成功避險 (+0分)`;
+            } else if (data.statusType === 'ALL_KICK_PENALTY') {
                 avatarFig.innerHTML = getSoldierDizzySvg();
                 banner.style.background = '#dc2626'; banner.style.color = '#fff';
-                banner.innerText = `💫 真可惜 combo失敗 (本題答錯或超時 +0分)`;
+                banner.innerText = `💥 全班都踢皮球！連坐處罰 ${data.delta} 分！`;
+            } else {
+                // 答錯或超時
+                avatarFig.innerHTML = getSoldierDizzySvg();
+                banner.style.background = '#dc2626'; banner.style.color = '#fff';
+                const extraMsg = data.ballsCount > 0 ? `(含接${data.ballsCount}顆皮球加重扣分)` : '';
+                banner.innerText = `💫 答錯或超時 ${data.delta} 分！${extraMsg}`;
             }
         }
     }
 
     function submitStudentAnswer(choiceIdx) {
-        if (!hostConn || !hostConn.open) return;
+        if (!hostConn || !hostConn.open || myHasActed) return;
+        myHasActed = true;
+        document.getElementById('pad-kick-btn').classList.add('locked-dark');
         const btns = document.querySelectorAll('#pad-options-grid .pad-btn');
         btns.forEach((btn, idx) => {
             btn.classList.add('disabled');
             if (idx === choiceIdx) btn.classList.add('selected');
         });
         hostConn.send({ type: 'ANSWER', choiceIdx: choiceIdx });
+    }
+
+    function submitStudentKick() {
+        if (!hostConn || !hostConn.open || myHasActed || myBallsLeft <= 0) return;
+        myHasActed = true;
+        sfxKickBall();
+        triggerStudentBallAnimation('out');
+        document.getElementById('pad-kick-btn').classList.add('locked-dark');
+        const btns = document.querySelectorAll('#pad-options-grid .pad-btn');
+        btns.forEach(btn => btn.classList.add('disabled'));
+        hostConn.send({ type: 'KICK' });
     }
 </script>
 </body>
