@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>台語合擊派對 - 羅馬字與聲調連線大作戰</title>
+    <title>台語PARTY - 小兵轉大將 combo立大功</title>
     <!-- 引入 豆腐烏 (Tauhu-Oo) 官方網頁字型 -->
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -19,18 +19,18 @@
             width: 100vw; height: 100vh; height: 100dvh; overflow: hidden;
         }
 
-        #version-tag { position: fixed; top: 10px; right: 16px; font-size: 14px; color: #38bdf8; font-weight: bold; z-index: 100; pointer-events: none; opacity: 0.8; }
+        #version-tag { position: fixed; top: 8px; right: 14px; font-size: 13px; color: #38bdf8; font-weight: bold; z-index: 100; pointer-events: none; opacity: 0.75; }
 
         /* 共用畫面容器 */
         .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 14px; position: relative; overflow-y: auto; }
         .screen.active { display: flex; }
 
         /* ========================================================= */
-        /* 1. 入口選擇畫面 (老師大屏 vs 學生平板) */
+        /* 1. 入口選擇畫面 (主辦方 vs 學生) */
         /* ========================================================= */
         .title-banner { text-align: center; margin-bottom: 24px; }
-        .title-banner h1 { font-size: clamp(28px, 4.5vw, 48px); margin: 0 0 8px 0; color: #fde047; text-shadow: 0 4px 15px rgba(250, 204, 21, 0.4); }
-        .title-banner p { font-size: clamp(15px, 2vw, 20px); color: #38bdf8; margin: 0; }
+        .title-banner h1 { font-size: clamp(32px, 5vw, 54px); margin: 0 0 8px 0; color: #fde047; text-shadow: 0 4px 15px rgba(250, 204, 21, 0.4); letter-spacing: 2px; }
+        .title-banner p { font-size: clamp(18px, 2.5vw, 24px); color: #38bdf8; margin: 0; font-weight: bold; }
 
         .role-cards { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 760px; }
         .role-card {
@@ -42,12 +42,12 @@
         .role-card.student-card { border-color: #4ade80; }
         .role-card .icon { font-size: 64px; margin-bottom: 12px; }
         .role-card h2 { font-size: 26px; margin: 0 0 8px 0; color: #fff; }
-        .role-card p { font-size: 15px; color: #94a3b8; margin: 0; line-height: 1.4; }
+        .role-card p { font-size: 16px; color: #94a3b8; margin: 0; line-height: 1.4; }
 
         .footer { position: absolute; bottom: 8px; text-align: center; width: 100%; font-size: 11px; color: #64748b; pointer-events: none; }
 
         /* ========================================================= */
-        /* 2. 老師大屏：等待室與課次設定 */
+        /* 2. 主辦方大屏：等待大廳與設定 */
         /* ========================================================= */
         #host-lobby-screen { justify-content: flex-start; padding-top: 20px; }
         .lobby-top-bar { display: flex; gap: 20px; width: 100%; max-width: 1150px; align-items: stretch; flex-wrap: wrap; margin-bottom: 14px; }
@@ -58,7 +58,7 @@
             box-shadow: 0 0 20px rgba(253, 224, 71, 0.2);
         }
         .pin-text-area { text-align: left; }
-        .pin-label { font-size: 16px; color: #cbd5e1; }
+        .pin-label { font-size: 18px; color: #cbd5e1; font-weight: bold; }
         .pin-code { font-size: clamp(44px, 5vw, 68px); font-weight: bold; color: #fde047; letter-spacing: 6px; line-height: 1.1; text-shadow: 0 0 15px rgba(253, 224, 71, 0.5); }
         #qrcode-box { background: #fff; padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 
@@ -66,7 +66,7 @@
             flex: 1.5; min-width: 340px; background: #1e293b; border: 2px solid #38bdf8; border-radius: 16px;
             padding: 14px 18px; display: flex; flex-direction: column; justify-content: space-between;
         }
-        .lesson-config-title { font-size: 17px; color: #38bdf8; margin: 0 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
+        .lesson-config-title { font-size: 18px; color: #38bdf8; margin: 0 0 8px 0; display: flex; justify-content: space-between; align-items: center; }
         #lessons-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
         .lesson-btn {
             padding: 6px 13px; background: #334155; color: #e2e8f0; border: 1.5px solid #64748b;
@@ -109,31 +109,43 @@
         @keyframes popIn { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
         /* ========================================================= */
-        /* 3. 老師大屏：遊戲主舞台 (優化垂直空間防擠壓) */
+        /* 3. 主辦方大屏：遊戲主舞台 */
         /* ========================================================= */
         #host-game-screen { justify-content: space-between; padding: 10px 20px 12px 20px; overflow: hidden; }
         
         .game-hud {
             width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center;
-            background: rgba(30, 41, 59, 0.85); border: 1.5px solid #334155; border-radius: 12px;
-            padding: 6px 16px; font-size: 17px; z-index: 10; flex-shrink: 0;
+            background: rgba(30, 41, 59, 0.9); border: 1.5px solid #334155; border-radius: 12px;
+            padding: 6px 16px; font-size: 17px; z-index: 10; flex-shrink: 0; gap: 10px;
         }
-        .hud-group { display: flex; align-items: center; gap: 12px; }
-        .round-pill { background: #0284c7; color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 15px; }
-        .icon-btn {
-            background: #334155; border: 1.5px solid #94a3b8; color: #fff; border-radius: 8px;
-            padding: 3px 10px; font-size: 15px; cursor: pointer; font-family: inherit;
+        .hud-group { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+        .round-pill { background: #0284c7; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 15px; white-space: nowrap; }
+        #hud-q-progress { white-space: nowrap; font-weight: bold; }
+        #hud-phase-hint { white-space: nowrap; font-size: 19px; font-weight: bold; }
+
+        /* 音樂與音效按鈕 (亮起 vs 變暗+紅斜線劃過圖示) */
+        .media-toggle-btn {
+            background: linear-gradient(180deg, #1e293b, #0f172a); border: 2px solid #38bdf8; color: #fff;
+            border-radius: 10px; padding: 4px 12px; font-size: 15px; font-weight: bold;
+            cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.35); transition: 0.2s; white-space: nowrap;
+        }
+        .media-icon-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; }
+        .media-toggle-btn.muted {
+            opacity: 0.45; border-color: #475569; box-shadow: none; color: #94a3b8; background: #0f172a;
+        }
+        .media-toggle-btn.muted .media-icon-wrap::after {
+            content: ''; position: absolute; width: 24px; height: 3px; background: #ef4444;
+            border-radius: 2px; transform: rotate(-45deg); box-shadow: 0 0 4px #000; pointer-events: none;
         }
 
-        /* 題目展示區：支援「中央巨大展示」與「縮小移至上方」的平滑動畫 */
+        /* 題目展示區 */
         #question-stage {
             width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
             margin: auto 0; z-index: 8; flex-shrink: 0;
         }
-        #question-stage.shrunk {
-            margin: 4px 0 6px 0;
-        }
+        #question-stage.shrunk { margin: 4px 0 6px 0; }
         .q-hanzi-hint { font-size: clamp(24px, 3vw, 36px); color: #fb923c; margin-bottom: 6px; font-weight: bold; }
         #question-stage.shrunk .q-hanzi-hint { font-size: 20px; margin-bottom: 2px; }
 
@@ -148,19 +160,21 @@
         #question-stage.shrunk .q-speaker { font-size: 28px; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
 
-        .q-tailo-text { font-size: clamp(42px, 5.8vw, 72px); font-weight: bold; color: #fff; letter-spacing: 2px; line-height: 1.15; }
+        .q-tailo-text { font-size: clamp(42px, 5.8vw, 72px); font-weight: bold; color: #fff; letter-spacing: 2px; line-height: 1.15; display: flex; align-items: baseline; }
         #question-stage.shrunk .q-tailo-text { font-size: clamp(24px, 3.2vw, 36px); }
+        
+        /* 乾淨的粉紅底線 (無 ____ 文字疊加) */
         .blank-slot {
-            display: inline-block; min-width: 110px; border-bottom: 6px solid #ec4899;
-            color: #ec4899; text-align: center; margin: 0 6px; padding: 0 6px;
+            display: inline-block; width: 110px; height: 0.85em; border-bottom: 6px solid #ec4899;
+            margin: 0 6px; vertical-align: baseline;
         }
-        #question-stage.shrunk .blank-slot { min-width: 72px; border-bottom-width: 4px; }
+        #question-stage.shrunk .blank-slot { width: 72px; border-bottom-width: 4px; }
 
         /* 倒數計時條 */
         #host-timer-wrap { width: 100%; max-width: 1200px; height: 10px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-bottom: 8px; display: none; border: 1px solid #475569; flex-shrink: 0; }
         #host-timer-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); transition: width 0.1s linear; }
 
-        /* 左右分割對戰舞台 (左：拼寫，右：聲調) */
+        /* 左右分割對戰舞台 */
         #split-arena {
             display: none; width: 100%; max-width: 1200px; flex: 1; gap: 16px;
             align-items: stretch; justify-content: center; min-height: 0; overflow: hidden;
@@ -180,10 +194,10 @@
         .arena-half.tone-side .spotlight-header { border-left-color: #f59e0b; }
         .role-tag { font-size: 15px; color: #94a3b8; }
         .assigned-team { font-size: clamp(20px, 2.4vw, 28px); color: #fde047; font-weight: bold; text-shadow: 0 0 10px rgba(253, 224, 71, 0.4); }
-        .team-status-pill { font-size: 14px; padding: 4px 12px; border-radius: 20px; background: #334155; color: #cbd5e1; }
+        .team-status-pill { font-size: 14px; padding: 4px 12px; border-radius: 20px; background: #334155; color: #cbd5e1; white-space: nowrap; }
         .team-status-pill.locked { background: #059669; color: #fff; box-shadow: 0 0 10px #10b981; }
 
-        /* 4 選項格狀佈局 (自適應高度不溢出) */
+        /* 4 選項格狀佈局 */
         .options-grid {
             display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
             gap: 10px; flex: 1; min-height: 0;
@@ -211,9 +225,9 @@
         }
         .opt-card.picked .opt-pick-tag { display: block; }
 
-        /* 除魔咒術一體成形 SVG 聲調樣式放大版 */
-        .tone-opt-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .tone-opt-num { font-size: clamp(20px, 2.5vw, 26px); color: rgba(255,255,255,0.9); }
+        /* 一體成形 SVG 聲調樣式 (大屏與平板共用) */
+        .tone-opt-wrap { display: flex; align-items: center; justify-content: center; gap: 8px; pointer-events: none; }
+        .tone-opt-num { font-size: clamp(20px, 2.5vw, 26px); color: rgba(255,255,255,0.95); }
         .tone-svg-large { width: 36px; height: 48px; overflow: visible; display: block; }
         .checked-tone-group-lg { display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
         .checked-tone-grid-lg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px; font-size: 14px; line-height: 0.95; font-family: Arial, sans-serif; color: #fde047; }
@@ -235,7 +249,7 @@
         }
 
         /* ========================================================= */
-        /* 4. 學生平板端畫面 (加入房間 + 手把控制器) */
+        /* 4. 學生平板端畫面 (小兵拿刀 vs 騎馬拿槍大將 + 縮小4選項) */
         /* ========================================================= */
         .student-Join-card {
             background: #1e293b; border: 2px solid #4ade80; border-radius: 20px;
@@ -251,50 +265,94 @@
         }
         .input-group input:focus { outline: none; border-color: #4ade80; }
 
-        #student-pad-screen { justify-content: space-between; padding: 12px; }
+        #student-pad-screen { justify-content: space-between; padding: 10px 12px; overflow: hidden; }
         .pad-top-bar {
             width: 100%; display: flex; justify-content: space-between; align-items: center;
-            background: #1e293b; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #334155;
-            flex-wrap: wrap; gap: 6px;
+            background: #1e293b; padding: 8px 14px; border-radius: 12px; border: 1.5px solid #334155;
+            flex-shrink: 0;
         }
-        .pad-team-name { font-size: 19px; color: #4ade80; font-weight: bold; }
-        .pad-score { font-size: 17px; color: #fde047; font-weight: bold; }
+        .pad-team-name { font-size: 18px; color: #4ade80; font-weight: bold; }
+        .pad-score { font-size: 16px; color: #fde047; font-weight: bold; }
 
-        /* 學生平板角色提示橫幅 (主秀閃爍特效) */
+        /* 學生平板中央：小兵拿刀 / 騎馬拿槍大將 動態舞台 */
+        #pad-hero-stage {
+            width: 100%; flex: 1; max-height: 42vh; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 85%);
+            border: 2px solid #334155; border-radius: 16px; margin: 8px 0; padding: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; overflow: hidden; transition: 0.3s;
+        }
+        #pad-hero-stage.general-mode {
+            background: radial-gradient(circle at center, #78350f 0%, #0f172a 85%);
+            border-color: #fde047; box-shadow: 0 0 25px rgba(250, 204, 21, 0.45);
+        }
+        #pad-hero-stage.combo-mode {
+            background: radial-gradient(circle at center, #b91c1c 0%, #78350f 60%, #0f172a 100%);
+            border-color: #fde047; box-shadow: 0 0 35px #fde047;
+        }
+
+        /* 立功機會 閃耀全屏遮罩橫幅 */
+        #pad-opportunity- overlay {
+            display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.75);
+            z-index: 10; align-items: center; justify-content: center; flex-direction: column;
+            animation: popIn 0.25s ease-out;
+        }
+        .opportunity-badge {
+            background: linear-gradient(135deg, #fde047, #f59e0b); color: #000;
+            font-size: clamp(28px, 6vw, 42px); font-weight: bold; padding: 10px 28px;
+            border-radius: 30px; border: 3px solid #fff; box-shadow: 0 0 35px #fde047;
+        }
+
+        #pad-avatar-figure {
+            width: 135px; height: 115px; display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        /* 小兵揮刀動畫 */
+        .soldier-slash-anim { transform-origin: 45px 65px; animation: bladeSlash 0.65s ease-in-out infinite alternate; }
+        @keyframes bladeSlash {
+            0% { transform: rotate(-28deg); }
+            100% { transform: rotate(32deg) scale(1.05); }
+        }
+        /* 大將騎馬衝鋒與刺槍動畫 */
+        .general-gallop-anim { animation: horseGallop 0.45s ease-in-out infinite alternate; }
+        @keyframes horseGallop {
+            0% { transform: translateY(2px) rotate(-3deg); }
+            100% { transform: translateY(-6px) rotate(3deg); }
+        }
+        .spear-thrust-anim { animation: spearThrust 0.4s ease-in-out infinite alternate; }
+        @keyframes spearThrust {
+            0% { transform: translateX(-6px); }
+            100% { transform: translateX(12px); }
+        }
+
         #pad-role-banner {
-            width: 100%; text-align: center; padding: 12px; border-radius: 14px;
-            font-size: 20px; font-weight: bold; margin: 10px 0; background: #334155; color: #cbd5e1;
-            transition: 0.2s;
+            width: 100%; text-align: center; padding: 6px 10px; border-radius: 10px;
+            font-size: clamp(16px, 4vw, 21px); font-weight: bold; margin-top: 4px;
+            background: rgba(15, 23, 42, 0.85); color: #cbd5e1; border: 1.5px solid #475569;
         }
-        #pad-role-banner.main-spelling {
-            background: linear-gradient(90deg, #0284c7, #2563eb); color: #fff;
-            border: 3px solid #fde047; animation: alertFlash 0.5s infinite alternate;
-        }
-        #pad-role-banner.main-tone {
-            background: linear-gradient(90deg, #d97706, #ea580c); color: #fff;
-            border: 3px solid #fde047; animation: alertFlash 0.5s infinite alternate;
-        }
-        #pad-role-banner.crowd-role {
-            background: #065f46; color: #a7f3d0; border: 2px solid #34d399;
-        }
-        @keyframes alertFlash { 0% { box-shadow: 0 0 5px #fde047; transform: scale(0.99); } 100% { box-shadow: 0 0 25px #fde047; transform: scale(1.01); } }
+        #pad-role-banner.main-spelling { background: #0284c7; color: #fff; border-color: #fde047; }
+        #pad-role-banner.main-tone { background: #d97706; color: #fff; border-color: #fde047; }
+        #pad-role-banner.crowd-role { background: #065f46; color: #a7f3d0; border-color: #34d399; }
 
+        /* 學生平板 4 選項縮小高度以突顯上方小兵/大將 */
         #pad-options-grid {
-            width: 100%; flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
-            gap: 12px; min-height: 0;
+            width: 100%; height: 42vh; max-height: 290px;
+            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+            gap: 10px; flex-shrink: 0;
         }
         .pad-btn {
-            border-radius: 18px; border: 3px solid rgba(255,255,255,0.3); color: #fff;
-            font-size: clamp(26px, 5vw, 42px); font-weight: bold; font-family: inherit;
+            border-radius: 14px; border: 2.5px solid rgba(255,255,255,0.3); color: #fff;
+            font-size: clamp(22px, 4.5vw, 34px); font-weight: bold; font-family: inherit;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; position: relative; box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+            cursor: pointer; position: relative; box-shadow: 0 5px 12px rgba(0,0,0,0.4);
+            padding: 4px; overflow: hidden;
         }
+        .pad-btn * { pointer-events: none; }
         .pad-btn:active { transform: scale(0.95); }
-        .pad-btn.selected { border-color: #fde047; box-shadow: 0 0 25px #fde047; transform: scale(1.02); }
+        .pad-btn.selected { border-color: #fde047; box-shadow: 0 0 22px #fde047; transform: scale(1.02); }
         .pad-btn.disabled { opacity: 0.35; pointer-events: none; }
 
         /* ========================================================= */
-        /* 5. 最終結算排行榜畫面 (含答對率與匯出 Excel) */
+        /* 5. 最終結算排行榜畫面 */
         /* ========================================================= */
         #host-gameover-screen { justify-content: flex-start; padding-top: 20px; }
         .leaderboard-box {
@@ -322,41 +380,41 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 1.1</div>
+<div id="version-tag">Ver 1.2</div>
 
 <!-- ========================================================= -->
 <!-- 1. 首頁：選擇身分 -->
 <!-- ========================================================= -->
 <div id="entry-screen" class="screen active">
     <div class="title-banner">
-        <h1>⚡ 台語羅馬字・雙人合擊派對 ⚡</h1>
-        <p>全班連線合作！一組選拼寫、一組選聲調，創造最強 COMBO！</p>
+        <h1>⚡ 台語PARTY ⚡</h1>
+        <p>小兵轉大將 combo立大功</p>
     </div>
     <div class="role-cards">
         <div class="role-card" onclick="initTeacherHost()">
             <div class="icon">🖥️</div>
-            <h2>我是老師 (大屏主機)</h2>
-            <p>建立遊戲房間、選擇課次範圍、播放語音並在大螢幕主持全班對戰</p>
+            <h2>我是主辦方(控制台)</h2>
+            <p>創立PARTY大廳</p>
         </div>
         <div class="role-card student-card" onclick="showStudentJoin()">
             <div class="icon">📱</div>
-            <h2>我是學生 (平板控制器)</h2>
-            <p>輸入房間號碼與組別名稱，兩人一組看著大螢幕合擊搶分</p>
+            <h2>我欲入來PARTY戰</h2>
+            <p>入來大廳號名、等候</p>
         </div>
     </div>
     <div class="footer">設計者：Iônn, Àn-tsiong | 技術支援：Gemini</div>
 </div>
 
 <!-- ========================================================= -->
-<!-- 2. 老師大屏：等待大廳與設定 -->
+<!-- 2. 主辦方大屏：等待大廳與設定 -->
 <!-- ========================================================= -->
 <div id="host-lobby-screen" class="screen">
     <div class="lobby-top-bar">
         <div class="room-pin-box">
             <div class="pin-text-area">
-                <div class="pin-label">📱 平板連線房間號碼</div>
+                <div class="pin-label">📱 大廳號碼</div>
                 <div class="pin-code" id="room-pin-display">----</div>
-                <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">請掃描右側 QR Code 或輸入房號加入</div>
+                <div style="font-size: 14px; color: #94a3b8; margin-top: 4px;">掃qrcode或者是輸入大廳號碼</div>
             </div>
             <div id="qrcode-box"></div>
         </div>
@@ -364,31 +422,30 @@
         <div class="lesson-config-box">
             <div>
                 <div class="lesson-config-title">
-                    <span>📚 選擇出題課次 (全體至少輪流上場 3 回合)</span>
-                    <label style="font-size: 14px; color: #fde047; cursor: pointer;">
-                        <input type="checkbox" id="show-hanzi-toggle" checked style="transform: scale(1.2);"> 顯示漢字提示
+                    <span>📚 範圍</span>
+                    <label style="font-size: 15px; color: #fde047; cursor: pointer;">
+                        <input type="checkbox" id="show-hanzi-toggle" checked style="transform: scale(1.2);"> 顯示漢字
                     </label>
                 </div>
                 <div id="lessons-container"></div>
             </div>
             <div class="lobby-controls-row">
-                <button class="btn-bot" onclick="addBotTeam()">🤖 ➕ 加入測試機器人組別</button>
-                <button class="btn-primary" onclick="startHostGame()">🚀 全員到齊，開始派對！</button>
+                <button class="btn-bot" onclick="addBotTeam()">🤖 ➕ 加入AI試驗員</button>
+                <button class="btn-primary" onclick="startHostGame()">🚀 PARTY開始</button>
             </div>
         </div>
     </div>
 
     <div class="teams-grid-box">
         <div class="teams-header">
-            <span>👥 已連線組別 (<span id="team-count-num" style="color:#4ade80;">0</span> 組) — 建議 2 人一組使用一台平板</span>
-            <span style="font-size: 14px; color: #94a3b8;">每回合自動洗牌配對，拼寫與聲調機會均等！</span>
+            <span>👥 請先號名、等候開始 (<span id="team-count-num" style="color:#4ade80;">0</span> 組)</span>
         </div>
         <div id="lobby-teams-list"></div>
     </div>
 </div>
 
 <!-- ========================================================= -->
-<!-- 3. 老師大屏：遊戲進行畫面 -->
+<!-- 3. 主辦方大屏：遊戲進行畫面 -->
 <!-- ========================================================= -->
 <div id="host-game-screen" class="screen">
     <div class="game-hud">
@@ -397,11 +454,15 @@
             <span id="hud-q-progress">題目: 1 / 9</span>
         </div>
         <div class="hud-group">
-            <span id="hud-phase-hint" style="color: #fde047;">🎧 請仔細聽音...</span>
+            <span id="hud-phase-hint" style="color: #fde047;">🎧 斟酌聽</span>
         </div>
         <div class="hud-group">
-            <button class="icon-btn" id="bgm-toggle-btn" onclick="toggleBgm()">🎵 音樂: 開</button>
-            <button class="icon-btn" id="sfx-toggle-btn" onclick="toggleSfx()">🔔 音效: 開</button>
+            <button class="media-toggle-btn" id="bgm-toggle-btn" onclick="toggleBgm()">
+                <span class="media-icon-wrap">🎵</span><span>音樂</span>
+            </button>
+            <button class="media-toggle-btn" id="sfx-toggle-btn" onclick="toggleSfx()">
+                <span class="media-icon-wrap">🔔</span><span>音效</span>
+            </button>
         </div>
     </div>
 
@@ -410,7 +471,7 @@
         <div class="q-hanzi-hint" id="host-hanzi-hint">紅筆</div>
         <div class="q-word-box">
             <div class="q-speaker" onclick="replayCurrentAudio()" title="點擊重播語音">🔊</div>
-            <div class="q-tailo-text" id="host-tailo-prompt"><span class="blank-slot">?</span> pit</div>
+            <div class="q-tailo-text" id="host-tailo-prompt"><span class="blank-slot"></span></div>
         </div>
     </div>
 
@@ -445,22 +506,22 @@
     </div>
 
     <div id="crowd-status-bar">
-        <span id="crowd-progress-text">👀 陪考組作答進度：0 / 0 組已鎖定</span>
-        <span id="round-result-summary" style="color: #fde047; font-weight: bold;">主秀各 +100 分｜雙組全對觸發 COMBO 再 +50 分｜陪考答對 +20 分</span>
+        <span id="crowd-progress-text">👀 小兵助陣進度：0 / 0 組已鎖定</span>
+        <span id="round-result-summary" style="color: #fde047; font-weight: bold;">大將各 +100 分｜雙組全對 combo 再 +50 分｜小兵答對 +20 分</span>
     </div>
 
-    <div id="combo-banner">⚡ COMBO 合擊成功！雙組 +150 分！ ⚡</div>
+    <div id="combo-banner">⚡ 大神啦！combo！雙組 +150 分！ ⚡</div>
 </div>
 
 <!-- ========================================================= -->
-<!-- 4. 老師大屏：最終成績結算畫面 (含答對率與匯出 Excel) -->
+<!-- 4. 主辦方大屏：最終成績結算畫面 -->
 <!-- ========================================================= -->
 <div id="host-gameover-screen" class="screen">
-    <h1 style="color: #fde047; font-size: 34px; margin: 0 0 12px 0;">🏆 派對結束・總成績與答對率排行榜 🏆</h1>
+    <h1 style="color: #fde047; font-size: 38px; margin: 0 0 12px 0;">🏆 論功行賞 🏆</h1>
     <div class="leaderboard-box" id="leaderboard-list"></div>
     <div class="gameover-btn-row">
         <button class="btn-excel" onclick="exportGradesToExcel()">📥 匯出成績單 (Excel)</button>
-        <button class="btn-primary" onclick="location.reload()">🔄 返回大廳再玩一局</button>
+        <button class="btn-primary" onclick="location.reload()">🔄 閣耍一擺</button>
     </div>
 </div>
 
@@ -469,22 +530,22 @@
 <!-- ========================================================= -->
 <div id="student-join-screen" class="screen">
     <div class="student-Join-card">
-        <h2 style="color: #4ade80; margin: 0 0 18px 0; font-size: 26px;">📱 加入合擊派對</h2>
+        <h2 style="color: #4ade80; margin: 0 0 18px 0; font-size: 26px;">📱 入來大廳號名、等候</h2>
         <div class="input-group">
-            <label>1. 輸入大螢幕上的 4 位數房間號碼：</label>
+            <label>1. 輸入大廳號碼：</label>
             <input type="text" id="join-pin-input" placeholder="例如：8899" maxlength="6" inputmode="numeric">
         </div>
         <div class="input-group">
-            <label>2. 輸入你們的組別名稱 (如座號 15&23 或 甲組)：</label>
+            <label>2. 輸入你們的組別號名 (如 15&23 或 甲組)：</label>
             <input type="text" id="join-name-input" placeholder="例如：15&23" maxlength="12">
         </div>
-        <button class="btn-primary" id="student-connect-btn" style="width: 100%; background: #16a34a; border-color: #4ade80;" onclick="connectToHost()">連線進入房間</button>
+        <button class="btn-primary" id="student-connect-btn" style="width: 100%; background: #16a34a; border-color: #4ade80;" onclick="connectToHost()">入來大廳</button>
         <p id="student-join-msg" style="color: #fb923c; font-size: 14px; margin-top: 12px; min-height: 20px;"></p>
     </div>
 </div>
 
 <!-- ========================================================= -->
-<!-- 6. 學生平板端：作答控制器 -->
+<!-- 6. 學生平板端：小兵/大將舞台 + 作答控制器 -->
 <!-- ========================================================= -->
 <div id="student-pad-screen" class="screen">
     <div class="pad-top-bar">
@@ -492,7 +553,15 @@
         <span class="pad-score" id="pad-my-score">0 分｜答對率 0%</span>
     </div>
 
-    <div id="pad-role-banner">⏳ 等待老師開始題目...</div>
+    <!-- 小兵拿刀砍 ➔ 立功機會 ➔ 騎馬拿槍(矛)大將 動態舞台 -->
+    <div id="pad-hero-stage">
+        <div id="pad-opportunity-overlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.8); z-index:10; align-items:center; justify-content:center; flex-direction:column;">
+            <div class="opportunity-badge">🌟 立功機會 🌟</div>
+            <div style="color:#fde047; font-size:18px; margin-top:8px; font-weight:bold;">小兵轉大將！準備衝鋒！</div>
+        </div>
+        <div id="pad-avatar-figure"></div>
+        <div id="pad-role-banner">⏳ 請先號名、等候開始...</div>
+    </div>
 
     <div id="pad-options-grid">
         <button class="pad-btn opt-color-0 disabled" onclick="submitStudentAnswer(0)">A</button>
@@ -503,6 +572,80 @@
 </div>
 
 <script>
+    // =========================================================
+    // 🎨 小兵拿刀砍 vs 騎馬拿槍(矛)大將 動態 SVG 圖形庫
+    // =========================================================
+    const CUTE_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
+
+    function getSoldierSlashSvg() {
+        return `
+        <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
+            <!-- 地面陰影 -->
+            <ellipse cx="45" cy="90" rx="26" ry="6" fill="rgba(0,0,0,0.4)" />
+            <!-- 小兵身體與戰袍 -->
+            <path d="M 32 55 L 58 55 L 62 85 L 28 85 Z" fill="#0284c7" stroke="#bae6fd" stroke-width="2" border-radius="4"/>
+            <line x1="30" y1="70" x2="60" y2="70" stroke="#fde047" stroke-width="3"/>
+            <!-- 小兵頭臉與可愛鬥笠盔 -->
+            <circle cx="45" cy="40" r="14" fill="#fde68a" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="41" cy="39" r="2" fill="#0f172a"/>
+            <circle cx="50" cy="39" r="2" fill="#0f172a"/>
+            <path d="M 42 45 Q 45.5 48 49 45" stroke="#b45309" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M 22 32 Q 45 14 68 32 Z" fill="#475569" stroke="#cbd5e1" stroke-width="2"/>
+            <circle cx="45" cy="21" r="3.5" fill="#ef4444"/>
+            <!-- 揮砍的大刀與手臂 (動態揮舞) -->
+            <g class="soldier-slash-anim">
+                <circle cx="56" cy="58" r="5" fill="#fde68a"/>
+                <!-- 刀柄 -->
+                <rect x="54" y="46" width="6" height="16" rx="2" fill="#78350f" stroke="#fde047" stroke-width="1.5"/>
+                <!-- 寬刃大刀 -->
+                <path d="M 55 46 L 55 12 Q 76 18 70 46 Z" fill="#e2e8f0" stroke="#38bdf8" stroke-width="2"/>
+                <!-- 刀光特效 -->
+                <path d="M 68 10 Q 98 30 78 62" fill="none" stroke="#38bdf8" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="6,4" opacity="0.85"/>
+            </g>
+        </svg>`;
+    }
+
+    function getGeneralHorseSvg() {
+        return `
+        <svg viewBox="0 0 150 110" width="145" height="108" overflow="visible">
+            <ellipse cx="75" cy="102" rx="48" ry="7" fill="rgba(250, 204, 21, 0.28)" />
+            <g class="general-gallop-anim">
+                <!-- 戰馬尾巴与後腿 -->
+                <path d="M 26 65 Q 10 55 14 78" stroke="#78350f" stroke-width="6" fill="none" stroke-linecap="round"/>
+                <line x1="36" y1="78" x2="26" y2="98" stroke="#92400e" stroke-width="6" stroke-linecap="round"/>
+                <line x1="48" y1="78" x2="44" y2="98" stroke="#78350f" stroke-width="6" stroke-linecap="round"/>
+                <!-- 戰馬前腿 (奔騰揚起) -->
+                <path d="M 92 75 L 112 85 L 106 98" stroke="#92400e" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 98 72 L 122 72 L 126 84" stroke="#b45309" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- 戰馬身軀與馬鞍 -->
+                <rect x="32" y="56" width="68" height="26" rx="13" fill="#b45309" stroke="#fde68a" stroke-width="2"/>
+                <path d="M 52 55 L 78 55 L 74 72 L 56 72 Z" fill="#dc2626" stroke="#fde047" stroke-width="1.5"/>
+                <!-- 戰馬頸部與馬頭 -->
+                <path d="M 88 64 L 105 34 L 124 42 L 105 68 Z" fill="#b45309" stroke="#fde68a" stroke-width="2" stroke-linejoin="round"/>
+                <polygon points="102,34 106,24 111,34" fill="#92400e"/>
+                <circle cx="112" cy="40" r="2.2" fill="#fff"/>
+                <!-- 大將披風 (飄揚) -->
+                <path d="M 55 38 Q 22 34 16 56 Q 34 58 55 56 Z" fill="#ef4444" opacity="0.9"/>
+                <!-- 大將黃金甲身軀 -->
+                <path d="M 52 34 L 76 34 L 78 62 L 50 62 Z" fill="#f59e0b" stroke="#fef08a" stroke-width="2"/>
+                <!-- 大將臉龐與威武頭盔+紅纓 -->
+                <circle cx="64" cy="22" r="11" fill="#fde68a" stroke="#fff" stroke-width="1.5"/>
+                <circle cx="61" cy="21" r="1.8" fill="#0f172a"/>
+                <circle cx="68" cy="21" r="1.8" fill="#0f172a"/>
+                <path d="M 48 16 Q 64 2 80 16 Z" fill="#fbbf24" stroke="#fff" stroke-width="2"/>
+                <path d="M 64 6 Q 50 -6 40 4" stroke="#dc2626" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <!-- 刺出的紅纓長槍(矛) -->
+                <g class="spear-thrust-anim">
+                    <line x1="35" y1="48" x2="128" y2="48" stroke="#fde047" stroke-width="4" stroke-linecap="round"/>
+                    <!-- 紅纓 -->
+                    <path d="M 122 48 L 112 41 L 114 55 Z" fill="#ef4444"/>
+                    <!-- 閃亮銀槍頭(矛) -->
+                    <polygon points="122,42 146,48 122,54" fill="#f8fafc" stroke="#38bdf8" stroke-width="1.5"/>
+                </g>
+            </g>
+        </svg>`;
+    }
+
     // =========================================================
     // 📚 題庫設定與教育部台語羅馬字拆解引擎
     // =========================================================
@@ -572,7 +715,7 @@
         return res.normalize('NFC');
     }
 
-    // 除魔咒術一體成形 SVG 聲調繪製系統
+    // 除魔咒術一體成形 SVG 聲調繪製系統 (大屏與學生平板同步使用)
     function getToneCardHtml(toneStr) {
         const tone = parseInt(toneStr, 10);
         let markPath = '';
@@ -586,7 +729,7 @@
         }
         const isChecked = (tone === 4 || tone === 8);
         const vb = isChecked ? "3.5 0 13 26" : "0 0 20 26";
-        const svgHtml = `<svg class="tone-svg-large" viewBox="${vb}">${markPath}<circle cx="10" cy="18" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2.5,2" /></svg>`;
+        const svgHtml = `<svg class="tone-svg-large" viewBox="${vb}">${markPath}<circle cx="10" cy="18" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.5,2" /></svg>`;
         
         if (isChecked) {
             return `<div class="tone-opt-wrap"><span class="tone-opt-num">${tone}聲</span><div class="checked-tone-group-lg">${svgHtml}<div class="checked-tone-grid-lg"><span>p</span><span>t</span><span>k</span><span>h</span></div></div></div>`;
@@ -603,13 +746,11 @@
         return a;
     }
 
-    // 產生高誘答力的「拼寫 4 選項」與「聲調 4 選項」
     function generateCoopOptions(targetSyl) {
         const correctBase = targetSyl.base;
         const ini = targetSyl.initial;
         const fin = targetSyl.final;
 
-        // 1. 尋找高度相似的韻母（例如 ang -> an, am, ann, ak, at, ap, ah）
         const allFinals = [...MOE_UNCHECKED_FINALS, ...MOE_CHECKED_FINALS];
         const firstVowel = fin[0];
         const similarFinals = shuffleArray(allFinals.filter(f => 
@@ -627,7 +768,6 @@
                 if (baseDistractors.length >= 2) break;
             }
         }
-        // 再加 1 個同組近似聲母的誘答項 (如 p -> ph/b)
         const group = INITIAL_GROUPS.find(g => g.includes(ini)) || MOE_INITIALS;
         for (let altIni of shuffleArray(group)) {
             if (altIni !== ini && isValidInitialFinalCombo(altIni, fin)) {
@@ -646,7 +786,6 @@
         const spellingOptions = shuffleArray([correctBase, ...baseDistractors.slice(0, 3)]);
         const correctSpellingIdx = spellingOptions.indexOf(correctBase);
 
-        // 2. 產生聲調 4 選項（若為入聲 4 或 8，強制放入另一個入聲作為誘答）
         const correctTone = targetSyl.tone;
         let tonePool = [];
         if (targetSyl.isChecked || correctTone === '4' || correctTone === '8') {
@@ -670,7 +809,7 @@
     let sfxMuted = false;
     let bgmMuted = false;
     let bgmInterval = null;
-    let bgmMode = 'off'; // 'off', 'ducked', 'active'
+    let bgmMode = 'off';
     let bgmStep = 0;
 
     function getAudioCtx() {
@@ -704,7 +843,6 @@
     function sfxPartialHit() { playSynthTone(523.25, 659.25, 0.15, 'sine', 0.2, 0); }
     function sfxAllMiss() { playSynthTone(180, 90, 0.28, 'sawtooth', 0.22, 0); }
 
-    // 智慧 BGM 循環器：播題時自動壓低音量(ducked)，倒數時拉高音量(active)
     function startBgmEngine() {
         stopBgmEngine();
         const bassline = [261.63, 329.63, 392.00, 329.63, 293.66, 349.23, 440.00, 349.23];
@@ -729,11 +867,11 @@
 
     function toggleBgm() {
         bgmMuted = !bgmMuted;
-        document.getElementById('bgm-toggle-btn').innerText = bgmMuted ? '🔇 音樂: 關' : '🎵 音樂: 開';
+        document.getElementById('bgm-toggle-btn').classList.toggle('muted', bgmMuted);
     }
     function toggleSfx() {
         sfxMuted = !sfxMuted;
-        document.getElementById('sfx-toggle-btn').innerText = sfxMuted ? '🔕 音效: 關' : '🔔 音效: 開';
+        document.getElementById('sfx-toggle-btn').classList.toggle('muted', sfxMuted);
     }
 
     // =========================================================
@@ -742,7 +880,6 @@
     let peer = null;
     let roomPin = "";
     let selectedLessons = ["B1L1"];
-    // teams 結構：{ id, name, score, combos, totalQ, correctQ, mainCorrect, crowdCorrect, mainSpellingCnt, mainToneCnt, conn, isBot }
     let teams = [];
     let questionDeck = [];
     let matchSchedule = [];
@@ -755,7 +892,6 @@
         document.getElementById(screenId).classList.add('active');
     }
 
-    // 初始化課次按鈕
     const lessonsContainer = document.getElementById('lessons-container');
     lessons.forEach(l => {
         const btn = document.createElement('button');
@@ -769,7 +905,6 @@
         lessonsContainer.appendChild(btn);
     });
 
-    // 若網址帶有 ?room=XXXX，自動導向學生加入畫面
     window.addEventListener('DOMContentLoaded', () => {
         const params = new URLSearchParams(window.location.search);
         const pinParam = params.get('room');
@@ -819,13 +954,19 @@
 
     function handleHostReceiveData(conn, data) {
         if (data.type === 'JOIN') {
-            let existing = teams.find(t => t.name === data.name);
+            let rawName = data.name.trim();
+            let existing = teams.find(t => t.name === rawName || t.name.slice(0, -2).trim() === rawName);
+            let finalName = rawName;
             if (existing) {
                 existing.conn = conn;
+                finalName = existing.name;
             } else {
-                teams.push(createTeamObject(data.name, conn, false));
+                // 隨機給真人玩家加上可愛動物頭像
+                const cuteIcon = CUTE_AVATARS[teams.length % CUTE_AVATARS.length];
+                finalName = `${rawName} ${cuteIcon}`;
+                teams.push(createTeamObject(finalName, conn, false));
             }
-            conn.send({ type: 'JOINED_OK', name: data.name });
+            conn.send({ type: 'JOINED_OK', name: finalName });
             sfxLockIn();
             renderLobbyTeams();
         } else if (data.type === 'ANSWER') {
@@ -840,7 +981,7 @@
         getAudioCtx();
         const botNames = ["01&02", "03&04", "05&06", "07&08", "09&10", "11&12", "13&14", "15&16", "甲組", "乙組", "丙組", "丁組"];
         const name = botNames[teams.length % botNames.length] + (teams.length >= botNames.length ? `-${teams.length}` : '');
-        teams.push(createTeamObject(name + "🤖", null, true));
+        teams.push(createTeamObject(`${name} 🤖`, null, true));
         sfxLockIn();
         renderLobbyTeams();
     }
@@ -862,7 +1003,7 @@
     // =========================================================
     async function startHostGame() {
         if (selectedLessons.length === 0) return alert("請至少選擇一課！");
-        if (teams.length < 2) return alert("至少需要 2 組才能開始合擊派對！(您可以點擊『➕ 加入測試機器人組別』來立即測試)");
+        if (teams.length < 2) return alert("至少需要 2 組才能開始！(您可以點擊『➕ 加入AI試驗員』來立即測試)");
 
         getAudioCtx();
         const fetchPromises = selectedLessons.map(sheet => 
@@ -890,13 +1031,11 @@
         if (rawCards.length === 0) return alert("題庫載入失敗！");
         questionDeck = shuffleArray(rawCards);
 
-        // 重置各組統計資料
         teams.forEach(t => {
             t.score = 0; t.combos = 0; t.totalQ = 0; t.correctQ = 0;
             t.mainCorrect = 0; t.crowdCorrect = 0; t.mainSpellingCnt = 0; t.mainToneCnt = 0;
         });
 
-        // 建立 3 回合的「分輪抽籤袋」，並自動平衡每組擔任「拼寫主秀」與「聲調主秀」的次數
         matchSchedule = [];
         for (let round = 1; round <= 3; round++) {
             let bag = shuffleArray(teams.map(t => t.id));
@@ -910,7 +1049,6 @@
                 let spId = tA.id;
                 let tnId = tB.id;
 
-                // 自動角色平衡：若 A 組當過拼寫的次數較多，或 B 組當過聲調的次數較多，則兩組互換角色
                 if (tA.mainSpellingCnt > tB.mainSpellingCnt || tB.mainToneCnt > tA.mainToneCnt) {
                     spId = tB.id;
                     tnId = tA.id;
@@ -935,7 +1073,7 @@
     }
 
     // =========================================================
-    // 🎬 單題四階段流程 (含預載防Lag、聚光燈緩衝、全班陪考交替、音場閃避)
+    // 🎬 單題四階段流程
     // =========================================================
     let countdownTimer = null;
 
@@ -949,7 +1087,6 @@
         const card = drawQuestionCard();
         const showHanzi = document.getElementById('show-hanzi-toggle').checked;
 
-        // 拆解音節並隨機挖空其中 1 個字
         const parts = card.r.split(/([\s\-–—]+)/);
         const sylIndices = [];
         parts.forEach((p, idx) => {
@@ -959,8 +1096,9 @@
         const targetSyl = parseSingleSyllable(parts[targetPartIdx]);
         const coopOpts = generateCoopOptions(targetSyl);
 
+        // 只保留乾淨粉紅底線，不再疊加 ____ 文字
         const maskedHtml = parts.map((p, idx) => {
-            if (idx === targetPartIdx) return `<span class="blank-slot">____</span>`;
+            if (idx === targetPartIdx) return `<span class="blank-slot"></span>`;
             return formatTailoHtml(p);
         }).join('');
 
@@ -969,7 +1107,6 @@
             return formatTailoHtml(p);
         }).join('');
 
-        // 【關鍵修正】：加上 currentMatchIdx 讓陪考組在「每一題」嚴格交替選拼寫與選聲調！
         const rolesMap = {};
         teams.forEach((t, idx) => {
             if (t.id === schedule.spellingTeamId) rolesMap[t.id] = 'MAIN_SPELLING';
@@ -984,12 +1121,12 @@
 
         broadcastPreparePacket();
 
-        // 階段 1：大字展示題目並播音（BGM 自動閃避壓低）
+        // 階段 1：大字展示題目並播音
         bgmMode = 'ducked';
         document.getElementById('combo-banner').style.display = 'none';
         document.getElementById('hud-round-text').innerText = `第 ${schedule.round} / 3 回合`;
         document.getElementById('hud-q-progress').innerText = `題目: ${currentMatchIdx + 1} / ${matchSchedule.length}`;
-        document.getElementById('hud-phase-hint').innerText = "🎧 仔細聽音！準備抽籤點名...";
+        document.getElementById('hud-phase-hint').innerText = "🎧 斟酌聽";
 
         const qStage = document.getElementById('question-stage');
         qStage.classList.remove('shrunk');
@@ -1025,11 +1162,11 @@
         questionAudio.play().catch(() => {});
     }
 
-    // 階段 2：題目縮小移至上方 + 聚光燈點名緩衝 (2秒)
+    // 階段 2：題目縮小移至上方 + 小兵轉大將點名緩衝 (2秒)
     function startPhase2Spotlight() {
         sfxSpotlight();
         document.getElementById('question-stage').classList.add('shrunk');
-        document.getElementById('hud-phase-hint').innerText = "🎯 聚光燈點名！請看平板準備作答！";
+        document.getElementById('hud-phase-hint').innerText = "🎯 小兵轉大將";
 
         const spTeam = teams.find(t => t.id === currentMatchData.schedule.spellingTeamId);
         const tnTeam = teams.find(t => t.id === currentMatchData.schedule.toneTeamId);
@@ -1051,14 +1188,14 @@
         document.getElementById('split-arena').style.display = 'flex';
 
         broadcastStartPhase('SPOTLIGHT');
-        setTimeout(startPhase3Countdown, 2000);
+        setTimeout(startPhase3Countdown, 2100);
     }
 
-    // 階段 3：正式亮出選項 + 5秒倒數 + BGM 音量拉高
+    // 階段 3：正式亮出選項 + 限時5秒
     function startPhase3Countdown() {
         bgmMode = 'active';
         currentMatchData.acceptingAnswers = true;
-        document.getElementById('hud-phase-hint').innerText = "🔥 限時 5 秒！快按平板選出正確組合！";
+        document.getElementById('hud-phase-hint').innerText = "🔥 限時5秒";
 
         document.getElementById('status-pill-spelling').innerText = "🤔 思考中...";
         document.getElementById('status-pill-tone').innerText = "🤔 思考中...";
@@ -1088,7 +1225,7 @@
 
         broadcastStartPhase('COUNTDOWN');
 
-        // 機器人自動作答模擬
+        // AI試驗員自動作答模擬
         teams.filter(t => t.isBot).forEach(bot => {
             setTimeout(() => {
                 if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
@@ -1136,7 +1273,7 @@
         if (!currentMatchData) return;
         const crowdTeams = teams.filter(t => t.id !== currentMatchData.schedule.spellingTeamId && t.id !== currentMatchData.schedule.toneTeamId);
         const answeredCrowd = crowdTeams.filter(t => currentMatchData.answers[t.id] !== undefined).length;
-        document.getElementById('crowd-progress-text').innerText = `👀 陪考組作答進度：${answeredCrowd} / ${crowdTeams.length} 組已鎖定`;
+        document.getElementById('crowd-progress-text').innerText = `👀 小兵助陣進度：${answeredCrowd} / ${crowdTeams.length} 組已鎖定`;
     }
 
     // 階段 4：開獎結算、計算答對率與 COMBO
@@ -1175,7 +1312,6 @@
             }
         }
 
-        // 統計各組分數與答對率
         let crowdCorrectCount = 0;
         teams.forEach(t => {
             const role = rolesMap[t.id];
@@ -1209,7 +1345,8 @@
                     type: 'RESULT', correct: gotRight, delta: delta,
                     totalScore: t.score, combos: t.combos,
                     accRate: accRate, correctQ: t.correctQ, totalQ: t.totalQ,
-                    isCombo: isCombo && role.startsWith('MAIN_')
+                    isCombo: isCombo && role.startsWith('MAIN_'),
+                    globalCombo: isCombo
                 });
             }
         });
@@ -1218,19 +1355,19 @@
             sfxComboFanfare();
             confetti({ particleCount: 100, spread: 80, origin: { y: 0.55 } });
             const banner = document.getElementById('combo-banner');
-            banner.innerText = `⚡ ${spTeam.name} & ${tnTeam.name} 合擊 COMBO！各 +150 分！ ⚡`;
+            banner.innerText = `⚡ ${spTeam.name} & ${tnTeam.name} 大神啦！combo +150 分！ ⚡`;
             banner.style.display = 'block';
-            document.getElementById('hud-phase-hint').innerText = "🎉 太神啦！雙組完美合擊！";
+            document.getElementById('hud-phase-hint').innerText = "🎉 大神啦！combo";
         } else if (spCorrect || tnCorrect) {
             sfxPartialHit();
-            const whoRight = spCorrect ? `${spTeam.name}(拼寫⭕) 通過、${tnTeam.name}(聲調❌) 失誤` : `${spTeam.name}(拼寫❌) 失誤、${tnTeam.name}(聲調⭕) 通過`;
-            document.getElementById('hud-phase-hint').innerText = `💡 結果：${whoRight}`;
+            const whoRight = spCorrect ? `${spTeam.name}(⭕) 通過、${tnTeam.name}(❌) 失誤` : `${spTeam.name}(❌) 失誤、${tnTeam.name}(⭕) 通過`;
+            document.getElementById('hud-phase-hint').innerText = `💡 ${whoRight}`;
         } else {
             sfxAllMiss();
-            document.getElementById('hud-phase-hint').innerText = `💥 兩組皆未通過！正解已標示於畫面上`;
+            document.getElementById('hud-phase-hint').innerText = `💥 雙將失誤！請看正解`;
         }
 
-        document.getElementById('round-result-summary').innerText = `👏 本題另有 ${crowdCorrectCount} 組陪考答對 (+20分)！`;
+        document.getElementById('round-result-summary').innerText = `👏 本題另有 ${crowdCorrectCount} 組小兵答對 (+20分)！`;
 
         setTimeout(() => {
             currentMatchIdx++;
@@ -1250,8 +1387,9 @@
             t.conn.send({
                 type: 'PREPARE',
                 role: role,
+                isTone: !isSpelling,
                 partnerName: (role === 'MAIN_SPELLING') ? (tnTeam ? tnTeam.name : '') : (spTeam ? spTeam.name : ''),
-                options: isSpelling ? coopOpts.spellingOptions : coopOpts.toneOptions.map(d => `${d} 聲`)
+                options: isSpelling ? coopOpts.spellingOptions : coopOpts.toneOptions
             });
         });
     }
@@ -1275,7 +1413,7 @@
         box.innerHTML = '';
         sorted.forEach((t, idx) => {
             const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
-            const comboHtml = t.combos > 0 ? `<span class="combo-pill">⚡ COMBO x${t.combos}</span>` : '';
+            const comboHtml = t.combos > 0 ? `<span class="combo-pill">⚡ combo x${t.combos}</span>` : '';
             const accRate = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
             box.innerHTML += `
                 <div class="lb-row">
@@ -1291,14 +1429,14 @@
         });
     }
 
-    // 📥 一鍵匯出 Excel (.csv 內嵌 UTF-8 BOM 確保中文不亂碼)
+    // 📥 一鍵匯出 Excel (.csv 內嵌 UTF-8 BOM)
     function exportGradesToExcel() {
         if (teams.length === 0) return alert("目前沒有成績資料可匯出！");
         const sorted = [...teams].sort((a, b) => b.score - a.score);
         const lessonStr = selectedLessons.join('、');
 
-        let csvContent = "\uFEFF"; // UTF-8 BOM 防亂碼標記
-        csvContent += "排名,組別名稱,答對率(平時成績),總答對題數,總題數,遊戲總分,主秀答對數,陪考答對數,COMBO合擊次數,出題課次範圍\r\n";
+        let csvContent = "\uFEFF";
+        csvContent += "排名,組別名稱,答對率(平時成績),總答對題數,總題數,遊戲總分,大將主秀答對數,小兵陪考答對數,COMBO立功次數,範圍\r\n";
 
         sorted.forEach((t, idx) => {
             const accRate = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
@@ -1312,7 +1450,7 @@
         const now = new Date();
         const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
         a.href = url;
-        a.download = `台語合擊派對成績單_${dateStr}.csv`;
+        a.download = `台語PARTY_論功行賞成績單_${dateStr}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -1320,7 +1458,7 @@
     }
 
     // =========================================================
-    // 📱 學生平板端邏輯
+    // 📱 學生平板端邏輯 (小兵拿刀 ➔ 立功機會 ➔ 騎馬拿槍大將)
     // =========================================================
     let studentPeer = null;
     let hostConn = null;
@@ -1336,10 +1474,10 @@
         const msgEl = document.getElementById('student-join-msg');
 
         if (!pin || !name) {
-            msgEl.innerText = "⚠️ 請完整輸入 4 位數房號與組別名稱！";
+            msgEl.innerText = "⚠️ 請完整輸入大廳號碼與組別名稱！";
             return;
         }
-        msgEl.innerText = "⏳ 正在連線至教室大屏...";
+        msgEl.innerText = "⏳ 正在連線至大廳...";
         document.getElementById('student-connect-btn').disabled = true;
 
         studentPeer = new Peer();
@@ -1350,68 +1488,107 @@
             });
             hostConn.on('data', data => handleStudentReceiveData(data));
             hostConn.on('close', () => {
-                alert("與老師大屏的連線已中斷！");
+                alert("與主辦方控制台的連線已中斷！");
                 location.reload();
             });
         });
         studentPeer.on('error', () => {
-            msgEl.innerText = "❌ 找不到該房間號碼，請確認老師大屏是否已開啟！";
+            msgEl.innerText = "❌ 找不到該大廳號碼，請確認主辦方是否已開啟！";
             document.getElementById('student-connect-btn').disabled = false;
         });
     }
 
     function handleStudentReceiveData(data) {
         const banner = document.getElementById('pad-role-banner');
+        const heroStage = document.getElementById('pad-hero-stage');
+        const avatarFig = document.getElementById('pad-avatar-figure');
+        const oppOverlay = document.getElementById('pad-opportunity-overlay');
         const btns = document.querySelectorAll('#pad-options-grid .pad-btn');
 
         if (data.type === 'JOINED_OK') {
             document.getElementById('pad-my-name').innerText = data.name;
+            avatarFig.innerHTML = getSoldierSlashSvg();
             switchScreen('student-pad-screen');
         } else if (data.type === 'PREPARE') {
             myCurrentRole = data.role;
+            heroStage.className = '';
+            oppOverlay.style.display = 'none';
+            // 初始統一顯示「小兵拿刀砍」
+            avatarFig.innerHTML = getSoldierSlashSvg();
             banner.className = '';
-            banner.style.background = '#334155';
-            banner.style.color = '#cbd5e1';
-            banner.innerText = "🎧 請聽大螢幕發音...";
+            banner.innerText = "🎧 斟酌聽";
+
             btns.forEach((btn, idx) => {
                 btn.classList.add('disabled');
                 btn.classList.remove('selected');
-                btn.innerText = data.options[idx] || '';
+                const optVal = data.options[idx];
+                if (data.isTone) {
+                    // 平板端同步顯示虛線圓圈與符號的 SVG 聲調樣式
+                    btn.innerHTML = getToneCardHtml(optVal);
+                } else {
+                    btn.innerHTML = `<span>${optVal || ''}</span>`;
+                }
             });
             banner.dataset.partner = data.partnerName || '';
         } else if (data.type === 'PHASE') {
             if (data.phase === 'SPOTLIGHT') {
-                banner.style.background = '';
-                banner.style.color = '';
-                if (myCurrentRole === 'MAIN_SPELLING') {
-                    banner.className = 'main-spelling';
-                    banner.innerText = `🔥 輪到你們主秀！負責【拼寫】(搭檔：${banner.dataset.partner})`;
-                } else if (myCurrentRole === 'MAIN_TONE') {
-                    banner.className = 'main-tone';
-                    banner.innerText = `🔥 輪到你們主秀！負責【聲調】(搭檔：${banner.dataset.partner})`;
-                } else if (myCurrentRole === 'CROWD_SPELLING') {
-                    banner.className = 'crowd-role';
-                    banner.innerText = `👀 陪考賺分 (+20分)：這題選【拼寫】`;
+                if (myCurrentRole === 'MAIN_SPELLING' || myCurrentRole === 'MAIN_TONE') {
+                    // 聚光燈點到的玩家：先顯示「立功機會」，然後小兵變成「騎馬拿槍(矛)大將」
+                    oppOverlay.style.display = 'flex';
+                    setTimeout(() => {
+                        oppOverlay.style.display = 'none';
+                        heroStage.classList.add('general-mode');
+                        avatarFig.innerHTML = getGeneralHorseSvg();
+                    }, 850);
+
+                    if (myCurrentRole === 'MAIN_SPELLING') {
+                        banner.className = 'main-spelling';
+                        banner.innerText = `🐴 小兵轉大將！選【拼寫】(搭檔：${banner.dataset.partner})`;
+                    } else {
+                        banner.className = 'main-tone';
+                        banner.innerText = `🐴 小兵轉大將！選【聲調】(搭檔：${banner.dataset.partner})`;
+                    }
                 } else {
+                    // 未被點到的玩家：維持小兵拿刀砍
+                    avatarFig.innerHTML = getSoldierSlashSvg();
                     banner.className = 'crowd-role';
-                    banner.innerText = `👀 陪考賺分 (+20分)：這題選【聲調】`;
+                    if (myCurrentRole === 'CROWD_SPELLING') {
+                        banner.innerText = `🗡️ 小兵拿刀助陣 (+20分)：選【拼寫】`;
+                    } else {
+                        banner.innerText = `🗡️ 小兵拿刀助陣 (+20分)：選【聲調】`;
+                    }
                 }
             } else if (data.phase === 'COUNTDOWN') {
+                oppOverlay.style.display = 'none';
                 btns.forEach(btn => btn.classList.remove('disabled'));
             }
         } else if (data.type === 'RESULT') {
+            oppOverlay.style.display = 'none';
             btns.forEach(btn => btn.classList.add('disabled'));
             document.getElementById('pad-my-score').innerText = `${data.totalScore} 分｜答對率 ${data.accRate}% (${data.correctQ}/${data.totalQ})`;
             banner.className = '';
+
+            // 若本題達成 COMBO，平板同步顯示大神 combo 特效與彩帶
+            if (data.globalCombo) {
+                heroStage.classList.add('combo-mode');
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 55, spread: 65, origin: { y: 0.6 } });
+                }
+            }
+
             if (data.isCombo) {
                 banner.style.background = '#d97706'; banner.style.color = '#fff';
-                banner.innerText = `⚡ COMBO 合擊成功！ +${data.delta} 分！`;
+                banner.innerText = `🎉 大神啦！combo 立大功！ +${data.delta} 分！`;
             } else if (data.correct) {
                 banner.style.background = '#16a34a'; banner.style.color = '#fff';
-                banner.innerText = `⭕ 答對了！ +${data.delta} 分！`;
+                banner.innerText = data.globalCombo
+                    ? `🎉 大神啦！combo！你也答對 +${data.delta} 分！`
+                    : `⭕ 答對了！ +${data.delta} 分！`;
             } else {
                 banner.style.background = '#dc2626'; banner.style.color = '#fff';
-                banner.innerText = `❌ 答錯或超時了！請看大螢幕正解`;
+                banner.innerText = data.globalCombo
+                    ? `⚡ 場上達成 combo！(你本題未中，請看大屏)`
+                    : `❌ 答錯或超時了！請看大屏正解`;
             }
         }
     }
