@@ -288,9 +288,9 @@
         .kick-window-pill { font-size: 14px; padding: 4px 12px; border-radius: 20px; background: #d97706; color: #fff; white-space: nowrap; font-weight: bold; }
         .kick-window-pill.closed { background: #334155; color: #64748b; }
 
-        /* 4 選項格狀佈局 */
+        /* 4 選項格狀佈局 (使用 minmax(0, 1fr) 防止第二排被擠出容器) */
         .options-grid {
-            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+            display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
             gap: 10px; flex: 1; min-height: 0;
         }
         .opt-card {
@@ -323,7 +323,7 @@
         /* 一體成形 SVG 聲調樣式 */
         .tone-opt-wrap { display: flex; align-items: center; justify-content: center; gap: 6px; pointer-events: none; }
         .tone-opt-num { font-size: clamp(18px, 2.4vw, 28px); color: rgba(255,255,255,0.95); }
-        .tone-svg-large { width: 34px; height: 46px; overflow: visible; display: block; }
+        .tone-svg-large { width: 34px; height: 46px; overflow: visible; display: block; flex-shrink: 0; }
         .checked-tone-group-lg { display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
         .checked-tone-grid-lg { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px; font-size: 13.5px; line-height: 0.95; font-family: Arial, sans-serif; color: #fde047; }
 
@@ -369,7 +369,7 @@
         }
 
         /* ========================================================= */
-        /* 4. 學生平板／手機直屏畫面 (Ver 2.2：動畫區縮至 1/3、選項區放大至 2/3) */
+        /* 4. 學生平板／手機畫面 (Ver 2.3：直版與橫版雙向自適應，絕不遮擋第二排) */
         /* ========================================================= */
         .student-Join-card {
             background: #1e293b; border: 2px solid #4ade80; border-radius: 20px;
@@ -385,7 +385,10 @@
         }
         .input-group input:focus { outline: none; border-color: #4ade80; }
 
-        #student-pad-screen { justify-content: space-between; padding: 8px 10px 10px 10px; overflow: hidden; gap: 6px; }
+        #student-pad-screen {
+            justify-content: space-between; padding: 8px 10px 10px 10px;
+            overflow: hidden; gap: 6px; height: 100vh; height: 100dvh;
+        }
         .pad-top-bar {
             width: 100%; display: flex; justify-content: space-between; align-items: center;
             background: #1e293b; padding: 6px 12px; border-radius: 10px; border: 1.5px solid #334155;
@@ -394,13 +397,13 @@
         .pad-team-name { font-size: 16px; color: #4ade80; font-weight: bold; }
         .pad-score { font-size: 14.5px; color: #fde047; font-weight: bold; }
 
-        /* 動畫舞台：縮減為直屏約 1/3 高度，內部整合小兵與「停留皮球展示架」 */
+        /* 動畫舞台：移除固定 min-height，改用彈性比例避免橫版溢出 */
         #pad-hero-stage {
-            width: 100%; height: 25vh; max-height: 27vh; min-height: 138px;
+            width: 100%; flex: 0 0 25vh; max-height: 27vh; min-height: 0;
             background: radial-gradient(circle at center, #1e293b 0%, #0f172a 85%);
-            border: 2px solid #334155; border-radius: 14px; padding: 6px 8px;
+            border: 2px solid #334155; border-radius: 14px; padding: 5px 8px;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            position: relative; overflow: hidden; transition: 0.3s; flex-shrink: 0;
+            position: relative; overflow: hidden; transition: 0.3s;
         }
         #pad-hero-stage.general-mode {
             background: radial-gradient(circle at center, #78350f 0%, #0f172a 85%);
@@ -427,9 +430,10 @@
         }
 
         #pad-avatar-figure {
-            width: 96px; height: 80px; display: flex; align-items: center; justify-content: center;
+            width: 90px; height: 74px; display: flex; align-items: center; justify-content: center;
             position: relative; flex-shrink: 0;
         }
+        #pad-avatar-figure svg { width: 100%; height: 100%; }
 
         /* 停留在動畫區的皮球容器 (顯示接到幾顆球 + 小字標記哪一組踢來的) */
         #pad-ball-fx-layer {
@@ -439,9 +443,9 @@
         .parked-ball-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: rgba(15, 23, 42, 0.82); border: 1.5px solid #f59e0b; border-radius: 10px;
-            padding: 3px 7px; box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+            padding: 2px 7px; box-shadow: 0 3px 10px rgba(0,0,0,0.5);
         }
-        .parked-ball-icon { font-size: 24px; line-height: 1.05; filter: drop-shadow(0 0 6px #ef4444); }
+        .parked-ball-icon { font-size: 22px; line-height: 1.05; filter: drop-shadow(0 0 6px #ef4444); }
         .parked-ball-tag {
             font-size: 11px; font-weight: bold; color: #fde047; white-space: nowrap;
             max-width: 78px; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; margin-top: 1px;
@@ -465,7 +469,7 @@
 
         .opportunity-badge {
             background: linear-gradient(135deg, #fde047, #f59e0b); color: #000;
-            font-size: clamp(22px, 5vw, 32px); font-weight: bold; padding: 8px 22px;
+            font-size: clamp(20px, 4.5vw, 30px); font-weight: bold; padding: 6px 20px;
             border-radius: 30px; border: 3px solid #fff; box-shadow: 0 0 35px #fde047;
         }
 
@@ -504,32 +508,32 @@
         #pad-role-banner.main-spelling { background: #0284c7; color: #fff; border-color: #fde047; }
         #pad-role-banner.main-tone { background: #d97706; color: #fff; border-color: #fde047; }
 
-        /* 學生平板 4 選項區：放大占直屏約 2/3 空間 */
+        /* 學生平板 4 選項區：使用 flex: 1 1 0% 與 min-height: 0 自動填滿剩餘的 2/3 空間，絕不超出螢幕 */
         .pad-options-wrapper {
-            width: 100%; flex: 1; height: 62vh; max-height: 66vh; min-height: 290px;
+            width: 100%; flex: 1 1 0%; min-height: 0;
             position: relative;
         }
         #pad-options-grid {
-            width: 100%; height: 100%;
-            display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+            width: 100%; height: 100%; min-height: 0;
+            display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
             gap: 12px;
         }
         .pad-btn {
             border-radius: 18px; border: 3px solid rgba(255,255,255,0.3); color: #fff;
-            font-size: clamp(26px, 5.5vw, 42px); font-weight: bold; font-family: inherit;
+            font-size: clamp(24px, 5vw, 40px); font-weight: bold; font-family: inherit;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer; position: relative; box-shadow: 0 6px 15px rgba(0,0,0,0.45);
-            padding: 6px; overflow: hidden;
+            padding: 4px; overflow: hidden; min-height: 0; height: 100%;
         }
         .pad-btn * { pointer-events: none; }
         .pad-btn:active { transform: scale(0.96); }
         .pad-btn.selected { border-color: #fde047; box-shadow: 0 0 25px #fde047; transform: scale(1.02); }
         .pad-btn.disabled { opacity: 0.35; pointer-events: none; }
 
-        /* 四個選項正中央的「踢皮球」按鈕 (Ver 2.2 加大版) */
+        /* 四個選項正中央的「踢皮球」按鈕 */
         #pad-kick-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: clamp(122px, 29vw, 144px); height: clamp(122px, 29vw, 144px); border-radius: 50%;
+            width: clamp(118px, 28vw, 142px); height: clamp(118px, 28vw, 142px); border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #fde047, #f59e0b 65%, #b45309 100%);
             border: 4.5px solid #fef08a; color: #0f172a;
             display: none; flex-direction: column; align-items: center; justify-content: center;
@@ -539,14 +543,59 @@
             font-family: inherit; padding: 0;
         }
         #pad-kick-btn:active { transform: translate(-50%, -50%) scale(0.9); }
-        #pad-kick-btn .kick-icon { font-size: clamp(40px, 9.5vw, 48px); line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35)); }
-        #pad-kick-btn .kick-label { font-size: clamp(15px, 3.8vw, 18px); font-weight: bold; color: #0f172a; line-height: 1.15; margin-top: 3px; }
-        #pad-kick-btn .kick-count { font-size: clamp(12.5px, 3.2vw, 14.5px); font-weight: bold; color: #78350f; background: rgba(255,255,255,0.85); padding: 1px 9px; border-radius: 10px; margin-top: 2px; }
+        #pad-kick-btn .kick-icon { font-size: clamp(38px, 9vw, 46px); line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35)); }
+        #pad-kick-btn .kick-label { font-size: clamp(14px, 3.6vw, 18px); font-weight: bold; color: #0f172a; line-height: 1.15; margin-top: 2px; }
+        #pad-kick-btn .kick-count { font-size: clamp(12px, 3vw, 14.5px); font-weight: bold; color: #78350f; background: rgba(255,255,255,0.85); padding: 1px 9px; border-radius: 10px; margin-top: 2px; }
         #pad-kick-btn.locked-dark {
             filter: grayscale(1) brightness(0.45);
             opacity: 0.65;
             box-shadow: 0 0 0 7px #0f172a;
             pointer-events: none;
+        }
+
+        /* ========================================================= */
+        /* 📱 手機橫版 (Landscape / 短螢幕) 專屬自適應優化，確保第二排完整顯示 */
+        /* ========================================================= */
+        @media (max-height: 540px) {
+            #student-pad-screen { padding: 4px 10px 6px 10px; gap: 4px; }
+            .pad-top-bar { padding: 3px 10px; border-radius: 8px; }
+            .pad-team-name { font-size: 14px; }
+            .pad-score { font-size: 13px; }
+
+            /* 橫版時動畫區改為單列橫向緊湊排列，高度僅占 22vh (最高72px) */
+            #pad-hero-stage {
+                flex: 0 0 22vh; max-height: 72px; padding: 3px 10px; border-radius: 10px;
+                flex-direction: row; align-items: center; justify-content: space-between; gap: 10px;
+            }
+            .hero-stage-middle {
+                width: auto; flex: 0 1 auto; justify-content: flex-start; gap: 8px; height: 100%;
+            }
+            #pad-avatar-figure { width: 56px; height: 48px; }
+            #pad-ball-fx-layer { max-width: none; flex-wrap: nowrap; gap: 4px; }
+            .parked-ball-item { padding: 1px 5px; border-radius: 7px; }
+            .parked-ball-icon { font-size: 16px; }
+            .parked-ball-tag { font-size: 9.5px; max-width: 60px; }
+
+            #pad-role-banner {
+                width: auto; flex: 1; padding: 4px 10px; font-size: 14px; margin: 0;
+            }
+            #pad-incoming-balls-badge {
+                top: 2px; right: 6px; font-size: 11px; padding: 1px 7px;
+            }
+
+            #pad-options-grid { gap: 8px; }
+            .pad-btn { border-radius: 12px; border-width: 2px; font-size: clamp(20px, 3.8vw, 30px); }
+            .pad-btn .tone-svg-large { width: 26px; height: 34px; }
+            .pad-btn .tone-opt-num { font-size: 18px; }
+            .pad-btn .checked-tone-grid-lg { font-size: 11.5px; }
+
+            #pad-kick-btn {
+                width: clamp(86px, 22vh, 104px); height: clamp(86px, 22vh, 104px);
+                border-width: 3px; box-shadow: 0 0 0 5px #0f172a, 0 0 22px rgba(251, 191, 36, 0.95);
+            }
+            #pad-kick-btn .kick-icon { font-size: clamp(26px, 7vh, 34px); }
+            #pad-kick-btn .kick-label { font-size: 12px; margin-top: 1px; }
+            #pad-kick-btn .kick-count { font-size: 10.5px; padding: 0 6px; margin-top: 1px; }
         }
 
         /* ========================================================= */
@@ -627,7 +676,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 2.2</div>
+<div id="version-tag">Ver 2.3</div>
 
 <!-- ========================================================= -->
 <!-- 1. 首頁：選擇身分 -->
@@ -858,7 +907,7 @@
         <span class="pad-score" id="pad-my-score">0 分｜答對率 0%</span>
     </div>
 
-    <!-- 1/3 動畫舞台：左方小兵/大將 + 右方停留皮球區 (顯示誰踢來的) -->
+    <!-- 動畫舞台：左方小兵/大將 + 右方停留皮球區 (顯示誰踢來的) -->
     <div id="pad-hero-stage">
         <div id="pad-incoming-balls-badge">🔥 接到 1 顆球</div>
         <div id="pad-opportunity-overlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.82); z-index:20; align-items:center; justify-content:center; flex-direction:column;">
@@ -874,7 +923,7 @@
         <div id="pad-role-banner">⏳ 請先號名、等候開始...</div>
     </div>
 
-    <!-- 2/3 選項區 + 正中央加大版「⚽ 踢皮球」圓形按鈕 -->
+    <!-- 選項區 + 正中央加大版「⚽ 踢皮球」圓形按鈕 -->
     <div class="pad-options-wrapper">
         <div id="pad-options-grid">
             <button class="pad-btn opt-color-0 disabled" onclick="submitStudentAnswer(0)">A</button>
@@ -893,7 +942,7 @@
 
 <script>
     // =========================================================
-    // 🎨 平板上方人物動態 SVG 圖形庫 (適配 1/3 緊湊高度)
+    // 🎨 平板上方人物動態 SVG 圖形庫
     // =========================================================
     const CUTE_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
 
@@ -2467,7 +2516,7 @@
         });
     }
 
-    // 收到皮球時：滾入並停留在動畫區，小字標記是哪一組踢來的
+    // 收到皮球時：滾入並停留在動畫區，球下小字標記是哪一組踢來的
     function addParkedBallToStage(fromTeamName) {
         const layer = document.getElementById('pad-ball-fx-layer');
         const ballItem = document.createElement('div');
