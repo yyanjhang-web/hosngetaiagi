@@ -218,7 +218,7 @@
             background: #fff; z-index: 4; box-shadow: 0 0 6px #000; display: none;
         }
 
-        /* 對戰舞台：左側作答容器 (支援雙欄合作模式 & 單欄陷害模式) + 右側目前分數面板 */
+        /* 對戰舞台：左側作答容器 + 右側目前分數面板 */
         #split-arena {
             display: none; width: 100%; max-width: 1380px; flex: 1; gap: 14px;
             align-items: stretch; justify-content: center; min-height: 0; overflow: hidden;
@@ -369,7 +369,7 @@
         }
 
         /* ========================================================= */
-        /* 4. 學生平板端畫面 */
+        /* 4. 學生平板／手機直屏畫面 (Ver 2.2：動畫區縮至 1/3、選項區放大至 2/3) */
         /* ========================================================= */
         .student-Join-card {
             background: #1e293b; border: 2px solid #4ade80; border-radius: 20px;
@@ -385,67 +385,90 @@
         }
         .input-group input:focus { outline: none; border-color: #4ade80; }
 
-        #student-pad-screen { justify-content: space-between; padding: 10px 12px; overflow: hidden; }
+        #student-pad-screen { justify-content: space-between; padding: 8px 10px 10px 10px; overflow: hidden; gap: 6px; }
         .pad-top-bar {
             width: 100%; display: flex; justify-content: space-between; align-items: center;
-            background: #1e293b; padding: 8px 14px; border-radius: 12px; border: 1.5px solid #334155;
+            background: #1e293b; padding: 6px 12px; border-radius: 10px; border: 1.5px solid #334155;
             flex-shrink: 0;
         }
-        .pad-team-name { font-size: 18px; color: #4ade80; font-weight: bold; }
-        .pad-score { font-size: 15.5px; color: #fde047; font-weight: bold; }
+        .pad-team-name { font-size: 16px; color: #4ade80; font-weight: bold; }
+        .pad-score { font-size: 14.5px; color: #fde047; font-weight: bold; }
 
+        /* 動畫舞台：縮減為直屏約 1/3 高度，內部整合小兵與「停留皮球展示架」 */
         #pad-hero-stage {
-            width: 100%; flex: 1; max-height: 40vh; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 85%);
-            border: 2px solid #334155; border-radius: 16px; margin: 8px 0; padding: 8px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative; overflow: hidden; transition: 0.3s;
+            width: 100%; height: 25vh; max-height: 27vh; min-height: 138px;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 85%);
+            border: 2px solid #334155; border-radius: 14px; padding: 6px 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            position: relative; overflow: hidden; transition: 0.3s; flex-shrink: 0;
         }
         #pad-hero-stage.general-mode {
             background: radial-gradient(circle at center, #78350f 0%, #0f172a 85%);
-            border-color: #fde047; box-shadow: 0 0 25px rgba(250, 204, 21, 0.45);
+            border-color: #fde047; box-shadow: 0 0 20px rgba(250, 204, 21, 0.45);
         }
         #pad-hero-stage.combo-mode {
             background: radial-gradient(circle at center, #b91c1c 0%, #78350f 60%, #0f172a 100%);
-            border-color: #fde047; box-shadow: 0 0 35px #fde047;
+            border-color: #fde047; box-shadow: 0 0 30px #fde047;
         }
 
-        /* 收到皮球時：頂部警示徽章與滾入火球動畫 */
+        /* 收到皮球時：頂部警示徽章 */
         #pad-incoming-balls-badge {
-            display: none; position: absolute; top: 8px; right: 10px;
+            display: none; position: absolute; top: 5px; right: 8px;
             background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fde047;
-            border: 2px solid #fde047; border-radius: 20px; padding: 4px 12px;
-            font-size: 15px; font-weight: bold; z-index: 12;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.8); animation: popIn 0.25s ease-out;
+            border: 1.5px solid #fde047; border-radius: 16px; padding: 2px 10px;
+            font-size: 13px; font-weight: bold; z-index: 12;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.8); animation: popIn 0.25s ease-out;
         }
-        .rolling-ball-fx {
-            position: absolute; font-size: 46px; z-index: 15; pointer-events: none;
+
+        /* 舞台中央列：左方小兵/大將 + 右方停留皮球區 */
+        .hero-stage-middle {
+            width: 100%; flex: 1; display: flex; align-items: center; justify-content: center;
+            gap: 10px; min-height: 0; position: relative;
         }
+
+        #pad-avatar-figure {
+            width: 96px; height: 80px; display: flex; align-items: center; justify-content: center;
+            position: relative; flex-shrink: 0;
+        }
+
+        /* 停留在動畫區的皮球容器 (顯示接到幾顆球 + 小字標記哪一組踢來的) */
+        #pad-ball-fx-layer {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+            gap: 6px; max-width: 62%; max-height: 100%; overflow-y: auto; z-index: 14;
+        }
+        .parked-ball-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(15, 23, 42, 0.82); border: 1.5px solid #f59e0b; border-radius: 10px;
+            padding: 3px 7px; box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+        }
+        .parked-ball-icon { font-size: 24px; line-height: 1.05; filter: drop-shadow(0 0 6px #ef4444); }
+        .parked-ball-tag {
+            font-size: 11px; font-weight: bold; color: #fde047; white-space: nowrap;
+            max-width: 78px; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; margin-top: 1px;
+        }
+
         .ball-roll-in {
-            animation: rollInAnim 0.75s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation: rollInAnim 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
         @keyframes rollInAnim {
-            0% { transform: translate(-180px, -60px) rotate(-720deg) scale(0.4); opacity: 0; }
-            70% { transform: translate(15px, 5px) rotate(40deg) scale(1.15); opacity: 1; }
+            0% { transform: translate(-120px, -40px) rotate(-540deg) scale(0.3); opacity: 0; }
+            75% { transform: translate(6px, 2px) rotate(25deg) scale(1.1); opacity: 1; }
             100% { transform: translate(0px, 0px) rotate(0deg) scale(1); opacity: 1; }
         }
         .ball-kick-out {
-            animation: kickOutAnim 0.65s ease-in forwards;
+            animation: kickOutAnim 0.55s ease-in forwards;
         }
         @keyframes kickOutAnim {
             0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
-            100% { transform: translate(220px, -150px) rotate(900deg) scale(0.2); opacity: 0; }
+            100% { transform: translate(180px, -110px) rotate(720deg) scale(0.2); opacity: 0; }
         }
 
         .opportunity-badge {
             background: linear-gradient(135deg, #fde047, #f59e0b); color: #000;
-            font-size: clamp(26px, 5.5vw, 38px); font-weight: bold; padding: 10px 26px;
+            font-size: clamp(22px, 5vw, 32px); font-weight: bold; padding: 8px 22px;
             border-radius: 30px; border: 3px solid #fff; box-shadow: 0 0 35px #fde047;
         }
 
-        #pad-avatar-figure {
-            width: 135px; height: 110px; display: flex; align-items: center; justify-content: center;
-            position: relative;
-        }
         .soldier-slash-anim { transform-origin: 45px 65px; animation: bladeSlash 0.65s ease-in-out infinite alternate; }
         @keyframes bladeSlash {
             0% { transform: rotate(-28deg); }
@@ -473,16 +496,18 @@
         }
 
         #pad-role-banner {
-            width: 100%; text-align: center; padding: 6px 10px; border-radius: 10px;
-            font-size: clamp(15px, 3.8vw, 19px); font-weight: bold; margin-top: 4px;
-            background: rgba(15, 23, 42, 0.85); color: #cbd5e1; border: 1.5px solid #475569;
+            width: 100%; text-align: center; padding: 4px 8px; border-radius: 8px;
+            font-size: clamp(14px, 3.6vw, 17.5px); font-weight: bold;
+            background: rgba(15, 23, 42, 0.88); color: #cbd5e1; border: 1.5px solid #475569;
+            flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         #pad-role-banner.main-spelling { background: #0284c7; color: #fff; border-color: #fde047; }
         #pad-role-banner.main-tone { background: #d97706; color: #fff; border-color: #fde047; }
 
-        /* 學生平板 4 選項 + 正中央「⚽ 踢皮球」圓形按鈕 */
+        /* 學生平板 4 選項區：放大占直屏約 2/3 空間 */
         .pad-options-wrapper {
-            width: 100%; height: 44vh; max-height: 300px; position: relative; flex-shrink: 0;
+            width: 100%; flex: 1; height: 62vh; max-height: 66vh; min-height: 290px;
+            position: relative;
         }
         #pad-options-grid {
             width: 100%; height: 100%;
@@ -490,37 +515,37 @@
             gap: 12px;
         }
         .pad-btn {
-            border-radius: 16px; border: 2.5px solid rgba(255,255,255,0.3); color: #fff;
-            font-size: clamp(22px, 4.5vw, 34px); font-weight: bold; font-family: inherit;
+            border-radius: 18px; border: 3px solid rgba(255,255,255,0.3); color: #fff;
+            font-size: clamp(26px, 5.5vw, 42px); font-weight: bold; font-family: inherit;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; position: relative; box-shadow: 0 5px 12px rgba(0,0,0,0.4);
-            padding: 4px; overflow: hidden;
+            cursor: pointer; position: relative; box-shadow: 0 6px 15px rgba(0,0,0,0.45);
+            padding: 6px; overflow: hidden;
         }
         .pad-btn * { pointer-events: none; }
-        .pad-btn:active { transform: scale(0.95); }
-        .pad-btn.selected { border-color: #fde047; box-shadow: 0 0 22px #fde047; transform: scale(1.02); }
+        .pad-btn:active { transform: scale(0.96); }
+        .pad-btn.selected { border-color: #fde047; box-shadow: 0 0 25px #fde047; transform: scale(1.02); }
         .pad-btn.disabled { opacity: 0.35; pointer-events: none; }
 
-        /* 四個選項正中央的「踢皮球」按鈕 */
+        /* 四個選項正中央的「踢皮球」按鈕 (Ver 2.2 加大版) */
         #pad-kick-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 96px; height: 96px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #fbbf24, #d97706 70%, #92400e 100%);
-            border: 4px solid #fef08a; color: #0f172a;
+            width: clamp(122px, 29vw, 144px); height: clamp(122px, 29vw, 144px); border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fde047, #f59e0b 65%, #b45309 100%);
+            border: 4.5px solid #fef08a; color: #0f172a;
             display: none; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer; z-index: 25;
-            box-shadow: 0 0 0 6px #0f172a, 0 0 25px rgba(251, 191, 36, 0.9);
+            box-shadow: 0 0 0 7px #0f172a, 0 0 30px rgba(251, 191, 36, 0.95);
             transition: transform 0.15s, opacity 0.25s, filter 0.25s, box-shadow 0.25s;
             font-family: inherit; padding: 0;
         }
         #pad-kick-btn:active { transform: translate(-50%, -50%) scale(0.9); }
-        #pad-kick-btn .kick-icon { font-size: 32px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); }
-        #pad-kick-btn .kick-label { font-size: 13px; font-weight: bold; color: #0f172a; line-height: 1.15; margin-top: 2px; }
-        #pad-kick-btn .kick-count { font-size: 11.5px; font-weight: bold; color: #78350f; background: rgba(255,255,255,0.75); padding: 0 6px; border-radius: 8px; margin-top: 1px; }
+        #pad-kick-btn .kick-icon { font-size: clamp(40px, 9.5vw, 48px); line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35)); }
+        #pad-kick-btn .kick-label { font-size: clamp(15px, 3.8vw, 18px); font-weight: bold; color: #0f172a; line-height: 1.15; margin-top: 3px; }
+        #pad-kick-btn .kick-count { font-size: clamp(12.5px, 3.2vw, 14.5px); font-weight: bold; color: #78350f; background: rgba(255,255,255,0.85); padding: 1px 9px; border-radius: 10px; margin-top: 2px; }
         #pad-kick-btn.locked-dark {
             filter: grayscale(1) brightness(0.45);
             opacity: 0.65;
-            box-shadow: 0 0 0 6px #0f172a;
+            box-shadow: 0 0 0 7px #0f172a;
             pointer-events: none;
         }
 
@@ -602,7 +627,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 2.1</div>
+<div id="version-tag">Ver 2.2</div>
 
 <!-- ========================================================= -->
 <!-- 1. 首頁：選擇身分 -->
@@ -825,7 +850,7 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- 6. 學生平板端：小兵動態舞台 + 4選項 + 中央踢皮球按鈕 -->
+<!-- 6. 學生平板端：1/3 動畫區 (含停留皮球+組名標籤) + 2/3 選項區 + 加大版踢皮球鈕 -->
 <!-- ========================================================= -->
 <div id="student-pad-screen" class="screen">
     <div class="pad-top-bar">
@@ -833,19 +858,23 @@
         <span class="pad-score" id="pad-my-score">0 分｜答對率 0%</span>
     </div>
 
-    <!-- 小兵舞台 + 滾球特效區 -->
+    <!-- 1/3 動畫舞台：左方小兵/大將 + 右方停留皮球區 (顯示誰踢來的) -->
     <div id="pad-hero-stage">
-        <div id="pad-incoming-balls-badge">🔥 收到 1 顆皮球！</div>
-        <div id="pad-ball-fx-layer"></div>
-        <div id="pad-opportunity-overlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.8); z-index:10; align-items:center; justify-content:center; flex-direction:column;">
+        <div id="pad-incoming-balls-badge">🔥 接到 1 顆球</div>
+        <div id="pad-opportunity-overlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.82); z-index:20; align-items:center; justify-content:center; flex-direction:column;">
             <div class="opportunity-badge" id="pad-opp-title">🌟 立功機會 🌟</div>
-            <div style="color:#fde047; font-size:18px; margin-top:8px; font-weight:bold;" id="pad-opp-sub">小兵上陣！同齊答對立大功！</div>
+            <div style="color:#fde047; font-size:16px; margin-top:6px; font-weight:bold;" id="pad-opp-sub">小兵上陣！同齊答對立大功！</div>
         </div>
-        <div id="pad-avatar-figure"></div>
+
+        <div class="hero-stage-middle">
+            <div id="pad-avatar-figure"></div>
+            <div id="pad-ball-fx-layer"></div>
+        </div>
+
         <div id="pad-role-banner">⏳ 請先號名、等候開始...</div>
     </div>
 
-    <!-- 4 選項 + 正中央「⚽ 踢皮球」圓形按鈕 (合作模式隱藏，陷害模式顯示) -->
+    <!-- 2/3 選項區 + 正中央加大版「⚽ 踢皮球」圓形按鈕 -->
     <div class="pad-options-wrapper">
         <div id="pad-options-grid">
             <button class="pad-btn opt-color-0 disabled" onclick="submitStudentAnswer(0)">A</button>
@@ -864,13 +893,13 @@
 
 <script>
     // =========================================================
-    // 🎨 平板上方人物動態 SVG 圖形庫
+    // 🎨 平板上方人物動態 SVG 圖形庫 (適配 1/3 緊湊高度)
     // =========================================================
     const CUTE_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
 
     function getSoldierSlashSvg() {
         return `
-        <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
+        <svg viewBox="0 0 120 100" width="94" height="78" overflow="visible">
             <ellipse cx="45" cy="90" rx="26" ry="6" fill="rgba(0,0,0,0.4)" />
             <path d="M 32 55 L 58 55 L 62 85 L 28 85 Z" fill="#0284c7" stroke="#bae6fd" stroke-width="2"/>
             <line x1="30" y1="70" x2="60" y2="70" stroke="#fde047" stroke-width="3"/>
@@ -891,7 +920,7 @@
 
     function getGeneralHorseSvg() {
         return `
-        <svg viewBox="0 0 150 110" width="145" height="108" overflow="visible">
+        <svg viewBox="0 0 150 110" width="110" height="80" overflow="visible">
             <ellipse cx="75" cy="102" rx="48" ry="7" fill="rgba(250, 204, 21, 0.28)" />
             <g class="general-gallop-anim">
                 <path d="M 26 65 Q 10 55 14 78" stroke="#78350f" stroke-width="6" fill="none" stroke-linecap="round"/>
@@ -922,7 +951,7 @@
 
     function getSoldierSweatSvg() {
         return `
-        <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
+        <svg viewBox="0 0 120 100" width="94" height="78" overflow="visible">
             <ellipse cx="48" cy="90" rx="26" ry="6" fill="rgba(0,0,0,0.4)" />
             <path d="M 35 55 L 61 55 L 65 85 L 31 85 Z" fill="#0284c7" stroke="#bae6fd" stroke-width="2"/>
             <line x1="33" y1="70" x2="63" y2="70" stroke="#fde047" stroke-width="3"/>
@@ -940,7 +969,7 @@
 
     function getSoldierDizzySvg() {
         return `
-        <svg viewBox="0 0 120 100" width="125" height="105" overflow="visible">
+        <svg viewBox="0 0 120 100" width="94" height="78" overflow="visible">
             <ellipse cx="48" cy="90" rx="28" ry="6" fill="rgba(0,0,0,0.4)" />
             <path d="M 35 58 L 61 58 L 65 86 L 31 86 Z" fill="#475569" stroke="#94a3b8" stroke-width="2"/>
             <circle cx="48" cy="42" r="14" fill="#fde68a" stroke="#fff" stroke-width="1.5"/>
@@ -1328,7 +1357,7 @@
     let peer = null;
     let roomPin = "";
     let selectedLessons = ["B1L1"];
-    let selectedGameMode = 'COOP'; // 'COOP' (團結力量大：合作模式) 或 'KICK' (無事一身輕：陷害模式)
+    let selectedGameMode = 'COOP';
     let teams = [];
     let questionDeck = [];
     let questionTypeBag = [];
@@ -1537,7 +1566,6 @@
         if (rawCards.length === 0) return alert("題庫載入失敗！");
         questionDeck = shuffleArray(rawCards);
 
-        // 為陷害模式準備五五波（50% 拼寫、50% 聲調）隨機順序籤筒
         questionTypeBag = [];
         for (let i = 0; i < totalGameQuestions; i++) {
             questionTypeBag.push(i % 2 === 0 ? 'SPELLING' : 'TONE');
@@ -1554,7 +1582,6 @@
         });
         matchQuestionStats = [];
 
-        // 根據模式切換大屏舞台版面
         document.getElementById('coop-arena-cols').style.display = (selectedGameMode === 'COOP') ? 'flex' : 'none';
         document.getElementById('host-main-arena-card').style.display = (selectedGameMode === 'KICK') ? 'flex' : 'none';
         document.getElementById('host-kick-marker').style.display = (selectedGameMode === 'KICK') ? 'block' : 'none';
@@ -1608,7 +1635,7 @@
         }).join('');
 
         if (selectedGameMode === 'COOP') {
-            // 🤝 【團結力量大：合作模式】全班公平兩兩隨機配對
+            // 🤝 【團結力量大：合作模式】
             const rolesMap = {};
             const partnerMap = {};
             const pairsList = [];
@@ -1655,7 +1682,7 @@
             roundPill.style.background = '#0284c7';
             renderPairsPreviewBar(false);
         } else {
-            // ⚽ 【無事一身輕：陷害模式】單一考點 + 踢皮球
+            // ⚽ 【無事一身輕：陷害模式】
             const qMode = questionTypeBag[currentMatchIdx] || 'SPELLING';
             const activeOptions = (qMode === 'SPELLING') ? coopOpts.spellingOptions : coopOpts.toneOptions;
             const correctIdx = (qMode === 'SPELLING') ? coopOpts.correctSpellingIdx : coopOpts.correctToneIdx;
@@ -1824,7 +1851,6 @@
 
             broadcastStartPhase('COUNTDOWN');
 
-            // AI試驗員自動作答模擬 (合作模式)
             teams.filter(t => t.isBot).forEach(bot => {
                 setTimeout(() => {
                     if (!currentMatchData || !currentMatchData.acceptingAnswers) return;
@@ -1874,7 +1900,6 @@
 
             broadcastStartPhase('COUNTDOWN');
 
-            // AI試驗員自動行動模擬 (陷害模式)
             teams.filter(t => t.isBot).forEach(bot => {
                 const willKick = (bot.ballsLeft > 0 && Math.random() < 0.22);
                 if (willKick) {
@@ -2399,7 +2424,7 @@
     }
 
     // =========================================================
-    // 📱 學生平板端邏輯 (自動適應「合作模式」與「陷害模式」)
+    // 📱 學生平板端邏輯 (支援皮球停留顯示踢球組名)
     // =========================================================
     let studentPeer = null;
     let hostConn = null;
@@ -2442,13 +2467,35 @@
         });
     }
 
-    function triggerStudentBallAnimation(type) {
+    // 收到皮球時：滾入並停留在動畫區，小字標記是哪一組踢來的
+    function addParkedBallToStage(fromTeamName) {
         const layer = document.getElementById('pad-ball-fx-layer');
-        const ball = document.createElement('div');
-        ball.className = 'rolling-ball-fx ' + (type === 'in' ? 'ball-roll-in' : 'ball-kick-out');
-        ball.innerText = type === 'in' ? '🔥⚽' : '⚽💨';
-        layer.appendChild(ball);
-        setTimeout(() => ball.remove(), 800);
+        const ballItem = document.createElement('div');
+        ballItem.className = 'parked-ball-item ball-roll-in';
+        ballItem.innerHTML = `
+            <div class="parked-ball-icon">🔥⚽</div>
+            <div class="parked-ball-tag">${fromTeamName}</div>
+        `;
+        layer.appendChild(ballItem);
+    }
+
+    // 踢出皮球時：將動畫區停留的皮球連同自己的球一起踢飛清空
+    function animateKickOutAllBalls() {
+        const layer = document.getElementById('pad-ball-fx-layer');
+        const existingBalls = layer.querySelectorAll('.parked-ball-item');
+        if (existingBalls.length > 0) {
+            existingBalls.forEach(b => {
+                b.classList.remove('ball-roll-in');
+                b.classList.add('ball-kick-out');
+            });
+            setTimeout(() => { layer.innerHTML = ''; }, 550);
+        } else {
+            const tempBall = document.createElement('div');
+            tempBall.className = 'parked-ball-item ball-kick-out';
+            tempBall.innerHTML = `<div class="parked-ball-icon">⚽💨</div>`;
+            layer.appendChild(tempBall);
+            setTimeout(() => { tempBall.remove(); }, 550);
+        }
     }
 
     function handleStudentReceiveData(data) {
@@ -2540,9 +2587,10 @@
             }
         } else if (data.type === 'BALL_INCOMING') {
             sfxReceiveBall();
-            triggerStudentBallAnimation('in');
+            // 皮球滾進動畫區並停留，球下小字標記哪一組踢來的
+            addParkedBallToStage(data.fromName);
             incBadge.style.display = 'block';
-            incBadge.innerText = `🔥 ${data.fromName} 踢來皮球！(共 ${data.totalIncoming} 顆)`;
+            incBadge.innerText = `🔥 接到 ${data.totalIncoming} 顆球`;
             if (!myHasActed) {
                 banner.style.background = '#b91c1c';
                 banner.style.color = '#fde047';
@@ -2634,7 +2682,7 @@
         if (!hostConn || !hostConn.open || padGameMode !== 'KICK' || myHasActed || myBallsLeft <= 0) return;
         myHasActed = true;
         sfxKickBall();
-        triggerStudentBallAnimation('out');
+        animateKickOutAllBalls();
         document.getElementById('pad-kick-btn').classList.add('locked-dark');
         const btns = document.querySelectorAll('#pad-options-grid .pad-btn');
         btns.forEach(btn => btn.classList.add('disabled'));
