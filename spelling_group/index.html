@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 6.4)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 6.6)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -382,7 +382,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 6.4</div>
+<div id="version-tag">Ver 6.6</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -443,6 +443,7 @@
                 <div id="raid-lessons-container" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
                 <div class="raid-diff-row">
                     <span style="font-size:14px; color:#fde047; font-weight:bold; white-space:nowrap;">⚡ 難度：</span>
+                    <button class="raid-diff-opt" id="raid-diff-apprentice" onclick="selectRaidDifficulty('apprentice')">咒術師仔</button>
                     <button class="raid-diff-opt active" id="raid-diff-master" onclick="selectRaidDifficulty('master')">咒術師父</button>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-top:1px dashed #3a506b; padding-top:8px;">
@@ -815,7 +816,7 @@
     }
 
     // =========================================================
-    // ⌨️ 虛擬鍵盤與台羅音節拆解系統 (C鍵已設為暗色鎖定)
+    // ⌨️ 虛擬鍵盤與台羅音節拆解系統
     // =========================================================
     function getToneSvg(tone, isChecked = false) {
         let markPath = '';
@@ -836,6 +837,7 @@
     const subTone4 = `<div class="checked-tone-group">${getToneSvg(4, true)}${ptkhGridHtml}</div>`;
     const subTone8 = `<div class="checked-tone-group">${getToneSvg(8, true)}${ptkhGridHtml}</div>`;
 
+    // 判斷是否為咒術師仔難度 (是的話，聲調鍵盤會變金色，且按任意聲調皆可算對)
     function isCurrentSyllableToneChained() {
         return raidDifficulty === 'apprentice';
     }
@@ -1160,6 +1162,63 @@
             div.onclick = () => removeRaidTeamFromLobby(t.id, div);
             list.appendChild(div);
         });
+    }
+
+    // 玩家發射光球的動畫 (大屏專用)
+    function triggerPlayerOrbToCenter(team) {
+        const layer = document.getElementById('raid-units-layer');
+        const unitEl = document.getElementById(`raid-unit-${team.id}`);
+        if (!unitEl) return;
+        
+        unitEl.classList.remove('unit-chanting');
+        unitEl.classList.add('unit-submitted');
+
+        const startX = team.x;
+        const startY = team.y;
+        const targetX = 50; // 射向畫面正中央
+        const targetY = 50; 
+
+        // 建立追蹤光球
+        const orb = document.createElement('div');
+        orb.className = 'raid-orb';
+        orb.style.left = `${startX}%`;
+        orb.style.top = `${startY}%`;
+        
+        layer.appendChild(orb);
+
+        // 使用 WAAPI 執行飛行與縮放動畫 (從玩家飛向中心)
+        const animation = orb.animate([
+            { left: `${startX}%`, top: `${startY}%`, transform: 'scale(1)', opacity: 1 },
+            { left: `${targetX}%`, top: `${targetY}%`, transform: 'scale(0.2)', opacity: 0.5 }
+        ], {
+            duration: 500,
+            easing: 'ease-in-out',
+            fill: 'forwards'
+        });
+
+        animation.onfinish = () => {
+            orb.remove();
+            // 在中央產生微小碰撞光芒
+            const hitFlash = document.createElement('div');
+            hitFlash.style.position = 'absolute';
+            hitFlash.style.left = '50%';
+            hitFlash.style.top = '50%';
+            hitFlash.style.width = '20px';
+            hitFlash.style.height = '20px';
+            hitFlash.style.background = '#00e5ff';
+            hitFlash.style.borderRadius = '50%';
+            hitFlash.style.transform = 'translate(-50%, -50%)';
+            hitFlash.style.boxShadow = '0 0 15px #fff';
+            hitFlash.style.zIndex = '6';
+            
+            hitFlash.animate([
+                { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                { transform: 'translate(-50%, -50%) scale(2)', opacity: 0 }
+            ], { duration: 250 });
+            
+            layer.appendChild(hitFlash);
+            setTimeout(() => hitFlash.remove(), 250);
+        };
     }
 
     async function startRaidBattle() {
@@ -1844,7 +1903,7 @@
         if (raidTeams.length === 0) return alert("無成績資料可匯出！");
         const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.correctQ - a.correctQ);
         const lessonStr = raidSelectedLessons.join('、');
-        const diffName = (raidDifficulty === 'apprentice') ? '咒術師仔(袂曉聲調)' : '咒術師父(會曉聲調)';
+        const diffName = (raidDifficulty === 'apprentice') ? '咒術師仔' : '咒術師父';
 
         let csv = "\uFEFF排名,組別/稱呼,真實座號,平板編號,個人答對率(平時成績),答對題數,總題數,除魔總分,剩餘血量,難度,課次範圍\r\n";
         sorted.forEach((t, idx) => {
