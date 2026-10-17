@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 6.11)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 6.12)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -396,7 +396,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 6.11</div>
+<div id="version-tag">Ver 6.12</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -448,10 +448,9 @@
                         <label style="font-size:14px; color:#cbd5e1;">
                             題數：
                             <select id="raid-qcount-select" style="background:#0b132b; color:#fde047; border:1.5px solid #00e5ff; border-radius:6px; padding:3px 8px; font-family:inherit; font-weight:bold;">
-                                <option value="10">10 題</option>
-                                <option value="14" selected>14 題</option>
+                                <option value="12">12 題</option>
                                 <option value="18">18 題</option>
-                                <option value="22">22 題</option>
+                                <option value="25" selected>25 題</option>
                             </select>
                         </label>
                         <label style="font-size:14px; color:#fde047; cursor:pointer;">
@@ -488,7 +487,7 @@
         <div class="raid-hud-bar">
             <div style="display:flex; align-items:center; gap:12px;">
                 <span style="background:#b91c1c; color:#fde047; padding:3px 12px; border-radius:20px; font-size:15px; font-weight:bold;" id="raid-hud-diff-label">咒術師父</span>
-                <span id="raid-hud-q-progress" style="font-weight:bold; color:#00e5ff;">題目: 1 / 14</span>
+                <span id="raid-hud-q-progress" style="font-weight:bold; color:#00e5ff;">題目: 1 / 25</span>
             </div>
             <div id="raid-hud-phase-msg" style="color:#fde047; font-weight:bold; font-size:19px;">🎧 斟酌聽音，準備施咒！</div>
             <div style="display:flex; align-items:center; gap:10px;">
@@ -555,7 +554,7 @@
         </div>
     </div>
 
-    <!-- 5. 學生平板：加入輸入畫面 -->
+    <!-- 5. 學生平板：加入團戰表單 -->
     <div id="raid-student-join-screen" class="screen-layer">
         <div class="raid-join-card">
             <h2 style="color:#4ade80; margin:0 0 14px 0;">📱 加入除魔團戰</h2>
@@ -646,12 +645,12 @@
                 <div class="modal-section">
                     <strong style="color:#ffd700; font-size:15px;">1. 攻擊鋩角：</strong><br>
                     (1)每擺實施咒語限制 18 秒，每一位除魔師攏有3滴血。<br>
-                    (2)正確率就是攻擊力。第一關的暗夜密婆，血量是1滴血，嘛會使看做100HP。若存活的除魔師咒語正確率100%，按呢一擺的攻擊就會使攻克暗夜密婆。若正確率是70%，按呢就是100%-70%=30%，暗夜密婆猶閣賰30%的血量。<br>
+                    (2)正確率就是攻擊力。若存活的除魔師咒語正確率是100%，按呢妖魔就會扣100HP；正確率若是70%，妖魔就會扣70HP。<br>
                     (3)若存活的除魔師，咒語正確率70%以上，妖魔會昏去，無法度反擊。<br>
                     (4)若存活的除魔師有超過參戰除魔師的半數，而且咒語正確率是100%，按呢就會使發動「完美攻擊」，這時，存活的除魔師會補半滴血。<br>
                     (5)若存活的除魔師有超過參戰除魔師的半數，而且毋但咒語正確率是100%，存活的除魔師閣攏佇10秒以內就實施咒語，按呢就會使發動「究極完美攻擊」。發動究極完美攻擊的時，毋但存活的除魔師攏補半滴血，陣亡者也會使以半滴血回魂。<br>
                     <span style="color:#94a3b8; font-size:12px;">※正確率的算法：存活的除魔師正確施咒的比例。譬論講，有10位存活的除魔師，其中有7位的咒語是正確的，按呢正確率就是70%。<br>
-                    ※第一關的暗夜密婆是1滴血，為著遊戲的趣味性，賰的妖魔血量無公開數據，請看血條來體會遊戲。</span>
+                    ※妖魔的血量會照題數的濟少有變化，請看血條來體會遊戲。</span>
                 </div>
                 <div class="modal-section">
                     <strong style="color:#ffd700; font-size:15px;">2. 妖魔反擊佮扣血方式：</strong><br>
@@ -686,12 +685,12 @@
 
     const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
     
-    // ★ 已將第一關正名為「暗夜密婆」
-    const RAID_BOSS_LIST = [
-        { name: '暗夜密婆', sprite: '🦇', maxHp: 100, attack: '🎵' },
-        { name: '劇毒青蛇', sprite: '🐍', maxHp: 200, attack: '💧' },
-        { name: '魔窟妖蛛', sprite: '🕷️', maxHp: 300, attack: '🕸️' },
-        { name: '赤焰紅鬼', sprite: '👹', maxHp: 400, attack: '🔥' }
+    // ★ 變更為 let，以利動態修改血量
+    let RAID_BOSS_LIST = [
+        { name: '暗夜密婆', sprite: '🦇', maxHp: 200, attack: '🎵' },
+        { name: '劇毒青蛇', sprite: '🐍', maxHp: 400, attack: '💧' },
+        { name: '魔窟妖蛛', sprite: '🕷️', maxHp: 500, attack: '🕸️' },
+        { name: '赤焰紅鬼', sprite: '👹', maxHp: 650, attack: '🔥' }
     ];
 
     const audioPlayer = new Audio();
@@ -718,11 +717,11 @@
     let raidSelectedLessons = ["B1L1"];
     let raidTeams = [];
     let raidQuestionDeck = [];
-    let raidTotalQuestions = 14;
+    let raidTotalQuestions = 25;
     let raidCurrentQIdx = 0;
     let raidCurrentMatch = null;
     let raidBossIdx = 0;
-    let raidBossHp = 100;
+    let raidBossHp = 200;
     let raidAllBossesCleared = false;
     let raidHostTimer = null;
     let raidWanderInterval = null;
@@ -1249,7 +1248,17 @@
         if (raidTeams.length < 1) return alert("請至少加入 1 組除魔師 (可點擊『➕ 加入AI隊友』測試)！");
 
         getSfxCtx();
-        raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 14;
+        raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 25;
+
+        // ★ 依據選擇的題數，動態分配妖魔的最大血量
+        let hpConfig = [200, 400, 500, 650]; // 預設 25 題的血量
+        if (raidTotalQuestions === 12) hpConfig = [100, 150, 250, 350];
+        else if (raidTotalQuestions === 18) hpConfig = [150, 250, 350, 500];
+
+        RAID_BOSS_LIST[0].maxHp = hpConfig[0];
+        RAID_BOSS_LIST[1].maxHp = hpConfig[1];
+        RAID_BOSS_LIST[2].maxHp = hpConfig[2];
+        RAID_BOSS_LIST[3].maxHp = hpConfig[3];
 
         const fetchPromises = raidSelectedLessons.map(sheet =>
             fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
