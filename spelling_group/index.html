@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 6.3)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 6.4)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -117,7 +117,7 @@
             transform: translate(-50%, -50%);
         }
         
-        /* 施咒光圈特效 */
+        /* 施咒光圈特效：大屏專用 */
         .raid-unit.unit-chanting .unit-avatar-box::before {
             content: ''; position: absolute; width: 50px; height: 50px; bottom: -6px; left: 50%; transform: translateX(-50%);
             border: 2.5px dashed #00e5ff; border-radius: 50%; box-shadow: 0 0 10px #00e5ff; animation: spinCircle 1.5s linear infinite; z-index: -1;
@@ -151,23 +151,45 @@
         #raid-boss-stun-stars { display: none; position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 36px; white-space: nowrap; animation: dizzySpin 1.1s linear infinite; z-index: 8; }
         @keyframes dizzySpin { 0% { transform: translateX(-50%) rotate(-8deg) scale(0.95); } 50% { transform: translateX(-50%) rotate(8deg) scale(1.1); } 100% { transform: translateX(-50%) rotate(-8deg) scale(0.95); } }
 
-        /* 從玩家射向中央的飛行光球 */
+        /* 全域折射光束與爆炸容器 */
+        #raid-refract-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+
+        /* 從玩家射向中央的飛行光球 (大屏專用) */
         .raid-orb {
-            position: absolute; width: 16px; height: 16px; border-radius: 50%;
-            background: #fff; box-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff;
+            position: absolute; width: 18px; height: 18px; border-radius: 50%;
+            background: #fff; box-shadow: 0 0 10px #fde047, 0 0 25px #fde047;
             z-index: 10; pointer-events: none;
         }
+        .orb-fly { animation: orbFlyAnim 0.4s ease-in forwards; }
+        @keyframes orbFlyAnim {
+            0% { left: var(--start-x); top: var(--start-y); transform: scale(1); opacity: 1; }
+            100% { left: 50%; top: 50%; transform: scale(0.3); opacity: 0.8; }
+        }
 
-        /* 命中中央妖魔的大型爆炸特效 */
+        /* 命中中央妖魔的大型爆炸特效 (5+1階段) */
         .boss-explosion { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; z-index: 15; pointer-events: none; mix-blend-mode: screen; }
-        .boss-explosion.tier-ult { width: 350px; height: 350px; background: radial-gradient(circle, #fff, #c084fc, transparent); animation: boom 1s ease-out forwards; box-shadow: 0 0 100px #c084fc; }
-        .boss-explosion.tier-100 { width: 300px; height: 300px; background: radial-gradient(circle, #fff, #fde047, transparent); animation: boom 0.85s ease-out forwards; box-shadow: 0 0 80px #fde047; }
-        .boss-explosion.tier-90 { width: 220px; height: 220px; background: radial-gradient(circle, #fff, #f97316, transparent); animation: boom 0.75s ease-out forwards; box-shadow: 0 0 60px #f97316; }
-        .boss-explosion.tier-70 { width: 160px; height: 160px; background: radial-gradient(circle, #fff, #00e5ff, transparent); animation: boom 0.65s ease-out forwards; box-shadow: 0 0 40px #00e5ff; }
-        .boss-explosion.tier-50 { width: 100px; height: 100px; background: radial-gradient(circle, #bae6fd, transparent); animation: boom 0.5s ease-out forwards; }
+        .boss-explosion.tier-ult { width: 400px; height: 400px; background: radial-gradient(circle, #fff 10%, #c084fc 40%, transparent 70%); animation: boom 1.2s ease-out forwards; }
+        .boss-explosion.tier-100 { width: 350px; height: 350px; background: radial-gradient(circle, #fff 10%, #fde047 40%, transparent 70%); animation: boom 1s ease-out forwards; }
+        .boss-explosion.tier-90 { width: 280px; height: 280px; background: radial-gradient(circle, #fff 10%, #f97316 40%, transparent 70%); animation: boom 0.8s ease-out forwards; }
+        .boss-explosion.tier-70 { width: 200px; height: 200px; background: radial-gradient(circle, #fff 10%, #00e5ff 40%, transparent 70%); animation: boom 0.7s ease-out forwards; }
+        .boss-explosion.tier-50 { width: 120px; height: 120px; background: radial-gradient(circle, #fff 10%, #bae6fd 50%, transparent 70%); animation: boom 0.6s ease-out forwards; }
+        .boss-explosion.tier-low { width: 80px; height: 80px; background: radial-gradient(circle, #94a3b8 20%, transparent 60%); animation: boom 0.5s ease-out forwards; mix-blend-mode: normal; opacity: 0.8;}
         @keyframes boom { 0% { transform: translate(-50%, -50%) scale(0); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
 
-        /* 大屏中央橫幅 */
+        /* 結算時浮現的攻擊力文字 */
+        .damage-popup {
+            position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%);
+            font-size: 48px; font-weight: bold; color: #fde047; text-shadow: 0 0 20px #e94560, 2px 2px 5px #000;
+            z-index: 40; opacity: 0; animation: dmgPop 1.5s ease-out forwards; white-space: nowrap;
+        }
+        @keyframes dmgPop {
+            0% { transform: translate(-50%, -30%) scale(0.5); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            80% { transform: translate(-50%, -55%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -65%) scale(0.8); opacity: 0; }
+        }
+
+        /* 大屏中央特效橫幅 */
         #raid-center-banner {
             display: none; position: absolute; top: 18%; left: 50%; transform: translateX(-50%);
             background: linear-gradient(90deg, #b91c1c, #f59e0b, #b91c1c); border: 3px solid #fde047;
@@ -176,7 +198,7 @@
             white-space: nowrap; animation: popIn 0.3s ease-out; pointer-events: none;
         }
 
-        /* 玩家閃爍特效 */
+        /* 玩家閃爍與受擊特效 */
         .flash-gold { animation: flashGoldAnim 1s ease-out; }
         .flash-ultimate { animation: flashUltAnim 1.5s ease-out; }
         @keyframes flashGoldAnim { 0% { filter: drop-shadow(0 0 20px #fde047) brightness(1.5); } 100% { filter: none; } }
@@ -241,13 +263,39 @@
         .blank-slot-inline { display: inline-block; width: 64px; height: 0.85em; border-bottom: 4px solid #ec4899; margin: 0 4px; vertical-align: baseline; }
 
         #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0;}
+        
+        /* 平板端玩家頭像與光圈 */
         #player-wrapper { position: relative; display: flex; align-items: flex-end; justify-content: center; z-index: 2; }
+        #player-wrapper::before {
+            content: ''; position: absolute; width: 70px; height: 70px; bottom: -5px; left: 50%;
+            transform: translateX(-50%); border-radius: 50%; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 1;
+        }
+        #player-wrapper.chanting::before {
+            opacity: 1; border: 3px dashed #00e5ff; box-shadow: 0 0 10px #00e5ff; animation: spinCircle 1.5s linear infinite;
+        }
+        #player-wrapper.submitted::before {
+            opacity: 1; border: 4px solid #00e5ff; box-shadow: 0 0 15px #00e5ff; animation: none;
+        }
+
         .rpg-sprite { font-size: 55px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; position: relative; z-index: 2; }
         #player-sprite { transform-origin: bottom center; }
         
         #enemy-wrapper { display: flex; flex-direction: column; align-items: center; z-index: 1; position: relative; }
         #enemy-hp-ui { font-size: 12px; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; }
         #enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
+
+        /* 平板端發射向敵人的光束 (動畫) */
+        .pad-beam-to-enemy {
+            position: absolute; left: 80px; bottom: 35px; width: calc(100% - 140px); height: 6px;
+            background: linear-gradient(90deg, transparent, #00e5ff, #fff);
+            border-radius: 4px; box-shadow: 0 0 10px #00e5ff; z-index: 3; transform-origin: left;
+            animation: padBeamRight 0.4s ease-out forwards;
+        }
+        @keyframes padBeamRight {
+            0% { transform: scaleX(0); opacity: 1; }
+            50% { transform: scaleX(1); opacity: 1; }
+            100% { transform: scaleX(1) translateX(50px); opacity: 0; }
+        }
 
         #timer-container { width: 100%; height: 8px; background: #2a3654; border-radius: 5px; overflow: hidden; margin-bottom: 8px; position: relative; display: none; flex-shrink: 0;}
         #timer-bar { height: 100%; width: 100%; background: #00e5ff; transition: width 0.1s linear; }
@@ -317,6 +365,7 @@
             .header-info { margin-bottom: 3px; font-size: 14px; }
             #rpg-arena { height: 55px; padding: 0 20px; margin-bottom: 2px; }
             .rpg-sprite { font-size: 38px; }
+            #player-wrapper::before { width: 50px; height: 50px; bottom: -2px; }
             .question-row { gap: 10px; margin-bottom: 2px; min-height: 32px; }
             .audio-icon { font-size: 22px; }
             #raid-word-mask-hint { font-size: 18px; padding: 2px 10px; }
@@ -333,7 +382,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 6.3</div>
+<div id="version-tag">Ver 6.4</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -394,7 +443,6 @@
                 <div id="raid-lessons-container" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
                 <div class="raid-diff-row">
                     <span style="font-size:14px; color:#fde047; font-weight:bold; white-space:nowrap;">⚡ 難度：</span>
-                    <button class="raid-diff-opt" id="raid-diff-apprentice" onclick="selectRaidDifficulty('apprentice')">咒術師仔</button>
                     <button class="raid-diff-opt active" id="raid-diff-master" onclick="selectRaidDifficulty('master')">咒術師父</button>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-top:1px dashed #3a506b; padding-top:8px;">
@@ -441,8 +489,8 @@
             <div id="raid-main-stage">
                 <div id="raid-center-banner">✨ 完美攻擊 ✨</div>
                 
-                <div class="army-zone-title" style="left:16px;">🛡️ 除魔軍團陣地</div>
                 <!-- 玩家單位游走層 -->
+                <div class="army-zone-title" style="left:16px;">🛡️ 除魔軍團陣地</div>
                 <div id="raid-units-layer"></div>
 
                 <!-- 中央：巨型妖魔區 -->
@@ -456,6 +504,9 @@
                         <div id="raid-boss-sprite">🦇</div>
                     </div>
                 </div>
+
+                <!-- 折射光束與爆炸特效層 -->
+                <div id="raid-refract-layer"></div>
             </div>
             <div class="raid-side-board">
                 <div class="raid-sb-title">📊 戰績佮狀況</div>
@@ -906,7 +957,7 @@
         const row3 = document.createElement('div');
         row3.className = 'kb-row kb-row-3';
         // 移除 C 鍵 (不在 validLetters，自動變暗鎖定)
-        ['z','x','c','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k)));
+        ['z','x','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k)));
         kbContainer.appendChild(row3);
     }
 
@@ -1053,8 +1104,12 @@
         } else if (data.type === 'SUBMIT_SPELL') {
             const team = raidTeams.find(t => t.conn === conn);
             if (team && raidCurrentMatch && raidCurrentMatch.accepting) {
-                // 收到玩家傳送法力：發射飛行光球到中央
-                triggerPlayerOrbToCenter(team);
+                // 大屏上只改變頭像外框為實心圓，等待全體倒數結束再發射光束
+                const unitEl = document.getElementById(`raid-unit-${team.id}`);
+                if (unitEl) {
+                    unitEl.classList.remove('unit-chanting');
+                    unitEl.classList.add('unit-submitted');
+                }
                 team.submitTime = Date.now(); 
                 recordRaidTeamSpell(team.id, data.isCorrect, data.usedGourd);
             }
@@ -1105,63 +1160,6 @@
             div.onclick = () => removeRaidTeamFromLobby(t.id, div);
             list.appendChild(div);
         });
-    }
-
-    // ★ 玩家光球發射至中央妖魔的動畫
-    function triggerPlayerOrbToCenter(team) {
-        const layer = document.getElementById('raid-units-layer');
-        const unitEl = document.getElementById(`raid-unit-${team.id}`);
-        if (!unitEl) return;
-        
-        unitEl.classList.remove('unit-chanting');
-        unitEl.classList.add('unit-submitted');
-
-        const startX = team.x;
-        const startY = team.y;
-        const targetX = 50; // 射向畫面正中央
-        const targetY = 50; 
-
-        // 建立追蹤光球
-        const orb = document.createElement('div');
-        orb.className = 'raid-orb';
-        orb.style.left = `${startX}%`;
-        orb.style.top = `${startY}%`;
-        
-        layer.appendChild(orb);
-
-        // 使用 WAAPI 執行飛行與縮放動畫 (從玩家飛向中心)
-        const animation = orb.animate([
-            { left: `${startX}%`, top: `${startY}%`, transform: 'scale(1)', opacity: 1 },
-            { left: `${targetX}%`, top: `${targetY}%`, transform: 'scale(0.2)', opacity: 0.5 }
-        ], {
-            duration: 500,
-            easing: 'ease-in-out',
-            fill: 'forwards'
-        });
-
-        animation.onfinish = () => {
-            orb.remove();
-            // 在中央產生微小碰撞光芒
-            const hitFlash = document.createElement('div');
-            hitFlash.style.position = 'absolute';
-            hitFlash.style.left = '50%';
-            hitFlash.style.top = '50%';
-            hitFlash.style.width = '20px';
-            hitFlash.style.height = '20px';
-            hitFlash.style.background = '#00e5ff';
-            hitFlash.style.borderRadius = '50%';
-            hitFlash.style.transform = 'translate(-50%, -50%)';
-            hitFlash.style.boxShadow = '0 0 15px #fff';
-            hitFlash.style.zIndex = '6';
-            
-            hitFlash.animate([
-                { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
-                { transform: 'translate(-50%, -50%) scale(2)', opacity: 0 }
-            ], { duration: 250 });
-            
-            layer.appendChild(hitFlash);
-            setTimeout(() => hitFlash.remove(), 250);
-        };
     }
 
     async function startRaidBattle() {
@@ -1373,7 +1371,7 @@
         document.getElementById('raid-center-banner').style.display = 'none';
         document.getElementById('raid-boss-stun-stars').style.display = 'none';
         
-        // 清除上一題的施咒圓圈
+        // 清除上一題的施咒圓圈 (虛線/實心)
         document.querySelectorAll('.raid-unit').forEach(u => {
             u.classList.remove('unit-chanting', 'unit-submitted');
         });
@@ -1422,9 +1420,17 @@
             setTimeout(() => {
                 if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
                 const botRight = (Math.random() < 0.78);
-                // AI 提早在 10 秒內送出，有機會觸發究極完美攻擊
+                
+                // 為了讓 AI 有機會觸發 10 秒究極完美攻擊，將 AI 送出時間設為 4~9 秒
                 bot.submitTime = Date.now();
-                triggerPlayerOrbToCenter(bot); // 發射單體小光球
+                
+                // 大屏顯示 AI 已送出 (實心圓)
+                const unitEl = document.getElementById(`raid-unit-${bot.id}`);
+                if (unitEl) {
+                    unitEl.classList.remove('unit-chanting');
+                    unitEl.classList.add('unit-submitted');
+                }
+                
                 recordRaidTeamSpell(bot.id, botRight, false);
             }, 4000 + Math.random() * 5000);
         });
@@ -1522,7 +1528,8 @@
 
         document.getElementById('raid-host-tailo').innerHTML = raidCurrentMatch.fullRevealedHtml;
 
-        let aliveCount = raidTeams.filter(t => t.hp > 0).length;
+        let activeTeams = raidTeams.filter(t => t.hp > 0);
+        let aliveCount = activeTeams.length;
         let totalCount = raidTeams.length;
         
         let correctActiveCount = 0;
@@ -1587,7 +1594,7 @@
         setTimeout(() => {
             refractLayer.innerHTML = ''; // 清除飛行中的光球
 
-            // 產生中心巨型爆炸特效
+            // 產生中心巨型爆炸特效 (5+1階段)
             if (hasCorrect || accuracyPct > 0) {
                 const explosion = document.createElement('div');
                 explosion.className = 'boss-explosion';
@@ -1595,9 +1602,17 @@
                 else if (accuracyPct === 100) explosion.classList.add('tier-100');
                 else if (accuracyPct >= 90) explosion.classList.add('tier-90');
                 else if (accuracyPct >= 70) explosion.classList.add('tier-70');
-                else explosion.classList.add('tier-50');
+                else if (accuracyPct >= 50) explosion.classList.add('tier-50');
+                else explosion.classList.add('tier-low');
                 refractLayer.appendChild(explosion);
                 setTimeout(() => explosion.remove(), 1200); // 動畫結束後移除
+                
+                // 浮現攻擊力數值
+                const dmgText = document.createElement('div');
+                dmgText.className = 'damage-popup';
+                dmgText.innerText = `💥 攻擊力 ${accuracyPct}%`;
+                refractLayer.appendChild(dmgText);
+                setTimeout(() => dmgText.remove(), 1500);
             }
 
             const banner = document.getElementById('raid-center-banner');
@@ -1829,7 +1844,7 @@
         if (raidTeams.length === 0) return alert("無成績資料可匯出！");
         const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.correctQ - a.correctQ);
         const lessonStr = raidSelectedLessons.join('、');
-        const diffName = (raidDifficulty === 'apprentice') ? '咒術師仔' : '咒術師父';
+        const diffName = (raidDifficulty === 'apprentice') ? '咒術師仔(袂曉聲調)' : '咒術師父(會曉聲調)';
 
         let csv = "\uFEFF排名,組別/稱呼,真實座號,平板編號,個人答對率(平時成績),答對題數,總題數,除魔總分,剩餘血量,難度,課次範圍\r\n";
         sorted.forEach((t, idx) => {
@@ -2000,6 +2015,7 @@
 
         const playerWrapper = document.getElementById('player-wrapper');
         if (playerWrapper) {
+            // 平板端輸入回饋：打字時顯示藍色虛線圓圈
             playerWrapper.classList.toggle('chanting', currentSyllableIndex > 0 || typedBase.length > 0);
         }
     }
@@ -2094,6 +2110,7 @@
         }
     }
 
+    // ★ 學生平板發射法術光束
     function submitRaidStudentSpell(isCorrect) {
         if (raidStudentLocked) return;
         raidStudentLocked = true;
@@ -2102,6 +2119,22 @@
         const enterBtn = document.getElementById('btn-enter');
         enterBtn.classList.add('locked-in');
         enterBtn.innerHTML = `<div>✅ 已傳送法力</div>`;
+
+        // 平板端輸入回饋：送出咒語後變成實心圓圈
+        const playerWrapper = document.getElementById('player-wrapper');
+        playerWrapper.classList.remove('chanting');
+        playerWrapper.classList.add('submitted');
+
+        // 平板端發射向敵人的光束動畫
+        const arena = document.getElementById('rpg-arena');
+        const beam = document.createElement('div');
+        beam.className = 'pad-beam-to-enemy';
+        arena.appendChild(beam);
+        sfxEnemyHit(); 
+        
+        setTimeout(() => {
+            beam.remove();
+        }, 400);
 
         if (studentHostConn && studentHostConn.open) {
             studentHostConn.send({
@@ -2165,9 +2198,13 @@
             usedGourdOnCurrentQ = false;
             currentDeadTeammatesCount = data.deadCount || 0;
 
+            // 清除上一題的實心圓圈
+            const playerWrapper = document.getElementById('player-wrapper');
+            playerWrapper.classList.remove('chanting', 'submitted');
+
             document.getElementById('progress-display').innerText = `第 ${data.qIndex} / ${data.totalQ} 題`;
             document.getElementById('enemy-sprite').innerText = data.bossSprite || '👹';
-            document.getElementById('enemy-hp-ui').innerText = ''; // 移除了"瞄準隊長"字眼
+            document.getElementById('enemy-hp-ui').innerText = '🎯 瞄準妖魔';
 
             const hintEl = document.getElementById('hanzi-hint');
             hintEl.innerText = '';
@@ -2182,8 +2219,6 @@
 
             parsedAnswer = [data.targetSyllable];
             resetInputBoxes();
-            
-            // 學生端不再自動播音，但仍可按按鈕重播
 
             startTimer(18, () => {
                 if (!raidStudentLocked) {
