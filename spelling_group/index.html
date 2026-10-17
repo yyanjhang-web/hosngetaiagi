@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>除魔咒術 - 多人連線團戰版 (Ver 6.0)</title>
+    
+    <!-- 引入 豆腐烏 (Tauhu-Oo) 官方網頁字型 -->
+    <link href="[https://tauhu.tw/tauhu-oo-bold.css](https://tauhu.tw/tauhu-oo-bold.css)" rel="stylesheet">
+    <link href="[https://tauhu.tw/tauhu-oo.css](https://tauhu.tw/tauhu-oo.css)" rel="stylesheet">
+    
+    <!-- 引入彩帶特效、PeerJS 連線核心、QRCode 產生器 -->
+    <script src="[https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js](https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js)"></script>
+    <script src="[https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js](https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js)"></script>
+    <script src="[https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js](https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js)"></script>
+    <style>
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body {
+            font-family: 'tauhu-oo', sans-serif; margin: 0; padding: 0;
+            background-color: #0b132b; color: #fff;
+            width: 100vw; height: 100vh; height: 100dvh; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        #app-container {
+            position: relative; width: 100vw; height: 100vh; height: 100dvh;
+            background-color: #0b132b; display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        /* 學生平板模式限制最大寬度800px居中，大屏模式則為100vw全螢幕 */
+        #app-container.pad-mode { max-width: 800px; background-color: #16213e; box-shadow: 0 0 30px rgba(0,0,0,0.6); }
+
+        #version-tag { position: fixed; bottom: 8px; right: 14px; font-size: 13px; color: rgba(255,255,255,0.4); font-weight: bold; z-index: 90; pointer-events: none; }
+
+        /* 共用畫面切換層 */
+        .screen-layer { display: none; position: absolute; inset: 0; width: 100%; height: 100%; flex-direction: column; align-items: center; padding: 14px; overflow-y: auto; z-index: 10; }
+        .screen-layer.active { display: flex; }
+
+        /* ========================================================= */
+        /* 1. 團戰入口首頁 (選擇：主辦方大屏 vs 學生平板) */
+        /* ========================================================= */
+        #entry-screen { justify-content: center; background: radial-gradient(circle at center, #1c2541 0%, #0b132b 85%); }
+        .title-banner { text-align: center; margin-bottom: 24px; }
+        .title-banner h1 { font-size: clamp(32px, 5vw, 52px); color: #e94560; margin: 0 0 6px 0; text-shadow: 0 0 15px rgba(233, 69, 96, 0.6); letter-spacing: 2px; }
+        .title-banner p { font-size: clamp(16px, 2.5vw, 22px); color: #00e5ff; margin: 0; font-weight: bold; text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); }
+
+        .role-cards { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 760px; margin-bottom: 18px; }
+        .role-card {
+            flex: 1; min-width: 260px; background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 3px solid #00e5ff; border-radius: 20px; padding: 26px 20px; text-align: center;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .role-card:hover, .role-card:active { transform: translateY(-5px) scale(1.02); border-color: #fde047; box-shadow: 0 0 25px rgba(253, 224, 71, 0.4); }
+        .role-card.student-card { border-color: #4ade80; }
+        .role-card .icon { font-size: 60px; margin-bottom: 10px; }
+        .role-card h2 { font-size: 25px; margin: 0 0 8px 0; color: #fff; }
+        .role-card p { font-size: 15px; color: #94a3b8; margin: 0; line-height: 1.4; }
+
+        .info-open-btn { padding: 7px 18px; background: #2a3654; color: #ffd700; border: 1.5px solid #ffd700; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.2s; }
+        .info-open-btn:active { transform: scale(0.95); }
+
+        .footer { margin-top: auto; padding-top: 8px; text-align: center; width: 100%; font-size: 11px; color: rgba(255, 255, 255, 0.42); line-height: 1.35; flex-shrink: 0; }
+        .footer p { margin: 0; }
+        .footer .copyright-text { font-size: 10px; color: rgba(255, 255, 255, 0.3); margin-top: 2px; }
+
+        /* ========================================================= */
+        /* 2. 教師大屏：團戰大廳設定與等候室 */
+        /* ========================================================= */
+        .raid-lobby-top { display: flex; gap: 18px; width: 100%; max-width: 1180px; align-items: stretch; flex-wrap: wrap; margin-bottom: 12px; }
+        .raid-pin-card { flex: 0.95; min-width: 280px; background: #1c2541; border: 3px solid #fde047; border-radius: 16px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-around; gap: 14px; box-shadow: 0 0 20px rgba(253, 224, 71, 0.2); }
+        .raid-pin-num { font-size: clamp(42px, 4.8vw, 62px); font-weight: bold; color: #fde047; letter-spacing: 5px; line-height: 1.1; text-shadow: 0 0 15px rgba(253, 224, 71, 0.5); }
+        #raid-qrcode-box { background: #fff; padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+
+        .raid-config-card { flex: 1.6; min-width: 340px; background: #1c2541; border: 2px solid #00e5ff; border-radius: 16px; padding: 12px 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
+        .lesson-btn { padding: 5px 11px; background: #2a3654; color: #fff; border: 1.5px solid #4a5c88; border-radius: 7px; font-size: 14px; cursor: pointer; transition: 0.15s; font-family: inherit; font-weight: bold; }
+        .lesson-btn.active { background: #e94560; border-color: #ff6b81; box-shadow: 0 0 8px #e94560; }
+
+        .raid-diff-row { display: flex; gap: 10px; align-items: center; background: rgba(11, 19, 43, 0.7); padding: 6px 10px; border-radius: 10px; border: 1px solid #3a506b; flex-wrap: wrap; }
+        .raid-diff-opt { flex: 1; min-width: 170px; padding: 7px 10px; border-radius: 8px; border: 2px solid #4a5c88; background: #16213e; color: #ccc; font-size: 14.5px; font-weight: bold; cursor: pointer; font-family: inherit; text-align: center; transition: 0.15s; }
+        .raid-diff-opt.active { background: linear-gradient(135deg, #0284c7, #1d4ed8); color: #fff; border-color: #fde047; box-shadow: 0 0 12px rgba(0, 229, 255, 0.5); }
+
+        .start-btn { padding: 8px 24px; font-size: 17px; font-weight: bold; background: linear-gradient(135deg, #b91c1c, #d97706); color: #fff; border: 2px solid #fde047; border-radius: 10px; cursor: pointer; font-family: inherit; box-shadow: 0 0 14px rgba(245, 158, 11, 0.5); transition: 0.15s; }
+        .start-btn:active { transform: scale(0.95); }
+        .start-btn.green-btn { background: linear-gradient(135deg, #065f46, #059669); border-color: #4ade80; box-shadow: 0 0 14px rgba(74, 222, 128, 0.4); }
+
+        .raid-teams-box { width: 100%; max-width: 1180px; flex: 1; background: rgba(28, 37, 65, 0.65); border: 2px dashed #4a5c88; border-radius: 16px; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; }
+        #raid-lobby-teams-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 8px; }
+        .raid-team-badge { background: #16213e; border: 2px solid #4ade80; border-radius: 10px; padding: 10px 12px; font-size: 18px; font-weight: bold; color: #4ade80; text-align: center; cursor: pointer; transition: 0.15s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popIn 0.2s ease-out; }
+        .raid-team-badge.bot { border-color: #c084fc; color: #e9d5ff; }
+        .raid-team-badge:hover, .raid-team-badge:active, .raid-team-badge.removing {
+            background: rgba(220, 38, 38, 0.3) !important; border-color: #ef4444 !important; color: #fca5a5 !important;
+            text-decoration: line-through; text-decoration-thickness: 3px; text-decoration-color: #ef4444; transform: scale(0.95);
+        }
+        @keyframes popIn { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* ========================================================= */
+        /* 3. 教師大屏：團戰主舞台 (左游走軍團 + 中聚魔鏡 + 右車輪戰妖魔) */
+        /* ========================================================= */
+        #raid-host-screen { justify-content: space-between; overflow: hidden; padding: 10px 18px; }
+        .raid-hud-bar { width: 100%; max-width: 1400px; display: flex; justify-content: space-between; align-items: center; background: #1c2541; border: 1.5px solid #3a506b; border-radius: 12px; padding: 6px 16px; font-size: 17px; flex-shrink: 0; gap: 10px; }
+        .raid-prompt-stage { width: 100%; max-width: 1400px; display: flex; align-items: center; justify-content: center; gap: 20px; background: linear-gradient(90deg, rgba(28,37,65,0.4), rgba(28,37,65,0.95), rgba(28,37,65,0.4)); border-top: 2px solid #00e5ff; border-bottom: 2px solid #00e5ff; padding: 8px 24px; margin: 6px 0; flex-shrink: 0; }
+        .raid-prompt-hanzi { font-size: 28px; color: #fb923c; font-weight: bold; }
+        .raid-prompt-tailo { font-size: clamp(32px, 4.2vw, 52px); font-weight: bold; color: #fff; letter-spacing: 2px; display: flex; align-items: baseline; }
+        .raid-blank-slot { display: inline-block; width: 95px; height: 0.85em; border-bottom: 5px solid #ec4899; margin: 0 8px; vertical-align: baseline; }
+
+        #raid-host-timer-wrap { width: 100%; max-width: 1400px; height: 10px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-bottom: 8px; border: 1px solid #475569; flex-shrink: 0; }
+        #raid-host-timer-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, #eab308, #00e5ff); transition: width 0.1s linear; }
+
+        .raid-battlefield-wrap { width: 100%; max-width: 1400px; flex: 1; display: flex; gap: 14px; min-height: 0; overflow: hidden; align-items: stretch; }
+        #raid-main-stage {
+            flex: 2.2; background: radial-gradient(circle at 52% 55%, #1f2b4d 0%, #0b132b 85%);
+            border: 3px solid #3a506b; border-radius: 20px; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: space-between; box-shadow: inset 0 0 40px rgba(0,0,0,0.7);
+        }
+
+        /* 左側：玩家游走軍團陣地 */
+        #raid-army-zone { width: 44%; height: 100%; position: relative; overflow: hidden; border-right: 1px dashed rgba(0, 229, 255, 0.2); }
+        .army-zone-title { position: absolute; top: 8px; left: 12px; font-size: 13px; color: #84ffff; opacity: 0.75; pointer-events: none; z-index: 2; }
+        
+        .raid-unit {
+            position: absolute; width: 88px; display: flex; flex-direction: column; align-items: center;
+            transition: left 2.4s ease-in-out, top 2.4s ease-in-out, transform 0.25s, filter 0.25s;
+            z-index: 5; pointer-events: none;
+        }
+        .raid-unit.unit-chanting .unit-avatar-box::before {
+            content: ''; position: absolute; width: 46px; height: 46px; bottom: -4px; left: 50%; transform: translateX(-50%);
+            border: 2px dashed #00e5ff; border-radius: 50%; box-shadow: 0 0 10px #00e5ff; animation: spinCircle 2.5s linear infinite; z-index: -1;
+        }
+        .raid-unit.unit-dead { filter: grayscale(1); opacity: 0.48; }
+        .unit-hp-track { width: 64px; height: 7px; background: #0f172a; border: 1px solid #64748b; border-radius: 4px; overflow: hidden; margin-bottom: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+        .unit-hp-fill { height: 100%; width: 100%; background: #22c55e; transition: width 0.3s ease, background 0.3s ease; }
+        .unit-avatar-box { position: relative; font-size: 32px; line-height: 1.05; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5)); }
+        .unit-status-icon { position: absolute; top: -6px; right: -12px; font-size: 16px; }
+        .unit-name-tag { font-size: 11.5px; font-weight: bold; color: #f8fafc; background: rgba(15, 23, 42, 0.82); padding: 1px 6px; border-radius: 6px; border: 1px solid #475569; white-space: nowrap; max-width: 86px; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+
+        /* 中央：乾坤聚魔鏡 */
+        #raid-mirror-zone {
+            width: 18%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; z-index: 10; pointer-events: none;
+        }
+        #host-mirror-box { position: relative; width: 96px; height: 124px; display: flex; align-items: center; justify-content: center; transition: transform 0.3s, filter 0.3s; }
+        #host-mirror-box.charging { animation: mirrorPulse 0.6s infinite alternate; }
+        @keyframes mirrorPulse { 0% { transform: scale(1); filter: drop-shadow(0 0 15px #00e5ff); } 100% { transform: scale(1.1); filter: drop-shadow(0 0 32px #fde047); } }
+        #mirror-charge-badge { margin-top: 6px; background: rgba(15, 23, 42, 0.9); border: 1.5px solid #00e5ff; color: #84ffff; padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; white-space: nowrap; }
+
+        /* 5種等級的聚魔鏡折射魔法光束 */
+        .refract-beam { position: absolute; left: 53%; top: 50%; transform: translateY(-50%); width: 34%; transform-origin: left center; z-index: 9; pointer-events: none; border-radius: 20px; }
+        .refract-beam.tier-100 { height: 54px; background: linear-gradient(90deg, #fff, #fde047, #ec4899, #00e5ff, #4ade80, #fde047); box-shadow: 0 0 40px #fde047, 0 0 70px #ec4899, inset 0 0 20px #fff; animation: megaBeamShoot 0.85s ease-out forwards; }
+        .refract-beam.tier-90 { height: 40px; background: linear-gradient(90deg, #fff, #fde047, #f97316, #00e5ff); box-shadow: 0 0 35px #fde047, 0 0 50px #00e5ff; animation: megaBeamShoot 0.75s ease-out forwards; }
+        .refract-beam.tier-70 { height: 22px; background: linear-gradient(90deg, #fff, #00e5ff, #a855f7); box-shadow: 0 0 22px #00e5ff; animation: megaBeamShoot 0.65s ease-out forwards; }
+        .refract-beam.tier-50 { height: 6px; background: linear-gradient(90deg, #bae6fd, #38bdf8, transparent); box-shadow: 0 0 8px #38bdf8; animation: megaBeamShoot 0.5s ease-out forwards; }
+        .refract-beam.tier-low { height: 12px; width: 12%; background: radial-gradient(circle, #94a3b8, transparent); animation: puffFizzle 0.6s ease-out forwards; }
+        @keyframes megaBeamShoot {
+            0% { transform: translateY(-50%) scaleX(0) scaleY(0.4); opacity: 1; }
+            30% { transform: translateY(-50%) scaleX(1) scaleY(1.2); opacity: 1; }
+            75% { transform: translateY(-50%) scaleX(1) scaleY(0.9); opacity: 0.95; }
+            100% { transform: translateY(-50%) scaleX(1) scaleY(0.1); opacity: 0; }
+        }
+        @keyframes puffFizzle { 0% { transform: translate(0, -50%) scale(0.5); opacity: 0.9; } 100% { transform: translate(45px, -80%) scale(1.8); opacity: 0; } }
+
+        /* 右側：巨型妖魔車輪戰區 */
+        #raid-boss-zone { width: 38%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 6; padding-right: 16px; }
+        .boss-stage-tag { font-size: 16px; font-weight: bold; color: #fde047; margin-bottom: 4px; text-shadow: 0 2px 6px #000; }
+        .boss-hp-bar-outer { width: 82%; max-width: 240px; height: 20px; background: #0f172a; border: 2px solid #f8fafc; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); margin-bottom: 12px; }
+        #raid-boss-hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #dc2626, #f97316); transition: width 0.4s ease; }
+        #raid-boss-hp-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: bold; color: #fff; text-shadow: 1px 1px 3px #000; }
+        #raid-boss-sprite-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
+        #raid-boss-sprite { font-size: clamp(82px, 9.5vw, 125px); line-height: 1; filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.8)); transition: transform 0.25s, filter 0.25s; }
+        #raid-boss-stun-stars { display: none; position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 36px; white-space: nowrap; animation: dizzySpin 1.1s linear infinite; z-index: 8; }
+        @keyframes dizzySpin { 0% { transform: translateX(-50%) rotate(-8deg) scale(0.95); } 50% { transform: translateX(-50%) rotate(8deg) scale(1.1); } 100% { transform: translateX(-50%) rotate(-8deg) scale(0.95); } }
+
+        #raid-center-banner {
+            display: none; position: absolute; top: 18%; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(90deg, #b91c1c, #f59e0b, #b91c1c); border: 3px solid #fde047;
+            color: #fff; padding: 10px 32px; border-radius: 30px; font-size: clamp(22px, 3vw, 36px);
+            font-weight: bold; z-index: 30; box-shadow: 0 0 40px rgba(253, 224, 71, 0.9); text-shadow: 2px 2px 5px #000;
+            white-space: nowrap; animation: popIn 0.3s ease-out; pointer-events: none;
+        }
+
+        .raid-side-board { flex: 0.72; min-width: 240px; max-width: 320px; background: #1c2541; border: 2px solid #3a506b; border-radius: 18px; padding: 10px 12px; display: flex; flex-direction: column; overflow: hidden; }
+        .raid-sb-title { font-size: 15px; font-weight: bold; color: #fde047; text-align: center; padding-bottom: 6px; margin-bottom: 6px; border-bottom: 1px solid #3a506b; }
+        #raid-live-sb-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        .raid-sb-row { display: flex; justify-content: space-between; align-items: center; background: #0b132b; border: 1px solid #334155; border-radius: 8px; padding: 5px 8px; font-size: 13.5px; }
+
+        /* 團戰結算畫面 */
+        .raid-gameover-grid { width: 100%; max-width: 1180px; display: flex; gap: 16px; flex: 1; min-height: 0; margin: 10px 0; flex-wrap: wrap; }
+        .raid-go-col { flex: 1; min-width: 300px; background: #1c2541; border: 2px solid #fde047; border-radius: 16px; padding: 12px 16px; overflow-y: auto; max-height: 58vh; }
+        .review-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #2a3654; font-size: 18px; cursor: pointer; border-radius: 6px; }
+        .review-item:active { background: rgba(0, 229, 255, 0.15); }
+        .review-hanzi { color: #f9a826; font-weight: bold; }
+        .review-tailo { color: #00e5ff; font-weight: bold; letter-spacing: 1px; }
+
+        /* ========================================================= */
+        /* 4. 學生平板：加入輸入畫面 & 作答戰鬥畫面 */
+        /* ========================================================= */
+        .raid-join-card { background: #1c2541; border: 2.5px solid #4ade80; border-radius: 20px; padding: 24px; width: 94%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6); margin: auto; }
+        .raid-input-group { margin-bottom: 14px; text-align: left; }
+        .raid-input-group label { display: block; font-size: 14px; color: #94a3b8; margin-bottom: 5px; }
+        .raid-input-group input { width: 100%; padding: 10px 12px; font-size: 20px; font-weight: bold; background: #0b132b; border: 2px solid #4a5c88; border-radius: 10px; color: #fff; text-align: center; font-family: inherit; }
+
+        #game-screen { display: none; flex-direction: column; height: 100%; width: 100%; padding: 10px 12px; justify-content: space-between; z-index: 20; }
+        .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 6px; font-weight: bold; flex-shrink: 0; gap: 8px; }
+        #health-bar { display: flex; align-items: center; gap: 6px; }
+        .header-right-group { display: flex; align-items: center; gap: 8px; }
+        #sfx-toggle-btn { background: rgba(0, 229, 255, 0.12); border: 1.5px solid #4a5c88; border-radius: 6px; padding: 2px 7px; font-size: 15px; cursor: pointer; line-height: 1.2; }
+        #sfx-toggle-btn.muted { opacity: 0.5; border-color: #555; background: rgba(0, 0, 0, 0.25); }
+        .question-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+
+        .pad-hp-bar-wrap { display: inline-flex; align-items: center; gap: 6px; background: #0f172a; padding: 3px 10px; border-radius: 12px; border: 1.5px solid #334155; }
+        .pad-hp-track { width: 96px; height: 12px; background: #1e293b; border-radius: 6px; overflow: hidden; border: 1px solid #475569; }
+        .pad-hp-fill { height: 100%; width: 100%; background: #22c55e; transition: width 0.3s ease, background 0.3s ease; }
+
+        .question-row { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 8px; min-height: 46px; flex-wrap: wrap; }
+        #gourd-btn { display: flex; align-items: center; gap: 5px; background: rgba(249, 168, 38, 0.15); border: 2px solid #f9a826; border-radius: 24px; padding: 4px 12px 4px 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(249, 168, 38, 0.35); }
+        #gourd-btn.gourd-disabled { opacity: 0.3; filter: grayscale(1); pointer-events: none; border-color: #555; box-shadow: none; }
+        .gourd-svg { width: 26px; height: 30px; display: block; filter: drop-shadow(0 0 4px rgba(249, 168, 38, 0.6)); }
+        #gourd-count { font-size: 18px; font-weight: bold; color: #ffd700; line-height: 1; }
+
+        .audio-icon { font-size: 36px; cursor: pointer; animation: pulse 1.5s infinite; color: #e94560; margin: 0; line-height: 1; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
+        #hanzi-hint { font-size: 28px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; display: none; }
+        #raid-word-mask-hint { font-size: 24px; color: #fff; font-weight: bold; background: rgba(15, 23, 42, 0.75); border: 2px solid #38bdf8; padding: 3px 14px; border-radius: 12px; letter-spacing: 1px; }
+        .blank-slot-inline { display: inline-block; width: 64px; height: 0.85em; border-bottom: 4px solid #ec4899; margin: 0 4px; vertical-align: baseline; }
+
+        #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0;}
+        #player-wrapper { position: relative; display: flex; align-items: flex-end; justify-content: center; z-index: 2; }
+        .rpg-sprite { font-size: 55px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; position: relative; z-index: 2; }
+        #player-sprite { transform-origin: bottom center; }
+        
+        .sweat-drop { position: absolute; top: -5px; right: -8px; font-size: 24px; animation: sweatBlink 0.8s infinite alternate; filter: drop-shadow(0 0 5px #00e5ff); }
+        @keyframes sweatBlink { 0% { opacity: 0.5; transform: translateY(0); } 100% { opacity: 1; transform: translateY(4px); } }
+        .shield-badge { position: absolute; bottom: 0px; right: -22px; font-size: 28px; z-index: 4; filter: drop-shadow(0 0 8px #38bdf8); animation: popIn 0.2s ease-out; }
+
+        #pad-mirror-wrapper { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3; pointer-events: none; }
+        .magic-mirror-svg { width: 54px; height: 68px; filter: drop-shadow(0 0 12px #00e5ff); transition: 0.25s; }
+        .mirror-charging .magic-mirror-svg { filter: drop-shadow(0 0 22px #fde047) scale(1.12); }
+        .pad-beam-to-mirror { position: absolute; left: 75px; bottom: 34px; width: calc(50% - 85px); height: 10px; background: linear-gradient(90deg, #fff, #00e5ff, #fde047); border-radius: 6px; box-shadow: 0 0 15px #00e5ff; z-index: 3; animation: padBeamIn 0.35s ease-out forwards; }
+        @keyframes padBeamIn { 0% { transform: scaleX(0); transform-origin: left; opacity: 1; } 100% { transform: scaleX(1); transform-origin: left; opacity: 0; } }
+        .pad-beam-up-sky { position: absolute; left: 50%; bottom: 42px; width: 14px; height: 90px; transform: translateX(-50%); background: linear-gradient(0deg, #fde047, #00e5ff, #fff); border-radius: 8px; box-shadow: 0 0 20px #fde047; z-index: 4; animation: padBeamUp 0.45s ease-out forwards; }
+        @keyframes padBeamUp { 0% { height: 0px; opacity: 1; } 70% { height: 95px; opacity: 1; } 100% { height: 110px; opacity: 0; } }
+
+        #magic-circle { position: absolute; width: 76px; height: 76px; bottom: -8px; left: 50%; transform: translateX(-50%) scale(0); border: 2px dashed #00e5ff; border-radius: 50%; box-shadow: 0 0 15px #00e5ff, inset 0 0 15px #00e5ff; opacity: 0; transition: 0.25s; pointer-events: none; z-index: 1; display: flex; align-items: center; justify-content: center; }
+        #magic-circle::after { content: '۞'; font-size: 48px; color: rgba(0, 229, 255, 0.45); line-height: 1; }
+        #chant-runes { position: absolute; right: -32px; top: -5px; font-size: 22px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 3; filter: drop-shadow(0 0 8px #ffd700); }
+        .chanting #magic-circle { opacity: 1; transform: translateX(-50%) scale(1); animation: spinCircle 3s linear infinite; }
+        .chanting #chant-runes { opacity: 1; animation: floatRunes 0.8s ease-in-out infinite alternate; }
+        .chanting #player-sprite { filter: drop-shadow(0 0 12px #00e5ff); }
+        @keyframes spinCircle { 0% { transform: translateX(-50%) scale(1) rotate(0deg); } 100% { transform: translateX(-50%) scale(1) rotate(360deg); } }
+        @keyframes floatRunes { 0% { transform: translateY(0) scale(0.9); } 100% { transform: translateY(-10px) scale(1.15); } }
+
+        #enemy-wrapper { display: flex; flex-direction: column; align-items: center; z-index: 1; position: relative; }
+        #enemy-hp-ui { font-size: 12px; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; }
+        #enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
+        .enemy-attack { transform: translateX(-60px) rotate(-15deg) !important; }
+        .player-dodge { transform: translateY(-40px) rotate(-10deg) !important; }
+        .player-hit { transform: translateX(-10px) rotate(-10deg) !important; filter: drop-shadow(0 0 20px red) sepia(1) hue-rotate(-50deg) saturate(5) !important; }
+        .enemy-hit-flash { transform: translateX(12px) rotate(12deg) !important; filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 25px #00e5ff) !important; }
+
+        #timer-container { width: 100%; height: 8px; background: #2a3654; border-radius: 5px; overflow: hidden; margin-bottom: 8px; position: relative; display: none; flex-shrink: 0;}
+        #timer-bar { height: 100%; width: 100%; background: #00e5ff; transition: width 0.1s linear; }
+        #timer-text { position: absolute; right: 5px; top: -16px; font-size: 12px; color: #fff; font-weight: bold; }
+
+        #syllable-boxes-container { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 6px; width: 100%; }
+        .syllable-box { min-width: 65px; height: 50px; padding: 0 14px; background: rgba(0, 0, 0, 0.4); border: 2px solid #4a5c88; border-radius: 8px; font-size: 26px; font-weight: bold; color: #fff; display: flex; justify-content: center; align-items: center; letter-spacing: 1px; }
+        .syllable-box.active-box { border-color: #00e5ff; box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3); color: #00e5ff; }
+        .cursor { display: inline-block; width: 3px; height: 26px; background: #e94560; margin-left: 2px; animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .t8, .t8-i { position: relative; display: inline-block; line-height: 1; }
+        .t8::after, .t8-i::after { content: ''; position: absolute; top: 0.03em; left: 50%; transform: translateX(-50%); width: 2px; height: 0.22em; background-color: currentColor; border-radius: 1px; pointer-events: none; }
+
+        #action-bar { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; padding: 0 2px; flex-shrink: 0; gap: 8px; }
+        .action-btn { min-width: 135px; padding: 0 12px; height: 50px; border-radius: 12px; font-size: 17px; font-weight: bold; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.15s; letter-spacing: 1px; }
+        .key-feather { background: linear-gradient(135deg, #b45309, #d97706) !important; border: 2px solid #fde047 !important; color: #fff !important; box-shadow: 0 0 16px rgba(251, 191, 36, 0.65) !important; }
+        .key-feather.feather-disabled { background: #1e293b !important; border-color: #475569 !important; color: #64748b !important; box-shadow: none !important; opacity: 0.55; pointer-events: none; }
+        .key-feather.feather-ready { animation: featherPulse 0.9s infinite alternate; }
+        @keyframes featherPulse { 0% { transform: scale(1); box-shadow: 0 0 10px #fde047; } 100% { transform: scale(1.05); box-shadow: 0 0 25px #fde047; } }
+
+        .key-enter { background: #00e5ff !important; border: 2px solid #84ffff !important; color: #000 !important; box-shadow: 0 0 15px rgba(0, 229, 255, 0.5) !important; }
+        .key-enter:active { background: #fff !important; transform: scale(0.95); }
+        .key-enter.locked-in { background: #059669 !important; border-color: #34d399 !important; color: #fff !important; pointer-events: none; }
+
+        /* 虛擬鍵盤 (已移除 C 鍵) */
+        #keyboard { display: flex; flex-direction: column; gap: 6px; width: 100%; flex-shrink: 0; padding-bottom: 6px; }
+        .kb-row { display: flex; justify-content: center; gap: 5px; width: 100%; }
+        .tone-keys-group { position: relative; display: flex; flex: 8.6; gap: 5px; }
+        .tone-keys-group.chained .key {
+            border-color: #ffd700 !important; box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.35), 0 0 8px rgba(255, 193, 7, 0.45) !important;
+            background: linear-gradient(180deg, #423308 0%, #261d05 100%) !important; color: #ffd700 !important;
+        }
+        .tone-keys-group.chained .key[data-key="6"] { opacity: 0.9; pointer-events: auto; }
+        .tone-keys-group.chained .checked-tone-grid { color: #ffd700 !important; }
+        .tone-keys-group.chained .tone-num { color: #ffca28 !important; }
+
+        .kb-row-2 { padding: 0 3%; }
+        .kb-row-3 { padding: 0 11%; }
+        .key { position: relative; background: #2a3654; color: #fff; border: 2px solid #4a5c88; border-radius: 8px; min-height: 48px; min-width: 24px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.1s; padding: 0 1px; }
+        .key.active-key { background: #0f3460; border-color: #00e5ff; box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); color: #00e5ff; }
+        .key.active-key:active { background: #00e5ff; color: #000; transform: scale(0.92); }
+        .key.disabled-key { background: #1a1a2e; border-color: #222; color: #444; pointer-events: none; }
+        
+        .tone-num { position: absolute; top: 2px; left: 4px; font-size: 10px; color: #78909c; font-weight: bold; line-height: 1; }
+        .key.active-key .tone-num { color: #00b8d4; }
+        .tone-symbol { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding-top: 4px; }
+        .tone-svg-unified { width: 18px; height: 25px; overflow: visible; display: block; }
+        .checked-tone-group { display: flex; align-items: flex-end; justify-content: center; line-height: 1; gap: 1px; }
+        .checked-tone-group .tone-svg-unified { width: 12px; height: 25px; }
+        .checked-tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0px 1px; font-size: 8.5px; margin-bottom: 2px; text-align: center; line-height: 0.92; font-family: Arial, sans-serif; color: #aaa; }
+        .key.active-key .checked-tone-grid { color: #00e5ff; }
+        .key[data-key="6"] { flex: 0.65; opacity: 0.5; pointer-events: none; }
+        .key-delete { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; flex: 1.35; font-size: 20px;}
+
+        /* 遊戲介紹彈窗 */
+        #info-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 80; align-items: center; justify-content: center; padding: 12px; }
+        .modal-card { background: #16213e; border: 2px solid #00e5ff; border-radius: 12px; max-width: 460px; width: 96%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #0f3460; border-bottom: 1px solid #4a5c88; }
+        .modal-header h3 { margin: 0; font-size: 16px; color: #ffd700; }
+        .modal-close { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; color: #fff; font-size: 16px; cursor: pointer; padding: 4px 8px; }
+        .modal-body { padding: 12px; overflow-y: auto; font-size: 13.5px; line-height: 1.6; color: #e0e0e0; }
+        .modal-section { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.15); }
+
+        @media (max-height: 700px) {
+            #game-screen { padding: 4px 10px; }
+            .header-info { margin-bottom: 3px; font-size: 14px; }
+            #rpg-arena { height: 55px; padding: 0 20px; margin-bottom: 2px; }
+            .rpg-sprite { font-size: 38px; }
+            .magic-mirror-svg { width: 38px; height: 48px; }
+            .question-row { gap: 10px; margin-bottom: 2px; min-height: 32px; }
+            .audio-icon { font-size: 22px; }
+            #raid-word-mask-hint { font-size: 18px; padding: 2px 10px; }
+            .syllable-box { min-width: 45px; height: 36px; font-size: 20px; }
+            .action-btn { min-width: 110px; height: 34px; font-size: 14px; }
+            #keyboard { gap: 3px; }
+            .kb-row, .tone-keys-group { gap: 3px; }
+            .key { min-height: 32px; font-size: 15px; }
+            .tone-svg-unified { width: 14px; height: 19px; }
+            .checked-tone-group .tone-svg-unified { width: 10px; height: 19px; }
+            .checked-tone-grid { font-size: 7px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="version-tag">Ver 6.0 (團戰版)</div>
+
+<div id="app-container">
+    <!-- ========================================================= -->
+    <!-- 1. 團戰入口首頁 -->
+    <!-- ========================================================= -->
+    <div id="entry-screen" class="screen-layer active">
+        <div class="title-banner">
+            <h1>✨ 除魔咒術・多人團戰 ✨</h1>
+            <p>匯聚全班台語咒語・折射魔鏡斬妖除魔</p>
+        </div>
+
+        <div class="role-cards">
+            <div class="role-card" onclick="openRaidHostLobby()">
+                <div class="icon">🖥️</div>
+                <h2>我是主辦方(大屏)</h2>
+                <p>創立除魔團戰大廳</p>
+            </div>
+            <div class="role-card student-card" onclick="openRaidStudentJoin()">
+                <div class="icon">📱</div>
+                <h2>我欲加入團戰(平板)</h2>
+                <p>輸入房號入陣・同齊施展除魔咒語</p>
+            </div>
+        </div>
+
+        <button class="info-open-btn" onclick="toggleInfoModal(true)">📖 團戰規則佮鍵盤紹介</button>
+
+        <div class="footer">
+            <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+            <p class="copyright-text">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.</p>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 2. 教師大屏：團戰大廳設定與等候室 -->
+    <!-- ========================================================= -->
+    <div id="raid-lobby-screen" class="screen-layer">
+        <div class="raid-lobby-top">
+            <div class="raid-pin-card">
+                <div>
+                    <div style="font-size:17px; color:#cbd5e1; font-weight:bold;">📱 團戰大廳號碼</div>
+                    <div class="raid-pin-num" id="raid-pin-display">----</div>
+                    <div style="font-size:13px; color:#94a3b8; margin-top:4px;">掃描 QR Code 或輸入號碼加入除魔軍團</div>
+                </div>
+                <div id="raid-qrcode-box"></div>
+            </div>
+
+            <div class="raid-config-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <span style="font-size:17px; color:#00e5ff; font-weight:bold;">📚 範圍 (每題考1字・限時18秒)</span>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <label style="font-size:14px; color:#cbd5e1;">
+                            題數：
+                            <select id="raid-qcount-select" style="background:#0b132b; color:#fde047; border:1.5px solid #00e5ff; border-radius:6px; padding:3px 8px; font-family:inherit; font-weight:bold;">
+                                <option value="10">10 題</option>
+                                <option value="14" selected>14 題</option>
+                                <option value="18">18 題</option>
+                                <option value="22">22 題</option>
+                            </select>
+                        </label>
+                        <label style="font-size:14px; color:#fde047; cursor:pointer;">
+                            <input type="checkbox" id="raid-show-hanzi-toggle" checked style="transform:scale(1.2);"> 顯示漢字
+                        </label>
+                    </div>
+                </div>
+
+                <div id="raid-lessons-container" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
+
+                <!-- 團戰難度二選一：咒術師仔 vs 咒術師父 -->
+                <div class="raid-diff-row">
+                    <span style="font-size:14px; color:#fde047; font-weight:bold; white-space:nowrap;">⚡ 難度：</span>
+                    <button class="raid-diff-opt" id="raid-diff-apprentice" onclick="selectRaidDifficulty('apprentice')">咒術師仔 (金色聲調自動補齊)</button>
+                    <button class="raid-diff-opt active" id="raid-diff-master" onclick="selectRaidDifficulty('master')">咒術師父 (自行選正確聲調)</button>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-top:1px dashed #3a506b; padding-top:8px;">
+                    <div style="display:flex; gap:8px;">
+                        <button class="info-open-btn" onclick="location.reload()">◀ 返回首頁</button>
+                        <button class="info-open-btn" style="color:#e9d5ff; border-color:#c084fc;" onclick="addRaidBot()">🤖 ➕ 加入AI隊友</button>
+                    </div>
+                    <button class="start-btn" onclick="startRaidBattle()">🚀 展開除魔團戰！</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="raid-teams-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                <span style="font-size:18px; color:#cbd5e1; font-weight:bold;">👥 已集結除魔師 (<span id="raid-team-count" style="color:#4ade80;">0</span> 人)</span>
+                <span style="font-size:13.5px; color:#94a3b8;">💡 滑鼠移上或觸控點擊名牌可出現刪除線並移除玩家</span>
+            </div>
+            <div id="raid-lobby-teams-list"></div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 3. 教師大屏：團戰討伐主舞台 -->
+    <!-- ========================================================= -->
+    <div id="raid-host-screen" class="screen-layer">
+        <div class="raid-hud-bar">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span style="background:#b91c1c; color:#fde047; padding:3px 12px; border-radius:20px; font-size:15px; font-weight:bold;" id="raid-hud-diff-label">咒術師父</span>
+                <span id="raid-hud-q-progress" style="font-weight:bold; color:#00e5ff;">題目: 1 / 14</span>
+            </div>
+            <div id="raid-hud-phase-msg" style="color:#fde047; font-weight:bold; font-size:19px;">🎧 斟酌聽音，準備施咒！</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span id="raid-hud-locked-status" style="background:#334155; padding:3px 12px; border-radius:16px; font-size:14px;">已施咒: 0 / 0</span>
+                <button class="info-open-btn" style="padding:3px 10px;" onclick="toggleSfx()">🔔 音效</button>
+            </div>
+        </div>
+
+        <div class="raid-prompt-stage">
+            <div class="audio-icon" style="font-size:34px;" onclick="replayRaidAudio()" title="重播題目語音">🔊</div>
+            <div class="raid-prompt-hanzi" id="raid-host-hanzi">紅筆</div>
+            <div class="raid-prompt-tailo" id="raid-host-tailo"><span class="raid-blank-slot"></span></div>
+        </div>
+
+        <div id="raid-host-timer-wrap"><div id="raid-host-timer-bar"></div></div>
+
+        <div class="raid-battlefield-wrap">
+            <div id="raid-main-stage">
+                <div id="raid-center-banner">✨ 完美攻擊 ✨</div>
+
+                <!-- 左側：游走除魔軍團 -->
+                <div id="raid-army-zone">
+                    <div class="army-zone-title">🛡️ 除魔軍團陣地 (連對3題獲🪶鳳凰羽毛)</div>
+                    <div id="raid-units-layer" style="width:100%; height:100%; position:relative;"></div>
+                </div>
+
+                <!-- 中央：乾坤聚魔鏡 -->
+                <div id="raid-mirror-zone">
+                    <div id="host-mirror-box">
+                        <svg viewBox="0 0 80 100" width="90" height="114" overflow="visible">
+                            <defs>
+                                <radialGradient id="mirrorGlass" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#e0f2fe"/>
+                                    <stop offset="55%" stop-color="#00e5ff"/>
+                                    <stop offset="100%" stop-color="#1e3a8a"/>
+                                </radialGradient>
+                            </defs>
+                            <polygon points="24,4 56,4 76,24 76,76 56,96 24,96 4,76 4,24" fill="#78350f" stroke="#fde047" stroke-width="3"/>
+                            <ellipse cx="40" cy="50" rx="27" ry="36" fill="url(#mirrorGlass)" stroke="#fef08a" stroke-width="2.5"/>
+                            <path d="M 26 26 Q 40 32 30 62" stroke="rgba(255,255,255,0.65)" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div id="mirror-charge-badge">🪞 聚魔鏡 0%</div>
+                </div>
+
+                <div id="raid-refract-layer" style="position:absolute; inset:0; pointer-events:none; z-index:8;"></div>
+
+                <!-- 右側：妖魔車輪戰 -->
+                <div id="raid-boss-zone">
+                    <div class="boss-stage-tag" id="raid-boss-name-tag">第 1 關：暗夜蝙蝠</div>
+                    <div class="boss-hp-bar-outer">
+                        <div id="raid-boss-hp-fill"></div>
+                        <div id="raid-boss-hp-text">100 / 100 HP</div>
+                    </div>
+                    <div id="raid-boss-sprite-wrap">
+                        <div id="raid-boss-stun-stars">💫⭐💫</div>
+                        <div id="raid-boss-sprite">🦇</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 最右側：即時戰況榜 -->
+            <div class="raid-side-board">
+                <div class="raid-sb-title">📊 除魔師戰況</div>
+                <div id="raid-live-sb-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 4. 教師大屏：團戰最終結算畫面 -->
+    <!-- ========================================================= -->
+    <div id="raid-gameover-screen" class="screen-layer">
+        <h2 style="font-size:32px; color:#fde047; margin:0 0 6px 0;" id="raid-go-banner-title">🏆 除魔團戰・論功行賞 🏆</h2>
+        <div id="raid-go-sub-comment" style="font-size:18px; color:#00e5ff; font-weight:bold; margin-bottom:6px;"></div>
+
+        <div class="raid-gameover-grid">
+            <div class="raid-go-col">
+                <div style="font-size:18px; color:#fde047; font-weight:bold; text-align:center; border-bottom:1px solid #3a506b; padding-bottom:6px; margin-bottom:8px;">🛡️ 各組除魔積分與答對率</div>
+                <div id="raid-go-leaderboard"></div>
+            </div>
+            <div class="raid-go-col" style="border-color:#00e5ff;">
+                <div style="font-size:18px; color:#00e5ff; font-weight:bold; text-align:center; border-bottom:1px solid #3a506b; padding-bottom:6px; margin-bottom:8px;">🧐 最多人錯的前 5 題 (揤詞語聽發音)</div>
+                <div id="raid-go-missed-list"></div>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:6px;">
+            <button class="start-btn green-btn" onclick="exportRaidGradesToExcel()">📥 匯出成績單 (Excel)</button>
+            <button class="start-btn" onclick="location.reload()">🔄 閣耍一擺</button>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 5. 學生平板：輸入房號加入畫面 -->
+    <!-- ========================================================= -->
+    <div id="raid-student-join-screen" class="screen-layer">
+        <div class="raid-join-card">
+            <h2 style="color:#4ade80; margin:0 0 14px 0;">📱 加入除魔團戰</h2>
+            <div class="raid-input-group">
+                <label>1. 輸入大屏上的 4 位數大廳號碼：</label>
+                <input type="text" id="raid-join-pin" placeholder="例如：8899" maxlength="6" inputmode="numeric">
+            </div>
+            <div class="raid-input-group">
+                <label>2. 輸入你的名號或組別 (如 15&23)：</label>
+                <input type="text" id="raid-join-name" placeholder="例如：15&23" maxlength="12">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="info-open-btn" style="flex:0.45;" onclick="closeRaidStudentJoin()">返回</button>
+                <button class="start-btn green-btn" id="raid-connect-btn" style="flex:1;" onclick="connectStudentToRaidHost()">連線入陣</button>
+            </div>
+            <p id="raid-join-msg" style="color:#fb923c; font-size:14px; margin-top:10px; min-height:20px;"></p>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 6. 學生平板：團戰施法戰鬥畫面 -->
+    <!-- ========================================================= -->
+    <div id="game-screen">
+        <div class="header-info">
+            <span id="score-display">🧙‍♂️ 0分</span>
+            <span id="health-bar"></span>
+            <div class="header-right-group">
+                <span id="progress-display">⏳ 等待開始...</span>
+                <span id="sfx-toggle-btn" onclick="toggleSfx()" title="開關音效">🔔</span>
+            </div>
+        </div>
+        
+        <div class="question-area">
+            <div id="rpg-arena">
+                <div id="player-wrapper">
+                    <div id="magic-circle"></div>
+                    <div class="rpg-sprite" id="player-sprite">🧙‍♂️</div>
+                    <div id="chant-runes">✨</div>
+                </div>
+
+                <!-- 團戰平板中央的子母傳送魔鏡 -->
+                <div id="pad-mirror-wrapper">
+                    <svg class="magic-mirror-svg" viewBox="0 0 80 100">
+                        <polygon points="24,4 56,4 76,24 76,76 56,96 24,96 4,76 4,24" fill="#78350f" stroke="#fde047" stroke-width="3"/>
+                        <ellipse cx="40" cy="50" rx="26" ry="35" fill="#00e5ff" stroke="#fef08a" stroke-width="2"/>
+                        <path d="M 28 28 Q 40 34 32 60" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
+
+                <div id="enemy-wrapper">
+                    <div id="enemy-hp-ui">🪞法力同步中</div>
+                    <div class="rpg-sprite" id="enemy-sprite">🦇</div>
+                </div>
+            </div>
+
+            <div id="timer-container">
+                <span id="timer-text"></span>
+                <div id="timer-bar"></div>
+            </div>
+
+            <div class="question-row">
+                <div id="gourd-btn" onclick="useGourd()" title="使用漢字救命丹 (空白鍵)">
+                    <svg class="gourd-svg" viewBox="0 0 32 38">
+                        <path d="M16 1 C16 1 18 4 16 6" stroke="#8d6e63" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                        <circle cx="16" cy="11" r="6.5" fill="#ffb300" stroke="#ffe082" stroke-width="1"/>
+                        <circle cx="16" cy="25.5" r="10" fill="#ffa000" stroke="#ffe082" stroke-width="1"/>
+                        <path d="M10.5 16.8 Q16 18.8 21.5 16.8" stroke="#e94560" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <ellipse cx="12.5" cy="23" rx="2" ry="3.5" fill="rgba(255,255,255,0.4)" transform="rotate(-15 12.5 23)"/>
+                    </svg>
+                    <span id="gourd-count">3</span>
+                </div>
+                <div class="audio-icon" id="speaker-btn" onclick="playAudio()" title="播放語音 (Q鍵)">🔊</div>
+                <div id="raid-word-mask-hint">等待大屏出題...</div>
+                <div id="hanzi-hint"></div>
+            </div>
+
+            <div id="syllable-boxes-container"></div>
+        </div>
+
+        <div id="action-bar">
+            <div class="action-btn key-feather feather-disabled" id="btn-skip" onclick="triggerStudentUseFeather()"><div>🪶 鳳凰羽毛 (0)</div></div>
+            <div class="action-btn key-enter" id="btn-enter" onclick="handleInput('Enter')"><div>實施咒語</div></div>
+        </div>
+
+        <div id="keyboard"></div>
+    </div>
+
+    <!-- 團戰規則介紹彈窗 -->
+    <div id="info-modal" onclick="if(event.target === this) toggleInfoModal(false)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>📖 團戰規則佮鍵盤紹介</h3>
+                <button class="modal-close" onclick="toggleInfoModal(false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <strong>1. 聚魔鏡合擊與 70% 擊暈門檻：</strong><br>
+                    每題限時 18 秒考一個字。全班法力會匯聚至中央聚魔鏡折射攻擊！只要全班答對率達 <strong style="color:#ffd700;">70% 以上</strong>，妖魔就會頭冒金星暈眩無法反擊（100% 全對觸發完美攻擊！）。
+                </div>
+                <div class="modal-section">
+                    <strong>2. 妖魔反擊與舉盾流汗機制：</strong><br>
+                    若全班答對率在 69% 以下，妖魔會發動反擊：該題<strong style="color:#4ade80;">答對者跳起閃避不扣血</strong>；第 1 次答錯者舉盾抵擋扣 0.5 滴血並冒汗；連續 2 題答錯則破盾扣 1 滴血！只要下一題答對即可修好護盾並止汗。
+                </div>
+                <div class="modal-section">
+                    <strong>3. 🪶 鳳凰羽毛救援：</strong><br>
+                    每<strong style="color:#ffd700;">連續答對 3 題</strong>可獲得 1 根鳳凰羽毛。當場上有隊友陣亡時，點擊左下角「鳳凰羽毛」可隨機復活一名隊友恢復半滴血！
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // =========================================================
+    // 📚 題庫設定與全域團戰變數
+    // =========================================================
+    const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
+    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
+    
+    const audioFolderMap = {
+        "B1L1": "育達B1L1音檔",
+        "B1L2": "育達B1L2音檔",
+        "B1L3": "育達B1L3音檔",
+        "B1L4": "育達B1L4音檔",
+        "B3L1": "康軒B3L1音檔",
+        "B3L2": "康軒B3L2音檔",
+        "B3L3": "康軒B3L3音檔",
+        "防災素一": "康軒防災素一音檔",
+        "拼音練習": "拼音練習音檔"
+    };
+
+    const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
+    const RAID_BOSS_LIST = [
+        { name: '第 1 關：暗夜蝙蝠', sprite: '🦇', maxHp: 100, attack: '🎵' },
+        { name: '第 2 關：劇毒青蛇', sprite: '🐍', maxHp: 200, attack: '💧' },
+        { name: '第 3 關：魔窟妖蛛', sprite: '🕷️', maxHp: 300, attack: '🕸️' },
+        { name: '第 4 關：赤焰紅鬼', sprite: '👹', maxHp: 400, attack: '🔥' }
+    ];
+
+    const audioPlayer = new Audio();
+    let raidDifficulty = 'master'; // 'apprentice' (咒術師仔) | 'master' (咒術師父)
+    let isRaidStudentMode = false;
+    let raidStudentCurrentQ = null;
+    let raidStudentLocked = false;
+
+    // 學生平板輸入與救命丹狀態（★ validLetters 已移除 'c'）
+    let parsedAnswer = [];
+    let inputBoxes = [];
+    let currentSyllableIndex = 0;
+    let typedBase = "";
+    const validLetters = ['a','b','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
+    const toneDigits = ['1','2','3','4','5','7','8','9'];
+    let gourdsLeft = 3;
+    let usedGourdOnCurrentQ = false;
+    let timer = null;
+    let timeLeft = 0;
+
+    // 教師大屏團戰狀態
+    let raidPeer = null;
+    let raidRoomPin = "";
+    let raidSelectedLessons = ["B1L1"];
+    let raidTeams = [];
+    let raidQuestionDeck = [];
+    let raidTotalQuestions = 14;
+    let raidCurrentQIdx = 0;
+    let raidCurrentMatch = null;
+    let raidBossIdx = 0;
+    let raidBossHp = 100;
+    let raidAllBossesCleared = false;
+    let raidHostTimer = null;
+    let raidWanderInterval = null;
+    let raidMissedStats = [];
+
+    // =========================================================
+    // 🎵 Web Audio API 合成音效系統
+    // =========================================================
+    let sfxCtx = null;
+    let sfxMuted = false;
+
+    function getSfxCtx() {
+        if (!sfxCtx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) sfxCtx = new AudioCtx();
+        }
+        if (sfxCtx && sfxCtx.state === 'suspended') {
+            sfxCtx.resume();
+        }
+        return sfxCtx;
+    }
+
+    function toggleSfx() {
+        sfxMuted = !sfxMuted;
+        const btn = document.getElementById('sfx-toggle-btn');
+        if (btn) {
+            btn.innerText = sfxMuted ? '🔕' : '🔔';
+            btn.classList.toggle('muted', sfxMuted);
+        }
+        if (!sfxMuted) sfxSyllableChant();
+    }
+
+    function playToneNode(freqStart, freqEnd, duration, type = 'sine', maxGain = 0.2, delay = 0) {
+        if (sfxMuted) return;
+        const ctx = getSfxCtx();
+        if (!ctx) return;
+        const t0 = ctx.currentTime + delay;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freqStart, t0);
+        if (freqEnd !== freqStart) {
+            osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
+        }
+        gain.gain.setValueAtTime(0.001, t0);
+        gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2));
+        gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t0);
+        osc.stop(t0 + duration + 0.02);
+    }
+
+    function sfxEnemyDeath() {
+        playToneNode(180, 42, 0.32, 'sawtooth', 0.24, 0);
+        playToneNode(130, 35, 0.35, 'square', 0.16, 0.04);
+        playToneNode(523.25, 523.25, 0.12, 'triangle', 0.22, 0.22);
+        playToneNode(659.25, 783.99, 0.25, 'triangle', 0.25, 0.32);
+    }
+    function sfxEnemyHit() {
+        playToneNode(880, 260, 0.18, 'sine', 0.22, 0);
+        playToneNode(587.33, 1174.66, 0.16, 'triangle', 0.2, 0.08);
+        playToneNode(150, 55, 0.14, 'sawtooth', 0.22, 0.14);
+    }
+    function sfxPlayerDodge() {
+        playToneNode(240, 720, 0.14, 'sine', 0.14, 0.12);
+        playToneNode(320, 880, 0.12, 'triangle', 0.1, 0.15);
+    }
+    function sfxPlayerHit() {
+        playToneNode(150, 38, 0.28, 'sawtooth', 0.32, 0);
+        playToneNode(95, 30, 0.32, 'square', 0.25, 0.03);
+    }
+    function sfxShieldBlock() {
+        playToneNode(420, 280, 0.14, 'triangle', 0.25, 0);
+        playToneNode(600, 350, 0.12, 'sine', 0.18, 0.05);
+    }
+    function sfxShieldBreak() {
+        playToneNode(280, 55, 0.32, 'sawtooth', 0.32, 0);
+        playToneNode(190, 40, 0.35, 'square', 0.26, 0.06);
+    }
+    function sfxFeatherRevive() {
+        [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, idx) => {
+            playToneNode(f, f * 1.05, 0.18, 'triangle', 0.24, idx * 0.07);
+        });
+    }
+    function sfxUseGourd() {
+        [523.25, 659.25, 783.99, 1046.5].forEach((n, idx) => {
+            playToneNode(n, n, 0.16, 'sine', 0.2, idx * 0.055);
+        });
+    }
+    function sfxCoin() {
+        playToneNode(987.77, 987.77, 0.08, 'sine', 0.25, 0);
+        playToneNode(1318.51, 1318.51, 0.28, 'sine', 0.28, 0.08);
+    }
+    function sfxError() {
+        playToneNode(175, 145, 0.08, 'sawtooth', 0.12, 0);
+        playToneNode(145, 115, 0.11, 'sawtooth', 0.12, 0.09);
+    }
+    function sfxSyllableChant() {
+        playToneNode(659.25, 880, 0.12, 'sine', 0.14, 0);
+    }
+    function sfxTimerTick() {
+        playToneNode(880, 660, 0.045, 'triangle', 0.15, 0);
+    }
+    function sfxVictory() {
+        [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playToneNode(f, f, 0.16, 'triangle', 0.24, i * 0.12));
+    }
+
+    function toggleInfoModal(show) {
+        document.getElementById('info-modal').style.display = show ? 'flex' : 'none';
+    }
+
+    // =========================================================
+    // ⌨️ 虛擬鍵盤與台羅音節拆解系統 (C鍵已設為暗色鎖定)
+    // =========================================================
+    function getToneSvg(tone, isChecked = false) {
+        let markPath = '';
+        switch(tone) {
+            case 2: markPath = `<line x1="12.5" y1="3.5" x2="8" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
+            case 3: markPath = `<line x1="7.5" y1="3.5" x2="12" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
+            case 5: markPath = `<path d="M 6.2 9 L 10 3.8 L 13.8 9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />`; break;
+            case 6: markPath = `<path d="M 6.5 5 L 10 9 L 13.5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />`; break;
+            case 7: markPath = `<line x1="6.2" y1="6.8" x2="13.8" y2="6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
+            case 8: markPath = `<line x1="10" y1="3" x2="10" y2="9.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />`; break;
+            case 9: markPath = `<line x1="9.8" y1="3.5" x2="6.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" /><line x1="13.8" y1="3.5" x2="10.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />`; break;
+        }
+        const vb = isChecked ? "3.5 0 13 26" : "0 0 20 26";
+        return `<svg class="tone-svg-unified" viewBox="${vb}">${markPath}<circle cx="10" cy="18" r="5.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5,2" /></svg>`;
+    }
+
+    const ptkhGridHtml = `<div class="checked-tone-grid"><span>p</span><span>t</span><span>k</span><span>h</span></div>`;
+    const subTone4 = `<div class="checked-tone-group">${getToneSvg(4, true)}${ptkhGridHtml}</div>`;
+    const subTone8 = `<div class="checked-tone-group">${getToneSvg(8, true)}${ptkhGridHtml}</div>`;
+
+    function isCurrentSyllableToneChained() {
+        return raidDifficulty === 'apprentice';
+    }
+
+    function formatTailoDisplay(str) {
+        if (!str) return '';
+        let nfd = str.normalize('NFD');
+        let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>');
+        res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
+        return res.normalize('NFC');
+    }
+
+    function parseTaiLoAnswer(rawText) {
+        let text = rawText.split('(')[0].toLowerCase().trim();
+        let rawSyllables = text.split(/[\s\-–—]+/).filter(s => s.length > 0);
+        const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
+        let parsed = [];
+        for (let s of rawSyllables) {
+            let nfd = s.normalize("NFD"); let base = ""; let tone = null;
+            for (let char of nfd) {
+                if (toneMap[char]) tone = toneMap[char];
+                else if (/[a-z]/.test(char)) base += char;
+            }
+            if (!tone) tone = /[ptkh]$/.test(base) ? '4' : '1';
+            parsed.push({ base: base, tone: tone });
+        }
+        return parsed;
+    }
+
+    function applyToneToSyllable(syllable, toneDigit) {
+        if (toneDigit === '1' || toneDigit === '4') return syllable;
+        const marks = { '2': '\u0301', '3': '\u0300', '5': '\u0302', '7': '\u0304', '8': '\u030D', '9': '\u030B' };
+        const m = marks[toneDigit];
+        if (!m) return syllable;
+
+        let res = syllable;
+        if (res.includes('a')) res = res.replace('a', 'a' + m);
+        else if (res.includes('oo')) res = res.replace('oo', 'o' + m + 'o');
+        else if (res.includes('o') && !res.includes('oa') && !res.includes('oe')) res = res.replace('o', 'o' + m);
+        else if (res.includes('e')) res = res.replace('e', 'e' + m);
+        else if (res.includes('iu')) res = res.replace('iu', 'i' + 'u' + m);
+        else if (res.includes('ui')) res = res.replace('ui', 'u' + 'i' + m);
+        else if (res.includes('i')) res = res.replace('i', 'i' + m);
+        else if (res.includes('u')) res = res.replace('u', 'u' + m);
+        else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g');
+        else if (res.includes('m')) res = res.replace('m', 'm' + m);
+        return formatTailoDisplay(res);
+    }
+
+    function createKeyDiv(keyObj) {
+        let val = typeof keyObj === 'string' ? keyObj : keyObj.val;
+        let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display;
+        let subText = typeof keyObj === 'object' ? keyObj.sub : null;
+        let forceDisabled = typeof keyObj === 'object' && keyObj.disabled;
+        let customClass = typeof keyObj === 'object' && keyObj.customClass ? keyObj.customClass : '';
+
+        const btn = document.createElement('div');
+        btn.className = `key ${customClass}`;
+        btn.dataset.key = val;
+        
+        let html = '';
+        if (toneDigits.includes(val) || val === '6') {
+            html += `<div class="tone-num">${display}</div><div class="tone-symbol">${subText}</div>`;
+        } else {
+            html = `<div>${display}</div>`;
+        }
+        btn.innerHTML = html;
+
+        if (!forceDisabled && (validLetters.includes(val) || toneDigits.includes(val) || val === 'Backspace')) {
+            btn.classList.add('active-key');
+            btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
+        } else if (val === '6') {
+            btn.classList.add('disabled-key');
+            btn.addEventListener('mousedown', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); });
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); }, {passive: false});
+        } else {
+            btn.classList.add('disabled-key');
+        }
+        return btn;
+    }
+
+    function buildKeyboard() {
+        const kbContainer = document.getElementById('keyboard');
+        kbContainer.innerHTML = '';
+
+        const row0 = document.createElement('div');
+        row0.className = 'kb-row';
+        const toneGroup = document.createElement('div');
+        toneGroup.className = 'tone-keys-group';
+        toneGroup.id = 'tone-keys-group';
+
+        const toneKeys = [
+            {val: '1', display: '1', sub: getToneSvg(1)}, 
+            {val: '2', display: '2', sub: getToneSvg(2)}, 
+            {val: '3', display: '3', sub: getToneSvg(3)},
+            {val: '4', display: '4', sub: subTone4}, 
+            {val: '5', display: '5', sub: getToneSvg(5)}, 
+            {val: '6', display: '6', sub: getToneSvg(6), disabled: true}, 
+            {val: '7', display: '7', sub: getToneSvg(7)}, 
+            {val: '8', display: '8', sub: subTone8}, 
+            {val: '9', display: '9', sub: getToneSvg(9)}
+        ];
+        toneKeys.forEach(k => toneGroup.appendChild(createKeyDiv(k)));
+        row0.appendChild(toneGroup);
+        row0.appendChild(createKeyDiv({val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'}));
+        kbContainer.appendChild(row0);
+
+        const row1 = document.createElement('div');
+        row1.className = 'kb-row';
+        ['q','w','e','r','t','y','u','i','o','p'].forEach(k => row1.appendChild(createKeyDiv(k)));
+        kbContainer.appendChild(row1);
+
+        const row2 = document.createElement('div');
+        row2.className = 'kb-row kb-row-2';
+        ['a','s','d','f','g','h','j','k','l'].forEach(k => row2.appendChild(createKeyDiv(k)));
+        kbContainer.appendChild(row2);
+
+        const row3 = document.createElement('div');
+        row3.className = 'kb-row kb-row-3';
+        // C 鍵因不在 validLetters 內，會自動套用 disabled-key 鎖定
+        ['z','x','c','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k)));
+        kbContainer.appendChild(row3);
+    }
+
+    function shuffleBank(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // =========================================================
+    // 🖥️ 教師大屏：大廳管理、游走軍團與出題引擎
+    // =========================================================
+    function initRaidLessonButtons() {
+        const container = document.getElementById('raid-lessons-container');
+        if (!container) return;
+        container.innerHTML = '';
+        lessons.forEach(l => {
+            const btn = document.createElement('button');
+            btn.className = 'lesson-btn' + (raidSelectedLessons.includes(l) ? ' active' : '');
+            btn.innerText = l;
+            btn.onclick = () => {
+                btn.classList.toggle('active');
+                if (raidSelectedLessons.includes(l)) raidSelectedLessons = raidSelectedLessons.filter(x => x !== l);
+                else raidSelectedLessons.push(l);
+            };
+            container.appendChild(btn);
+        });
+    }
+    initRaidLessonButtons();
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const raidPin = params.get('raid');
+        if (raidPin) {
+            openRaidStudentJoin();
+            document.getElementById('raid-join-pin').value = raidPin;
+        }
+    });
+
+    function selectRaidDifficulty(diff) {
+        raidDifficulty = diff;
+        document.getElementById('raid-diff-apprentice').classList.toggle('active', diff === 'apprentice');
+        document.getElementById('raid-diff-master').classList.toggle('active', diff === 'master');
+        sfxSyllableChant();
+    }
+
+    function openRaidHostLobby() {
+        getSfxCtx();
+        document.getElementById('app-container').classList.remove('pad-mode');
+        document.getElementById('entry-screen').classList.remove('active');
+        document.getElementById('raid-lobby-screen').classList.add('active');
+
+        raidRoomPin = String(Math.floor(1000 + Math.random() * 9000));
+        document.getElementById('raid-pin-display').innerText = raidRoomPin;
+
+        const joinUrl = `${window.location.origin}${window.location.pathname}?raid=${raidRoomPin}`;
+        const qrBox = document.getElementById('raid-qrcode-box');
+        qrBox.innerHTML = '';
+        new QRCode(qrBox, { text: joinUrl, width: 92, height: 92 });
+
+        if (raidPeer) raidPeer.destroy();
+        raidPeer = new Peer(`taigi-exorcist-${raidRoomPin}`);
+        raidPeer.on('connection', conn => {
+            conn.on('data', data => handleRaidHostReceive(conn, data));
+            conn.on('close', () => {
+                raidTeams = raidTeams.filter(t => t.conn !== conn);
+                renderRaidLobbyTeams();
+            });
+        });
+    }
+
+    function createRaidTeamObj(name, avatar, conn, isBot) {
+        return {
+            id: (isBot ? 'bot_' : 'p_') + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            name: name,
+            avatar: avatar,
+            hp: 3.0,
+            maxHp: 3.0,
+            consecWrong: 0,
+            streak: 0,
+            feathers: 0,
+            score: 0,
+            totalQ: 0,
+            correctQ: 0,
+            conn: conn,
+            isBot: isBot,
+            x: 12 + Math.random() * 68,
+            y: 14 + Math.random() * 68
+        };
+    }
+
+    function handleRaidHostReceive(conn, data) {
+        if (data.type === 'JOIN') {
+            const rawName = data.name.trim();
+            let existing = raidTeams.find(t => t.name === rawName);
+            let teamObj = existing;
+            if (existing) {
+                existing.conn = conn;
+            } else {
+                const icon = RAID_AVATARS[raidTeams.length % RAID_AVATARS.length];
+                teamObj = createRaidTeamObj(rawName, icon, conn, false);
+                raidTeams.push(teamObj);
+            }
+            conn.send({
+                type: 'JOINED_OK',
+                name: teamObj.name,
+                avatar: teamObj.avatar,
+                hp: teamObj.hp,
+                feathers: teamObj.feathers,
+                difficulty: raidDifficulty
+            });
+            sfxSyllableChant();
+            renderRaidLobbyTeams();
+        } else if (data.type === 'CHANTING') {
+            const team = raidTeams.find(t => t.conn === conn);
+            if (team) {
+                const unitEl = document.getElementById(`raid-unit-${team.id}`);
+                if (unitEl) unitEl.classList.add('unit-chanting');
+            }
+        } else if (data.type === 'SUBMIT_SPELL') {
+            const team = raidTeams.find(t => t.conn === conn);
+            if (team && raidCurrentMatch && raidCurrentMatch.accepting) {
+                recordRaidTeamSpell(team.id, data.isCorrect, data.usedGourd);
+            }
+        } else if (data.type === 'USE_FEATHER') {
+            const savior = raidTeams.find(t => t.conn === conn);
+            if (savior && savior.feathers > 0) {
+                handleHostPhoenixFeatherRevive(savior);
+            }
+        }
+    }
+
+    function addRaidBot() {
+        getSfxCtx();
+        const botNames = ["01&02", "03&04", "05&06", "07&08", "09&10", "11&12", "13&14", "15&16", "甲組", "乙組", "丙組", "丁組"];
+        const raw = botNames[raidTeams.length % botNames.length] + (raidTeams.length >= botNames.length ? `-${raidTeams.length}` : '');
+        raidTeams.push(createRaidTeamObj(raw, '🤖', null, true));
+        sfxSyllableChant();
+        renderRaidLobbyTeams();
+    }
+
+    function removeRaidTeamFromLobby(teamId, badgeEl) {
+        getSfxCtx();
+        sfxPlayerHit();
+        if (badgeEl) badgeEl.classList.add('removing');
+        setTimeout(() => {
+            const target = raidTeams.find(t => t.id === teamId);
+            if (target && target.conn && target.conn.open) {
+                try {
+                    target.conn.send({ type: 'KICKED_BY_HOST' });
+                    setTimeout(() => target.conn.close(), 100);
+                } catch (e) {}
+            }
+            raidTeams = raidTeams.filter(t => t.id !== teamId);
+            renderRaidLobbyTeams();
+        }, 150);
+    }
+
+    function renderRaidLobbyTeams() {
+        document.getElementById('raid-team-count').innerText = raidTeams.length;
+        const list = document.getElementById('raid-lobby-teams-list');
+        list.innerHTML = '';
+        raidTeams.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'raid-team-badge' + (t.isBot ? ' bot' : '');
+            div.innerText = `${t.name} ${t.avatar}`;
+            div.title = "點擊移除此玩家";
+            div.onclick = () => removeRaidTeamFromLobby(t.id, div);
+            list.appendChild(div);
+        });
+    }
+
+    async function startRaidBattle() {
+        if (raidSelectedLessons.length === 0) return alert("請至少選擇一課！");
+        if (raidTeams.length < 1) return alert("請至少加入 1 組除魔師 (可點擊『➕ 加入AI隊友』測試)！");
+
+        getSfxCtx();
+        raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 14;
+
+        const fetchPromises = raidSelectedLessons.map(sheet =>
+            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
+                .then(res => res.text()).then(text => ({ sheet, text }))
+        );
+
+        const results = await Promise.all(fetchPromises);
+        let rawCards = [];
+        results.forEach(({ sheet, text }) => {
+            let rowNumber = 0;
+            text.split(/\r?\n/).forEach(l => {
+                const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
+                if (p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
+                    rowNumber++;
+                    const numStr = String(rowNumber).padStart(2, '0');
+                    const folderName = audioFolderMap[sheet] || `${sheet}音檔`;
+                    const fallbackAudioUrl = `https://yyanjhang-web.github.io/hosngetaiagi/${folderName}/-${numStr}.mp3`;
+                    const colCAudioUrl = (p.length >= 3 && p[2].trim() !== "") ? p[2].trim() : fallbackAudioUrl;
+                    rawCards.push({ h: p[0].trim(), r: p[1].trim().split('(')[0].trim(), a: colCAudioUrl });
+                }
+            });
+        });
+
+        if (rawCards.length === 0) return alert("題庫載入失敗！");
+        raidQuestionDeck = shuffleBank(rawCards);
+
+        raidTeams.forEach(t => {
+            t.hp = 3.0; t.consecWrong = 0; t.streak = 0; t.feathers = 0;
+            t.score = 0; t.totalQ = 0; t.correctQ = 0;
+        });
+        raidBossIdx = 0;
+        raidBossHp = RAID_BOSS_LIST[0].maxHp;
+        raidAllBossesCleared = false;
+        raidCurrentQIdx = 0;
+        raidMissedStats = [];
+
+        document.getElementById('raid-lobby-screen').classList.remove('active');
+        document.getElementById('raid-host-screen').classList.add('active');
+        document.getElementById('raid-hud-diff-label').innerText = (raidDifficulty === 'apprentice') ? '咒術師仔' : '咒術師父';
+
+        initRaidArmyUnitsDOM();
+        updateRaidBossUI();
+        renderRaidLiveScoreboard();
+        startRaidWanderingLoop();
+        runNextRaidQuestion();
+    }
+
+    function initRaidArmyUnitsDOM() {
+        const layer = document.getElementById('raid-units-layer');
+        layer.innerHTML = '';
+        raidTeams.forEach(t => {
+            const unit = document.createElement('div');
+            unit.className = 'raid-unit';
+            unit.id = `raid-unit-${t.id}`;
+            unit.style.left = `${t.x}%`;
+            unit.style.top = `${t.y}%`;
+            unit.innerHTML = `
+                <div class="unit-hp-track"><div class="unit-hp-fill" id="unit-hp-${t.id}"></div></div>
+                <div class="unit-avatar-box">
+                    <span id="unit-avatar-${t.id}">${t.avatar}</span>
+                    <span class="unit-status-icon" id="unit-status-${t.id}"></span>
+                </div>
+                <div class="unit-name-tag">${t.name}</div>
+            `;
+            layer.appendChild(unit);
+        });
+    }
+
+    function updateRaidArmyUnitsVisual() {
+        raidTeams.forEach(t => {
+            const unit = document.getElementById(`raid-unit-${t.id}`);
+            const hpFill = document.getElementById(`unit-hp-${t.id}`);
+            const avatarSpan = document.getElementById(`unit-avatar-${t.id}`);
+            const statusSpan = document.getElementById(`unit-status-${t.id}`);
+            if (!unit || !hpFill) return;
+
+            const pct = Math.max(0, Math.min(100, (t.hp / t.maxHp) * 100));
+            hpFill.style.width = `${pct}%`;
+            if (t.hp > 1.5) hpFill.style.background = '#22c55e';
+            else if (t.hp > 0.5) hpFill.style.background = '#eab308';
+            else hpFill.style.background = '#ef4444';
+
+            if (t.hp <= 0) {
+                unit.classList.add('unit-dead');
+                avatarSpan.innerText = '👻';
+                statusSpan.innerText = '💀';
+            } else {
+                unit.classList.remove('unit-dead');
+                avatarSpan.innerText = t.avatar;
+                statusSpan.innerText = (t.consecWrong === 1) ? '🛡️💦' : (t.consecWrong >= 2 ? '💥💦' : '');
+            }
+        });
+        broadcastDeadCountToStudents();
+    }
+
+    function startRaidWanderingLoop() {
+        if (raidWanderInterval) clearInterval(raidWanderInterval);
+        raidWanderInterval = setInterval(() => {
+            if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
+            raidTeams.forEach(t => {
+                if (t.hp <= 0) return;
+                t.x = Math.max(6, Math.min(76, t.x + (Math.random() * 22 - 11)));
+                t.y = Math.max(10, Math.min(76, t.y + (Math.random() * 22 - 11)));
+                const unit = document.getElementById(`raid-unit-${t.id}`);
+                if (unit) {
+                    unit.style.left = `${t.x}%`;
+                    unit.style.top = `${t.y}%`;
+                }
+            });
+        }, 2400);
+    }
+
+    function updateRaidBossUI() {
+        const nameTag = document.getElementById('raid-boss-name-tag');
+        const hpFill = document.getElementById('raid-boss-hp-fill');
+        const hpText = document.getElementById('raid-boss-hp-text');
+        const spriteEl = document.getElementById('raid-boss-sprite');
+
+        if (raidAllBossesCleared) {
+            nameTag.innerText = '🪙 獎勵時間：狂揍骷髏頭賺金幣！';
+            hpFill.style.width = '100%';
+            hpFill.style.background = 'linear-gradient(90deg, #eab308, #fde047)';
+            hpText.innerText = '🪙 無限金幣 🪙';
+            spriteEl.innerText = '💀';
+            return;
+        }
+        const boss = RAID_BOSS_LIST[raidBossIdx];
+        nameTag.innerText = boss.name;
+        const pct = Math.max(0, (raidBossHp / boss.maxHp) * 100);
+        hpFill.style.width = `${pct}%`;
+        hpFill.style.background = 'linear-gradient(90deg, #dc2626, #f97316)';
+        hpText.innerText = `${Math.max(0, Math.round(raidBossHp))} / ${boss.maxHp} HP`;
+        spriteEl.innerText = boss.sprite;
+    }
+
+    function renderRaidLiveScoreboard() {
+        const box = document.getElementById('raid-live-sb-list');
+        if (!box) return;
+        const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.hp - a.hp);
+        box.innerHTML = '';
+        sorted.forEach((t, idx) => {
+            const hpText = t.hp <= 0 ? '💀陣亡' : `❤️${t.hp.toFixed(1)}`;
+            const featherTag = t.feathers > 0 ? `🪶x${t.feathers}` : '';
+            box.innerHTML += `
+                <div class="raid-sb-row">
+                    <span style="font-weight:bold; color:${t.hp <= 0 ? '#94a3b8' : '#fff'};">${idx + 1}. ${t.avatar}${t.name} ${featherTag}</span>
+                    <span style="color:#00e5ff; font-weight:bold;">${hpText}｜${t.score}分</span>
+                </div>`;
+        });
+    }
+</script>
+<script>
+    // =========================================================
+    // 🎬 單題流程、聚魔鏡 5 段式折射動畫與鳳凰羽毛救援
+    // =========================================================
+    function runNextRaidQuestion() {
+        if (raidCurrentQIdx >= raidTotalQuestions) {
+            finishRaidBattle();
+            return;
+        }
+
+        const card = raidQuestionDeck.shift();
+        raidQuestionDeck.push(card);
+
+        const parts = card.r.split(/([\s\-–—]+)/);
+        const sylIndices = [];
+        parts.forEach((p, idx) => {
+            if (p && !/^[\s\-–—]+$/.test(p) && /[a-zA-Z]/.test(p)) sylIndices.push(idx);
+        });
+        const targetPartIdx = sylIndices[Math.floor(Math.random() * sylIndices.length)];
+        const targetRawSyl = parts[targetPartIdx];
+        const targetParsed = parseTaiLoAnswer(targetRawSyl)[0];
+
+        const hostMaskedHtml = parts.map((p, idx) => {
+            if (idx === targetPartIdx) return `<span class="raid-blank-slot"></span>`;
+            return formatTailoDisplay(p);
+        }).join('');
+
+        const padMaskedHtml = parts.map((p, idx) => {
+            if (idx === targetPartIdx) return `<span class="blank-slot-inline"></span>`;
+            return formatTailoDisplay(p);
+        }).join('');
+
+        const fullRevealedHtml = parts.map((p, idx) => {
+            if (idx === targetPartIdx) return `<span style="color:#4ade80; text-decoration:underline;">${formatTailoDisplay(p)}</span>`;
+            return formatTailoDisplay(p);
+        }).join('');
+
+        raidCurrentMatch = {
+            card, targetParsed, hostMaskedHtml, padMaskedHtml, fullRevealedHtml,
+            submissions: {},
+            accepting: true
+        };
+
+        document.getElementById('raid-center-banner').style.display = 'none';
+        document.getElementById('raid-boss-stun-stars').style.display = 'none';
+        document.getElementById('host-mirror-box').classList.remove('charging');
+        document.getElementById('mirror-charge-badge').innerText = `🪞 聚魔鏡 0%`;
+        document.querySelectorAll('.raid-unit').forEach(u => u.classList.remove('unit-chanting'));
+
+        const showHanzi = document.getElementById('raid-show-hanzi-toggle').checked;
+        const hanziEl = document.getElementById('raid-host-hanzi');
+        hanziEl.innerText = card.h;
+        hanziEl.style.display = showHanzi ? 'block' : 'none';
+        document.getElementById('raid-host-tailo').innerHTML = hostMaskedHtml;
+
+        document.getElementById('raid-hud-q-progress').innerText = `題目: ${raidCurrentQIdx + 1} / ${raidTotalQuestions}`;
+        document.getElementById('raid-hud-phase-msg').innerText = `🔥 限時 18 秒！請輸入空格處的羅馬字咒語！`;
+        updateRaidLockedCountUI();
+
+        const deadCount = raidTeams.filter(t => t.hp <= 0).length;
+        const curBossSprite = raidAllBossesCleared ? '💀' : RAID_BOSS_LIST[raidBossIdx].sprite;
+        raidTeams.forEach(t => {
+            if (t.conn && t.conn.open) {
+                t.conn.send({
+                    type: 'RAID_QUESTION',
+                    qIndex: raidCurrentQIdx + 1,
+                    totalQ: raidTotalQuestions,
+                    difficulty: raidDifficulty,
+                    h: card.h,
+                    a: card.a,
+                    padMaskedHtml: padMaskedHtml,
+                    targetSyllable: targetParsed,
+                    bossSprite: curBossSprite,
+                    deadCount: deadCount
+                });
+            }
+        });
+
+        replayRaidAudio();
+
+        // AI 隊友模擬作答
+        raidTeams.filter(t => t.isBot).forEach(bot => {
+            setTimeout(() => {
+                if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
+                const unitEl = document.getElementById(`raid-unit-${bot.id}`);
+                if (unitEl) unitEl.classList.add('unit-chanting');
+            }, 1200 + Math.random() * 2500);
+
+            setTimeout(() => {
+                if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
+                const botRight = (Math.random() < 0.78);
+                recordRaidTeamSpell(bot.id, botRight, false);
+            }, 3500 + Math.random() * 8500);
+        });
+
+        const timerBar = document.getElementById('raid-host-timer-bar');
+        timerBar.style.width = '100%';
+        let timeLeftSec = 18.0;
+        clearInterval(raidHostTimer);
+        raidHostTimer = setInterval(() => {
+            timeLeftSec = Math.round((timeLeftSec - 0.1) * 10) / 10;
+            timerBar.style.width = `${Math.max(0, (timeLeftSec / 18.0) * 100)}%`;
+            if (timeLeftSec <= 0) {
+                clearInterval(raidHostTimer);
+                resolveRaidRound();
+            }
+        }, 100);
+    }
+
+    function replayRaidAudio() {
+        if (!raidCurrentMatch) return;
+        const rawUrl = raidCurrentMatch.card.a;
+        const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
+        audioPlayer.pause();
+        audioPlayer.src = safeUrl;
+        audioPlayer.currentTime = 0;
+        audioPlayer.play().catch(() => {});
+    }
+
+    function recordRaidTeamSpell(teamId, isCorrect, usedGourd) {
+        if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
+        if (raidCurrentMatch.submissions[teamId] !== undefined) return;
+
+        raidCurrentMatch.submissions[teamId] = { isCorrect, usedGourd };
+        sfxSyllableChant();
+
+        document.getElementById('host-mirror-box').classList.add('charging');
+        updateRaidLockedCountUI();
+
+        const submittedCount = Object.keys(raidCurrentMatch.submissions).length;
+        if (submittedCount >= raidTeams.length) {
+            clearInterval(raidHostTimer);
+            setTimeout(resolveRaidRound, 500);
+        }
+    }
+
+    function updateRaidLockedCountUI() {
+        if (!raidCurrentMatch) return;
+        const submittedCount = Object.keys(raidCurrentMatch.submissions).length;
+        document.getElementById('raid-hud-locked-status').innerText = `已施咒: ${submittedCount} / ${raidTeams.length}`;
+        const chargePct = raidTeams.length > 0 ? Math.round((submittedCount / raidTeams.length) * 100) : 0;
+        document.getElementById('mirror-charge-badge').innerText = `🪞 集氣 ${chargePct}%`;
+    }
+
+    function handleHostPhoenixFeatherRevive(savior) {
+        const deadList = raidTeams.filter(t => t.hp <= 0);
+        if (deadList.length === 0) return;
+
+        savior.feathers--;
+        const luckyTarget = deadList[Math.floor(Math.random() * deadList.length)];
+        luckyTarget.hp = 0.5;
+        luckyTarget.consecWrong = 0;
+
+        sfxFeatherRevive();
+        updateRaidArmyUnitsVisual();
+        renderRaidLiveScoreboard();
+
+        const banner = document.getElementById('raid-center-banner');
+        banner.innerText = `🪶 ${savior.name} 施展鳳凰羽毛，復活了 ${luckyTarget.name}！`;
+        banner.style.display = 'block';
+        setTimeout(() => { banner.style.display = 'none'; }, 2800);
+
+        if (savior.conn && savior.conn.open) {
+            savior.conn.send({ type: 'FEATHER_UPDATED', feathers: savior.feathers });
+        }
+        if (luckyTarget.conn && luckyTarget.conn.open) {
+            luckyTarget.conn.send({
+                type: 'REVIVED_BY_ALLY',
+                saviorName: savior.name,
+                hp: luckyTarget.hp
+            });
+        }
+    }
+
+    function broadcastDeadCountToStudents() {
+        const deadCount = raidTeams.filter(t => t.hp <= 0).length;
+        raidTeams.forEach(t => {
+            if (t.conn && t.conn.open) {
+                t.conn.send({ type: 'DEAD_COUNT_SYNC', deadCount: deadCount, feathers: t.feathers });
+            }
+        });
+    }
+
+    function resolveRaidRound() {
+        if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
+        raidCurrentMatch.accepting = false;
+        clearInterval(raidHostTimer);
+
+        document.getElementById('raid-host-tailo').innerHTML = raidCurrentMatch.fullRevealedHtml;
+
+        let activeTeams = raidTeams.filter(t => t.hp > 0);
+        if (activeTeams.length === 0) activeTeams = raidTeams;
+
+        let correctActiveCount = 0;
+        let wrongTotalThisQ = 0;
+
+        raidTeams.forEach(t => {
+            const sub = raidCurrentMatch.submissions[t.id];
+            const gotRight = Boolean(sub && sub.isCorrect);
+            t.totalQ++;
+            if (gotRight) {
+                t.correctQ++;
+                if (t.hp > 0) correctActiveCount++;
+            } else {
+                wrongTotalThisQ++;
+            }
+        });
+
+        const accuracyPct = activeTeams.length > 0 ? Math.round((correctActiveCount / activeTeams.length) * 100) : 0;
+        document.getElementById('mirror-charge-badge').innerText = `🪞 正確率 ${accuracyPct}%`;
+
+        raidMissedStats.push({
+            h: raidCurrentMatch.card.h,
+            r: raidCurrentMatch.card.r,
+            a: raidCurrentMatch.card.a,
+            fullRevealedHtml: raidCurrentMatch.fullRevealedHtml,
+            wrongCount: wrongTotalThisQ
+        });
+
+        // 1. 乾坤聚魔鏡 5 等級折射光束動畫
+        const refractLayer = document.getElementById('raid-refract-layer');
+        refractLayer.innerHTML = '';
+        const beam = document.createElement('div');
+        let beamClass = 'tier-low';
+        if (accuracyPct === 100) beamClass = 'tier-100';
+        else if (accuracyPct >= 90) beamClass = 'tier-90';
+        else if (accuracyPct >= 70) beamClass = 'tier-70';
+        else if (accuracyPct >= 50) beamClass = 'tier-50';
+        beam.className = `refract-beam ${beamClass}`;
+        refractLayer.appendChild(beam);
+
+        const banner = document.getElementById('raid-center-banner');
+        if (accuracyPct === 100) {
+            banner.innerText = `✨ 100% 完美攻擊！全軍破魔！ ✨`;
+            banner.style.display = 'block';
+            confetti({ particleCount: 110, spread: 80, origin: { y: 0.5 } });
+        } else if (accuracyPct >= 90) {
+            banner.innerText = `🔥 ${accuracyPct}% 極光聖柱！重創妖魔！ 🔥`;
+            banner.style.display = 'block';
+        }
+
+        // 2. 計算對怪物的傷害
+        let bossDamage = accuracyPct;
+        if (accuracyPct === 100) bossDamage = 130;
+        else if (accuracyPct >= 70) bossDamage = Math.max(100, Math.round(accuracyPct * 1.15));
+
+        const bossStunned = (accuracyPct >= 70);
+        const bossSpriteEl = document.getElementById('raid-boss-sprite');
+
+        setTimeout(() => {
+            if (bossDamage > 0) {
+                sfxEnemyHit();
+                bossSpriteEl.classList.add('enemy-hit-flash');
+                setTimeout(() => bossSpriteEl.classList.remove('enemy-hit-flash'), 400);
+            } else {
+                sfxError();
+            }
+
+            if (raidAllBossesCleared) {
+                if (bossDamage > 0) sfxCoin();
+            } else {
+                raidBossHp -= bossDamage;
+                while (raidBossHp <= 0 && !raidAllBossesCleared) {
+                    const overflow = Math.abs(raidBossHp);
+                    sfxEnemyDeath();
+                    if (raidBossIdx < RAID_BOSS_LIST.length - 1) {
+                        raidBossIdx++;
+                        raidBossHp = RAID_BOSS_LIST[raidBossIdx].maxHp - overflow;
+                    } else {
+                        raidAllBossesCleared = true;
+                        raidBossHp = 0;
+                    }
+                }
+                updateRaidBossUI();
+            }
+
+            if (bossStunned) {
+                document.getElementById('raid-boss-stun-stars').style.display = 'block';
+                document.getElementById('raid-hud-phase-msg').innerText = `💫 答對率 ${accuracyPct}%！妖魔頭冒金星暈眩，無法反擊！`;
+            } else {
+                document.getElementById('raid-hud-phase-msg').innerText = `⚠️ 答對率 ${accuracyPct}% (未達70%)！妖魔發動反擊！`;
+                bossSpriteEl.classList.add('enemy-attack');
+                setTimeout(() => bossSpriteEl.classList.remove('enemy-attack'), 450);
+            }
+
+            // 3. 結算每位玩家的個人防禦、盾牌狀態、扣血與「連對3題獲鳳凰羽毛」
+            raidTeams.forEach(t => {
+                const sub = raidCurrentMatch.submissions[t.id];
+                const gotRight = Boolean(sub && sub.isCorrect);
+                const usedGourd = Boolean(sub && sub.usedGourd);
+                const wasAlive = (t.hp > 0);
+
+                let outcome = 'DEAD_SPECTATE';
+                let earnedFeather = false;
+
+                if (wasAlive) {
+                    if (gotRight) {
+                        let pts = usedGourd ? 10 : 20;
+                        if (accuracyPct === 100) pts += 10;
+                        if (raidAllBossesCleared) pts += 10;
+                        t.score += pts;
+
+                        t.consecWrong = 0;
+                        t.streak++;
+                        if (t.streak > 0 && t.streak % 3 === 0) {
+                            t.feathers++;
+                            earnedFeather = true;
+                        }
+                        outcome = bossStunned ? 'BOSS_STUNNED_SAFE' : 'DODGE_SAFE';
+                    } else {
+                        t.streak = 0;
+                        if (bossStunned) {
+                            outcome = 'PROTECTED_BY_TEAM';
+                        } else {
+                            t.consecWrong++;
+                            if (t.consecWrong === 1) {
+                                t.hp = Math.max(0, Math.round((t.hp - 0.5) * 10) / 10);
+                                outcome = 'SHIELD_BLOCK_HALF';
+                            } else {
+                                t.hp = Math.max(0, Math.round((t.hp - 1.0) * 10) / 10);
+                                outcome = 'SHIELD_BREAK_FULL';
+                            }
+                        }
+                    }
+                }
+
+                const unitEl = document.getElementById(`raid-unit-${t.id}`);
+                if (unitEl) {
+                    unitEl.classList.remove('unit-chanting');
+                    if (gotRight && wasAlive) {
+                        unitEl.classList.add('player-dodge');
+                        setTimeout(() => unitEl.classList.remove('player-dodge'), 600);
+                    } else if (!bossStunned && !gotRight && wasAlive) {
+                        unitEl.classList.add('player-hit');
+                        setTimeout(() => unitEl.classList.remove('player-hit'), 600);
+                    }
+                }
+
+                if (t.conn && t.conn.open) {
+                    t.conn.send({
+                        type: 'RAID_RESULT',
+                        gotRight: gotRight,
+                        bossStunned: bossStunned,
+                        accuracyPct: accuracyPct,
+                        outcome: outcome,
+                        hp: t.hp,
+                        consecWrong: t.consecWrong,
+                        feathers: t.feathers,
+                        earnedFeather: earnedFeather,
+                        score: t.score,
+                        correctReveal: raidCurrentMatch.card.r.split('(')[0].trim()
+                    });
+                }
+            });
+
+            updateRaidArmyUnitsVisual();
+            renderRaidLiveScoreboard();
+        }, 450);
+
+        setTimeout(() => {
+            raidCurrentQIdx++;
+            runNextRaidQuestion();
+        }, 3800);
+    }
+
+    function finishRaidBattle() {
+        if (raidWanderInterval) clearInterval(raidWanderInterval);
+        clearInterval(raidHostTimer);
+        document.getElementById('raid-host-screen').classList.remove('active');
+        document.getElementById('raid-gameover-screen').classList.add('active');
+
+        const titleEl = document.getElementById('raid-go-banner-title');
+        const subEl = document.getElementById('raid-go-sub-comment');
+        if (raidAllBossesCleared) {
+            sfxVictory();
+            confetti({ particleCount: 140, spread: 100, origin: { y: 0.5 } });
+            titleEl.innerText = "🏆 拍倒四大惡鬼・除魔軍團大勝利！ 🏆";
+            subEl.innerText = "全班齊心協力，成功將所有妖魔全數殲滅！";
+        } else {
+            sfxVictory();
+            titleEl.innerText = "⚔️ 除魔團戰結束・論功行賞 ⚔️";
+            subEl.innerText = `本次推進至【${RAID_BOSS_LIST[raidBossIdx].name}】，繼續修行必能斬妖除魔！`;
+        }
+
+        const lbBox = document.getElementById('raid-go-leaderboard');
+        lbBox.innerHTML = '';
+        const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.correctQ - a.correctQ);
+        sorted.forEach((t, idx) => {
+            const acc = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
+            const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
+            lbBox.innerHTML += `
+                <div class="review-item" style="font-size:17px;">
+                    <span><strong>${medal} ${t.avatar} ${t.name}</strong> (❤️${t.hp.toFixed(1)})</span>
+                    <span>🎯 答對率 ${acc}% (${t.correctQ}/${t.totalQ}) ｜ <strong style="color:#fde047;">${t.score} 分</strong></span>
+                </div>`;
+        });
+
+        const missedBox = document.getElementById('raid-go-missed-list');
+        missedBox.innerHTML = '';
+        const uniqueMissed = new Map();
+        raidMissedStats.forEach(item => {
+            if (item.wrongCount <= 0) return;
+            const key = `${item.h}_${item.r}`;
+            if (!uniqueMissed.has(key) || item.wrongCount > uniqueMissed.get(key).wrongCount) {
+                uniqueMissed.set(key, item);
+            }
+        });
+        const top5 = Array.from(uniqueMissed.values()).sort((a, b) => b.wrongCount - a.wrongCount).slice(0, 5);
+        if (top5.length === 0) {
+            missedBox.innerHTML = `<div style="text-align:center; color:#4ade80; padding:24px;">✨ 全軍表現完美，無任何失誤題目！ ✨</div>`;
+        } else {
+            top5.forEach((item, i) => {
+                const row = document.createElement('div');
+                row.className = 'review-item';
+                row.onclick = () => playAudio(item.a);
+                row.innerHTML = `
+                    <span class="review-hanzi">🔊 ${i + 1}. ${item.h} <span class="review-tailo" style="margin-left:8px;">${item.fullRevealedHtml}</span></span>
+                    <span style="color:#fca5a5; font-size:14px; font-weight:bold;">❌ 錯 ${item.wrongCount} 人</span>
+                `;
+                missedBox.appendChild(row);
+            });
+        }
+    }
+
+    function exportRaidGradesToExcel() {
+        if (raidTeams.length === 0) return alert("無成績資料可匯出！");
+        const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.correctQ - a.correctQ);
+        const lessonStr = raidSelectedLessons.join('、');
+        const diffName = (raidDifficulty === 'apprentice') ? '咒術師仔' : '咒術師父';
+
+        let csv = "\uFEFF排名,組別名稱,個人答對率(平時成績),答對題數,總題數,除魔總分,剩餘血量,難度,課次範圍\r\n";
+        sorted.forEach((t, idx) => {
+            const acc = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
+            const cleanName = t.name.replace(/,/g, ' ');
+            csv += `${idx + 1},"${cleanName}",${acc}%,${t.correctQ},${t.totalQ},${t.score},${t.hp.toFixed(1)},"${diffName}","${lessonStr}"\r\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `除魔咒術_團戰成績單_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // =========================================================
+    // 📱 學生平板端：加入團戰、虛擬鍵盤輸入、魔鏡折射與鳳凰羽毛
+    // =========================================================
+    let studentRaidPeer = null;
+    let studentHostConn = null;
+    let myRaidHp = 3.0;
+    let myRaidFeathers = 0;
+    let currentDeadTeammatesCount = 0;
+    let myRaidAvatar = '🧙‍♂️';
+
+    function openRaidStudentJoin() {
+        getSfxCtx();
+        document.getElementById('entry-screen').classList.remove('active');
+        document.getElementById('raid-student-join-screen').classList.add('active');
+    }
+
+    function closeRaidStudentJoin() {
+        document.getElementById('raid-student-join-screen').classList.remove('active');
+        document.getElementById('entry-screen').classList.add('active');
+    }
+
+    function connectStudentToRaidHost() {
+        const pin = document.getElementById('raid-join-pin').value.trim();
+        const name = document.getElementById('raid-join-name').value.trim();
+        const msgEl = document.getElementById('raid-join-msg');
+        if (!pin || !name) {
+            msgEl.innerText = "⚠️ 請完整輸入 4 位數房號與你的名號！";
+            return;
+        }
+        msgEl.innerText = "⏳ 正在連線至除魔大廳...";
+        document.getElementById('raid-connect-btn').disabled = true;
+
+        if (studentRaidPeer) studentRaidPeer.destroy();
+        studentRaidPeer = new Peer();
+        studentRaidPeer.on('open', () => {
+            studentHostConn = studentRaidPeer.connect(`taigi-exorcist-${pin}`, { reliable: true });
+            studentHostConn.on('open', () => {
+                studentHostConn.send({ type: 'JOIN', name: name });
+            });
+            studentHostConn.on('data', data => handleRaidStudentReceive(data));
+            studentHostConn.on('close', () => {
+                alert("與主辦方大屏的連線已結束！");
+                location.reload();
+            });
+        });
+        studentRaidPeer.on('error', () => {
+            msgEl.innerText = "❌ 找不到該大廳號碼，請確認老師大屏是否已開啟！";
+            document.getElementById('raid-connect-btn').disabled = false;
+        });
+    }
+
+    function updateGourdUI() {
+        const gourdBtn = document.getElementById('gourd-btn');
+        const gourdCount = document.getElementById('gourd-count');
+        gourdCount.innerText = gourdsLeft;
+        gourdBtn.classList.toggle('gourd-disabled', gourdsLeft <= 0);
+    }
+
+    function useGourd() {
+        if (usedGourdOnCurrentQ || gourdsLeft <= 0 || !raidStudentCurrentQ) return;
+        gourdsLeft--;
+        usedGourdOnCurrentQ = true;
+        updateGourdUI();
+        sfxUseGourd();
+
+        const hintEl = document.getElementById('hanzi-hint');
+        hintEl.innerText = raidStudentCurrentQ.h;
+        hintEl.style.display = 'block';
+    }
+
+    function playAudio(customUrl) {
+        let rawUrl = customUrl || (raidStudentCurrentQ ? raidStudentCurrentQ.a : "");
+        if (!rawUrl) return;
+        const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
+        audioPlayer.pause();
+        audioPlayer.src = safeUrl;
+        audioPlayer.currentTime = 0;
+        audioPlayer.play().catch(() => {});
+    }
+
+    function resetInputBoxes() {
+        inputBoxes = new Array(parsedAnswer.length).fill(null);
+        currentSyllableIndex = 0;
+        typedBase = "";
+        updateDisplay();
+    }
+
+    function handleInput(key) {
+        if (!isRaidStudentMode || raidStudentLocked) return;
+        const chained = isCurrentSyllableToneChained();
+
+        if (key === 'Backspace') {
+            if (typedBase.length > 0) {
+                let chars = Array.from(typedBase); chars.pop(); typedBase = chars.join('');
+            } else if (currentSyllableIndex > 0) {
+                currentSyllableIndex--;
+                typedBase = inputBoxes[currentSyllableIndex].base;
+                inputBoxes[currentSyllableIndex] = null;
+            }
+        } else if (key === 'Enter') {
+            if (currentSyllableIndex === parsedAnswer.length) {
+                let ok = (inputBoxes[0].base === parsedAnswer[0].base && inputBoxes[0].tone === parsedAnswer[0].tone);
+                submitRaidStudentSpell(ok);
+            }
+        } else if (toneDigits.includes(key) || (key === '6' && chained)) {
+            if (typedBase.length > 0 && currentSyllableIndex < parsedAnswer.length) {
+                const finalTone = chained ? parsedAnswer[currentSyllableIndex].tone : key;
+                inputBoxes[currentSyllableIndex] = { base: typedBase, tone: finalTone };
+                currentSyllableIndex++;
+                typedBase = "";
+                sfxSyllableChant();
+                notifyHostStudentChanting(true);
+            }
+        } else if (validLetters.includes(key)) {
+            if (currentSyllableIndex < parsedAnswer.length) {
+                typedBase += key;
+                if (typedBase.length === 1) notifyHostStudentChanting(true);
+            }
+        }
+        updateDisplay();
+        triggerVisualFeedback(key);
+    }
+
+    function updateDisplay() {
+        const container = document.getElementById('syllable-boxes-container');
+        container.innerHTML = '';
+
+        for (let i = 0; i < parsedAnswer.length; i++) {
+            const box = document.createElement('div');
+            box.className = 'syllable-box';
+            if (i < currentSyllableIndex) {
+                box.innerHTML = applyToneToSyllable(inputBoxes[i].base, inputBoxes[i].tone);
+            } else if (i === currentSyllableIndex) {
+                box.classList.add('active-box');
+                box.innerHTML = `<span>${typedBase}</span><span class="cursor"></span>`;
+            }
+            container.appendChild(box);
+        }
+
+        const toneGroup = document.getElementById('tone-keys-group');
+        if (toneGroup) {
+            toneGroup.classList.toggle('chained', isCurrentSyllableToneChained());
+        }
+
+        const playerWrapper = document.getElementById('player-wrapper');
+        if (playerWrapper) {
+            playerWrapper.classList.toggle('chanting', currentSyllableIndex > 0 || typedBase.length > 0);
+        }
+    }
+
+    function triggerVisualFeedback(key) {
+        const btn = document.querySelector(`[data-key="${key}"]`);
+        if (btn && (!btn.classList.contains('disabled-key') || isCurrentSyllableToneChained())) {
+            btn.style.background = '#00e5ff'; btn.style.color = '#000';
+            setTimeout(() => { btn.style.background = ''; btn.style.color = ''; }, 100);
+        }
+    }
+
+    function startTimer(seconds, onExpireCallback) {
+        const container = document.getElementById('timer-container');
+        const bar = document.getElementById('timer-bar');
+        const text = document.getElementById('timer-text');
+
+        container.style.display = 'block';
+        const totalTime = seconds;
+        timeLeft = seconds;
+
+        bar.style.transition = 'none';
+        bar.style.width = '100%';
+        text.innerText = `${timeLeft}秒`;
+        bar.offsetHeight;
+        bar.style.transition = 'width 0.1s linear';
+
+        clearInterval(timer);
+        timer = setInterval(() => {
+            timeLeft = Math.round((timeLeft - 0.1) * 10) / 10;
+            if (timeLeft < 0) timeLeft = 0;
+            if (timeLeft === 3.0 || timeLeft === 2.0 || timeLeft === 1.0) sfxTimerTick();
+
+            bar.style.width = `${(timeLeft / totalTime) * 100}%`;
+            text.innerText = Number.isInteger(timeLeft) ? `${timeLeft}秒` : `${timeLeft.toFixed(1)}秒`;
+
+            if (timeLeft <= 0) {
+                stopTimer();
+                if (typeof onExpireCallback === 'function') onExpireCallback();
+            }
+        }, 100);
+    }
+
+    function stopTimer() {
+        clearInterval(timer);
+        document.getElementById('timer-container').style.display = 'none';
+    }
+
+    window.addEventListener('keydown', e => {
+        if (document.getElementById('game-screen').style.display === 'flex') {
+            if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); useGourd(); return; }
+            const k = e.key.toLowerCase();
+            if (k === 'q') { e.preventDefault(); playAudio(); }
+            else if (k === 'enter') handleInput('Enter');
+            else if (k === 'backspace') handleInput('Backspace');
+            else handleInput(k);
+        }
+    });
+
+    function renderStudentRaidHpBar() {
+        const hb = document.getElementById('health-bar');
+        const pct = Math.max(0, Math.min(100, (myRaidHp / 3.0) * 100));
+        let color = '#22c55e';
+        if (myRaidHp <= 0.5) color = '#ef4444';
+        else if (myRaidHp <= 1.5) color = '#eab308';
+
+        hb.innerHTML = `
+            <div class="pad-hp-bar-wrap">
+                <span style="font-size:13px; color:#cbd5e1;">HP</span>
+                <div class="pad-hp-track"><div class="pad-hp-fill" style="width:${pct}%; background:${color};"></div></div>
+                <span style="font-size:13px; color:${color};">${myRaidHp.toFixed(1)}</span>
+            </div>`;
+    }
+
+    function updateStudentFeatherButtonUI() {
+        const skipBtn = document.getElementById('btn-skip');
+        if (!skipBtn) return;
+        const canUse = (myRaidFeathers > 0 && currentDeadTeammatesCount > 0);
+        skipBtn.className = 'action-btn key-feather ' + (canUse ? 'feather-ready' : 'feather-disabled');
+        skipBtn.innerHTML = `<div>🪶 鳳凰羽毛 (${myRaidFeathers})</div>`;
+    }
+
+    function triggerStudentUseFeather() {
+        if (!isRaidStudentMode || !studentHostConn || !studentHostConn.open) return;
+        if (myRaidFeathers <= 0 || currentDeadTeammatesCount <= 0) return;
+        studentHostConn.send({ type: 'USE_FEATHER' });
+    }
+
+    function notifyHostStudentChanting(state) {
+        if (studentHostConn && studentHostConn.open && state) {
+            studentHostConn.send({ type: 'CHANTING' });
+        }
+    }
+
+    function submitRaidStudentSpell(isCorrect) {
+        if (raidStudentLocked) return;
+        raidStudentLocked = true;
+        stopTimer();
+
+        const enterBtn = document.getElementById('btn-enter');
+        enterBtn.classList.add('locked-in');
+        enterBtn.innerHTML = `<div>✅ 已傳送法力</div>`;
+
+        const arena = document.getElementById('rpg-arena');
+        const mirrorWrap = document.getElementById('pad-mirror-wrapper');
+        mirrorWrap.classList.add('mirror-charging');
+
+        const beamIn = document.createElement('div');
+        beamIn.className = 'pad-beam-to-mirror';
+        arena.appendChild(beamIn);
+
+        setTimeout(() => {
+            beamIn.remove();
+            const beamUp = document.createElement('div');
+            beamUp.className = 'pad-beam-up-sky';
+            arena.appendChild(beamUp);
+            sfxEnemyHit();
+            setTimeout(() => {
+                beamUp.remove();
+                mirrorWrap.classList.remove('mirror-charging');
+            }, 450);
+        }, 300);
+
+        if (studentHostConn && studentHostConn.open) {
+            studentHostConn.send({
+                type: 'SUBMIT_SPELL',
+                isCorrect: isCorrect,
+                usedGourd: usedGourdOnCurrentQ
+            });
+        }
+    }
+
+    function handleRaidStudentReceive(data) {
+        if (data.type === 'KICKED_BY_HOST') {
+            alert("您已被主辦方移出團戰大廳！");
+            location.reload();
+            return;
+        }
+
+        if (data.type === 'JOINED_OK') {
+            isRaidStudentMode = true;
+            raidDifficulty = data.difficulty || 'master';
+            myRaidHp = data.hp;
+            myRaidFeathers = data.feathers || 0;
+            myRaidAvatar = data.avatar || '🧙‍♂️';
+
+            document.getElementById('app-container').classList.add('pad-mode');
+            document.getElementById('raid-student-join-screen').classList.remove('active');
+            document.getElementById('game-screen').style.display = 'flex';
+
+            gourdsLeft = 3;
+            updateGourdUI();
+            buildKeyboard();
+
+            document.getElementById('score-display').innerText = `${myRaidAvatar} ${data.name}`;
+            document.getElementById('player-sprite').innerHTML = myRaidAvatar;
+            document.getElementById('progress-display').innerText = `⏳ 等待大屏開始...`;
+            renderStudentRaidHpBar();
+            updateStudentFeatherButtonUI();
+
+        } else if (data.type === 'DEAD_COUNT_SYNC') {
+            currentDeadTeammatesCount = data.deadCount;
+            myRaidFeathers = data.feathers;
+            updateStudentFeatherButtonUI();
+
+        } else if (data.type === 'FEATHER_UPDATED') {
+            myRaidFeathers = data.feathers;
+            updateStudentFeatherButtonUI();
+
+        } else if (data.type === 'REVIVED_BY_ALLY') {
+            myRaidHp = data.hp;
+            sfxFeatherRevive();
+            renderStudentRaidHpBar();
+            const playerEl = document.getElementById('player-sprite');
+            playerEl.style.filter = '';
+            playerEl.innerHTML = `${myRaidAvatar}<span class="shield-badge">✨</span>`;
+            document.getElementById('raid-word-mask-hint').innerHTML = `🪶 ${data.saviorName} 用鳳凰羽毛復活了你！`;
+
+        } else if (data.type === 'RAID_QUESTION') {
+            raidDifficulty = data.difficulty;
+            raidStudentCurrentQ = data;
+            raidStudentLocked = false;
+            usedGourdOnCurrentQ = false;
+            currentDeadTeammatesCount = data.deadCount || 0;
+
+            document.getElementById('progress-display').innerText = `第 ${data.qIndex} / ${data.totalQ} 題`;
+            document.getElementById('enemy-sprite').innerText = data.bossSprite || '👹';
+            document.getElementById('enemy-hp-ui').innerText = '🎯 瞄準魔鏡';
+
+            const hintEl = document.getElementById('hanzi-hint');
+            hintEl.innerText = '';
+            hintEl.style.display = 'none';
+
+            document.getElementById('raid-word-mask-hint').innerHTML = data.padMaskedHtml;
+
+            const enterBtn = document.getElementById('btn-enter');
+            enterBtn.classList.remove('locked-in');
+            enterBtn.innerHTML = `<div>實施咒語</div>`;
+            updateStudentFeatherButtonUI();
+
+            parsedAnswer = [data.targetSyllable];
+            resetInputBoxes();
+            playAudio(data.a);
+
+            startTimer(18, () => {
+                if (!raidStudentLocked) {
+                    let ok = (currentSyllableIndex === 1 &&
+                              inputBoxes[0] &&
+                              inputBoxes[0].base === parsedAnswer[0].base &&
+                              inputBoxes[0].tone === parsedAnswer[0].tone);
+                    submitRaidStudentSpell(ok);
+                }
+            });
+
+        } else if (data.type === 'RAID_RESULT') {
+            stopTimer();
+            raidStudentLocked = true;
+            myRaidHp = data.hp;
+            myRaidFeathers = data.feathers;
+            renderStudentRaidHpBar();
+            updateStudentFeatherButtonUI();
+
+            document.getElementById('score-display').innerText = `${myRaidAvatar} ${data.score}分`;
+            const playerEl = document.getElementById('player-sprite');
+            const enemyEl = document.getElementById('enemy-sprite');
+            const maskHint = document.getElementById('raid-word-mask-hint');
+
+            if (data.outcome === 'BOSS_STUNNED_SAFE' || data.outcome === 'DODGE_SAFE') {
+                sfxPlayerDodge();
+                playerEl.classList.add('player-dodge');
+                setTimeout(() => playerEl.classList.remove('player-dodge'), 650);
+                playerEl.innerHTML = `${myRaidAvatar}`;
+                const featherMsg = data.earnedFeather ? ' (🎉連對3題獲🪶鳳凰羽毛！)' : '';
+                maskHint.innerHTML = `<span style="color:#4ade80;">⭕ 咒語正確！${data.bossStunned ? '妖魔暈眩💫' : '完美閃避🏃‍♂️'}${featherMsg}</span>`;
+
+            } else if (data.outcome === 'PROTECTED_BY_TEAM') {
+                maskHint.innerHTML = `<span style="color:#fde047;">💫 隊友合力擊暈妖魔！保護你免受反擊 (正解: ${formatTailoDisplay(data.correctReveal)})</span>`;
+
+            } else if (data.outcome === 'SHIELD_BLOCK_HALF') {
+                sfxShieldBlock();
+                enemyEl.classList.add('enemy-attack');
+                setTimeout(() => enemyEl.classList.remove('enemy-attack'), 450);
+                playerEl.innerHTML = `${myRaidAvatar}<span class="sweat-drop">💦</span><span class="shield-badge">🛡️</span>`;
+                maskHint.innerHTML = `<span style="color:#fbbf24;">🛡️ 舉盾抵擋 (-0.5血)！開始冒汗💦 (正解: ${formatTailoDisplay(data.correctReveal)})</span>`;
+
+            } else if (data.outcome === 'SHIELD_BREAK_FULL') {
+                sfxShieldBreak();
+                enemyEl.classList.add('enemy-attack');
+                setTimeout(() => enemyEl.classList.remove('enemy-attack'), 450);
+                playerEl.classList.add('player-hit');
+                setTimeout(() => playerEl.classList.remove('player-hit'), 650);
+
+                if (myRaidHp <= 0) {
+                    playerEl.style.filter = 'grayscale(1) opacity(0.5)';
+                    playerEl.innerHTML = `👻<span class="shield-badge">💀</span>`;
+                    maskHint.innerHTML = `<span style="color:#ef4444;">💀 盾破陣亡！等待隊友使用🪶鳳凰羽毛救援...</span>`;
+                } else {
+                    playerEl.innerHTML = `${myRaidAvatar}<span class="sweat-drop">💦</span><span class="shield-badge">💥</span>`;
+                    maskHint.innerHTML = `<span style="color:#ef4444;">💥 連錯破盾 (-1.0血)！下題答對可修復護盾 (正解: ${formatTailoDisplay(data.correctReveal)})</span>`;
+                }
+            } else {
+                maskHint.innerHTML = `<span style="color:#94a3b8;">👻 靈魂助陣中... 等待隊友施展🪶鳳凰羽毛復活你！</span>`;
+            }
+        }
+    }
+</script>
+</body>
+</html>
