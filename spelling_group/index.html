@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 6.12)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 6.13)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -396,7 +396,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 6.12</div>
+<div id="version-tag">Ver 6.13</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -417,8 +417,8 @@
                 <p>輸入房號入陣・同齊施展除魔咒語</p>
             </div>
         </div>
-        <!-- ★ 更新為拍字盤 -->
-        <button class="info-open-btn" onclick="toggleInfoModal(true)">📖 團戰規則佮拍字盤紹介</button>
+        <!-- ★ 更新為團戰規則 -->
+        <button class="info-open-btn" onclick="toggleInfoModal(true)">📖 團戰規則</button>
         <div class="footer">
             <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
             <p class="copyright-text">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.</p>
@@ -474,11 +474,18 @@
             </div>
         </div>
         <div class="raid-teams-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-                <span style="font-size:18px; color:#cbd5e1; font-weight:bold;">👥 已集結除魔師 (<span id="raid-team-count" style="color:#4ade80;">0</span> 人)</span>
-                <span style="font-size:13.5px; color:#94a3b8;">💡 滑鼠移上或觸控點擊名牌可出現刪除線並移除玩家</span>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <div style="font-size:18px; color:#cbd5e1; font-weight:bold;">👥 已集結除魔師 (<span id="raid-team-count" style="color:#4ade80;">0</span> 人)</div>
+                    <div style="font-size:13.5px; color:#94a3b8; margin-top:4px;">💡 滑鼠移上或觸控點擊名牌可出現刪除線並移除玩家</div>
+                </div>
+                <div style="font-size:13px; color:#cbd5e1; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 8px; border: 1px dashed #4a5c88; line-height: 1.5;">
+                    <span style="color:#fde047; font-weight:bold;">【拍字盤(實體鍵盤)的操作】</span><br>
+                    1. 拍字盤的字母鍵對應字母輸入<br>
+                    2. <strong style="color:#fff;">Q鍵</strong> 對應播音、<strong style="color:#fff;">空白鍵</strong> 對應漢字救命丹、<strong style="color:#fff;">ctrl鍵</strong> 對應鳳凰羽毛、<strong style="color:#fff;">enter鍵</strong> 對應實施咒語
+                </div>
             </div>
-            <div id="raid-lobby-teams-list"></div>
+            <div id="raid-lobby-teams-list" style="margin-top:12px;"></div>
         </div>
     </div>
 
@@ -491,7 +498,7 @@
             </div>
             <div id="raid-hud-phase-msg" style="color:#fde047; font-weight:bold; font-size:19px;">🎧 斟酌聽音，準備施咒！</div>
             <div style="display:flex; align-items:center; gap:10px;">
-                <span id="raid-hud-locked-status" style="background:#334155; padding:3px 12px; border-radius:16px; font-size:14px;">已施咒: 0 / 0</span>
+                <span id="raid-hud-locked-status" style="background:#334155; padding:3px 12px; border-radius:16px; font-size:14px;">存活已施咒: 0 / 0</span>
                 <button class="info-open-btn" style="padding:3px 10px;" onclick="toggleSfx()">🔔 音效</button>
             </div>
         </div>
@@ -634,11 +641,11 @@
         <div id="keyboard"></div>
     </div>
 
-    <!-- 團戰規則介紹彈窗 (全面替換為您提供的新版台語規則) -->
+    <!-- 團戰規則介紹彈窗 -->
     <div id="info-modal" onclick="if(event.target === this) toggleInfoModal(false)">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>📖 團戰規則佮拍字盤紹介</h3>
+                <h3>📖 團戰規則</h3>
                 <button class="modal-close" onclick="toggleInfoModal(false)">✕</button>
             </div>
             <div class="modal-body">
@@ -685,7 +692,6 @@
 
     const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
     
-    // ★ 變更為 let，以利動態修改血量
     let RAID_BOSS_LIST = [
         { name: '暗夜密婆', sprite: '🦇', maxHp: 200, attack: '🎵' },
         { name: '劇毒青蛇', sprite: '🐍', maxHp: 400, attack: '💧' },
@@ -699,7 +705,7 @@
     let raidStudentCurrentQ = null;
     let raidStudentLocked = false;
 
-    // 學生平板輸入與救命丹狀態（★ validLetters 已徹底移除 'c'）
+    // 學生平板輸入與救命丹狀態
     let parsedAnswer = [];
     let inputBoxes = [];
     let currentSyllableIndex = 0;
@@ -859,7 +865,6 @@
     const subTone4 = `<div class="checked-tone-group">${getToneSvg(4, true)}${ptkhGridHtml}</div>`;
     const subTone8 = `<div class="checked-tone-group">${getToneSvg(8, true)}${ptkhGridHtml}</div>`;
 
-    // 判斷是否為咒術師仔難度 (是的話，聲調鍵盤會變金色，且按任意聲調皆可算對)
     function isCurrentSyllableToneChained() {
         return raidDifficulty === 'apprentice';
     }
@@ -980,7 +985,6 @@
 
         const row3 = document.createElement('div');
         row3.className = 'kb-row kb-row-3';
-        // 移除 C 鍵 (不在 validLetters，自動變暗鎖定)
         ['z','x','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k)));
         kbContainer.appendChild(row3);
     }
@@ -1043,7 +1047,7 @@
         const joinUrl = `${window.location.origin}${window.location.pathname}?raid=${raidRoomPin}`;
         const qrBox = document.getElementById('raid-qrcode-box');
         qrBox.innerHTML = '';
-        new QRCode(qrBox, { text: joinUrl, width: 110, height: 110 }); // 產生 110x110 的 QRCode 放在 130x130 的框內
+        new QRCode(qrBox, { text: joinUrl, width: 110, height: 110 }); 
 
         if (raidPeer) raidPeer.destroy();
         raidPeer = new Peer(`taigi-exorcist-${raidRoomPin}`);
@@ -1056,7 +1060,6 @@
         });
     }
 
-    // ★ 過濾重複名號與不雅字眼
     function filterStudentName(rawName) {
         let cleanName = rawName.trim().substring(0, 12);
         const badWords = ['幹', '靠北', '三字經', '垃圾'];
@@ -1074,10 +1077,10 @@
         return finalName;
     }
 
-    // ★ 創建隊伍：改用環狀極座標 (圍繞中心 50,50) 來初始化位置
+    // ★ 創建隊伍時新增 ghostCorrectCount 紀錄幽靈積陰德值
     function createRaidTeamObj(name, seatNo, padNo, avatar, conn, isBot) {
         const angle = Math.random() * Math.PI * 2;
-        const radius = 28 + Math.random() * 12; // 半徑 28% ~ 40% (圍繞中央怪物)
+        const radius = 28 + Math.random() * 12; 
         return {
             id: (isBot ? 'bot_' : 'p_') + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
             name: name,
@@ -1087,8 +1090,9 @@
             hp: 3.0,
             maxHp: 3.0,
             consecWrong: 0,
+            ghostCorrectCount: 0, 
             streak: 0,
-            feathers: 0, // 上限改為 1 根
+            feathers: 0, 
             score: 0,
             totalQ: 0,
             correctQ: 0,
@@ -1128,7 +1132,6 @@
         } else if (data.type === 'SUBMIT_SPELL') {
             const team = raidTeams.find(t => t.conn === conn);
             if (team && raidCurrentMatch && raidCurrentMatch.accepting) {
-                // 大屏上只改變頭像外框為實心圓，等待全體倒數結束再發射光束
                 const unitEl = document.getElementById(`raid-unit-${team.id}`);
                 if (unitEl) {
                     unitEl.classList.remove('unit-chanting');
@@ -1139,6 +1142,7 @@
             }
         } else if (data.type === 'USE_FEATHER') {
             const savior = raidTeams.find(t => t.conn === conn);
+            // 只有存活或擁有羽毛的玩家可使用 (幽靈若死前持有羽毛亦可用)
             if (savior && savior.feathers > 0) {
                 handleHostPhoenixFeatherRevive(savior);
             }
@@ -1186,63 +1190,6 @@
         });
     }
 
-    // 玩家發射光球的動畫 (大屏專用)
-    function triggerPlayerOrbToCenter(team) {
-        const layer = document.getElementById('raid-units-layer');
-        const unitEl = document.getElementById(`raid-unit-${team.id}`);
-        if (!unitEl) return;
-        
-        unitEl.classList.remove('unit-chanting');
-        unitEl.classList.add('unit-submitted');
-
-        const startX = team.x;
-        const startY = team.y;
-        const targetX = 50; // 射向畫面正中央
-        const targetY = 50; 
-
-        // 建立追蹤光球
-        const orb = document.createElement('div');
-        orb.className = 'raid-orb';
-        orb.style.left = `${startX}%`;
-        orb.style.top = `${startY}%`;
-        
-        layer.appendChild(orb);
-
-        // 使用 WAAPI 執行飛行與縮放動畫 (從玩家飛向中心)
-        const animation = orb.animate([
-            { left: `${startX}%`, top: `${startY}%`, transform: 'scale(1)', opacity: 1 },
-            { left: `${targetX}%`, top: `${targetY}%`, transform: 'scale(0.2)', opacity: 0.5 }
-        ], {
-            duration: 500,
-            easing: 'ease-in-out',
-            fill: 'forwards'
-        });
-
-        animation.onfinish = () => {
-            orb.remove();
-            // 在中央產生微小碰撞光芒
-            const hitFlash = document.createElement('div');
-            hitFlash.style.position = 'absolute';
-            hitFlash.style.left = '50%';
-            hitFlash.style.top = '50%';
-            hitFlash.style.width = '20px';
-            hitFlash.style.height = '20px';
-            hitFlash.style.background = '#00e5ff';
-            hitFlash.style.borderRadius = '50%';
-            hitFlash.style.transform = 'translate(-50%, -50%)';
-            hitFlash.style.boxShadow = '0 0 15px #fff';
-            hitFlash.style.zIndex = '6';
-            
-            hitFlash.animate([
-                { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
-                { transform: 'translate(-50%, -50%) scale(2)', opacity: 0 }
-            ], { duration: 250 });
-            
-            layer.appendChild(hitFlash);
-            setTimeout(() => hitFlash.remove(), 250);
-        };
-    }
-
     async function startRaidBattle() {
         if (raidSelectedLessons.length === 0) return alert("請至少選擇一課！");
         if (raidTeams.length < 1) return alert("請至少加入 1 組除魔師 (可點擊『➕ 加入AI隊友』測試)！");
@@ -1250,8 +1197,7 @@
         getSfxCtx();
         raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 25;
 
-        // ★ 依據選擇的題數，動態分配妖魔的最大血量
-        let hpConfig = [200, 400, 500, 650]; // 預設 25 題的血量
+        let hpConfig = [200, 400, 500, 650]; 
         if (raidTotalQuestions === 12) hpConfig = [100, 150, 250, 350];
         else if (raidTotalQuestions === 18) hpConfig = [150, 250, 350, 500];
 
@@ -1286,7 +1232,7 @@
         raidQuestionDeck = shuffleBank(rawCards);
 
         raidTeams.forEach(t => {
-            t.hp = 3.0; t.consecWrong = 0; t.streak = 0; t.feathers = 0;
+            t.hp = 3.0; t.consecWrong = 0; t.ghostCorrectCount = 0; t.streak = 0; t.feathers = 0;
             t.score = 0; t.totalQ = 0; t.correctQ = 0; t.submitTime = 0;
         });
         raidBossIdx = 0;
@@ -1344,7 +1290,12 @@
             if (t.hp <= 0) {
                 unit.classList.add('unit-dead');
                 avatarSpan.innerText = '👻';
-                statusSpan.innerText = '💀';
+                // 顯示幽靈陰德值
+                if (t.ghostCorrectCount > 0) {
+                    statusSpan.innerHTML = `<span style="color:#4ade80; font-weight:bold; font-size:14px; text-shadow:0 1px 2px #000;">+${t.ghostCorrectCount}</span>`;
+                } else {
+                    statusSpan.innerText = '💀';
+                }
             } else {
                 unit.classList.remove('unit-dead');
                 avatarSpan.innerText = t.avatar;
@@ -1354,19 +1305,14 @@
         broadcastDeadCountToStudents();
     }
 
-    // ★ 玩家小偶的「中心環繞漂浮」演算法
     function startRaidWanderingLoop() {
         if (raidWanderInterval) clearInterval(raidWanderInterval);
         raidWanderInterval = setInterval(() => {
             if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
             raidTeams.forEach(t => {
                 if (t.hp <= 0) return;
-                
-                // 角度緩慢漂移
                 t.baseAngle += (Math.random() * 0.4 - 0.2);
-                // 半徑在 25% ~ 42% 之間漂移 (不靠太近也不會超出螢幕)
                 t.baseRadius = Math.max(25, Math.min(42, t.baseRadius + (Math.random() * 4 - 2)));
-                
                 t.x = 50 + Math.cos(t.baseAngle) * t.baseRadius;
                 t.y = 50 + Math.sin(t.baseAngle) * t.baseRadius;
                 
@@ -1456,18 +1402,16 @@
             card, targetParsed, hostMaskedHtml, padMaskedHtml, fullRevealedHtml,
             submissions: {},
             accepting: true,
-            startTime: Date.now() // 紀錄出題時間，用於判斷 10 秒究極完美攻擊
+            startTime: Date.now() 
         };
 
         document.getElementById('raid-center-banner').style.display = 'none';
         document.getElementById('raid-boss-stun-stars').style.display = 'none';
         
-        // 清除上一題的施咒圓圈 (虛線/實心)
         document.querySelectorAll('.raid-unit').forEach(u => {
             u.classList.remove('unit-chanting', 'unit-submitted');
         });
 
-        // 依據主辦方選項決定是否顯示漢字
         const showHanzi = document.getElementById('raid-show-hanzi-toggle').checked;
         const hanziEl = document.getElementById('raid-host-hanzi');
         hanziEl.innerText = card.h;
@@ -1497,10 +1441,8 @@
             }
         });
 
-        // 大屏自動播音 (學生端不再自動播音)
         replayRaidAudio();
 
-        // AI 隊友模擬作答
         raidTeams.filter(t => t.isBot).forEach(bot => {
             setTimeout(() => {
                 if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
@@ -1511,17 +1453,12 @@
             setTimeout(() => {
                 if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
                 const botRight = (Math.random() < 0.78);
-                
-                // 為了讓 AI 有機會觸發 10 秒究極完美攻擊，將 AI 送出時間設為 4~9 秒
                 bot.submitTime = Date.now();
-                
-                // 大屏顯示 AI 已送出 (實心圓)
                 const unitEl = document.getElementById(`raid-unit-${bot.id}`);
                 if (unitEl) {
                     unitEl.classList.remove('unit-chanting');
                     unitEl.classList.add('unit-submitted');
                 }
-                
                 recordRaidTeamSpell(bot.id, botRight, false);
             }, 4000 + Math.random() * 5000);
         });
@@ -1550,6 +1487,7 @@
         audioPlayer.play().catch(() => {});
     }
 
+    // ★ 提早結算機制：僅判斷存活玩家是否全數送出
     function recordRaidTeamSpell(teamId, isCorrect, usedGourd) {
         if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
         if (raidCurrentMatch.submissions[teamId] !== undefined) return;
@@ -1559,8 +1497,11 @@
 
         updateRaidLockedCountUI();
 
-        const submittedCount = Object.keys(raidCurrentMatch.submissions).length;
-        if (submittedCount >= raidTeams.length) {
+        const aliveTeams = raidTeams.filter(t => t.hp > 0);
+        const submittedAliveCount = aliveTeams.filter(t => raidCurrentMatch.submissions[t.id]).length;
+        
+        // 若存活者皆已送出答案 (或場上無存活者)，立刻結束倒數並結算
+        if (submittedAliveCount >= aliveTeams.length || aliveTeams.length === 0) {
             clearInterval(raidHostTimer);
             setTimeout(resolveRaidRound, 500);
         }
@@ -1568,18 +1509,29 @@
 
     function updateRaidLockedCountUI() {
         if (!raidCurrentMatch) return;
-        const submittedCount = Object.keys(raidCurrentMatch.submissions).length;
-        document.getElementById('raid-hud-locked-status').innerText = `已施咒: ${submittedCount} / ${raidTeams.length}`;
+        const aliveTeams = raidTeams.filter(t => t.hp > 0);
+        const submittedAliveCount = aliveTeams.filter(t => raidCurrentMatch.submissions[t.id]).length;
+        document.getElementById('raid-hud-locked-status').innerText = `存活已施咒: ${submittedAliveCount} / ${aliveTeams.length}`;
     }
 
+    // ★ 加權復活機制：依據幽靈的陰德值(ghostCorrectCount)加權抽獎
     function handleHostPhoenixFeatherRevive(savior) {
         const deadList = raidTeams.filter(t => t.hp <= 0);
         if (deadList.length === 0) return;
 
         savior.feathers--;
-        const luckyTarget = deadList[Math.floor(Math.random() * deadList.length)];
+        
+        let pool = [];
+        deadList.forEach(d => {
+            // 基本1張籤 + 答對題數額外加籤
+            let weight = 1 + d.ghostCorrectCount;
+            for (let i = 0; i < weight; i++) pool.push(d);
+        });
+        
+        const luckyTarget = pool[Math.floor(Math.random() * pool.length)];
         luckyTarget.hp = 0.5;
         luckyTarget.consecWrong = 0;
+        luckyTarget.ghostCorrectCount = 0;
 
         sfxFeatherRevive();
         updateRaidArmyUnitsVisual();
@@ -1611,7 +1563,6 @@
         });
     }
 
-    // ★ 開獎結算：全體同步發射光球 -> 中心大爆炸 -> 結算傷害與回血
     function resolveRaidRound() {
         if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
         raidCurrentMatch.accepting = false;
@@ -1634,11 +1585,11 @@
             if (gotRight) {
                 t.correctQ++;
                 if (t.hp > 0) correctActiveCount++;
+                else t.ghostCorrectCount++; // 幽靈答對積陰德
             } else {
-                wrongTotalThisQ++;
+                if (t.hp > 0) wrongTotalThisQ++;
             }
             
-            // 判斷是否所有「存活玩家」皆在 10 秒內送出 (包含沒送出的情況)
             if (t.hp > 0) {
                 if (!sub || (t.submitTime - raidCurrentMatch.startTime > 10000)) {
                     allAliveWithin10s = false;
@@ -1646,9 +1597,9 @@
             }
         });
 
+        // 攻擊力完全由活人決定
         const accuracyPct = aliveCount > 0 ? Math.round((correctActiveCount / aliveCount) * 100) : 0;
 
-        // ★ 完美攻擊與究極完美攻擊判定 (必須【超過】半數玩家存活才能觸發)
         let canTriggerPerfect = (aliveCount > (totalCount / 2)) && (totalCount > 0);
         let isPerfect = (accuracyPct === 100 && canTriggerPerfect);
         let isUltimate = (isPerfect && allAliveWithin10s);
@@ -1661,13 +1612,13 @@
             wrongCount: wrongTotalThisQ
         });
 
-        // 1. 同步發射光球動畫 (從所有答對的玩家飛向中央)
         const refractLayer = document.getElementById('raid-refract-layer');
         refractLayer.innerHTML = '';
         
         let hasCorrect = false;
         raidTeams.forEach(t => {
             const sub = raidCurrentMatch.submissions[t.id];
+            // 只有存活玩家發射光球
             if (t.hp > 0 && sub && sub.isCorrect) {
                 hasCorrect = true;
                 const orb = document.createElement('div');
@@ -1681,11 +1632,9 @@
             }
         });
 
-        // 2. 等待 400ms 光球抵達中央後，引發爆炸並結算
         setTimeout(() => {
-            refractLayer.innerHTML = ''; // 清除飛行中的光球
+            refractLayer.innerHTML = ''; 
 
-            // 產生中心巨型爆炸特效 (5+1階段)
             if (hasCorrect || accuracyPct > 0) {
                 const explosion = document.createElement('div');
                 explosion.className = 'boss-explosion';
@@ -1696,9 +1645,8 @@
                 else if (accuracyPct >= 50) explosion.classList.add('tier-50');
                 else explosion.classList.add('tier-low');
                 refractLayer.appendChild(explosion);
-                setTimeout(() => explosion.remove(), 1200); // 動畫結束後移除
+                setTimeout(() => explosion.remove(), 1200); 
                 
-                // 浮現攻擊力數值
                 const dmgText = document.createElement('div');
                 dmgText.className = 'damage-popup';
                 dmgText.innerText = `💥 攻擊力 ${accuracyPct}%`;
@@ -1719,9 +1667,7 @@
                 confetti({ particleCount: 110, spread: 80, origin: { y: 0.5 } });
             }
 
-            // ★ 真實比例傷害：答對率就是傷害值 (移除舊版強制 100 傷害補底)
             let bossDamage = accuracyPct;
-
             const bossStunned = (accuracyPct >= 70);
             const bossSpriteEl = document.getElementById('raid-boss-sprite');
 
@@ -1733,7 +1679,6 @@
                 sfxError();
             }
 
-            // 更新妖魔血量與狀態
             if (raidAllBossesCleared) {
                 if (bossDamage > 0) sfxCoin();
             } else {
@@ -1761,7 +1706,7 @@
                 setTimeout(() => bossSpriteEl.classList.remove('enemy-attack'), 450);
             }
 
-            // 3. 結算每位玩家的防禦、扣血與補血
+            // 結算每位玩家的狀態
             raidTeams.forEach(t => {
                 const sub = raidCurrentMatch.submissions[t.id];
                 const gotRight = Boolean(sub && sub.isCorrect);
@@ -1771,18 +1716,18 @@
                 let outcome = 'DEAD_SPECTATE';
                 let earnedFeather = false;
 
-                // 處理究極/完美補血機制 (補 0.5 滴血)
                 if (isUltimate) {
                     if (!wasAlive) {
-                        t.hp = 0.5; // 陣亡者以半滴血復活
+                        t.hp = 0.5; 
                         t.consecWrong = 0;
+                        t.ghostCorrectCount = 0; // 復活清空陰德
                         outcome = 'ULTIMATE_REVIVED';
                     } else {
                         t.hp = Math.min(t.maxHp, t.hp + 0.5);
                     }
                 } else if (isPerfect) {
                     if (wasAlive) {
-                        t.hp = Math.min(t.maxHp, t.hp + 0.5); // 存活者補半滴血
+                        t.hp = Math.min(t.maxHp, t.hp + 0.5); 
                     }
                 }
 
@@ -1795,7 +1740,6 @@
 
                         t.consecWrong = 0;
                         t.streak++;
-                        // 連對3題且羽毛不超過1根
                         if (t.streak > 0 && t.streak % 3 === 0 && t.feathers < 1) {
                             t.feathers++;
                             earnedFeather = true;
@@ -1820,6 +1764,17 @@
                             }
                         }
                     }
+                } else {
+                    // ★ 幽靈結算邏輯
+                    if (gotRight) {
+                        let pts = usedGourd ? 10 : 20;
+                        if (accuracyPct === 100) pts += 10;
+                        if (raidAllBossesCleared) pts += 10;
+                        t.score += pts;
+                        if (outcome !== 'ULTIMATE_REVIVED') {
+                            outcome = 'GHOST_CORRECT';
+                        }
+                    }
                 }
 
                 const unitEl = document.getElementById(`raid-unit-${t.id}`);
@@ -1832,9 +1787,12 @@
                     } else if (isPerfect && wasAlive) {
                         unitEl.classList.add('flash-gold');
                         setTimeout(() => unitEl.classList.remove('flash-gold'), 1000);
+                    } else if (!wasAlive && gotRight && outcome === 'GHOST_CORRECT') {
+                        // 幽靈閃光
+                        unitEl.classList.add('flash-gold');
+                        setTimeout(() => unitEl.classList.remove('flash-gold'), 1500);
                     }
 
-                    // 只有在受到攻擊(怪物未被擊暈)且答對時，才會跳起閃避
                     if (gotRight && wasAlive && !bossStunned) {
                         unitEl.classList.add('player-dodge');
                         setTimeout(() => unitEl.classList.remove('player-dodge'), 600);
@@ -1854,6 +1812,7 @@
                         hp: t.hp,
                         consecWrong: t.consecWrong,
                         feathers: t.feathers,
+                        ghostCorrectCount: t.ghostCorrectCount, // 傳送陰德值給平板
                         earnedFeather: earnedFeather,
                         score: t.score,
                         isPerfect: isPerfect,
@@ -1866,7 +1825,7 @@
             updateRaidArmyUnitsVisual();
             renderRaidLiveScoreboard();
 
-        }, 400); // 等待 400ms 讓光球飛到中央
+        }, 400); 
 
         setTimeout(() => {
             raidCurrentQIdx++;
@@ -2083,14 +2042,12 @@
     }
 
     function updateDisplay() {
-        // 抓取新的行內輸入框容器
         const container = document.getElementById('inline-boxes-container') || document.getElementById('syllable-boxes-container');
         if (!container) return;
         container.innerHTML = '';
 
         for (let i = 0; i < parsedAnswer.length; i++) {
             const box = document.createElement('div');
-            // 加入行內輸入框的專屬 class
             box.className = 'syllable-box inline-box';
             if (i < currentSyllableIndex) {
                 box.innerHTML = applyToneToSyllable(inputBoxes[i].base, inputBoxes[i].tone);
@@ -2108,7 +2065,6 @@
 
         const playerWrapper = document.getElementById('player-wrapper');
         if (playerWrapper) {
-            // 平板端輸入回饋：打字時顯示藍色虛線圓圈
             playerWrapper.classList.toggle('chanting', currentSyllableIndex > 0 || typedBase.length > 0);
         }
     }
@@ -2157,10 +2113,12 @@
         document.getElementById('timer-container').style.display = 'none';
     }
 
+    // ★ 新增 Ctrl 鍵監聽
     window.addEventListener('keydown', e => {
         if (document.getElementById('game-screen').style.display === 'flex') {
             if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); useGourd(); return; }
             const k = e.key.toLowerCase();
+            if (k === 'control') { e.preventDefault(); triggerStudentUseFeather(); return; }
             if (k === 'q') { e.preventDefault(); playAudio(); }
             else if (k === 'enter') handleInput('Enter');
             else if (k === 'backspace') handleInput('Backspace');
@@ -2203,7 +2161,6 @@
         }
     }
 
-    // ★ 學生平板發射法術光束
     function submitRaidStudentSpell(isCorrect) {
         if (raidStudentLocked) return;
         raidStudentLocked = true;
@@ -2213,21 +2170,19 @@
         enterBtn.classList.add('locked-in');
         enterBtn.innerHTML = `<div>✅ 已傳送法力</div>`;
 
-        // 平板端輸入回饋：送出咒語後變成實心圓圈
         const playerWrapper = document.getElementById('player-wrapper');
         playerWrapper.classList.remove('chanting');
         playerWrapper.classList.add('submitted');
 
-        // 平板端發射向敵人的光束動畫
-        const arena = document.getElementById('rpg-arena');
-        const beam = document.createElement('div');
-        beam.className = 'pad-beam-to-enemy';
-        arena.appendChild(beam);
-        sfxEnemyHit(); 
-        
-        setTimeout(() => {
-            beam.remove();
-        }, 400);
+        // 活著的玩家才發射光束
+        if (myRaidHp > 0) {
+            const arena = document.getElementById('rpg-arena');
+            const beam = document.createElement('div');
+            beam.className = 'pad-beam-to-enemy';
+            arena.appendChild(beam);
+            sfxEnemyHit(); 
+            setTimeout(() => { beam.remove(); }, 400);
+        }
 
         if (studentHostConn && studentHostConn.open) {
             studentHostConn.send({
@@ -2282,8 +2237,6 @@
             const playerEl = document.getElementById('player-sprite');
             playerEl.style.filter = '';
             playerEl.innerHTML = `${myRaidAvatar}<span class="shield-badge">✨</span>`;
-            
-            // 遵照指示：不添加額外的解釋性文字，保留最簡潔的通知
             document.getElementById('raid-word-mask-hint').innerHTML = `🪶 ${data.saviorName} 復活了你！`;
 
         } else if (data.type === 'RAID_QUESTION') {
@@ -2293,7 +2246,6 @@
             usedGourdOnCurrentQ = false;
             currentDeadTeammatesCount = data.deadCount || 0;
 
-            // 清除上一題的實心圓圈
             const playerWrapper = document.getElementById('player-wrapper');
             playerWrapper.classList.remove('chanting', 'submitted');
 
@@ -2305,7 +2257,6 @@
             hintEl.innerText = '';
             hintEl.style.display = 'none';
 
-            // ★ 將底線的 blank-slot 替換為行內輸入框的容器
             let inlineHTML = data.padMaskedHtml.replace(
                 '<span class="blank-slot-inline"></span>',
                 '<span id="inline-boxes-container" class="inline-input-container"></span>'
@@ -2345,7 +2296,6 @@
             if (data.isUltimate) {
                 playerEl.classList.add('flash-ultimate');
                 setTimeout(() => playerEl.classList.remove('flash-ultimate'), 1500);
-                // 遵照指示：不添加額外的解釋性文字，保留最簡潔的通知
                 maskHint.innerHTML = `<span style="color:#c084fc;">🌟 究極完美攻擊！</span>`;
                 if (data.hp > 0 && data.outcome === 'ULTIMATE_REVIVED') {
                     playerEl.style.filter = '';
@@ -2354,22 +2304,17 @@
             } else if (data.isPerfect) {
                 playerEl.classList.add('flash-gold');
                 setTimeout(() => playerEl.classList.remove('flash-gold'), 1000);
-                // 遵照指示：不添加額外的解釋性文字，保留最簡潔的通知
                 maskHint.innerHTML = `<span style="color:#fde047;">✨ 完美攻擊！</span>`;
             } else if (data.outcome === 'BOSS_STUNNED_SAFE' || data.outcome === 'DODGE_SAFE' || data.outcome === 'PERFECT_HEAL' || data.outcome === 'ULTIMATE_HEAL') {
-                
-                // 只有在怪物反擊(未暈眩)且玩家答對時，才會跳躍閃躲 (修復過度跳躍的bug)
                 if (data.outcome === 'DODGE_SAFE') {
                     sfxPlayerDodge();
                     playerEl.classList.add('player-dodge');
                     setTimeout(() => playerEl.classList.remove('player-dodge'), 650);
                 } 
-                // 遵照指示：保留純淨的過關顯示 (顯示拼音即可，不額外加囉嗦文字)
                 maskHint.innerHTML = `<span style="color:#4ade80;">${formatTailoDisplay(data.correctReveal)}</span>`;
                 playerEl.innerHTML = `${myRaidAvatar}`;
 
             } else if (data.outcome === 'PROTECTED_BY_TEAM') {
-                // 遵照指示：保留純淨的過關顯示
                 maskHint.innerHTML = `<span style="color:#fde047;">${formatTailoDisplay(data.correctReveal)}</span>`;
 
             } else if (data.outcome === 'SHIELD_BLOCK_HALF') {
@@ -2390,9 +2335,22 @@
                     playerEl.innerHTML = `${myRaidAvatar}<span class="sweat-drop">💦</span><span class="shield-badge">💥</span>`;
                     maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`;
                 }
+            } else if (data.outcome === 'GHOST_CORRECT') {
+                // ★ 幽靈積陰德：閃光、顯示加分、顯示綠色正解
+                playerEl.classList.add('flash-gold');
+                setTimeout(() => playerEl.classList.remove('flash-gold'), 1500);
+                playerEl.style.filter = 'grayscale(1) opacity(0.8)';
+                playerEl.innerHTML = `👻<span class="shield-badge" style="color:#4ade80; text-shadow:0 1px 2px #000;">+${data.ghostCorrectCount}</span>`;
+                maskHint.innerHTML = `<span style="color:#4ade80;">${formatTailoDisplay(data.correctReveal)}</span>`;
             } else {
-                // 陣亡者的純淨顯示
-                maskHint.innerHTML = `<span style="color:#94a3b8;">👻</span>`;
+                // 陣亡且未答對/未作答
+                playerEl.style.filter = 'grayscale(1) opacity(0.5)';
+                if (data.ghostCorrectCount > 0) {
+                    playerEl.innerHTML = `👻<span class="shield-badge" style="color:#4ade80; text-shadow:0 1px 2px #000;">+${data.ghostCorrectCount}</span>`;
+                } else {
+                    playerEl.innerHTML = `👻<span class="shield-badge">💀</span>`;
+                }
+                maskHint.innerHTML = `<span style="color:#94a3b8;">${formatTailoDisplay(data.correctReveal)}</span>`;
             }
         }
     }
