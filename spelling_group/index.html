@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 6.9)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 6.10)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -261,7 +261,6 @@
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
         #hanzi-hint { font-size: 28px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; display: none; }
         
-        /* 修改：移除平板端題目列的外框與底色，並調整字體大小對齊與高度 */
         #raid-word-mask-hint { 
             font-size: 28px; color: #fff; font-weight: bold; background: transparent; 
             border: none; padding: 4px 8px; letter-spacing: 1px; 
@@ -272,7 +271,6 @@
             vertical-align: middle; position: relative; top: -2px; margin: 0 6px; 
         }
         
-        /* 行內輸入框專屬樣式加大 */
         .syllable-box.inline-box { 
             min-width: 75px; height: 1.6em; padding: 0 10px; background: rgba(0, 0, 0, 0.6); 
             border: 2px solid #4a5c88; border-radius: 10px; color: #fff; 
@@ -286,7 +284,6 @@
 
         #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0;}
         
-        /* 平板端玩家頭像與光圈 */
         #player-wrapper { position: relative; display: flex; align-items: flex-end; justify-content: center; z-index: 2; }
         #player-wrapper::before {
             content: ''; position: absolute; width: 70px; height: 70px; bottom: -5px; left: 50%;
@@ -306,7 +303,6 @@
         #enemy-hp-ui { font-size: 12px; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; }
         #enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
 
-        /* 平板端發射向敵人的光束 (動畫) */
         .pad-beam-to-enemy {
             position: absolute; left: 80px; bottom: 35px; width: calc(100% - 140px); height: 6px;
             background: linear-gradient(90deg, transparent, #00e5ff, #fff);
@@ -340,7 +336,6 @@
         .key-enter:active { background: #fff !important; transform: scale(0.95); }
         .key-enter.locked-in { background: #059669 !important; border-color: #34d399 !important; color: #fff !important; pointer-events: none; }
 
-        /* 虛擬鍵盤 (C鍵移除後會變暗色) */
         #keyboard { display: flex; flex-direction: column; gap: 6px; width: 100%; flex-shrink: 0; padding-bottom: 6px; }
         .kb-row { display: flex; justify-content: center; gap: 5px; width: 100%; }
         .tone-keys-group { position: relative; display: flex; flex: 8.6; gap: 5px; }
@@ -401,7 +396,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 6.9</div>
+<div id="version-tag">Ver 6.10</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -422,7 +417,8 @@
                 <p>輸入房號入陣・同齊施展除魔咒語</p>
             </div>
         </div>
-        <button class="info-open-btn" onclick="toggleInfoModal(true)">📖 團戰規則佮鍵盤紹介</button>
+        <!-- ★ 更新為拍字盤 -->
+        <button class="info-open-btn" onclick="toggleInfoModal(true)">📖 團戰規則佮拍字盤紹介</button>
         <div class="footer">
             <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
             <p class="copyright-text">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.</p>
@@ -514,7 +510,7 @@
 
                 <!-- 中央：巨型妖魔區 -->
                 <div id="raid-boss-center-zone">
-                    <div class="boss-stage-tag" id="raid-boss-name-tag">暗夜蝙蝠</div>
+                    <div class="boss-stage-tag" id="raid-boss-name-tag">暗夜密婆</div>
                     <div class="boss-hp-bar-outer">
                         <div id="raid-boss-hp-fill"></div>
                     </div>
@@ -634,25 +630,31 @@
         <div id="keyboard"></div>
     </div>
 
-    <!-- 團戰規則介紹彈窗 -->
+    <!-- 團戰規則介紹彈窗 (全面替換為您提供的新版台語規則) -->
     <div id="info-modal" onclick="if(event.target === this) toggleInfoModal(false)">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>📖 團戰規則佮鍵盤紹介</h3>
+                <h3>📖 團戰規則佮拍字盤紹介</h3>
                 <button class="modal-close" onclick="toggleInfoModal(false)">✕</button>
             </div>
             <div class="modal-body">
                 <div class="modal-section">
-                    <strong>1. 中心包圍與 70% 擊暈門檻：</strong><br>
-                    每題限時 18 秒。全班將從四面八方朝中央妖魔投擲法力！若答對率達 <strong style="color:#ffd700;">70% 以上</strong>，妖魔會暈眩無法反擊；存活人數過半且達 <strong style="color:#ffd700;">100%</strong> 將觸發完美攻擊，存活者補半血！若 10 秒內達成 100%，觸發「究極完美攻擊」，陣亡者亦半血復活！
+                    <strong style="color:#ffd700; font-size:15px;">1. 攻擊鋩角：</strong><br>
+                    (1)每擺實施咒語限制 18 秒，每一位除魔師攏有3滴血。<br>
+                    (2)正確率就是攻擊力。第一關的暗夜密婆，血量是1滴血，嘛會使看做100HP。若存活的除魔師咒語正確率100%，按呢一擺的攻擊就會使攻克暗夜密婆。若正確率是70%，按呢就是100%-70%=30%，暗夜密婆猶閣賰30%的血量。<br>
+                    (3)若存活的除魔師，咒語正確率70%以上，妖魔會昏去，無法度反擊。<br>
+                    (4)若存活的除魔師有超過參戰除魔師的半數，而且咒語正確率是100%，按呢就會使發動「完美攻擊」，這時，存活的除魔師會補半滴血。<br>
+                    (5)若存活的除魔師有超過參戰除魔師的半數，而且毋但咒語正確率是100%，存活的除魔師閣攏佇10秒以內就實施咒語，按呢就會使發動「究極完美攻擊」。發動究極完美攻擊的時，毋但存活的除魔師攏補半滴血，陣亡者也會使以半滴血回魂。<br>
+                    <span style="color:#94a3b8; font-size:12px;">※正確率的算法：存活的除魔師正確施咒的比例。譬論講，有10位存活的除魔師，其中有7位的咒語是正確的，按呢正確率就是70%。<br>
+                    ※第一關的暗夜密婆是1滴血，為著遊戲的趣味性，賰的妖魔血量無公開數據，請看血條來體會遊戲。</span>
                 </div>
                 <div class="modal-section">
-                    <strong>2. 妖魔反擊與護盾機制：</strong><br>
-                    若答對率在 69% 以下，妖魔發動反擊：該題<strong style="color:#4ade80;">答對者閃避不扣血</strong>；答錯者舉盾扣 0.5 血並冒汗；連錯 2 題破盾扣 1 血！下一題答對即可修復護盾。
+                    <strong style="color:#ffd700; font-size:15px;">2. 妖魔反擊佮扣血方式：</strong><br>
+                    每一个除魔師攏有3滴血。若正確率佇69% 以下，妖魔會發動反擊。若是實施正確咒語的，會閃避攻擊，無扣血。若是咒語無正確的，會攑盾牌扣 0.5滴血而且開始流凊汗；連紲 2 擺的咒語攏毋著，按呢盾牌會破碎去，扣 1滴血。盾牌破碎去了後，下一題會自動恢復。
                 </div>
-                <div class="modal-section">
-                    <strong>3. 🪶 鳳凰羽毛救援：</strong><br>
-                    每連續答對 3 題獲得 1 根鳳凰羽毛 (上限 1 根)。當有隊友陣亡時可點擊使用，隨機復活一名隊友恢復半滴血！
+                <div class="modal-section" style="border-bottom:none;">
+                    <strong style="color:#ffd700; font-size:15px;">3. 🪶 鳳凰羽毛：</strong><br>
+                    連紲三擺正確施咒，就會使得著1枝鳳凰羽毛 (上限 1 枝)。使用鳳凰羽毛會使隨機回魂一名陣亡的除魔師。回魂的除魔師會得著半滴血。
                 </div>
             </div>
         </div>
@@ -679,9 +681,9 @@
 
     const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
     
-    // 已移除「第X關：」文字，僅保留怪物名稱
+    // ★ 已將第一關正名為「暗夜密婆」
     const RAID_BOSS_LIST = [
-        { name: '暗夜蝙蝠', sprite: '🦇', maxHp: 100, attack: '🎵' },
+        { name: '暗夜密婆', sprite: '🦇', maxHp: 100, attack: '🎵' },
         { name: '劇毒青蛇', sprite: '🐍', maxHp: 200, attack: '💧' },
         { name: '魔窟妖蛛', sprite: '🕷️', maxHp: 300, attack: '🕸️' },
         { name: '赤焰紅鬼', sprite: '👹', maxHp: 400, attack: '🔥' }
@@ -1632,8 +1634,8 @@
 
         const accuracyPct = aliveCount > 0 ? Math.round((correctActiveCount / aliveCount) * 100) : 0;
 
-        // ★ 完美攻擊與究極完美攻擊判定 (必須過半數玩家存活才能觸發)
-        let canTriggerPerfect = (aliveCount >= (totalCount / 2)) && (totalCount > 0);
+        // ★ 完美攻擊與究極完美攻擊判定 (必須【超過】半數玩家存活才能觸發)
+        let canTriggerPerfect = (aliveCount > (totalCount / 2)) && (totalCount > 0);
         let isPerfect = (accuracyPct === 100 && canTriggerPerfect);
         let isUltimate = (isPerfect && allAliveWithin10s);
 
@@ -1703,9 +1705,8 @@
                 confetti({ particleCount: 110, spread: 80, origin: { y: 0.5 } });
             }
 
+            // ★ 真實比例傷害：答對率就是傷害值 (移除舊版強制 100 傷害補底)
             let bossDamage = accuracyPct;
-            if (accuracyPct === 100) bossDamage = 130;
-            else if (accuracyPct >= 70) bossDamage = Math.max(100, Math.round(accuracyPct * 1.15));
 
             const bossStunned = (accuracyPct >= 70);
             const bossSpriteEl = document.getElementById('raid-boss-sprite');
@@ -1756,7 +1757,7 @@
                 let outcome = 'DEAD_SPECTATE';
                 let earnedFeather = false;
 
-                // 處理究極/完美補血機制
+                // 處理究極/完美補血機制 (補 0.5 滴血)
                 if (isUltimate) {
                     if (!wasAlive) {
                         t.hp = 0.5; // 陣亡者以半滴血復活
@@ -2267,6 +2268,8 @@
             const playerEl = document.getElementById('player-sprite');
             playerEl.style.filter = '';
             playerEl.innerHTML = `${myRaidAvatar}<span class="shield-badge">✨</span>`;
+            
+            // 遵照指示：不添加額外的解釋性文字，保留最簡潔的通知
             document.getElementById('raid-word-mask-hint').innerHTML = `🪶 ${data.saviorName} 復活了你！`;
 
         } else if (data.type === 'RAID_QUESTION') {
@@ -2325,12 +2328,11 @@
             const playerEl = document.getElementById('player-sprite');
             const maskHint = document.getElementById('raid-word-mask-hint');
 
-            let featherMsg = data.earnedFeather ? ' (🎉獲🪶鳳凰羽毛！)' : '';
-
             if (data.isUltimate) {
                 playerEl.classList.add('flash-ultimate');
                 setTimeout(() => playerEl.classList.remove('flash-ultimate'), 1500);
-                maskHint.innerHTML = `<span style="color:#c084fc;">🌟 究極完美攻擊！陣亡者以半血復活！</span>`;
+                // 遵照指示：不添加額外的解釋性文字，保留最簡潔的通知
+                maskHint.innerHTML = `<span style="color:#c084fc;">🌟 究極完美攻擊！</span>`;
                 if (data.hp > 0 && data.outcome === 'ULTIMATE_REVIVED') {
                     playerEl.style.filter = '';
                     playerEl.innerHTML = `${myRaidAvatar}<span class="shield-badge">✨</span>`;
@@ -2338,7 +2340,8 @@
             } else if (data.isPerfect) {
                 playerEl.classList.add('flash-gold');
                 setTimeout(() => playerEl.classList.remove('flash-gold'), 1000);
-                maskHint.innerHTML = `<span style="color:#fde047;">✨ 完美攻擊！全軍恢復半滴血！</span>`;
+                // 遵照指示：不添加額外的解釋性文字，保留最簡潔的通知
+                maskHint.innerHTML = `<span style="color:#fde047;">✨ 完美攻擊！</span>`;
             } else if (data.outcome === 'BOSS_STUNNED_SAFE' || data.outcome === 'DODGE_SAFE' || data.outcome === 'PERFECT_HEAL' || data.outcome === 'ULTIMATE_HEAL') {
                 
                 // 只有在怪物反擊(未暈眩)且玩家答對時，才會跳躍閃躲 (修復過度跳躍的bug)
@@ -2346,19 +2349,19 @@
                     sfxPlayerDodge();
                     playerEl.classList.add('player-dodge');
                     setTimeout(() => playerEl.classList.remove('player-dodge'), 650);
-                    maskHint.innerHTML = `<span style="color:#4ade80;">⭕ 咒語正確！完美閃避🏃‍♂️${featherMsg}</span>`;
-                } else {
-                    maskHint.innerHTML = `<span style="color:#4ade80;">⭕ 咒語正確！妖魔暈眩💫${featherMsg}</span>`;
-                }
+                } 
+                // 遵照指示：保留純淨的過關顯示 (顯示拼音即可，不額外加囉嗦文字)
+                maskHint.innerHTML = `<span style="color:#4ade80;">${formatTailoDisplay(data.correctReveal)}</span>`;
                 playerEl.innerHTML = `${myRaidAvatar}`;
 
             } else if (data.outcome === 'PROTECTED_BY_TEAM') {
-                maskHint.innerHTML = `<span style="color:#fde047;">💫 隊友合力擊暈妖魔！保護你免受反擊 (正解: ${formatTailoDisplay(data.correctReveal)})</span>`;
+                // 遵照指示：保留純淨的過關顯示
+                maskHint.innerHTML = `<span style="color:#fde047;">${formatTailoDisplay(data.correctReveal)}</span>`;
 
             } else if (data.outcome === 'SHIELD_BLOCK_HALF') {
                 sfxShieldBlock();
                 playerEl.innerHTML = `${myRaidAvatar}<span class="sweat-drop">💦</span><span class="shield-badge">🛡️</span>`;
-                maskHint.innerHTML = `<span style="color:#fbbf24;">🛡️ 舉盾抵擋，開始冒汗💦 (正解: ${formatTailoDisplay(data.correctReveal)})</span>`;
+                maskHint.innerHTML = `<span style="color:#fbbf24;">${formatTailoDisplay(data.correctReveal)}</span>`;
 
             } else if (data.outcome === 'SHIELD_BREAK_FULL') {
                 sfxShieldBreak();
@@ -2368,13 +2371,14 @@
                 if (myRaidHp <= 0) {
                     playerEl.style.filter = 'grayscale(1) opacity(0.5)';
                     playerEl.innerHTML = `👻<span class="shield-badge">💀</span>`;
-                    maskHint.innerHTML = `<span style="color:#ef4444;">💀 陣亡！等待隊友使用🪶羽毛救援...</span>`;
+                    maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`;
                 } else {
                     playerEl.innerHTML = `${myRaidAvatar}<span class="sweat-drop">💦</span><span class="shield-badge">💥</span>`;
-                    maskHint.innerHTML = `<span style="color:#ef4444;">💥 破盾受傷 (正解: ${formatTailoDisplay(data.correctReveal)})</span>`;
+                    maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`;
                 }
             } else {
-                maskHint.innerHTML = `<span style="color:#94a3b8;">👻 靈魂助陣中... 等待隊友施展🪶羽毛復活你！</span>`;
+                // 陣亡者的純淨顯示
+                maskHint.innerHTML = `<span style="color:#94a3b8;">👻</span>`;
             }
         }
     }
