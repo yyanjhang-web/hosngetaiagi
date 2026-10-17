@@ -52,6 +52,9 @@
         .role-card h2 { font-size: 25px; margin: 0 0 8px 0; color: #fff; }
         .role-card p { font-size: 15px; color: #94a3b8; margin: 0; line-height: 1.4; }
 
+        .info-open-btn { padding: 7px 18px; background: #2a3654; color: #ffd700; border: 1.5px solid #ffd700; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.2s; }
+        .info-open-btn:active { transform: scale(0.95); }
+
         .footer { margin-top: auto; padding-top: 8px; text-align: center; width: 100%; font-size: 11px; color: rgba(255, 255, 255, 0.42); line-height: 1.35; flex-shrink: 0; }
         .footer p { margin: 0; }
 
@@ -61,7 +64,7 @@
         .raid-lobby-top { display: flex; gap: 18px; width: 100%; max-width: 1180px; align-items: stretch; flex-wrap: wrap; margin-bottom: 12px; }
         .raid-pin-card { flex: 0.95; min-width: 280px; background: #1c2541; border: 3px solid #fde047; border-radius: 16px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-around; gap: 14px; box-shadow: 0 0 20px rgba(253, 224, 71, 0.2); }
         .raid-pin-num { font-size: clamp(42px, 4.8vw, 62px); font-weight: bold; color: #fde047; letter-spacing: 5px; line-height: 1.1; text-shadow: 0 0 15px rgba(253, 224, 71, 0.5); }
-        #raid-qrcode-box { background: #fff; padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; min-width: 108px; min-height: 108px; }
+        #raid-qrcode-box { background: #fff; padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center; width: 108px; height: 108px; }
 
         .raid-config-card { flex: 1.6; min-width: 340px; background: #1c2541; border: 2px solid #00e5ff; border-radius: 16px; padding: 12px 18px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
         .lesson-btn { padding: 5px 11px; background: #2a3654; color: #fff; border: 1.5px solid #4a5c88; border-radius: 7px; font-size: 14px; cursor: pointer; transition: 0.15s; font-family: inherit; font-weight: bold; }
@@ -83,7 +86,7 @@
         @keyframes popIn { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
         /* ========================================================= */
-        /* 3. 教師大屏：團戰主舞台 (擴大我方陣地、隊長魔杖、取消中線) */
+        /* 3. 教師大屏：團戰主舞台 (擴大陣地、無中線、隊長魔杖與魔鏡) */
         /* ========================================================= */
         #raid-host-screen { justify-content: space-between; overflow: hidden; padding: 10px 18px; }
         .raid-hud-bar { width: 100%; max-width: 1400px; display: flex; justify-content: space-between; align-items: center; background: #1c2541; border: 1.5px solid #3a506b; border-radius: 12px; padding: 6px 16px; font-size: 17px; flex-shrink: 0; gap: 10px; }
@@ -96,14 +99,15 @@
         #raid-host-timer-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, #eab308, #00e5ff); transition: width 0.1s linear; }
 
         .raid-battlefield-wrap { width: 100%; max-width: 1400px; flex: 1; display: flex; gap: 14px; min-height: 0; overflow: hidden; align-items: stretch; }
+        
         #raid-main-stage {
             flex: 2.5; background: radial-gradient(circle at 52% 55%, #1f2b4d 0%, #0b132b 85%);
             border: 3px solid #3a506b; border-radius: 20px; position: relative; overflow: hidden;
             display: flex; align-items: center; justify-content: space-between; box-shadow: inset 0 0 40px rgba(0,0,0,0.7);
         }
 
-        /* 擴大後的軍團陣地 (佔比 65%，不畫右側界線) */
-        #raid-army-zone { width: 65%; height: 100%; position: relative; overflow: hidden; }
+        /* 擴大後的軍團陣地 (佔比 70%，不畫右側界線，取消虛線) */
+        #raid-army-zone { width: 70%; height: 100%; position: relative; overflow: hidden; }
         .army-zone-title { position: absolute; top: 8px; left: 12px; font-size: 13px; color: #84ffff; opacity: 0.75; pointer-events: none; z-index: 2; }
         
         .raid-unit {
@@ -111,10 +115,11 @@
             transition: left 2.0s ease-in-out, top 2.0s ease-in-out, transform 0.25s, filter 0.25s;
             z-index: 5; pointer-events: none;
         }
-        /* 施咒與送出狀態的藍光圈 */
+        
+        /* 一般狀態無圈圈，打字時出現旋轉藍虛線，送出時變成實心圓圈 */
         .raid-unit.unit-chanting .unit-avatar-box::before {
             content: ''; position: absolute; width: 50px; height: 50px; bottom: -6px; left: 50%; transform: translateX(-50%);
-            border: 2.5px dashed #00e5ff; border-radius: 50%; box-shadow: 0 0 12px #00e5ff; animation: spinCircle 1.5s linear infinite; z-index: -1;
+            border: 2.5px dashed #00e5ff; border-radius: 50%; box-shadow: 0 0 10px #00e5ff; animation: spinCircle 1.5s linear infinite; z-index: -1;
         }
         .raid-unit.unit-submitted .unit-avatar-box::before {
             content: ''; position: absolute; width: 50px; height: 50px; bottom: -6px; left: 50%; transform: translateX(-50%);
@@ -122,10 +127,20 @@
         }
         @keyframes spinCircle { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
         
-        /* 隊長持法杖特效 */
-        .raid-unit.is-leader .unit-avatar-box::after {
-            content: '🪄'; position: absolute; right: -16px; top: 50%; transform: translateY(-50%) rotate(15deg);
-            font-size: 28px; filter: drop-shadow(0 0 8px #fde047); z-index: 10;
+        /* 隊長專屬：持有紫色魔杖與小尺寸無框魔鏡 */
+        .raid-unit.is-leader .unit-wand {
+            position: absolute; right: -25px; bottom: 0px; width: 5px; height: 75px;
+            background: linear-gradient(to top, #9333ea, #d8b4fe); border-radius: 3px; z-index: 4;
+            box-shadow: 0 0 8px #a855f7;
+        }
+        .raid-unit.is-leader .unit-mirror {
+            position: absolute; right: -38px; bottom: 65px; width: 32px; height: 44px; z-index: 6;
+            background: radial-gradient(ellipse at center, #cffafe, #06b6d4, #1e3a8a);
+            border-radius: 50%; border: 1.5px solid #a855f7;
+            box-shadow: 0 0 12px #00e5ff; transition: 0.3s;
+        }
+        .raid-unit.is-leader.mirror-charging .unit-mirror {
+            filter: drop-shadow(0 0 25px #fde047) brightness(1.3); transform: scale(1.15);
         }
 
         .raid-unit.unit-dead { filter: grayscale(1); opacity: 0.48; }
@@ -135,41 +150,35 @@
         .unit-status-icon { position: absolute; top: -6px; right: -12px; font-size: 16px; }
         .unit-name-tag { font-size: 11.5px; font-weight: bold; color: #f8fafc; background: rgba(15, 23, 42, 0.82); padding: 1px 6px; border-radius: 6px; border: 1px solid #475569; white-space: nowrap; max-width: 86px; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
 
-        /* 適配隊長魔法杖的聚魔鏡 (放置於陣地最右側偏上) */
-        #raid-mirror-zone {
-            position: absolute; right: 8%; top: 22%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10; pointer-events: none;
-        }
-        #host-mirror-box { position: relative; width: 64px; height: 86px; display: flex; align-items: center; justify-content: center; transition: transform 0.3s, filter 0.3s; }
-        #host-mirror-box.charging { animation: mirrorPulse 0.6s infinite alternate; }
-        @keyframes mirrorPulse { 0% { transform: scale(1); filter: drop-shadow(0 0 15px #00e5ff); } 100% { transform: scale(1.1); filter: drop-shadow(0 0 32px #fde047); } }
-        #mirror-charge-badge { margin-top: 6px; background: rgba(15, 23, 42, 0.9); border: 1.5px solid #00e5ff; color: #84ffff; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; white-space: nowrap; }
-
-        /* 玩家發射法力集中到隊長鏡子的細光束 */
+        /* 全域折射光束容器 (包含「玩家->隊長」與「隊長->妖魔」的動畫光束) */
+        #raid-refract-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+        
+        /* 玩家射向隊長魔鏡的黃色集中光束 */
         .player-to-mirror-beam {
-            position: absolute; height: 4px; background: linear-gradient(90deg, transparent, #00e5ff, #fff);
-            border-radius: 4px; box-shadow: 0 0 8px #00e5ff; z-index: 4; transform-origin: left center;
-            animation: zapBeam 0.4s ease-out forwards; pointer-events: none;
+            position: absolute; height: 3px; background: linear-gradient(90deg, transparent, #fde047, #f59e0b);
+            border-radius: 3px; box-shadow: 0 0 8px #fde047; transform-origin: left center;
+            animation: zapBeam 0.5s ease-out forwards;
         }
         @keyframes zapBeam { 0% { transform: scaleX(0); opacity: 1; } 50% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
 
-        /* 5種等級的聚魔鏡折射魔法光束 (從鏡子發射向右側妖魔) */
+        /* 從隊長魔鏡射向妖魔的大絕招 */
         .refract-beam {
-            position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
-            width: 250px; transform-origin: left center; z-index: 9; pointer-events: none; border-radius: 20px;
+            position: absolute; height: 20px; transform-origin: left center; border-radius: 20px;
         }
-        .refract-beam.tier-100 { height: 48px; background: linear-gradient(90deg, #fff, #fde047, #ec4899, #00e5ff, #4ade80, #fde047); box-shadow: 0 0 40px #fde047, 0 0 70px #ec4899, inset 0 0 20px #fff; animation: megaBeamShoot 0.85s ease-out forwards; }
-        .refract-beam.tier-90 { height: 36px; background: linear-gradient(90deg, #fff, #fde047, #f97316, #00e5ff); box-shadow: 0 0 35px #fde047, 0 0 50px #00e5ff; animation: megaBeamShoot 0.75s ease-out forwards; }
-        .refract-beam.tier-70 { height: 20px; background: linear-gradient(90deg, #fff, #00e5ff, #a855f7); box-shadow: 0 0 22px #00e5ff; animation: megaBeamShoot 0.65s ease-out forwards; }
+        .refract-beam.tier-ult { height: 65px; background: linear-gradient(90deg, #fff, #c084fc, #fde047, #00e5ff, #c084fc); box-shadow: 0 0 50px #c084fc, inset 0 0 25px #fff; animation: megaBeamShoot 1.0s ease-out forwards; }
+        .refract-beam.tier-100 { height: 50px; background: linear-gradient(90deg, #fff, #fde047, #ec4899, #00e5ff, #4ade80, #fde047); box-shadow: 0 0 40px #fde047, inset 0 0 20px #fff; animation: megaBeamShoot 0.85s ease-out forwards; }
+        .refract-beam.tier-90 { height: 35px; background: linear-gradient(90deg, #fff, #fde047, #f97316, #00e5ff); box-shadow: 0 0 35px #fde047; animation: megaBeamShoot 0.75s ease-out forwards; }
+        .refract-beam.tier-70 { height: 18px; background: linear-gradient(90deg, #fff, #00e5ff, #a855f7); box-shadow: 0 0 20px #00e5ff; animation: megaBeamShoot 0.65s ease-out forwards; }
         .refract-beam.tier-50 { height: 6px; background: linear-gradient(90deg, #bae6fd, #38bdf8, transparent); box-shadow: 0 0 8px #38bdf8; animation: megaBeamShoot 0.5s ease-out forwards; }
-        .refract-beam.tier-low { height: 12px; width: 80px; background: radial-gradient(circle, #94a3b8, transparent); animation: puffFizzle 0.6s ease-out forwards; }
-        @keyframes megaBeamShoot { 0% { transform: translateY(-50%) scaleX(0) scaleY(0.4); opacity: 1; } 30% { transform: translateY(-50%) scaleX(1) scaleY(1.2); opacity: 1; } 75% { transform: translateY(-50%) scaleX(1) scaleY(0.9); opacity: 0.95; } 100% { transform: translateY(-50%) scaleX(1) scaleY(0.1); opacity: 0; } }
-        @keyframes puffFizzle { 0% { transform: translate(0, -50%) scale(0.5); opacity: 0.9; } 100% { transform: translate(45px, -80%) scale(1.8); opacity: 0; } }
+        .refract-beam.tier-low { height: 10px; width: 100px; background: radial-gradient(circle, #94a3b8, transparent); animation: puffFizzle 0.6s ease-out forwards; }
+        
+        @keyframes megaBeamShoot { 0% { transform: scaleX(0) scaleY(0.4); opacity: 1; } 30% { transform: scaleX(1) scaleY(1.2); opacity: 1; } 75% { transform: scaleX(1) scaleY(0.9); opacity: 0.95; } 100% { transform: scaleX(1) scaleY(0.1); opacity: 0; } }
+        @keyframes puffFizzle { 0% { transform: scale(0.5); opacity: 0.9; } 100% { transform: translate(45px, -30px) scale(1.8); opacity: 0; } }
 
         /* 右側：巨型妖魔區 */
-        #raid-boss-zone { width: 35%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 6; padding-right: 16px; }
+        #raid-boss-zone { width: 30%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 6; padding-right: 16px; }
         .boss-stage-tag { font-size: 16px; font-weight: bold; color: #fde047; margin-bottom: 4px; text-shadow: 0 2px 6px #000; }
-        .boss-hp-bar-outer { width: 82%; max-width: 240px; height: 16px; background: #0f172a; border: 2px solid #f8fafc; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); margin-bottom: 12px; }
+        .boss-hp-bar-outer { width: 85%; max-width: 260px; height: 16px; background: #0f172a; border: 2px solid #f8fafc; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); margin-bottom: 12px; }
         #raid-boss-hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #dc2626, #f97316); transition: width 0.4s ease; }
         #raid-boss-sprite-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
         #raid-boss-sprite { font-size: clamp(82px, 9.5vw, 125px); line-height: 1; filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.8)); transition: transform 0.25s, filter 0.25s; }
@@ -185,11 +194,12 @@
             white-space: nowrap; animation: popIn 0.3s ease-out; pointer-events: none;
         }
 
-        /* 玩家閃爍特效 (完美攻擊) */
+        /* 玩家閃爍特效 (完美/究極完美) */
         .flash-gold { animation: flashGoldAnim 1s ease-out; }
         .flash-ultimate { animation: flashUltAnim 1.5s ease-out; }
         @keyframes flashGoldAnim { 0% { filter: drop-shadow(0 0 20px #fde047) brightness(1.5); } 100% { filter: none; } }
-        @keyframes flashUltAnim { 0% { filter: drop-shadow(0 0 30px #c084fc) brightness(2); } 50% { filter: drop-shadow(0 0 30px #fde047) brightness(1.5); } 100% { filter: none; } }
+        @keyframes flashUltAnim { 0% { filter: drop-shadow(0 0 35px #c084fc) brightness(2.5); } 50% { filter: drop-shadow(0 0 30px #fde047) brightness(1.8); } 100% { filter: none; } }
+        
         .enemy-attack { transform: translateX(-60px) rotate(-15deg) !important; }
         .player-dodge { transform: translateY(-40px) rotate(-10deg) !important; }
         .player-hit { transform: translateX(-10px) rotate(-10deg) !important; filter: drop-shadow(0 0 20px red) sepia(1) hue-rotate(-50deg) saturate(5) !important; }
@@ -215,7 +225,7 @@
         /* ========================================================= */
         /* 5. 學生平板：加入團戰表單 */
         /* ========================================================= */
-        .raid-join-card { background: #1c2541; border: 2.5px solid #4ade80; border-radius: 20px; padding: 24px; width: 94%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6); margin: auto; }
+        .raid-join-card { background: #1c2541; border: 2.5px solid #4ade80; border-radius: 20px; padding: 24px; width: 94%; max-width: 440px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6); margin: auto; overflow-y: auto; max-height: 95vh; }
         .raid-input-group { margin-bottom: 12px; text-align: left; }
         .raid-input-group label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 4px; }
         .raid-input-group input { width: 100%; padding: 8px 12px; font-size: 18px; font-weight: bold; background: #0b132b; border: 2px solid #4a5c88; border-radius: 8px; color: #fff; text-align: center; font-family: inherit; }
@@ -246,6 +256,7 @@
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8;} 50% { transform: scale(1.1); opacity: 1;} 100% { transform: scale(1); opacity: 0.8;} }
         #hanzi-hint { font-size: 28px; color: #f9a826; font-weight: bold; text-shadow: 0 0 10px rgba(249, 168, 38, 0.5); margin: 0; display: none; }
         #raid-word-mask-hint { font-size: 24px; color: #fff; font-weight: bold; background: rgba(15, 23, 42, 0.75); border: 2px solid #38bdf8; padding: 3px 14px; border-radius: 12px; letter-spacing: 1px; }
+        .blank-slot-inline { display: inline-block; width: 64px; height: 0.85em; border-bottom: 4px solid #ec4899; margin: 0 4px; vertical-align: baseline; }
 
         #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0;}
         #player-wrapper { position: relative; display: flex; align-items: flex-end; justify-content: center; z-index: 2; }
@@ -273,6 +284,9 @@
         .action-btn { min-width: 135px; padding: 0 12px; height: 50px; border-radius: 12px; font-size: 17px; font-weight: bold; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.15s; letter-spacing: 1px; }
         .key-feather { background: linear-gradient(135deg, #b45309, #d97706) !important; border: 2px solid #fde047 !important; color: #fff !important; box-shadow: 0 0 16px rgba(251, 191, 36, 0.65) !important; }
         .key-feather.feather-disabled { background: #1e293b !important; border-color: #475569 !important; color: #64748b !important; box-shadow: none !important; opacity: 0.55; pointer-events: none; }
+        .key-feather.feather-ready { animation: featherPulse 0.9s infinite alternate; }
+        @keyframes featherPulse { 0% { transform: scale(1); box-shadow: 0 0 10px #fde047; } 100% { transform: scale(1.05); box-shadow: 0 0 25px #fde047; } }
+
         .key-enter { background: #00e5ff !important; border: 2px solid #84ffff !important; color: #000 !important; box-shadow: 0 0 15px rgba(0, 229, 255, 0.5) !important; }
         .key-enter:active { background: #fff !important; transform: scale(0.95); }
         .key-enter.locked-in { background: #059669 !important; border-color: #34d399 !important; color: #fff !important; pointer-events: none; }
@@ -447,23 +461,10 @@
                     <div class="army-zone-title">🛡️ 除魔軍團陣地</div>
                     <div id="raid-units-layer" style="width:100%; height:100%; position:relative;"></div>
                 </div>
-                <div id="raid-mirror-zone">
-                    <div id="host-mirror-box">
-                        <svg viewBox="0 0 80 100" width="90" height="114" overflow="visible">
-                            <defs>
-                                <radialGradient id="mirrorGlass" cx="50%" cy="50%" r="50%">
-                                    <stop offset="0%" stop-color="#e0f2fe"/>
-                                    <stop offset="55%" stop-color="#00e5ff"/>
-                                    <stop offset="100%" stop-color="#1e3a8a"/>
-                                </radialGradient>
-                            </defs>
-                            <polygon points="24,4 56,4 76,24 76,76 56,96 24,96 4,76 4,24" fill="#78350f" stroke="#fde047" stroke-width="3"/>
-                            <ellipse cx="40" cy="50" rx="27" ry="36" fill="url(#mirrorGlass)" stroke="#fef08a" stroke-width="2.5"/>
-                            <path d="M 26 26 Q 40 32 30 62" stroke="rgba(255,255,255,0.65)" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <div id="mirror-charge-badge">🪞 聚魔鏡 0%</div>
-                </div>
+                
+                <!-- 整個聚魔鏡區域隱藏(因為鏡子已經改到隊長手上了) -->
+                <!-- <div id="raid-mirror-zone"></div> -->
+
                 <div id="raid-refract-layer" style="position:absolute; inset:0; pointer-events:none; z-index:8;"></div>
                 <div id="raid-boss-zone">
                     <div class="boss-stage-tag" id="raid-boss-name-tag">暗夜蝙蝠</div>
@@ -630,7 +631,7 @@
 
     const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
     
-    // 依要求移除「第X關：」文字，僅保留怪物名稱
+    // 已移除「第X關：」文字，僅保留怪物名稱
     const RAID_BOSS_LIST = [
         { name: '暗夜蝙蝠', sprite: '🦇', maxHp: 100, attack: '🎵' },
         { name: '劇毒青蛇', sprite: '🐍', maxHp: 200, attack: '💧' },
@@ -1225,21 +1226,33 @@
         
         raidLeaderId = newLeader.id;
         
-        // 將隊長強制移動到右側前方 (x=80%, y=50%)，且附上聚魔鏡
+        // 將隊長強制移動到右側前方 (x=80%, y=50%)，且附上聚魔鏡與法杖
         newLeader.x = 80;
         newLeader.y = 50;
         
-        document.querySelectorAll('.raid-unit').forEach(u => u.classList.remove('is-leader'));
+        document.querySelectorAll('.raid-unit').forEach(u => {
+            u.classList.remove('is-leader');
+            const wand = u.querySelector('.unit-wand');
+            if (wand) wand.remove();
+            const mirror = u.querySelector('.unit-mirror');
+            if (mirror) mirror.remove();
+        });
+
         const leaderUnit = document.getElementById(`raid-unit-${newLeader.id}`);
         if (leaderUnit) {
             leaderUnit.classList.add('is-leader');
             leaderUnit.style.left = `${newLeader.x}%`;
             leaderUnit.style.top = `${newLeader.y}%`;
+            
+            leaderUnit.innerHTML += `
+                <div class="unit-wand"></div>
+                <div class="unit-mirror" id="host-leader-mirror"></div>
+            `;
         }
 
-        // 移動魔鏡到隊長上方
+        // 將原始的大鏡子位置對齊隊長
         const mirrorZone = document.getElementById('raid-mirror-zone');
-        mirrorZone.style.right = `16%`; // 剛好在隊長 80% 的相對位置
+        mirrorZone.style.right = `16%`; 
         mirrorZone.style.top = `15%`;
     }
 
@@ -1291,13 +1304,13 @@
         broadcastDeadCountToStudents();
     }
 
-    // 讓非隊長在左側我方區域內自然散步游走 (不可超過隊長的 x=80)
+    // 讓非隊長在左側我方區域內自然散步游走 (不可超過隊長 x=80)
     function startRaidWanderingLoop() {
         if (raidWanderInterval) clearInterval(raidWanderInterval);
         raidWanderInterval = setInterval(() => {
             if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
             raidTeams.forEach(t => {
-                if (t.hp <= 0 || t.id === raidLeaderId) return; // 隊長固定站位不動
+                if (t.hp <= 0 || t.id === raidLeaderId) return; // 隊長固定不動
                 t.x = Math.max(5, Math.min(70, t.x + (Math.random() * 20 - 10))); // 確保 x < 80
                 t.y = Math.max(10, Math.min(85, t.y + (Math.random() * 20 - 10)));
                 const unit = document.getElementById(`raid-unit-${t.id}`);
@@ -1322,7 +1335,7 @@
             return;
         }
         const boss = RAID_BOSS_LIST[raidBossIdx];
-        nameTag.innerText = boss.name; // 已無第X關字眼
+        nameTag.innerText = boss.name; 
         const pct = Math.max(0, (raidBossHp / boss.maxHp) * 100);
         hpFill.style.width = `${pct}%`;
         hpFill.style.background = 'linear-gradient(90deg, #dc2626, #f97316)';
@@ -1393,10 +1406,11 @@
 
         document.getElementById('raid-center-banner').style.display = 'none';
         document.getElementById('raid-boss-stun-stars').style.display = 'none';
-        document.getElementById('host-mirror-box').classList.remove('charging');
-        document.getElementById('mirror-charge-badge').innerText = `🪞 聚魔鏡 0%`;
         
-        // 清除上一題的施咒圓圈
+        // 清除上一題的施咒圓圈與隊長鏡子發光
+        const leaderUnit = document.getElementById(`raid-unit-${raidLeaderId}`);
+        if (leaderUnit) leaderUnit.classList.remove('mirror-charging');
+
         document.querySelectorAll('.raid-unit').forEach(u => {
             u.classList.remove('unit-chanting', 'unit-submitted');
         });
@@ -1481,7 +1495,10 @@
         raidCurrentMatch.submissions[teamId] = { isCorrect, usedGourd };
         sfxSyllableChant();
 
-        document.getElementById('host-mirror-box').classList.add('charging');
+        // 點亮隊長身上的魔鏡
+        const leaderUnit = document.getElementById(`raid-unit-${raidLeaderId}`);
+        if (leaderUnit) leaderUnit.classList.add('mirror-charging');
+        
         updateRaidLockedCountUI();
 
         const submittedCount = Object.keys(raidCurrentMatch.submissions).length;
@@ -1495,8 +1512,7 @@
         if (!raidCurrentMatch) return;
         const submittedCount = Object.keys(raidCurrentMatch.submissions).length;
         document.getElementById('raid-hud-locked-status').innerText = `已施咒: ${submittedCount} / ${raidTeams.length}`;
-        const chargePct = raidTeams.length > 0 ? Math.round((submittedCount / raidTeams.length) * 100) : 0;
-        document.getElementById('mirror-charge-badge').innerText = `🪞 集氣 ${chargePct}%`;
+        // 移除大屏上方的魔鏡集氣文字，因鏡子已改到隊長手上
     }
 
     function handleHostPhoenixFeatherRevive(savior) {
@@ -1573,9 +1589,8 @@
         });
 
         const accuracyPct = aliveCount > 0 ? Math.round((correctActiveCount / aliveCount) * 100) : 0;
-        document.getElementById('mirror-charge-badge').innerText = `🪞 正確率 ${accuracyPct}%`;
 
-        // ★ 完美攻擊與究極完美攻擊判定 (玩家低於半數存活，則不能觸發)
+        // ★ 完美攻擊與究極完美攻擊判定 (存活人數 >= 總人數的一半，才能觸發)
         let canTriggerPerfect = (aliveCount >= (totalCount / 2)) && (totalCount > 0);
         let isPerfect = (accuracyPct === 100 && canTriggerPerfect);
         let isUltimate = (isPerfect && allWithin10s);
@@ -1593,11 +1608,22 @@
         refractLayer.innerHTML = '';
         const beam = document.createElement('div');
         let beamClass = 'tier-low';
-        if (accuracyPct === 100) beamClass = 'tier-100';
+        if (isUltimate) beamClass = 'tier-ult';
+        else if (accuracyPct === 100) beamClass = 'tier-100';
         else if (accuracyPct >= 90) beamClass = 'tier-90';
         else if (accuracyPct >= 70) beamClass = 'tier-70';
         else if (accuracyPct >= 50) beamClass = 'tier-50';
         beam.className = `refract-beam ${beamClass}`;
+        
+        // 將大絕招發射點對齊隊長的魔鏡
+        if (raidLeaderId) {
+            const leaderObj = raidTeams.find(t => t.id === raidLeaderId);
+            if (leaderObj) {
+                beam.style.left = `82%`; // 稍微超過隊長x(80%)的位置
+                beam.style.top = `${leaderObj.y - 12}%`; // 對齊隊長法杖上方
+            }
+        }
+
         refractLayer.appendChild(beam);
 
         const banner = document.getElementById('raid-center-banner');
@@ -2069,6 +2095,7 @@
             <div class="pad-hp-bar-wrap">
                 <span style="font-size:13px; color:#cbd5e1;">HP</span>
                 <div class="pad-hp-track"><div class="pad-hp-fill" style="width:${pct}%; background:${color};"></div></div>
+                <span style="font-size:13px; color:${color};">${myRaidHp.toFixed(1)}</span>
             </div>`;
     }
 
