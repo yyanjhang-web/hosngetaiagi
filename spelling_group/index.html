@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 7.1)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 7.2)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -256,7 +256,6 @@
         /* ========================================================= */
         #game-screen { display: none; flex-direction: column; height: 100%; width: 100%; padding: 10px 12px; justify-content: space-between; z-index: 20; }
         
-        /* ★ 調整標頭區塊：左側包含分數與存活隊友 */
         .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 6px; font-weight: bold; flex-shrink: 0; gap: 8px; }
         .header-left-group { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
         #player-teammates-display {
@@ -306,7 +305,6 @@
             border-color: #00e5ff; box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.3), 0 4px 6px rgba(0,0,0,0.3); color: #00e5ff;
         }
 
-        /* ★ 恢復原先精準完美的排版高度 */
         #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0;}
         
         #player-wrapper { position: relative; display: flex; align-items: flex-end; justify-content: center; z-index: 2; }
@@ -429,7 +427,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 7.1</div>
+<div id="version-tag">Ver 7.2</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -450,7 +448,6 @@
                 <p>輸入房號入陣・同齊施展除魔咒語</p>
             </div>
         </div>
-        <!-- ★ 已簡化為團戰規則 -->
         <button class="info-open-btn" onclick="toggleInfoModal(true)">📖 團戰規則</button>
         <div class="footer">
             <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
@@ -532,6 +529,8 @@
             <div id="raid-hud-phase-msg" style="color:#fde047; font-weight:bold; font-size:19px;">🎧 斟酌聽音，準備施咒！</div>
             <div style="display:flex; align-items:center; gap:10px;">
                 <span id="raid-hud-locked-status" style="background:#334155; padding:3px 12px; border-radius:16px; font-size:14px;">存活已施咒: 0 / 0</span>
+                <!-- ★ 新增 BGM 開關按鈕 -->
+                <button class="info-open-btn" style="padding:3px 10px; opacity:0.5;" id="bgm-toggle-btn" onclick="toggleBGM()">🎵 音樂(關)</button>
                 <button class="info-open-btn" style="padding:3px 10px;" onclick="toggleSfx()">🔔 音效</button>
             </div>
         </div>
@@ -624,7 +623,6 @@
 
     <!-- 6. 學生平板：戰鬥 UI 與 虛擬鍵盤 -->
     <div id="game-screen">
-        <!-- ★ 將隊友顯示區移至左上角，分數下方 -->
         <div class="header-info">
             <div class="header-left-group">
                 <span id="score-display">🧙‍♂️ 0分</span>
@@ -682,7 +680,6 @@
     <div id="info-modal" onclick="if(event.target === this) toggleInfoModal(false)">
         <div class="modal-card">
             <div class="modal-header">
-                <!-- ★ 已簡化為團戰規則 -->
                 <h3>📖 團戰規則</h3>
                 <button class="modal-close" onclick="toggleInfoModal(false)">✕</button>
             </div>
@@ -715,7 +712,7 @@
 </div>
 <script>
     // =========================================================
-    // 📚 題庫設定與全域團戰變數 (更新頭像與專屬武器庫)
+    // 📚 題庫設定與全域團戰變數 (包含雙重洗牌用的變數)
     // =========================================================
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
@@ -735,6 +732,10 @@
     const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦', '🦚','🐏','🐮','🦉','🐋','🐴','🐵'];
     const RAID_WEAPONS = ['☀️','🥚','🌸','🌼','🌷','🌱','☘️','🍇','🍉','🍓','🫐','🥝','🌪️','🌬️','🌀','❄️','🌊','⭐','🧡','🍬','🍭','🫛','🫜','⚾','🥎'];
     
+    // ★ 用於每次開局獨立洗牌的陣列
+    let currentAvatars = [...RAID_AVATARS];
+    let currentWeapons = [...RAID_WEAPONS];
+
     let RAID_BOSS_LIST = [
         { name: '暗夜密婆', sprite: '🦇', maxHp: 200, attack: '🎵' },
         { name: '劇毒青蛇', sprite: '🐍', maxHp: 400, attack: '💧' },
@@ -775,10 +776,56 @@
     let raidMissedStats = [];
 
     // =========================================================
-    // 🎵 Web Audio API 合成音效系統
+    // 🎵 音效與 BGM 引擎 (加入智慧避音 Ducking 機制)
     // =========================================================
     let sfxCtx = null;
     let sfxMuted = false;
+
+    // ★ 內建輕快戰鬥 BGM 庫 (使用無版權音樂)
+    const BGM_TRACKS = [
+        "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3",
+        "https://cdn.pixabay.com/download/audio/2021/11/25/audio_91b3cb0023.mp3",
+        "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3"
+    ];
+    let bgmPlayer = new Audio();
+    bgmPlayer.loop = true;
+    bgmPlayer.volume = 0.35; // 預設背景音量 35%
+    let isBgmMuted = true;
+
+    function toggleBGM() {
+        const btn = document.getElementById('bgm-toggle-btn');
+        if (!btn) return;
+        isBgmMuted = !isBgmMuted;
+        if (isBgmMuted) {
+            bgmPlayer.pause();
+            btn.innerText = "🎵 音樂(關)";
+            btn.style.opacity = "0.5";
+        } else {
+            if (!bgmPlayer.src) {
+                // 初次開啟時隨機挑選一首 BGM
+                bgmPlayer.src = BGM_TRACKS[Math.floor(Math.random() * BGM_TRACKS.length)];
+            }
+            bgmPlayer.play().catch(()=>{});
+            btn.innerText = "🎵 音樂(開)";
+            btn.style.opacity = "1";
+        }
+    }
+
+    // ★ 智慧避音：播放語音時瞬間降低 BGM 音量
+    function duckBGM() {
+        if (!isBgmMuted && !bgmPlayer.paused) {
+            bgmPlayer.volume = 0.05; // 降到 5% 變成若有似無
+        }
+    }
+    function unduckBGM() {
+        if (!isBgmMuted && !bgmPlayer.paused) {
+            bgmPlayer.volume = 0.35; // 語音結束恢復 35%
+        }
+    }
+    // 綁定語音播放結束與暫停事件，自動恢復 BGM 音量
+    audioPlayer.addEventListener('ended', unduckBGM);
+    audioPlayer.addEventListener('pause', unduckBGM);
+
 
     function getSfxCtx() {
         if (!sfxCtx) {
@@ -1078,6 +1125,11 @@
 
     function openRaidHostLobby() {
         getSfxCtx();
+        
+        // ★ 每次創立大廳時，進行獨立雙重洗牌，保證組合隨機不重複
+        currentAvatars = shuffleBank([...RAID_AVATARS]);
+        currentWeapons = shuffleBank([...RAID_WEAPONS]);
+
         document.getElementById('app-container').classList.remove('pad-mode');
         document.getElementById('entry-screen').classList.remove('active');
         document.getElementById('raid-lobby-screen').classList.add('active');
@@ -1152,9 +1204,10 @@
         if (data.type === 'JOIN') {
             const finalName = filterStudentName(data.name);
             const pCount = raidTeams.length;
-            const icon = RAID_AVATARS[pCount % RAID_AVATARS.length];
-            const hueRotate = Math.floor(pCount / RAID_AVATARS.length) * 60;
-            const weapon = RAID_WEAPONS[pCount % RAID_WEAPONS.length];
+            // ★ 使用洗牌後的獨立陣列分配
+            const icon = currentAvatars[pCount % currentAvatars.length];
+            const hueRotate = Math.floor(pCount / currentAvatars.length) * 60;
+            const weapon = currentWeapons[pCount % currentWeapons.length];
 
             const teamObj = createRaidTeamObj(finalName, data.seatNo, data.padNo, icon, hueRotate, weapon, conn, false);
             raidTeams.push(teamObj);
@@ -1201,9 +1254,10 @@
         const botNames = ["甲組", "乙組", "丙組", "丁組", "戊組", "己組", "庚組", "辛組"];
         const finalName = filterStudentName(botNames[raidTeams.length % botNames.length]);
         const pCount = raidTeams.length;
-        const icon = RAID_AVATARS[pCount % RAID_AVATARS.length];
-        const hueRotate = Math.floor(pCount / RAID_AVATARS.length) * 60;
-        const weapon = RAID_WEAPONS[pCount % RAID_WEAPONS.length];
+        // ★ 使用洗牌後的獨立陣列分配
+        const icon = currentAvatars[pCount % currentAvatars.length];
+        const hueRotate = Math.floor(pCount / currentAvatars.length) * 60;
+        const weapon = currentWeapons[pCount % currentWeapons.length];
 
         raidTeams.push(createRaidTeamObj(finalName, 'bot', 'bot', icon, hueRotate, weapon, null, true));
         sfxSyllableChant();
@@ -1568,7 +1622,10 @@
         audioPlayer.pause();
         audioPlayer.src = safeUrl;
         audioPlayer.currentTime = 0;
-        audioPlayer.play().catch(() => {});
+        
+        // ★ 智慧避音：播放語音時自動降低 BGM 音量
+        duckBGM();
+        audioPlayer.play().catch(() => { unduckBGM(); });
     }
 
     function recordRaidTeamSpell(teamId, isCorrect, usedGourd) {
@@ -1695,7 +1752,7 @@
             wrongCount: wrongTotalThisQ
         });
 
-        // 1. 同步發射各玩家的「專屬攻擊道具」飛向中央
+        // 同步發射各玩家的「專屬攻擊道具」飛向中央
         const refractLayer = document.getElementById('raid-refract-layer');
         refractLayer.innerHTML = '';
         
@@ -1763,16 +1820,17 @@
                 sfxError();
             }
 
+            // ★ 修正：取消溢出傷害。血量低於0就死亡，下一隻必定滿血登場
             if (raidAllBossesCleared) {
                 if (bossDamage > 0) sfxCoin();
             } else {
                 raidBossHp -= bossDamage;
-                while (raidBossHp <= 0 && !raidAllBossesCleared) {
-                    const overflow = Math.abs(raidBossHp);
+                if (raidBossHp <= 0) {
                     sfxEnemyDeath();
                     if (raidBossIdx < RAID_BOSS_LIST.length - 1) {
                         raidBossIdx++;
-                        raidBossHp = RAID_BOSS_LIST[raidBossIdx].maxHp - overflow;
+                        // 不扣除溢出傷害，直接賦予下一隻怪滿血
+                        raidBossHp = RAID_BOSS_LIST[raidBossIdx].maxHp;
                     } else {
                         raidAllBossesCleared = true;
                         raidBossHp = 0;
