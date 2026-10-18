@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 6.15)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 6.16)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -400,7 +400,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 6.15</div>
+<div id="version-tag">Ver 6.16</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -655,12 +655,12 @@
                 <div class="modal-section">
                     <strong style="color:#ffd700; font-size:15px;">1. 攻擊鋩角：</strong><br>
                     (1)每擺實施咒語限制 18 秒，每一位除魔師攏有3滴血。<br>
-                    (2)正確率就是攻擊力。第一關的暗夜密婆，血量是1滴血，嘛會使看做100HP。若存活的除魔師咒語正確率100%，按呢一擺的攻擊就會使攻克暗夜密婆。若正確率是70%，按呢就是100%-70%=30%，暗夜密婆猶閣賰30%的血量。<br>
+                    (2)正確率就是攻擊力。若存活的除魔師咒語正確率是100%，按呢妖魔就會扣100HP；正確率若是70%，妖魔就會扣70HP。<br>
                     (3)若存活的除魔師，咒語正確率70%以上，妖魔會昏去，無法度反擊。<br>
                     (4)若存活的除魔師有超過參戰除魔師的半數，而且咒語正確率是100%，按呢就會使發動「完美攻擊」，這時，存活的除魔師會補半滴血。<br>
                     (5)若存活的除魔師有超過參戰除魔師的半數，而且毋但咒語正確率是100%，存活的除魔師閣攏佇10秒以內就實施咒語，按呢就會使發動「究極完美攻擊」。發動究極完美攻擊的時，毋但存活的除魔師攏補半滴血，陣亡者也會使以半滴血回魂。<br>
                     <span style="color:#94a3b8; font-size:12px;">※正確率的算法：存活的除魔師正確施咒的比例。譬論講，有10位存活的除魔師，其中有7位的咒語是正確的，按呢正確率就是70%。<br>
-                    ※第一關的暗夜密婆是1滴血，為著遊戲的趣味性，賰的妖魔血量無公開數據，請看血條來體會遊戲。</span>
+                    ※妖魔的血量會照題數的濟少有變化，請看血條來體會遊戲。</span>
                 </div>
                 <div class="modal-section">
                     <strong style="color:#ffd700; font-size:15px;">2. 妖魔反擊佮扣血方式：</strong><br>
@@ -1079,7 +1079,6 @@
         return finalName;
     }
 
-    // ★ 創建隊伍：加入 hueRotate 變色與 weapon 專屬武器設定
     function createRaidTeamObj(name, seatNo, padNo, avatar, hueRotate, weapon, conn, isBot) {
         const angle = Math.random() * Math.PI * 2;
         const radius = 28 + Math.random() * 12; 
@@ -1210,6 +1209,7 @@
         getSfxCtx();
         raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 25;
 
+        // ★ 保留 6.13 版動態血量邏輯
         let hpConfig = [200, 400, 500, 650]; 
         if (raidTotalQuestions === 12) hpConfig = [100, 150, 250, 350];
         else if (raidTotalQuestions === 18) hpConfig = [150, 250, 350, 500];
@@ -1317,13 +1317,12 @@
         broadcastDeadCountToStudents();
     }
 
-    // ★ 動畫：玩家與妖魔各自在專屬的空間內漂浮游走
+    // ★ 保留 6.15 版 妖魔橢圓待機與傾斜動畫
     function startRaidWanderingLoop() {
         if (raidWanderInterval) clearInterval(raidWanderInterval);
         raidWanderInterval = setInterval(() => {
             if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
             
-            // 1. 玩家游走
             raidTeams.forEach(t => {
                 if (t.hp <= 0) return;
                 t.baseAngle += (Math.random() * 0.4 - 0.2);
@@ -1338,11 +1337,9 @@
                 }
             });
 
-            // 2. 妖魔(Boss)原地橢圓游走與傾斜 (-15到+15度)
             const bossZone = document.getElementById('raid-boss-center-zone');
             const bossWrap = document.getElementById('raid-boss-sprite-wrap');
             if (bossZone && bossWrap) {
-                // X軸幅度較大(±3%)，Y軸幅度較小(±1%)，嚴格限制在中心區絕不碰到玩家
                 const bX = 50 + (Math.random() * 6 - 3); 
                 const bY = 50 + (Math.random() * 2 - 1); 
                 const bRot = Math.random() * 30 - 15;
@@ -1622,7 +1619,10 @@
             }
         });
 
+        // ★ 確保 100% 打 100 血，70% 打 70 血
         const accuracyPct = aliveCount > 0 ? Math.round((correctActiveCount / aliveCount) * 100) : 0;
+        
+        // ★ 完美攻擊嚴格 > 50% 存活
         let canTriggerPerfect = (aliveCount > (totalCount / 2)) && (totalCount > 0);
         let isPerfect = (accuracyPct === 100 && canTriggerPerfect);
         let isUltimate = (isPerfect && allAliveWithin10s);
