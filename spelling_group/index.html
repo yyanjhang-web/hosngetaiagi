@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 7.8)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 7.9)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -443,7 +443,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 7.8</div>
+<div id="version-tag">Ver 7.9</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -1811,6 +1811,7 @@
 
         document.getElementById('raid-host-tailo').innerHTML = raidCurrentMatch.fullRevealedHtml;
 
+        // ★ 嚴格快照：回合開始前就活著的玩家，才能被視為「存活」並計算攻擊力
         let activeTeams = raidTeams.filter(t => t.hp > 0);
         let aliveCount = activeTeams.length;
         let totalCount = raidTeams.length;
@@ -1822,14 +1823,20 @@
         raidTeams.forEach(t => {
             const sub = raidCurrentMatch.submissions[t.id];
             const gotRight = Boolean(sub && sub.isCorrect);
+            const wasAlive = (t.hp > 0); // 回合結算前是否存活
+
             t.totalQ++;
             if (gotRight) {
                 t.correctQ++;
-                if (t.hp > 0) correctActiveCount++;
-                else t.ghostCorrectCount++; 
+                if (wasAlive) {
+                    correctActiveCount++; // 只有活人的正確答案才算攻擊力
+                } else {
+                    t.ghostCorrectCount++; 
+                }
             } else {
-                if (t.hp > 0) wrongTotalThisQ++;
-                // ★ 新增：只要答錯(包含陣亡時答錯或超時未答)，就加入該學生的專屬錯題庫
+                if (wasAlive) wrongTotalThisQ++;
+                
+                // ★ 紀錄學生專屬錯題 (不論活人死人，答錯就記錄)
                 t.wrongList.push({
                     h: raidCurrentMatch.card.h,
                     r: raidCurrentMatch.card.r,
@@ -1838,13 +1845,14 @@
                 });
             }
             
-            if (t.hp > 0) {
+            if (wasAlive) {
                 if (!sub || (t.submitTime - raidCurrentMatch.startTime > 10000)) {
                     allAliveWithin10s = false;
                 }
             }
         });
 
+        // 結算全班攻擊力
         const accuracyPct = aliveCount > 0 ? Math.round((correctActiveCount / aliveCount) * 100) : 0;
         let canTriggerPerfect = (aliveCount > (totalCount / 2)) && (totalCount > 0);
         let isPerfect = (accuracyPct === 100 && canTriggerPerfect);
@@ -1926,7 +1934,7 @@
                 sfxError();
             }
 
-            // ★ 修正：徹底取消溢出傷害 (Overkill)。下一隻妖魔必定滿血。
+            // 取消溢出傷害 (Overkill)。下一隻妖魔必定滿血。
             if (raidAllBossesCleared) {
                 if (bossDamage > 0) sfxCoin();
             } else {
@@ -2113,7 +2121,7 @@
         }, 3800);
     }
 
-    // ★ 更新：結算時對所有平板發送個人的專屬成績單訊號
+    // 結算時對所有平板發送個人的專屬成績單訊號
     function finishRaidBattle() {
         if (raidWanderInterval) clearInterval(raidWanderInterval);
         clearInterval(raidHostTimer);
@@ -2182,7 +2190,6 @@
         }
     }
 
-    // ★ Excel檔名加上即時時間
     function exportRaidGradesToExcel() {
         if (raidTeams.length === 0) return alert("無成績資料可匯出！");
         const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.correctQ - a.correctQ);
@@ -2668,6 +2675,7 @@
             const playerEl = document.getElementById('player-sprite');
             const maskHint = document.getElementById('raid-word-mask-hint');
 
+            // ★ 平板端：動態計算妖魔對準玩家的精準反擊動畫
             if (!data.bossStunned) {
                 const arena = document.getElementById('rpg-arena');
                 const pSprite = document.getElementById('player-sprite');
@@ -2728,7 +2736,16 @@
 
             } else if (data.outcome === 'SHIELD_BLOCK_HALF') {
                 sfxShieldBlock();
-                playerEl.innerHTML = `${myRaidAvatar}<span class="sweat-drop">💦</span><span class="shield-badge">🛡️</span>`;
+                playerEl.classList.add('player-hit');
+                setTimeout(() => playerEl.classList.remove('player-hit'), 650);
+                
+                // ★ 新增：護盾抵擋如果剛好扣到0滴血，立刻變成幽靈！
+                if (myRaidHp <= 0) {
+                    playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))';
+                    playerEl.innerHTML = `👻<span class="shield-badge">💀</span>`;
+                } else {
+                    playerEl.innerHTML = `${myRaidAvatar}<span class="sweat-drop">💦</span><span class="shield-badge">🛡️</span>`;
+                }
                 maskHint.innerHTML = `<span style="color:#fbbf24;">${formatTailoDisplay(data.correctReveal)}</span>`;
 
             } else if (data.outcome === 'SHIELD_BREAK_FULL') {
@@ -2760,7 +2777,7 @@
                 maskHint.innerHTML = `<span style="color:#94a3b8;">${formatTailoDisplay(data.correctReveal)}</span>`;
             }
         
-        // ★ 新增：學生平板接收到大屏的遊戲結束訊號，跳轉個人結算畫面
+        // 學生平板接收到大屏的遊戲結束訊號，跳轉個人結算畫面
         } else if (data.type === 'GAME_OVER') {
             stopTimer();
             document.getElementById('game-screen').style.display = 'none';
