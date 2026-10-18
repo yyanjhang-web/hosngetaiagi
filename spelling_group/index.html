@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 7.0)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 7.1)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -141,7 +141,7 @@
         .unit-name-tag { font-size: 11.5px; font-weight: bold; color: #f8fafc; background: rgba(15, 23, 42, 0.82); padding: 1px 6px; border-radius: 6px; border: 1px solid #475569; white-space: nowrap; max-width: 86px; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
         .raid-unit.bot-unit .unit-name-tag { background: #fde047; color: #000; border-color: #ca8a04; }
 
-        /* 中央：巨型妖魔區 (加入 transition 確保橢圓漂浮平滑) */
+        /* 中央：巨型妖魔區 */
         #raid-boss-center-zone {
             position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -152,7 +152,6 @@
         .boss-hp-bar-outer { width: 100%; max-width: 240px; height: 16px; background: #0f172a; border: 2px solid #f8fafc; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); margin-bottom: 12px; }
         #raid-boss-hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #dc2626, #f97316); transition: width 0.4s ease; }
         
-        /* 讓外層旋轉，避免跟 hit-flash 衝突 */
         #raid-boss-sprite-wrap { 
             position: relative; display: flex; align-items: center; justify-content: center; 
             transition: transform 2.2s ease-in-out; 
@@ -171,7 +170,7 @@
             filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
         }
 
-        /* 妖魔反擊：地面震波與八向散射 */
+        /* 妖魔反擊：地面震波 */
         .ground-shockwave {
             position: absolute; left: 50%; top: 50%;
             width: 0; height: 0; border: 6px solid #e94560; border-radius: 50%;
@@ -183,7 +182,7 @@
             100% { width: 350px; height: 350px; opacity: 0; border-width: 1px; }
         }
 
-        /* 命中中央妖魔的大型爆炸特效 (5+1階段) */
+        /* 大型爆炸特效 (5+1階段) */
         .boss-explosion { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; z-index: 15; pointer-events: none; mix-blend-mode: screen; }
         .boss-explosion.tier-ult { width: 400px; height: 400px; background: radial-gradient(circle, #fff 10%, #c084fc 40%, transparent 70%); animation: boom 1.2s ease-out forwards; }
         .boss-explosion.tier-100 { width: 350px; height: 350px; background: radial-gradient(circle, #fff 10%, #fde047 40%, transparent 70%); animation: boom 1s ease-out forwards; }
@@ -256,11 +255,20 @@
         /* 6. 學生平板：戰鬥 UI 與 虛擬鍵盤 */
         /* ========================================================= */
         #game-screen { display: none; flex-direction: column; height: 100%; width: 100%; padding: 10px 12px; justify-content: space-between; z-index: 20; }
+        
+        /* ★ 調整標頭區塊：左側包含分數與存活隊友 */
         .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 6px; font-weight: bold; flex-shrink: 0; gap: 8px; }
+        .header-left-group { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+        #player-teammates-display {
+            font-size: 13.5px; color: #4ade80; font-weight: bold; background: rgba(0,0,0,0.4);
+            padding: 2px 8px; border-radius: 12px; white-space: nowrap; display: none; text-shadow: 0 1px 2px #000;
+        }
+
         #health-bar { display: flex; align-items: center; gap: 6px; }
         .header-right-group { display: flex; align-items: center; gap: 8px; }
         #sfx-toggle-btn { background: rgba(0, 229, 255, 0.12); border: 1.5px solid #4a5c88; border-radius: 6px; padding: 2px 7px; font-size: 15px; cursor: pointer; line-height: 1.2; }
         #sfx-toggle-btn.muted { opacity: 0.5; border-color: #555; background: rgba(0, 0, 0, 0.25); }
+        
         .question-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
 
         .pad-hp-bar-wrap { display: inline-flex; align-items: center; gap: 6px; background: #0f172a; padding: 3px 10px; border-radius: 12px; border: 1.5px solid #334155; }
@@ -298,8 +306,8 @@
             border-color: #00e5ff; box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.3), 0 4px 6px rgba(0,0,0,0.3); color: #00e5ff;
         }
 
-        /* ★ 作答區下移：調整 margin-bottom 讓出空間給隊友顯示區 */
-        #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; margin-bottom: 25px; overflow: hidden; flex-shrink: 0;}
+        /* ★ 恢復原先精準完美的排版高度 */
+        #rpg-arena { position: relative; width: 100%; height: 95px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0;}
         
         #player-wrapper { position: relative; display: flex; align-items: flex-end; justify-content: center; z-index: 2; }
         #player-wrapper::before {
@@ -315,13 +323,6 @@
 
         .rpg-sprite { font-size: 55px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; position: relative; z-index: 2; }
         #player-sprite { transform-origin: bottom center; }
-        
-        /* ★ 隊友顯示區樣式 */
-        #player-teammates-display {
-            position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%);
-            font-size: 13px; color: #4ade80; font-weight: bold; background: rgba(0,0,0,0.6);
-            padding: 2px 8px; border-radius: 12px; white-space: nowrap; pointer-events: none; display: none;
-        }
 
         #enemy-wrapper { display: flex; flex-direction: column; align-items: center; z-index: 1; position: relative; }
         #enemy-hp-ui { font-size: 12px; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; }
@@ -409,7 +410,7 @@
         @media (max-height: 700px) {
             #game-screen { padding: 4px 10px; }
             .header-info { margin-bottom: 3px; font-size: 14px; }
-            #rpg-arena { height: 55px; padding: 0 20px; margin-bottom: 20px; }
+            #rpg-arena { height: 55px; padding: 0 20px; margin-bottom: 2px; }
             .rpg-sprite { font-size: 38px; }
             #player-wrapper::before { width: 50px; height: 50px; bottom: -2px; }
             .question-row { gap: 10px; margin-bottom: 2px; min-height: 32px; }
@@ -428,7 +429,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 7.0</div>
+<div id="version-tag">Ver 7.1</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -449,6 +450,7 @@
                 <p>輸入房號入陣・同齊施展除魔咒語</p>
             </div>
         </div>
+        <!-- ★ 已簡化為團戰規則 -->
         <button class="info-open-btn" onclick="toggleInfoModal(true)">📖 團戰規則</button>
         <div class="footer">
             <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
@@ -622,8 +624,12 @@
 
     <!-- 6. 學生平板：戰鬥 UI 與 虛擬鍵盤 -->
     <div id="game-screen">
+        <!-- ★ 將隊友顯示區移至左上角，分數下方 -->
         <div class="header-info">
-            <span id="score-display">🧙‍♂️ 0分</span>
+            <div class="header-left-group">
+                <span id="score-display">🧙‍♂️ 0分</span>
+                <div id="player-teammates-display"></div>
+            </div>
             <span id="health-bar"></span>
             <div class="header-right-group">
                 <span id="progress-display">⏳ 等待開始...</span>
@@ -635,8 +641,6 @@
             <div id="rpg-arena">
                 <div id="player-wrapper">
                     <div class="rpg-sprite" id="player-sprite">🧙‍♂️</div>
-                    <!-- ★ 新增隊友存活顯示區 -->
-                    <div id="player-teammates-display"></div>
                 </div>
                 <div id="enemy-wrapper">
                     <div id="enemy-hp-ui">🪞法力同步中</div>
@@ -678,6 +682,7 @@
     <div id="info-modal" onclick="if(event.target === this) toggleInfoModal(false)">
         <div class="modal-card">
             <div class="modal-header">
+                <!-- ★ 已簡化為團戰規則 -->
                 <h3>📖 團戰規則</h3>
                 <button class="modal-close" onclick="toggleInfoModal(false)">✕</button>
             </div>
@@ -700,7 +705,6 @@
                     <strong style="color:#ffd700; font-size:15px;">3. 🪶 鳳凰羽毛：</strong><br>
                     連紲三擺正確施咒，就會使得著1枝鳳凰羽毛 (上限 1 枝)。使用鳳凰羽毛會使隨機回魂一名陣亡的除魔師。回魂的除魔師會得著半滴血。
                 </div>
-                <!-- ★ 新增陣亡了後的規則 -->
                 <div class="modal-section" style="border-bottom:none; margin-bottom: 0;">
                     <strong style="color:#ffd700; font-size:15px;">4. 陣亡了後：</strong><br>
                     陣亡的除魔師毋通放棄，愛繼續實施咒語，因為正確的咒語仝款有算分數；毋但按呢，陣亡了後實施正確的咒語，會使增加得著鳳凰羽毛的機率。毋過，陣亡了後的咒語無法度攻擊妖魔，而且存活的除魔師若攏施咒矣，袂等你共咒語完成，就會先攻擊妖魔。
@@ -1244,7 +1248,7 @@
         getSfxCtx();
         raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 25;
 
-        // ★ 保留 6.16 版動態血量邏輯
+        // ★ 保留動態血量邏輯
         let hpConfig = [200, 400, 500, 650]; 
         if (raidTotalQuestions === 12) hpConfig = [100, 150, 250, 350];
         else if (raidTotalQuestions === 18) hpConfig = [150, 250, 350, 500];
@@ -1691,6 +1695,7 @@
             wrongCount: wrongTotalThisQ
         });
 
+        // 1. 同步發射各玩家的「專屬攻擊道具」飛向中央
         const refractLayer = document.getElementById('raid-refract-layer');
         refractLayer.innerHTML = '';
         
@@ -1928,7 +1933,7 @@
                         isUltimate: isUltimate,
                         correctReveal: raidCurrentMatch.card.r.split('(')[0].trim(),
                         bossAttackIcon: raidAllBossesCleared ? '🦴' : RAID_BOSS_LIST[raidBossIdx].attack,
-                        aliveAvatars: finalAliveAvatars // ★ 結算後同步最新存活隊友陣列
+                        aliveAvatars: finalAliveAvatars 
                     });
                 }
             });
@@ -2288,7 +2293,6 @@
         if (!tmEl || !aliveAvatars) return;
 
         let avatars = [...aliveAvatars];
-        // 如果自己還活著，從名單中剔除自己的頭像(避免重複)
         if (myRaidHp > 0) {
             const myAvatarHTML = `<span style="filter:hue-rotate(${myRaidHue}deg);">${myRaidAvatar}</span>`;
             const myIdx = avatars.indexOf(myAvatarHTML);
@@ -2299,19 +2303,20 @@
         let displayStr = "";
 
         if (avatars.length > 0) {
-            // 洗牌隨機挑選 3 個
             for (let i = avatars.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [avatars[i], avatars[j]] = [avatars[j], avatars[i]];
             }
             const showCount = Math.min(3, avatars.length);
             const showAvatars = avatars.slice(0, showCount).join('');
-            const plusN = totalAlive - showCount; 
-            displayStr = showAvatars + (plusN > 0 ? `+${plusN}` : '');
+            
+            // 計算尚未顯示出來的存活隊友數量 (扣除顯示的數量)
+            const plusN = avatars.length - showCount; 
+            displayStr = "存活 " + showAvatars + (plusN > 0 ? ` +${plusN}` : '');
         } else if (totalAlive === 1 && myRaidHp > 0) {
-            displayStr = "孤軍奮戰";
+            displayStr = "存活 孤軍奮戰";
         } else {
-            displayStr = "全軍覆沒";
+            displayStr = "存活 全軍覆沒";
         }
         
         tmEl.innerHTML = displayStr;
@@ -2331,6 +2336,7 @@
         playerWrapper.classList.remove('chanting');
         playerWrapper.classList.add('submitted');
 
+        // ★ 平板端：動態計算玩家對準妖魔的精準投擲動畫
         if (myRaidHp > 0) {
             const arena = document.getElementById('rpg-arena');
             const pSprite = document.getElementById('player-sprite');
@@ -2487,6 +2493,7 @@
             const playerEl = document.getElementById('player-sprite');
             const maskHint = document.getElementById('raid-word-mask-hint');
 
+            // ★ 平板端：動態計算妖魔對準玩家的精準反擊動畫
             if (!data.bossStunned) {
                 const arena = document.getElementById('rpg-arena');
                 const pSprite = document.getElementById('player-sprite');
