@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 7.3)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 7.4)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -97,8 +97,8 @@
             overflow: hidden; transition: 0.2s;
         }
         .sound-toggle-btn:active { transform: scale(0.95); }
-        .sound-toggle-btn.muted { opacity: 0.55; border-color: #555; background: rgba(0, 0, 0, 0.4); }
-        /* 紅色對角斜線 */
+        .sound-toggle-btn.muted { opacity: 0.45; border-color: #555; background: rgba(0, 0, 0, 0.5); }
+        /* 紅色對角斜線：表示靜音狀態 */
         .sound-toggle-btn.muted::after {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(to top right, transparent calc(50% - 1.5px), #ef4444 calc(50% - 1.5px), #ef4444 calc(50% + 1.5px), transparent calc(50% + 1.5px));
@@ -443,7 +443,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 7.3</div>
+<div id="version-tag">Ver 7.4</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -546,7 +546,6 @@
             <div style="display:flex; align-items:center; gap:10px;">
                 <span id="raid-hud-locked-status" style="background:#334155; padding:3px 12px; border-radius:16px; font-size:14px;">存活已施咒: 0 / 0</span>
                 
-                <!-- ★ 更新：簡潔的現代化聲音切換按鈕 -->
                 <button class="sound-toggle-btn" id="bgm-toggle-btn" onclick="toggleBGM()">🎵 音樂</button>
                 <button class="sound-toggle-btn" id="sfx-toggle-btn-host" onclick="toggleSfx()">🔔 音效</button>
             </div>
@@ -648,7 +647,6 @@
             <span id="health-bar"></span>
             <div class="header-right-group">
                 <span id="progress-display">⏳ 等待開始...</span>
-                <!-- ★ 學生平板同步更新簡潔按鈕 -->
                 <button class="sound-toggle-btn" id="sfx-toggle-btn" onclick="toggleSfx()" title="開關音效">🔔 音效</button>
             </div>
         </div>
@@ -797,20 +795,24 @@
     // 🎵 音效與 BGM 引擎 (分軌處理與自動輪播機制)
     // =========================================================
     let sfxCtx = null;
-    let sfxMuted = false; // 音效預設開啟
+    
+    // ★ 音效預設為開啟 (false 代表不靜音)
+    let sfxMuted = false; 
 
-    // ★ 擴充為 6 首無版權輕快戰鬥配樂
+    // ★ 擴充為 6 首無版權、無防盜鏈的開源戰鬥配樂 (SoundHelix)
     const BGM_TRACKS = [
-        "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3",
-        "https://cdn.pixabay.com/download/audio/2021/11/25/audio_91b3cb0023.mp3",
-        "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
-        "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf7f6.mp3",
-        "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939f792b5.mp3",
-        "https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3"
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
     ];
     let bgmPlayer = new Audio();
     bgmPlayer.volume = 0.35; // 預設背景音量 35%
-    let isBgmMuted = false;  // 音樂預設開啟
+    
+    // ★ 音樂預設為開啟 (false 代表不靜音)
+    let isBgmMuted = false;  
     let currentBgmIndex = Math.floor(Math.random() * BGM_TRACKS.length);
 
     // 一首歌播完後自動隨機換下一首 (解決疲乏感)
@@ -826,11 +828,11 @@
         isBgmMuted = !isBgmMuted;
         if (isBgmMuted) {
             bgmPlayer.pause();
-            btn.classList.add('muted'); // 加入靜音斜線樣式
+            btn.classList.add('muted'); // 觸發 CSS 紅色對角斜線與變暗效果
         } else {
             if (!bgmPlayer.src) bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
             bgmPlayer.play().catch(()=>{});
-            btn.classList.remove('muted');
+            btn.classList.remove('muted'); // 恢復正常明亮狀態
         }
     }
 
@@ -845,6 +847,8 @@
             bgmPlayer.volume = 0.35; // 語音結束恢復 35%
         }
     }
+    
+    // 綁定語音播放結束與暫停事件，自動恢復 BGM 音量
     audioPlayer.addEventListener('ended', unduckBGM);
     audioPlayer.addEventListener('pause', unduckBGM);
 
@@ -861,11 +865,12 @@
 
     function toggleSfx() {
         sfxMuted = !sfxMuted;
-        // 同步大屏端的音效開關狀態
+        
+        // 同步大屏端的音效開關狀態 (套用紅色斜線樣式)
         const btnHost = document.getElementById('sfx-toggle-btn-host');
         if (btnHost) btnHost.classList.toggle('muted', sfxMuted);
         
-        // 同步平板端的音效開關狀態
+        // 同步平板端的音效開關狀態 (套用紅色斜線樣式)
         const btnPad = document.getElementById('sfx-toggle-btn');
         if (btnPad) btnPad.classList.toggle('muted', sfxMuted);
         
