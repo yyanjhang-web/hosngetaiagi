@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 7.6)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 7.7)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -443,7 +443,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 7.6</div>
+<div id="version-tag">Ver 7.7</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -468,6 +468,8 @@
         <div class="footer">
             <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
             <p class="copyright-text">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.</p>
+            <!-- ★ 新增 BGM 版權聲明 -->
+            <p style="margin-top: 2px;">BGM素材取自：甘茶の音楽工房</p>
             <div class="counter-container" style="margin-top: 6px;">
                 <a href="https://www.hitwebcounter.com/" target="_blank">
                     <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
@@ -792,56 +794,44 @@
     let raidMissedStats = [];
 
     // =========================================================
-    // 🎵 音效與 BGM 引擎 (記憶體 Blob 緩存與平滑避音)
+    // 🎵 音效與 BGM 引擎 (原生不中斷播放與平滑避音)
     // =========================================================
     let sfxCtx = null;
-    
-    // ★ 音效預設為開啟 (false 代表不靜音)
-    let sfxMuted = false; 
+    let sfxMuted = false; // 音效預設為開啟
 
-    // ★ 5 首高品質、允許跨域的 Wikimedia CC0 戰鬥/遊戲配樂
+    // ★ 專屬 GitHub BGM 網址 (10首)
     const BGM_TRACKS = [
-        "https://upload.wikimedia.org/wikipedia/commons/4/4b/Kevin_MacLeod_-_8bit_Dungeon_Boss.ogg",
-        "https://upload.wikimedia.org/wikipedia/commons/e/e5/Kevin_MacLeod_-_The_Descent.ogg",
-        "https://upload.wikimedia.org/wikipedia/commons/7/75/Kevin_MacLeod_-_Volatile_Reaction.ogg",
-        "https://upload.wikimedia.org/wikipedia/commons/8/87/Kevin_MacLeod_-_Clash_Defiant.ogg",
-        "https://upload.wikimedia.org/wikipedia/commons/b/bd/Kevin_MacLeod_-_Mighty_Like_Us.ogg"
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-01.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-02.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-03.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-04.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-05.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-06.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-07.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-08.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-09.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-10.mp3"
     ];
-    let bgmBlobs = new Array(BGM_TRACKS.length).fill(null); // 用來存放轉換後的本地 Blob 網址
     let bgmPlayer = new Audio();
     bgmPlayer.volume = 0.35; // 預設背景音量 35%
-    
-    // ★ 音樂預設為開啟 (false 代表不靜音)
-    let isBgmMuted = false;  
+    let isBgmMuted = false;  // 音樂預設為開啟
     let currentBgmIndex = Math.floor(Math.random() * BGM_TRACKS.length);
     let bgmFadeInterval = null;
 
-    // 非同步載入 BGM 至本地記憶體，確保不斷線、不重播
-    async function playCurrentBGM() {
+    // ★ 極簡不中斷播放引擎：只在第一次或自然播完時才設定 src
+    function playCurrentBGM() {
         if (isBgmMuted) return;
-        
-        // 如果目前這首還沒轉成本地 Blob，先轉換
-        if (!bgmBlobs[currentBgmIndex]) {
-            try {
-                const response = await fetch(BGM_TRACKS[currentBgmIndex]);
-                const blob = await response.blob();
-                bgmBlobs[currentBgmIndex] = URL.createObjectURL(blob);
-            } catch(e) {
-                console.warn("BGM 緩存失敗，使用直接連結:", e);
-                bgmBlobs[currentBgmIndex] = BGM_TRACKS[currentBgmIndex]; // 備案
-            }
-        }
-        
-        // ★ 核心修復：如果來源不一樣才替換，否則直接接續播放，杜絕從 0 秒重頭播放的 Bug
-        if (bgmPlayer.src !== bgmBlobs[currentBgmIndex] && !bgmPlayer.src.includes(bgmBlobs[currentBgmIndex])) {
-            bgmPlayer.src = bgmBlobs[currentBgmIndex];
+        // 只有當來源不一樣時，才替換並重播 (杜絕無故中斷重頭播)
+        if (bgmPlayer.src !== BGM_TRACKS[currentBgmIndex]) {
+            bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
         }
         bgmPlayer.play().catch(()=>{});
     }
 
-    // 一首歌播完後自動隨機換下一首 (解決疲乏感)
+    // 一首歌播完後，自然切換下一首
     bgmPlayer.addEventListener('ended', () => {
         currentBgmIndex = (currentBgmIndex + 1) % BGM_TRACKS.length;
+        bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
         playCurrentBGM();
     });
 
@@ -852,11 +842,11 @@
         if (isBgmMuted) {
             clearInterval(bgmFadeInterval);
             bgmPlayer.pause();
-            btn.classList.add('muted'); // 觸發 CSS 紅色對角斜線與變暗效果
+            btn.classList.add('muted'); // 觸發 CSS 紅色對角斜線靜音視覺
         } else {
             bgmPlayer.volume = 0.35;
             playCurrentBGM();
-            btn.classList.remove('muted'); // 恢復正常明亮狀態
+            btn.classList.remove('muted'); // 恢復明亮狀態
         }
     }
 
@@ -865,7 +855,7 @@
         if (isBgmMuted || !bgmPlayer.src) return;
         clearInterval(bgmFadeInterval);
         
-        // 強制喚醒：如果瀏覽器因播放語音強制暫停了BGM，精準接續播放 (維持 currentTime)
+        // 若被瀏覽器強制暫停，只下達繼續播放的指令，絕對不碰 src 以免重置進度
         if (bgmPlayer.paused && targetVol > 0.05) {
             bgmPlayer.play().catch(()=>{});
         }
@@ -1380,7 +1370,7 @@
 
         getSfxCtx();
         
-        // ★ 開戰時啟動無縫本地 BGM 播放
+        // ★ 開戰時啟動無縫 BGM 播放
         playCurrentBGM();
 
         raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 25;
@@ -1705,7 +1695,7 @@
         audioPlayer.src = safeUrl;
         audioPlayer.currentTime = 0;
         
-        // ★ 智慧避音：播放語音時平滑降低 BGM 音量
+        // ★ 智慧避音：播放語音時平滑降低 BGM 音量，且絕對不會中斷 BGM 本身的進度
         duckBGM();
         audioPlayer.play().catch(() => { unduckBGM(); });
     }
@@ -2456,7 +2446,7 @@
         } else if (totalAlive === 1 && myRaidHp > 0) {
             displayStr = "存活 孤軍奮戰";
         } else {
-            displayStr = "存活 全軍覆 মস";
+            displayStr = "存活 全軍覆沒";
         }
         
         tmEl.innerHTML = displayStr;
