@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 6.13)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 6.14)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -129,7 +129,10 @@
         }
         @keyframes spinCircle { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
         
-        .raid-unit.unit-dead { filter: grayscale(1); opacity: 0.48; }
+        /* 陣亡與頭像色相處理 */
+        .raid-unit.unit-dead { opacity: 0.48; filter: none !important; }
+        .raid-unit.unit-dead .unit-avatar-box > span:first-child { filter: hue-rotate(var(--hue)) grayscale(1) !important; }
+
         .unit-hp-track { width: 64px; height: 7px; background: #0f172a; border: 1px solid #64748b; border-radius: 4px; overflow: hidden; margin-bottom: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.6); }
         .unit-hp-fill { height: 100%; width: 100%; background: #22c55e; transition: width 0.3s ease, background 0.3s ease; }
         .unit-avatar-box { position: relative; font-size: 32px; line-height: 1.05; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5)); }
@@ -155,16 +158,22 @@
         /* 全域折射光束與爆炸容器 */
         #raid-refract-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
 
-        /* 從玩家射向中央的飛行光球 (大屏專用) */
+        /* 從玩家射向中央的專屬道具 (大屏專用) */
         .raid-orb {
-            position: absolute; width: 18px; height: 18px; border-radius: 50%;
-            background: #fff; box-shadow: 0 0 10px #fde047, 0 0 25px #fde047;
-            z-index: 10; pointer-events: none;
+            position: absolute; font-size: 28px; z-index: 10; pointer-events: none;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
         }
-        .orb-fly { animation: orbFlyAnim 0.4s ease-in forwards; }
-        @keyframes orbFlyAnim {
-            0% { left: var(--start-x); top: var(--start-y); transform: scale(1); opacity: 1; }
-            100% { left: 50%; top: 50%; transform: scale(0.3); opacity: 0.8; }
+
+        /* 妖魔反擊：地面震波與八向散射 */
+        .ground-shockwave {
+            position: absolute; left: 50%; top: 50%;
+            width: 0; height: 0; border: 6px solid #e94560; border-radius: 50%;
+            transform: translate(-50%, -50%); z-index: 3; box-shadow: 0 0 20px #e94560, inset 0 0 20px #e94560;
+            animation: shockwaveAnim 0.5s ease-out forwards;
+        }
+        @keyframes shockwaveAnim {
+            0% { width: 0; height: 0; opacity: 1; border-width: 8px; }
+            100% { width: 350px; height: 350px; opacity: 0; border-width: 1px; }
         }
 
         /* 命中中央妖魔的大型爆炸特效 (5+1階段) */
@@ -303,16 +312,24 @@
         #enemy-hp-ui { font-size: 12px; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; }
         #enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
 
-        .pad-beam-to-enemy {
-            position: absolute; left: 80px; bottom: 35px; width: calc(100% - 140px); height: 6px;
-            background: linear-gradient(90deg, transparent, #00e5ff, #fff);
-            border-radius: 4px; box-shadow: 0 0 10px #00e5ff; z-index: 3; transform-origin: left;
-            animation: padBeamRight 0.4s ease-out forwards;
+        /* 平板端投擲動畫 */
+        .player-weapon-drop {
+            position: absolute; left: 80px; bottom: 35px; font-size: 32px; z-index: 3;
+            animation: playerWeaponFly 0.4s ease-out forwards;
         }
-        @keyframes padBeamRight {
-            0% { transform: scaleX(0); opacity: 1; }
-            50% { transform: scaleX(1); opacity: 1; }
-            100% { transform: scaleX(1) translateX(50px); opacity: 0; }
+        @keyframes playerWeaponFly {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: translate(120px, -30px) scale(0.8) rotate(360deg); opacity: 0; }
+        }
+
+        .enemy-weapon-drop {
+            position: absolute; right: 50px; bottom: 40px; font-size: 36px; z-index: 3;
+            animation: enemyWeaponFly 0.4s ease-in forwards;
+        }
+        @keyframes enemyWeaponFly {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translate(-120px, 10px) scale(0.8) rotate(-360deg); opacity: 0; }
         }
 
         #timer-container { width: 100%; height: 8px; background: #2a3654; border-radius: 5px; overflow: hidden; margin-bottom: 8px; position: relative; display: none; flex-shrink: 0;}
@@ -396,7 +413,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 6.13</div>
+<div id="version-tag">Ver 6.14</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -417,8 +434,7 @@
                 <p>輸入房號入陣・同齊施展除魔咒語</p>
             </div>
         </div>
-        <!-- ★ 更新為團戰規則 -->
-        <button class="info-open-btn" onclick="toggleInfoModal(true)">📖 團戰規則</button>
+        <button class="info-open-btn" onclick="toggleInfoModal(true)">📖 團戰規則佮拍字盤紹介</button>
         <div class="footer">
             <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
             <p class="copyright-text">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.</p>
@@ -645,19 +661,19 @@
     <div id="info-modal" onclick="if(event.target === this) toggleInfoModal(false)">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>📖 團戰規則</h3>
+                <h3>📖 團戰規則佮拍字盤紹介</h3>
                 <button class="modal-close" onclick="toggleInfoModal(false)">✕</button>
             </div>
             <div class="modal-body">
                 <div class="modal-section">
                     <strong style="color:#ffd700; font-size:15px;">1. 攻擊鋩角：</strong><br>
                     (1)每擺實施咒語限制 18 秒，每一位除魔師攏有3滴血。<br>
-                    (2)正確率就是攻擊力。若存活的除魔師咒語正確率是100%，按呢妖魔就會扣100HP；正確率若是70%，妖魔就會扣70HP。<br>
+                    (2)正確率就是攻擊力。第一關的暗夜密婆，血量是1滴血，嘛會使看做100HP。若存活的除魔師咒語正確率100%，按呢一擺的攻擊就會使攻克暗夜密婆。若正確率是70%，按呢就是100%-70%=30%，暗夜密婆猶閣賰30%的血量。<br>
                     (3)若存活的除魔師，咒語正確率70%以上，妖魔會昏去，無法度反擊。<br>
                     (4)若存活的除魔師有超過參戰除魔師的半數，而且咒語正確率是100%，按呢就會使發動「完美攻擊」，這時，存活的除魔師會補半滴血。<br>
                     (5)若存活的除魔師有超過參戰除魔師的半數，而且毋但咒語正確率是100%，存活的除魔師閣攏佇10秒以內就實施咒語，按呢就會使發動「究極完美攻擊」。發動究極完美攻擊的時，毋但存活的除魔師攏補半滴血，陣亡者也會使以半滴血回魂。<br>
                     <span style="color:#94a3b8; font-size:12px;">※正確率的算法：存活的除魔師正確施咒的比例。譬論講，有10位存活的除魔師，其中有7位的咒語是正確的，按呢正確率就是70%。<br>
-                    ※妖魔的血量會照題數的濟少有變化，請看血條來體會遊戲。</span>
+                    ※第一關的暗夜密婆是1滴血，為著遊戲的趣味性，賰的妖魔血量無公開數據，請看血條來體會遊戲。</span>
                 </div>
                 <div class="modal-section">
                     <strong style="color:#ffd700; font-size:15px;">2. 妖魔反擊佮扣血方式：</strong><br>
@@ -673,7 +689,7 @@
 </div>
 <script>
     // =========================================================
-    // 📚 題庫設定與全域團戰變數
+    // 📚 題庫設定與全域團戰變數 (更新頭像與專屬武器庫)
     // =========================================================
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
@@ -690,7 +706,8 @@
         "拼音練習": "拼音練習音檔"
     };
 
-    const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦'];
+    const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦', '🦚','🐏','🐮','🦉','🐋','🐴','🐵'];
+    const RAID_WEAPONS = ['☀️','🥚','🌸','🌼','🌷','🌱','☘️','🍇','🍉','🍓','🫐','🥝','🌪️','🌬️','🌀','❄️','🌊','⭐','🧡','🍬','🍭','🫛','🫜','⚾','🥎'];
     
     let RAID_BOSS_LIST = [
         { name: '暗夜密婆', sprite: '🦇', maxHp: 200, attack: '🎵' },
@@ -705,7 +722,6 @@
     let raidStudentCurrentQ = null;
     let raidStudentLocked = false;
 
-    // 學生平板輸入與救命丹狀態
     let parsedAnswer = [];
     let inputBoxes = [];
     let currentSyllableIndex = 0;
@@ -717,7 +733,6 @@
     let timer = null;
     let timeLeft = 0;
 
-    // 教師大屏團戰狀態
     let raidPeer = null;
     let raidRoomPin = "";
     let raidSelectedLessons = ["B1L1"];
@@ -1077,8 +1092,8 @@
         return finalName;
     }
 
-    // ★ 創建隊伍時新增 ghostCorrectCount 紀錄幽靈積陰德值
-    function createRaidTeamObj(name, seatNo, padNo, avatar, conn, isBot) {
+    // ★ 創建隊伍：加入 hueRotate 變色與 weapon 專屬武器設定
+    function createRaidTeamObj(name, seatNo, padNo, avatar, hueRotate, weapon, conn, isBot) {
         const angle = Math.random() * Math.PI * 2;
         const radius = 28 + Math.random() * 12; 
         return {
@@ -1087,6 +1102,8 @@
             seatNo: seatNo || 'N/A',
             padNo: padNo || 'N/A',
             avatar: avatar,
+            hueRotate: hueRotate,
+            weapon: weapon,
             hp: 3.0,
             maxHp: 3.0,
             consecWrong: 0,
@@ -1109,14 +1126,20 @@
     function handleRaidHostReceive(conn, data) {
         if (data.type === 'JOIN') {
             const finalName = filterStudentName(data.name);
-            const icon = RAID_AVATARS[raidTeams.length % RAID_AVATARS.length];
-            const teamObj = createRaidTeamObj(finalName, data.seatNo, data.padNo, icon, conn, false);
+            const pCount = raidTeams.length;
+            const icon = RAID_AVATARS[pCount % RAID_AVATARS.length];
+            const hueRotate = Math.floor(pCount / RAID_AVATARS.length) * 60; // 每繞完一圈陣列，色相轉換60度
+            const weapon = RAID_WEAPONS[pCount % RAID_WEAPONS.length];
+
+            const teamObj = createRaidTeamObj(finalName, data.seatNo, data.padNo, icon, hueRotate, weapon, conn, false);
             raidTeams.push(teamObj);
             
             conn.send({
                 type: 'JOINED_OK',
                 name: teamObj.name,
                 avatar: teamObj.avatar,
+                hueRotate: teamObj.hueRotate,
+                weapon: teamObj.weapon,
                 hp: teamObj.hp,
                 feathers: teamObj.feathers,
                 difficulty: raidDifficulty
@@ -1142,7 +1165,6 @@
             }
         } else if (data.type === 'USE_FEATHER') {
             const savior = raidTeams.find(t => t.conn === conn);
-            // 只有存活或擁有羽毛的玩家可使用 (幽靈若死前持有羽毛亦可用)
             if (savior && savior.feathers > 0) {
                 handleHostPhoenixFeatherRevive(savior);
             }
@@ -1153,8 +1175,12 @@
         getSfxCtx();
         const botNames = ["甲組", "乙組", "丙組", "丁組", "戊組", "己組", "庚組", "辛組"];
         const finalName = filterStudentName(botNames[raidTeams.length % botNames.length]);
-        const icon = RAID_AVATARS[raidTeams.length % RAID_AVATARS.length];
-        raidTeams.push(createRaidTeamObj(finalName, 'bot', 'bot', icon, null, true));
+        const pCount = raidTeams.length;
+        const icon = RAID_AVATARS[pCount % RAID_AVATARS.length];
+        const hueRotate = Math.floor(pCount / RAID_AVATARS.length) * 60;
+        const weapon = RAID_WEAPONS[pCount % RAID_WEAPONS.length];
+
+        raidTeams.push(createRaidTeamObj(finalName, 'bot', 'bot', icon, hueRotate, weapon, null, true));
         sfxSyllableChant();
         renderRaidLobbyTeams();
     }
@@ -1183,7 +1209,7 @@
         raidTeams.forEach(t => {
             const div = document.createElement('div');
             div.className = 'raid-team-badge' + (t.isBot ? ' bot-unit' : '');
-            div.innerText = `${t.name} ${t.avatar}`;
+            div.innerHTML = `<span style="display:inline-block; filter:hue-rotate(${t.hueRotate}deg); margin-right:4px;">${t.avatar}</span>${t.name} <span style="font-size:14px; opacity:0.8;">[${t.weapon}]</span>`;
             div.title = "點擊移除此玩家";
             div.onclick = () => removeRaidTeamFromLobby(t.id, div);
             list.appendChild(div);
@@ -1261,10 +1287,11 @@
             unit.id = `raid-unit-${t.id}`;
             unit.style.left = `${t.x}%`;
             unit.style.top = `${t.y}%`;
+            // ★ 將 hueRotate 寫入 CSS 變數，方便存亡狀態切換時維持色相
             unit.innerHTML = `
                 <div class="unit-hp-track"><div class="unit-hp-fill" id="unit-hp-${t.id}"></div></div>
                 <div class="unit-avatar-box">
-                    <span id="unit-avatar-${t.id}">${t.avatar}</span>
+                    <span id="unit-avatar-${t.id}" style="--hue:${t.hueRotate}deg; filter: hue-rotate(var(--hue)); display:inline-block;">${t.avatar}</span>
                     <span class="unit-status-icon" id="unit-status-${t.id}"></span>
                 </div>
                 <div class="unit-name-tag">${t.name}</div>
@@ -1355,7 +1382,7 @@
             const featherTag = t.feathers > 0 ? `🪶x${t.feathers}` : '';
             box.innerHTML += `
                 <div class="raid-sb-row">
-                    <span style="font-weight:bold; color:${t.hp <= 0 ? '#94a3b8' : '#fff'};">${idx + 1}. ${t.avatar}${t.name} ${featherTag}</span>
+                    <span style="font-weight:bold; color:${t.hp <= 0 ? '#94a3b8' : '#fff'};">${idx + 1}. <span style="display:inline-block; filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>${t.name} ${featherTag}</span>
                     <span style="color:#00e5ff; font-weight:bold;">${hpText}｜${t.score}分</span>
                 </div>`;
         });
@@ -1487,7 +1514,6 @@
         audioPlayer.play().catch(() => {});
     }
 
-    // ★ 提早結算機制：僅判斷存活玩家是否全數送出
     function recordRaidTeamSpell(teamId, isCorrect, usedGourd) {
         if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
         if (raidCurrentMatch.submissions[teamId] !== undefined) return;
@@ -1500,7 +1526,6 @@
         const aliveTeams = raidTeams.filter(t => t.hp > 0);
         const submittedAliveCount = aliveTeams.filter(t => raidCurrentMatch.submissions[t.id]).length;
         
-        // 若存活者皆已送出答案 (或場上無存活者)，立刻結束倒數並結算
         if (submittedAliveCount >= aliveTeams.length || aliveTeams.length === 0) {
             clearInterval(raidHostTimer);
             setTimeout(resolveRaidRound, 500);
@@ -1514,7 +1539,6 @@
         document.getElementById('raid-hud-locked-status').innerText = `存活已施咒: ${submittedAliveCount} / ${aliveTeams.length}`;
     }
 
-    // ★ 加權復活機制：依據幽靈的陰德值(ghostCorrectCount)加權抽獎
     function handleHostPhoenixFeatherRevive(savior) {
         const deadList = raidTeams.filter(t => t.hp <= 0);
         if (deadList.length === 0) return;
@@ -1523,7 +1547,6 @@
         
         let pool = [];
         deadList.forEach(d => {
-            // 基本1張籤 + 答對題數額外加籤
             let weight = 1 + d.ghostCorrectCount;
             for (let i = 0; i < weight; i++) pool.push(d);
         });
@@ -1585,7 +1608,7 @@
             if (gotRight) {
                 t.correctQ++;
                 if (t.hp > 0) correctActiveCount++;
-                else t.ghostCorrectCount++; // 幽靈答對積陰德
+                else t.ghostCorrectCount++; 
             } else {
                 if (t.hp > 0) wrongTotalThisQ++;
             }
@@ -1597,9 +1620,7 @@
             }
         });
 
-        // 攻擊力完全由活人決定
         const accuracyPct = aliveCount > 0 ? Math.round((correctActiveCount / aliveCount) * 100) : 0;
-
         let canTriggerPerfect = (aliveCount > (totalCount / 2)) && (totalCount > 0);
         let isPerfect = (accuracyPct === 100 && canTriggerPerfect);
         let isUltimate = (isPerfect && allAliveWithin10s);
@@ -1612,22 +1633,23 @@
             wrongCount: wrongTotalThisQ
         });
 
+        // 1. 同步發射各玩家的「專屬攻擊道具」飛向中央
         const refractLayer = document.getElementById('raid-refract-layer');
         refractLayer.innerHTML = '';
         
         let hasCorrect = false;
         raidTeams.forEach(t => {
             const sub = raidCurrentMatch.submissions[t.id];
-            // 只有存活玩家發射光球
             if (t.hp > 0 && sub && sub.isCorrect) {
                 hasCorrect = true;
                 const orb = document.createElement('div');
                 orb.className = 'raid-orb';
+                orb.innerText = t.weapon; // ★ 使用玩家專屬武器
                 refractLayer.appendChild(orb);
                 
                 orb.animate([
-                    { left: `${t.x}%`, top: `${t.y}%`, transform: 'scale(1)', opacity: 1 },
-                    { left: '50%', top: '50%', transform: 'scale(0.3)', opacity: 0.7 }
+                    { left: `${t.x}%`, top: `${t.y}%`, transform: 'translate(-50%,-50%) scale(1) rotate(0deg)', opacity: 1 },
+                    { left: '50%', top: '50%', transform: 'translate(-50%,-50%) scale(0.5) rotate(360deg)', opacity: 0.7 }
                 ], { duration: 400, easing: 'ease-in', fill: 'forwards' });
             }
         });
@@ -1704,6 +1726,36 @@
                 document.getElementById('raid-hud-phase-msg').innerText = `⚠️ 攻勢傷弱，妖魔反擊！`;
                 bossSpriteEl.classList.add('enemy-attack');
                 setTimeout(() => bossSpriteEl.classList.remove('enemy-attack'), 450);
+
+                // ★ 妖魔反擊特效：大屏中心產生同心圓震波 + 8方散射專屬武器
+                const curBossAtkIcon = raidAllBossesCleared ? '🦴' : RAID_BOSS_LIST[raidBossIdx].attack;
+                
+                const shockwave = document.createElement('div');
+                shockwave.className = 'ground-shockwave';
+                refractLayer.appendChild(shockwave);
+                setTimeout(() => shockwave.remove(), 550);
+
+                const angles = [0, 45, 90, 135, 180, 225, 270, 315];
+                angles.forEach(deg => {
+                    const eProj = document.createElement('div');
+                    eProj.innerText = curBossAtkIcon;
+                    eProj.style.position = 'absolute';
+                    eProj.style.fontSize = '35px';
+                    eProj.style.left = '50%';
+                    eProj.style.top = '50%';
+                    eProj.style.zIndex = '9';
+                    eProj.style.pointerEvents = 'none';
+                    refractLayer.appendChild(eProj);
+                    
+                    const rad = deg * Math.PI / 180;
+                    const dist = 60; // 飛向畫面外圍
+                    eProj.animate([
+                        { left: '50%', top: '50%', opacity: 1, transform: `translate(-50%, -50%) rotate(0deg)` },
+                        { left: `${50 + Math.cos(rad)*dist}%`, top: `${50 + Math.sin(rad)*dist}%`, opacity: 0.2, transform: `translate(-50%, -50%) rotate(${deg}deg)` }
+                    ], { duration: 550, easing: 'ease-out', fill: 'forwards' });
+                    
+                    setTimeout(() => eProj.remove(), 600);
+                });
             }
 
             // 結算每位玩家的狀態
@@ -1720,7 +1772,7 @@
                     if (!wasAlive) {
                         t.hp = 0.5; 
                         t.consecWrong = 0;
-                        t.ghostCorrectCount = 0; // 復活清空陰德
+                        t.ghostCorrectCount = 0; 
                         outcome = 'ULTIMATE_REVIVED';
                     } else {
                         t.hp = Math.min(t.maxHp, t.hp + 0.5);
@@ -1765,7 +1817,6 @@
                         }
                     }
                 } else {
-                    // ★ 幽靈結算邏輯
                     if (gotRight) {
                         let pts = usedGourd ? 10 : 20;
                         if (accuracyPct === 100) pts += 10;
@@ -1788,7 +1839,6 @@
                         unitEl.classList.add('flash-gold');
                         setTimeout(() => unitEl.classList.remove('flash-gold'), 1000);
                     } else if (!wasAlive && gotRight && outcome === 'GHOST_CORRECT') {
-                        // 幽靈閃光
                         unitEl.classList.add('flash-gold');
                         setTimeout(() => unitEl.classList.remove('flash-gold'), 1500);
                     }
@@ -1812,12 +1862,13 @@
                         hp: t.hp,
                         consecWrong: t.consecWrong,
                         feathers: t.feathers,
-                        ghostCorrectCount: t.ghostCorrectCount, // 傳送陰德值給平板
+                        ghostCorrectCount: t.ghostCorrectCount,
                         earnedFeather: earnedFeather,
                         score: t.score,
                         isPerfect: isPerfect,
                         isUltimate: isUltimate,
-                        correctReveal: raidCurrentMatch.card.r.split('(')[0].trim()
+                        correctReveal: raidCurrentMatch.card.r.split('(')[0].trim(),
+                        bossAttackIcon: raidAllBossesCleared ? '🦴' : RAID_BOSS_LIST[raidBossIdx].attack // ★ 傳送敵方武器給平板
                     });
                 }
             });
@@ -1857,7 +1908,7 @@
             const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
             lbBox.innerHTML += `
                 <div class="review-item" style="font-size:17px;">
-                    <span><strong>${medal} ${t.avatar} ${t.name}</strong> (❤️${t.hp.toFixed(1)})</span>
+                    <span><strong>${medal} <span style="display:inline-block; filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span> ${t.name}</strong> (❤️${t.hp.toFixed(1)})</span>
                     <span>🎯 答對率 ${acc}% (${t.correctQ}/${t.totalQ}) ｜ <strong style="color:#fde047;">${t.score} 分</strong></span>
                 </div>`;
         });
@@ -1924,6 +1975,8 @@
     let myRaidFeathers = 0;
     let currentDeadTeammatesCount = 0;
     let myRaidAvatar = '🧙‍♂️';
+    let myRaidHue = 0;      // ★ 學生專屬頭像色相
+    let myRaidWeapon = '⭐'; // ★ 學生專屬武器
 
     function openRaidStudentJoin() {
         getSfxCtx();
@@ -2113,7 +2166,6 @@
         document.getElementById('timer-container').style.display = 'none';
     }
 
-    // ★ 新增 Ctrl 鍵監聽
     window.addEventListener('keydown', e => {
         if (document.getElementById('game-screen').style.display === 'flex') {
             if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); useGourd(); return; }
@@ -2174,14 +2226,15 @@
         playerWrapper.classList.remove('chanting');
         playerWrapper.classList.add('submitted');
 
-        // 活著的玩家才發射光束
+        // ★ 平板端發射玩家專屬武器動畫
         if (myRaidHp > 0) {
             const arena = document.getElementById('rpg-arena');
-            const beam = document.createElement('div');
-            beam.className = 'pad-beam-to-enemy';
-            arena.appendChild(beam);
+            const pProj = document.createElement('div');
+            pProj.innerText = myRaidWeapon;
+            pProj.className = 'player-weapon-drop';
+            arena.appendChild(pProj);
             sfxEnemyHit(); 
-            setTimeout(() => { beam.remove(); }, 400);
+            setTimeout(() => { pProj.remove(); }, 400);
         }
 
         if (studentHostConn && studentHostConn.open) {
@@ -2206,6 +2259,8 @@
             myRaidHp = data.hp;
             myRaidFeathers = data.feathers || 0;
             myRaidAvatar = data.avatar || '🧙‍♂️';
+            myRaidHue = data.hueRotate || 0;     // ★ 儲存專屬色相
+            myRaidWeapon = data.weapon || '⭐';   // ★ 儲存專屬武器
 
             document.getElementById('app-container').classList.add('pad-mode');
             document.getElementById('raid-student-join-screen').classList.remove('active');
@@ -2216,7 +2271,13 @@
             buildKeyboard();
 
             document.getElementById('score-display').innerText = `${myRaidAvatar} ${data.name}`;
-            document.getElementById('player-sprite').innerHTML = myRaidAvatar;
+            
+            // ★ 套用專屬色相到玩家 Sprite
+            const playerSprite = document.getElementById('player-sprite');
+            playerSprite.style.setProperty('--hue', myRaidHue + 'deg');
+            playerSprite.style.filter = 'hue-rotate(var(--hue))';
+            playerSprite.innerHTML = myRaidAvatar;
+
             document.getElementById('progress-display').innerText = `⏳ 等待大屏開始...`;
             renderStudentRaidHpBar();
             updateStudentFeatherButtonUI();
@@ -2235,7 +2296,7 @@
             sfxFeatherRevive();
             renderStudentRaidHpBar();
             const playerEl = document.getElementById('player-sprite');
-            playerEl.style.filter = '';
+            playerEl.style.filter = 'hue-rotate(var(--hue))';
             playerEl.innerHTML = `${myRaidAvatar}<span class="shield-badge">✨</span>`;
             document.getElementById('raid-word-mask-hint').innerHTML = `🪶 ${data.saviorName} 復活了你！`;
 
@@ -2293,12 +2354,22 @@
             const playerEl = document.getElementById('player-sprite');
             const maskHint = document.getElementById('raid-word-mask-hint');
 
+            // ★ 妖魔未被擊暈時，平板端展示專屬武器飛來砸人的動畫
+            if (!data.bossStunned) {
+                const arena = document.getElementById('rpg-arena');
+                const eProj = document.createElement('div');
+                eProj.innerText = data.bossAttackIcon;
+                eProj.className = 'enemy-weapon-drop';
+                arena.appendChild(eProj);
+                setTimeout(() => { eProj.remove(); }, 400);
+            }
+
             if (data.isUltimate) {
                 playerEl.classList.add('flash-ultimate');
                 setTimeout(() => playerEl.classList.remove('flash-ultimate'), 1500);
                 maskHint.innerHTML = `<span style="color:#c084fc;">🌟 究極完美攻擊！</span>`;
                 if (data.hp > 0 && data.outcome === 'ULTIMATE_REVIVED') {
-                    playerEl.style.filter = '';
+                    playerEl.style.filter = 'hue-rotate(var(--hue))';
                     playerEl.innerHTML = `${myRaidAvatar}<span class="shield-badge">✨</span>`;
                 }
             } else if (data.isPerfect) {
@@ -2328,7 +2399,7 @@
                 setTimeout(() => playerEl.classList.remove('player-hit'), 650);
 
                 if (myRaidHp <= 0) {
-                    playerEl.style.filter = 'grayscale(1) opacity(0.5)';
+                    playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))';
                     playerEl.innerHTML = `👻<span class="shield-badge">💀</span>`;
                     maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`;
                 } else {
@@ -2336,15 +2407,13 @@
                     maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`;
                 }
             } else if (data.outcome === 'GHOST_CORRECT') {
-                // ★ 幽靈積陰德：閃光、顯示加分、顯示綠色正解
                 playerEl.classList.add('flash-gold');
                 setTimeout(() => playerEl.classList.remove('flash-gold'), 1500);
-                playerEl.style.filter = 'grayscale(1) opacity(0.8)';
+                playerEl.style.filter = 'grayscale(1) opacity(0.8) hue-rotate(var(--hue))';
                 playerEl.innerHTML = `👻<span class="shield-badge" style="color:#4ade80; text-shadow:0 1px 2px #000;">+${data.ghostCorrectCount}</span>`;
                 maskHint.innerHTML = `<span style="color:#4ade80;">${formatTailoDisplay(data.correctReveal)}</span>`;
             } else {
-                // 陣亡且未答對/未作答
-                playerEl.style.filter = 'grayscale(1) opacity(0.5)';
+                playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))';
                 if (data.ghostCorrectCount > 0) {
                     playerEl.innerHTML = `👻<span class="shield-badge" style="color:#4ade80; text-shadow:0 1px 2px #000;">+${data.ghostCorrectCount}</span>`;
                 } else {
