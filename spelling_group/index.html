@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 7.7)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 7.8)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -443,7 +443,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 7.7</div>
+<div id="version-tag">Ver 7.8</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -468,7 +468,6 @@
         <div class="footer">
             <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
             <p class="copyright-text">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.</p>
-            <!-- ★ 新增 BGM 版權聲明 -->
             <p style="margin-top: 2px;">BGM素材取自：甘茶の音楽工房</p>
             <div class="counter-container" style="margin-top: 6px;">
                 <a href="https://www.hitwebcounter.com/" target="_blank">
@@ -692,6 +691,31 @@
         </div>
 
         <div id="keyboard"></div>
+    </div>
+
+    <!-- 7. ★ 新增：學生平板專屬的結算畫面 -->
+    <div id="pad-gameover-screen" class="screen-layer">
+        <div class="raid-join-card" style="max-width: 500px; width: 94%; padding: 20px;">
+            <h2 style="color:#fde047; margin:0 0 10px 0; font-size:26px;">✨ 除魔結束 ✨</h2>
+            <div style="background:rgba(0,0,0,0.3); border-radius:12px; padding:12px; margin-bottom:16px; border:1px solid #4a5c88;">
+                <div style="font-size:16px; color:#cbd5e1; margin-bottom:6px; font-weight:bold;">📊 個人戰績</div>
+                <div style="display:flex; justify-content:space-around; align-items:center;">
+                    <div style="text-align:center;">
+                        <div style="font-size:13px; color:#94a3b8;">總分</div>
+                        <div style="font-size:24px; font-weight:bold; color:#fde047;" id="pad-go-score">0</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:13px; color:#94a3b8;">答對率</div>
+                        <div style="font-size:24px; font-weight:bold; color:#4ade80;" id="pad-go-acc">0%</div>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align:left; margin-bottom:18px;">
+                <div style="font-size:15px; color:#fb923c; font-weight:bold; margin-bottom:8px; border-bottom:1px dashed #3a506b; padding-bottom:6px;">🧐 個人錯題回顧</div>
+                <div id="pad-go-wrong-list" style="max-height: 30vh; overflow-y: auto; font-size: 15px; padding-right: 4px;"></div>
+            </div>
+            <button class="start-btn green-btn" style="width:100%; font-size:18px;" onclick="location.reload()">🔄 閣耍一擺</button>
+        </div>
     </div>
 
     <!-- 團戰規則介紹彈窗 -->
@@ -1239,6 +1263,7 @@
         return finalName;
     }
 
+    // ★ 更新：新增 wrongList 專屬紀錄陣列
     function createRaidTeamObj(name, seatNo, padNo, avatar, hueRotate, weapon, conn, isBot) {
         const angle = Math.random() * Math.PI * 2;
         const radius = 28 + Math.random() * 12; 
@@ -1259,6 +1284,7 @@
             score: 0,
             totalQ: 0,
             correctQ: 0,
+            wrongList: [],  // ★ 紀錄學生專屬錯題
             conn: conn,
             isBot: isBot,
             baseAngle: angle,
@@ -1412,6 +1438,7 @@
         raidTeams.forEach(t => {
             t.hp = 3.0; t.consecWrong = 0; t.ghostCorrectCount = 0; t.streak = 0; t.feathers = 0;
             t.score = 0; t.totalQ = 0; t.correctQ = 0; t.submitTime = 0;
+            t.wrongList = []; // 重置錯題庫
         });
         raidBossIdx = 0;
         raidBossHp = RAID_BOSS_LIST[0].maxHp;
@@ -1802,6 +1829,13 @@
                 else t.ghostCorrectCount++; 
             } else {
                 if (t.hp > 0) wrongTotalThisQ++;
+                // ★ 新增：只要答錯(包含陣亡時答錯或超時未答)，就加入該學生的專屬錯題庫
+                t.wrongList.push({
+                    h: raidCurrentMatch.card.h,
+                    r: raidCurrentMatch.card.r,
+                    a: raidCurrentMatch.card.a,
+                    fullRevealedHtml: raidCurrentMatch.fullRevealedHtml
+                });
             }
             
             if (t.hp > 0) {
@@ -2079,6 +2113,7 @@
         }, 3800);
     }
 
+    // ★ 更新：結算時對所有平板發送個人的專屬成績單訊號
     function finishRaidBattle() {
         if (raidWanderInterval) clearInterval(raidWanderInterval);
         clearInterval(raidHostTimer);
@@ -2098,6 +2133,8 @@
         const lbBox = document.getElementById('raid-go-leaderboard');
         lbBox.innerHTML = '';
         const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.correctQ - a.correctQ);
+        
+        // 渲染大屏戰績，並對各平板發送個人結算資料
         sorted.forEach((t, idx) => {
             const acc = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
             const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
@@ -2106,6 +2143,16 @@
                     <span><strong>${medal} <span style="display:inline-block; filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span> ${t.name}</strong> (❤️${t.hp.toFixed(1)})</span>
                     <span>🎯 答對率 ${acc}% (${t.correctQ}/${t.totalQ}) ｜ <strong style="color:#fde047;">${t.score} 分</strong></span>
                 </div>`;
+                
+            // 傳送個人結算訊號
+            if (t.conn && t.conn.open) {
+                t.conn.send({
+                    type: 'GAME_OVER',
+                    score: t.score,
+                    accuracy: acc,
+                    wrongList: t.wrongList
+                });
+            }
         });
 
         const missedBox = document.getElementById('raid-go-missed-list');
@@ -2417,7 +2464,6 @@
         }
     }
 
-    // ★ 平板端：動態顯示隨機 3 個存活隊友頭像與剩餘數量
     function updateTeammatesDisplay(aliveAvatars) {
         const tmEl = document.getElementById('player-teammates-display');
         if (!tmEl || !aliveAvatars) return;
@@ -2466,7 +2512,6 @@
         playerWrapper.classList.remove('chanting');
         playerWrapper.classList.add('submitted');
 
-        // ★ 平板端：動態計算玩家對準妖魔的精準投擲動畫
         if (myRaidHp > 0) {
             const arena = document.getElementById('rpg-arena');
             const pSprite = document.getElementById('player-sprite');
@@ -2623,7 +2668,6 @@
             const playerEl = document.getElementById('player-sprite');
             const maskHint = document.getElementById('raid-word-mask-hint');
 
-            // ★ 平板端：動態計算妖魔對準玩家的精準反擊動畫
             if (!data.bossStunned) {
                 const arena = document.getElementById('rpg-arena');
                 const pSprite = document.getElementById('player-sprite');
@@ -2714,6 +2758,49 @@
                     playerEl.innerHTML = `👻<span class="shield-badge">💀</span>`;
                 }
                 maskHint.innerHTML = `<span style="color:#94a3b8;">${formatTailoDisplay(data.correctReveal)}</span>`;
+            }
+        
+        // ★ 新增：學生平板接收到大屏的遊戲結束訊號，跳轉個人結算畫面
+        } else if (data.type === 'GAME_OVER') {
+            stopTimer();
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('pad-gameover-screen').classList.add('active');
+            
+            document.getElementById('pad-go-score').innerText = data.score;
+            document.getElementById('pad-go-acc').innerText = data.accuracy + '%';
+            
+            const listEl = document.getElementById('pad-go-wrong-list');
+            listEl.innerHTML = '';
+            
+            if (data.wrongList && data.wrongList.length > 0) {
+                // 過濾重複的錯題
+                const uniqueMissed = new Map();
+                data.wrongList.forEach(item => {
+                    const key = `${item.h}_${item.r}`;
+                    uniqueMissed.set(key, item);
+                });
+                
+                let idx = 1;
+                uniqueMissed.forEach(item => {
+                    const row = document.createElement('div');
+                    row.style.marginBottom = '12px';
+                    row.style.padding = '10px';
+                    row.style.background = 'rgba(0,0,0,0.4)';
+                    row.style.borderRadius = '8px';
+                    row.style.border = '1px solid #334155';
+                    row.style.cursor = 'pointer';
+                    row.onclick = () => playAudio(item.a);
+                    row.innerHTML = `
+                        <div style="color:#f9a826; font-weight:bold; margin-bottom:4px; font-size:16px;">🔊 ${idx}. ${item.h}</div>
+                        <div style="color:#00e5ff; letter-spacing:1px;">${item.fullRevealedHtml}</div>
+                    `;
+                    listEl.appendChild(row);
+                    idx++;
+                });
+            } else {
+                // 滿分玩家專屬特效與稱讚
+                listEl.innerHTML = `<div style="text-align:center; padding: 30px 0; color:#4ade80; font-size:18px; font-weight:bold; text-shadow:0 0 10px rgba(74,222,128,0.5);">✨ 太神啦！零失誤完美通關！ ✨</div>`;
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             }
         }
     }
