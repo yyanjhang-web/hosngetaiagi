@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 7.2)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 7.3)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -86,6 +86,24 @@
         .raid-team-badge.bot-unit { background: #fde047 !important; border-color: #ca8a04 !important; color: #000 !important; }
         .raid-team-badge:hover, .raid-team-badge:active, .raid-team-badge.removing { background: rgba(220, 38, 38, 0.3) !important; border-color: #ef4444 !important; color: #fca5a5 !important; text-decoration: line-through; text-decoration-thickness: 3px; transform: scale(0.95); }
         @keyframes popIn { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* ========================================================= */
+        /* ★ 獨立且一致的聲音開關 UI (音樂、音效共用) */
+        /* ========================================================= */
+        .sound-toggle-btn {
+            position: relative; padding: 3px 10px; background: rgba(0, 229, 255, 0.12);
+            border: 1.5px solid #4a5c88; border-radius: 6px; font-size: 15px;
+            cursor: pointer; line-height: 1.2; color: #fff; font-family: inherit; font-weight: bold;
+            overflow: hidden; transition: 0.2s;
+        }
+        .sound-toggle-btn:active { transform: scale(0.95); }
+        .sound-toggle-btn.muted { opacity: 0.55; border-color: #555; background: rgba(0, 0, 0, 0.4); }
+        /* 紅色對角斜線 */
+        .sound-toggle-btn.muted::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top right, transparent calc(50% - 1.5px), #ef4444 calc(50% - 1.5px), #ef4444 calc(50% + 1.5px), transparent calc(50% + 1.5px));
+            pointer-events: none;
+        }
 
         /* ========================================================= */
         /* 3. 教師大屏：團戰主舞台 (中央妖魔、四周包圍游走) */
@@ -265,8 +283,6 @@
 
         #health-bar { display: flex; align-items: center; gap: 6px; }
         .header-right-group { display: flex; align-items: center; gap: 8px; }
-        #sfx-toggle-btn { background: rgba(0, 229, 255, 0.12); border: 1.5px solid #4a5c88; border-radius: 6px; padding: 2px 7px; font-size: 15px; cursor: pointer; line-height: 1.2; }
-        #sfx-toggle-btn.muted { opacity: 0.5; border-color: #555; background: rgba(0, 0, 0, 0.25); }
         
         .question-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
 
@@ -427,7 +443,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 7.2</div>
+<div id="version-tag">Ver 7.3</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -529,9 +545,10 @@
             <div id="raid-hud-phase-msg" style="color:#fde047; font-weight:bold; font-size:19px;">🎧 斟酌聽音，準備施咒！</div>
             <div style="display:flex; align-items:center; gap:10px;">
                 <span id="raid-hud-locked-status" style="background:#334155; padding:3px 12px; border-radius:16px; font-size:14px;">存活已施咒: 0 / 0</span>
-                <!-- ★ 新增 BGM 開關按鈕 -->
-                <button class="info-open-btn" style="padding:3px 10px; opacity:0.5;" id="bgm-toggle-btn" onclick="toggleBGM()">🎵 音樂(關)</button>
-                <button class="info-open-btn" style="padding:3px 10px;" onclick="toggleSfx()">🔔 音效</button>
+                
+                <!-- ★ 更新：簡潔的現代化聲音切換按鈕 -->
+                <button class="sound-toggle-btn" id="bgm-toggle-btn" onclick="toggleBGM()">🎵 音樂</button>
+                <button class="sound-toggle-btn" id="sfx-toggle-btn-host" onclick="toggleSfx()">🔔 音效</button>
             </div>
         </div>
 
@@ -631,7 +648,8 @@
             <span id="health-bar"></span>
             <div class="header-right-group">
                 <span id="progress-display">⏳ 等待開始...</span>
-                <span id="sfx-toggle-btn" onclick="toggleSfx()" title="開關音效">🔔</span>
+                <!-- ★ 學生平板同步更新簡潔按鈕 -->
+                <button class="sound-toggle-btn" id="sfx-toggle-btn" onclick="toggleSfx()" title="開關音效">🔔 音效</button>
             </div>
         </div>
         
@@ -776,21 +794,31 @@
     let raidMissedStats = [];
 
     // =========================================================
-    // 🎵 音效與 BGM 引擎 (加入智慧避音 Ducking 機制)
+    // 🎵 音效與 BGM 引擎 (分軌處理與自動輪播機制)
     // =========================================================
     let sfxCtx = null;
-    let sfxMuted = false;
+    let sfxMuted = false; // 音效預設開啟
 
-    // ★ 內建輕快戰鬥 BGM 庫 (使用無版權音樂)
+    // ★ 擴充為 6 首無版權輕快戰鬥配樂
     const BGM_TRACKS = [
         "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3",
         "https://cdn.pixabay.com/download/audio/2021/11/25/audio_91b3cb0023.mp3",
-        "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3"
+        "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3",
+        "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf7f6.mp3",
+        "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939f792b5.mp3",
+        "https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3"
     ];
     let bgmPlayer = new Audio();
-    bgmPlayer.loop = true;
     bgmPlayer.volume = 0.35; // 預設背景音量 35%
-    let isBgmMuted = true;
+    let isBgmMuted = false;  // 音樂預設開啟
+    let currentBgmIndex = Math.floor(Math.random() * BGM_TRACKS.length);
+
+    // 一首歌播完後自動隨機換下一首 (解決疲乏感)
+    bgmPlayer.addEventListener('ended', () => {
+        currentBgmIndex = (currentBgmIndex + 1) % BGM_TRACKS.length;
+        bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
+        if (!isBgmMuted) bgmPlayer.play().catch(()=>{});
+    });
 
     function toggleBGM() {
         const btn = document.getElementById('bgm-toggle-btn');
@@ -798,16 +826,11 @@
         isBgmMuted = !isBgmMuted;
         if (isBgmMuted) {
             bgmPlayer.pause();
-            btn.innerText = "🎵 音樂(關)";
-            btn.style.opacity = "0.5";
+            btn.classList.add('muted'); // 加入靜音斜線樣式
         } else {
-            if (!bgmPlayer.src) {
-                // 初次開啟時隨機挑選一首 BGM
-                bgmPlayer.src = BGM_TRACKS[Math.floor(Math.random() * BGM_TRACKS.length)];
-            }
+            if (!bgmPlayer.src) bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
             bgmPlayer.play().catch(()=>{});
-            btn.innerText = "🎵 音樂(開)";
-            btn.style.opacity = "1";
+            btn.classList.remove('muted');
         }
     }
 
@@ -822,10 +845,8 @@
             bgmPlayer.volume = 0.35; // 語音結束恢復 35%
         }
     }
-    // 綁定語音播放結束與暫停事件，自動恢復 BGM 音量
     audioPlayer.addEventListener('ended', unduckBGM);
     audioPlayer.addEventListener('pause', unduckBGM);
-
 
     function getSfxCtx() {
         if (!sfxCtx) {
@@ -840,14 +861,18 @@
 
     function toggleSfx() {
         sfxMuted = !sfxMuted;
-        const btn = document.getElementById('sfx-toggle-btn');
-        if (btn) {
-            btn.innerText = sfxMuted ? '🔕' : '🔔';
-            btn.classList.toggle('muted', sfxMuted);
-        }
+        // 同步大屏端的音效開關狀態
+        const btnHost = document.getElementById('sfx-toggle-btn-host');
+        if (btnHost) btnHost.classList.toggle('muted', sfxMuted);
+        
+        // 同步平板端的音效開關狀態
+        const btnPad = document.getElementById('sfx-toggle-btn');
+        if (btnPad) btnPad.classList.toggle('muted', sfxMuted);
+        
         if (!sfxMuted) sfxSyllableChant();
     }
 
+    // 獨立的合成音效通道
     function playToneNode(freqStart, freqEnd, duration, type = 'sine', maxGain = 0.2, delay = 0) {
         if (sfxMuted) return;
         const ctx = getSfxCtx();
@@ -1300,9 +1325,17 @@
         if (raidTeams.length < 1) return alert("請至少加入 1 組除魔師 (可點擊『➕ 加入AI隊友』測試)！");
 
         getSfxCtx();
+        
+        // ★ 開戰時自動觸發 BGM (若未被老師靜音)
+        if (!isBgmMuted && !bgmPlayer.src) {
+            bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
+            bgmPlayer.play().catch(()=>{});
+        } else if (!isBgmMuted) {
+            bgmPlayer.play().catch(()=>{});
+        }
+
         raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 25;
 
-        // ★ 保留動態血量邏輯
         let hpConfig = [200, 400, 500, 650]; 
         if (raidTotalQuestions === 12) hpConfig = [100, 150, 250, 350];
         else if (raidTotalQuestions === 18) hpConfig = [150, 250, 350, 500];
@@ -1820,7 +1853,7 @@
                 sfxError();
             }
 
-            // ★ 修正：取消溢出傷害。血量低於0就死亡，下一隻必定滿血登場
+            // ★ 修正：徹底取消溢出傷害 (Overkill)。下一隻妖魔必定滿血。
             if (raidAllBossesCleared) {
                 if (bossDamage > 0) sfxCoin();
             } else {
@@ -1829,7 +1862,7 @@
                     sfxEnemyDeath();
                     if (raidBossIdx < RAID_BOSS_LIST.length - 1) {
                         raidBossIdx++;
-                        // 不扣除溢出傷害，直接賦予下一隻怪滿血
+                        // 新妖魔登場，直接賦予 100% 滿血，無視先前的溢出傷害
                         raidBossHp = RAID_BOSS_LIST[raidBossIdx].maxHp;
                     } else {
                         raidAllBossesCleared = true;
