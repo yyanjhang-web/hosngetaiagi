@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 7.4)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 7.5)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -443,7 +443,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 7.4</div>
+<div id="version-tag">Ver 7.5</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -792,7 +792,7 @@
     let raidMissedStats = [];
 
     // =========================================================
-    // 🎵 音效與 BGM 引擎 (分軌處理與自動輪播機制)
+    // 🎵 音效與 BGM 引擎 (平滑避音與無縫鎖定機制)
     // =========================================================
     let sfxCtx = null;
     
@@ -814,12 +814,16 @@
     // ★ 音樂預設為開啟 (false 代表不靜音)
     let isBgmMuted = false;  
     let currentBgmIndex = Math.floor(Math.random() * BGM_TRACKS.length);
+    let bgmFadeInterval = null;
 
     // 一首歌播完後自動隨機換下一首 (解決疲乏感)
     bgmPlayer.addEventListener('ended', () => {
         currentBgmIndex = (currentBgmIndex + 1) % BGM_TRACKS.length;
         bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
-        if (!isBgmMuted) bgmPlayer.play().catch(()=>{});
+        if (!isBgmMuted) {
+            bgmPlayer.volume = 0.35;
+            bgmPlayer.play().catch(()=>{});
+        }
     });
 
     function toggleBGM() {
@@ -827,25 +831,52 @@
         if (!btn) return;
         isBgmMuted = !isBgmMuted;
         if (isBgmMuted) {
+            clearInterval(bgmFadeInterval);
             bgmPlayer.pause();
             btn.classList.add('muted'); // 觸發 CSS 紅色對角斜線與變暗效果
         } else {
             if (!bgmPlayer.src) bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
+            bgmPlayer.volume = 0.35;
             bgmPlayer.play().catch(()=>{});
             btn.classList.remove('muted'); // 恢復正常明亮狀態
         }
     }
 
-    // ★ 智慧避音：播放語音時瞬間降低 BGM 音量
-    function duckBGM() {
-        if (!isBgmMuted && !bgmPlayer.paused) {
-            bgmPlayer.volume = 0.05; // 降到 5% 變成若有似無
+    // ★ 平滑漸變避音 (Smooth Fade Ducking)
+    function fadeBGM(targetVol, duration) {
+        if (isBgmMuted || !bgmPlayer.src) return;
+        clearInterval(bgmFadeInterval);
+        
+        // 強制喚醒：如果瀏覽器因播放語音強制暫停了BGM，在此精準接續播放 (防重頭開始)
+        if (bgmPlayer.paused && targetVol > 0.05) {
+            bgmPlayer.play().catch(()=>{});
         }
+
+        const steps = 20;
+        const stepTime = duration / steps;
+        const volChange = (targetVol - bgmPlayer.volume) / steps;
+        
+        bgmFadeInterval = setInterval(() => {
+            let nextVol = bgmPlayer.volume + volChange;
+            // 浮點數精度保護
+            if (nextVol > 1) nextVol = 1;
+            if (nextVol < 0) nextVol = 0;
+            
+            if ((volChange > 0 && nextVol >= targetVol) || (volChange < 0 && nextVol <= targetVol)) {
+                bgmPlayer.volume = targetVol;
+                clearInterval(bgmFadeInterval);
+            } else {
+                bgmPlayer.volume = nextVol;
+            }
+        }, stepTime);
     }
+
+    function duckBGM() {
+        fadeBGM(0.05, 400); // 400ms 內平滑降至 5%
+    }
+    
     function unduckBGM() {
-        if (!isBgmMuted && !bgmPlayer.paused) {
-            bgmPlayer.volume = 0.35; // 語音結束恢復 35%
-        }
+        fadeBGM(0.35, 800); // 800ms 內平滑恢復至 35%
     }
     
     // 綁定語音播放結束與暫停事件，自動恢復 BGM 音量
@@ -1661,7 +1692,7 @@
         audioPlayer.src = safeUrl;
         audioPlayer.currentTime = 0;
         
-        // ★ 智慧避音：播放語音時自動降低 BGM 音量
+        // ★ 智慧避音：播放語音時平滑降低 BGM 音量
         duckBGM();
         audioPlayer.play().catch(() => { unduckBGM(); });
     }
