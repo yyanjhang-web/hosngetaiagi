@@ -502,7 +502,7 @@
         </div>
 
         <!-- 版本號：未來更新時遞增 0.1 -->
-        <div id="version-display">Ver 5.1</div>
+        <div id="version-display">Ver 5.2</div>
     </div>
 
     <!-- ========================================================= -->
@@ -1197,7 +1197,6 @@
         <div id="keyboard"></div>
     </div>
 </div>
-
 <script>
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
@@ -1528,7 +1527,9 @@
 
     // 拼音解析系統
     let parsedAnswer = []; let inputBoxes = []; let currentSyllableIndex = 0; let typedBase = "";    
-    const validLetters = ['a','b','c','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
+    
+    // ★ 關鍵修改：移除了 'c'，將其設定為無效按鍵，防呆避免誤觸！
+    const validLetters = ['a','b','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
     const toneDigits = ['1','2','3','4','5','7','8','9'];
     
     // ==== 一體成形 SVG 聲調繪製系統（第4聲與第8聲採用窄版畫布讓圓圈與 ptkh 緊密靠攏） ====
@@ -1714,6 +1715,7 @@
         }
         btn.innerHTML = html;
 
+        // ★ 因為 'c' 已經不在 validLetters 裡，它會直接掉入 else，被套上 disabled-key
         if (!forceDisabled && (validLetters.includes(val) || toneDigits.includes(val) || val === 'Backspace')) {
             btn.classList.add('active-key');
             btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
@@ -1770,7 +1772,7 @@
         ['a','s','d','f','g','h','j','k','l'].forEach(k => row2.appendChild(createKeyDiv(k)));
         kbContainer.appendChild(row2);
 
-        // 第 3 列：Z ~ M (7鍵完整展開)
+        // 第 3 列：Z ~ M (7鍵完整展開，其中 'c' 會被自動渲染為無效按鍵)
         const row3 = document.createElement('div');
         row3.className = 'kb-row kb-row-3';
         ['z','x','c','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k)));
@@ -1986,6 +1988,7 @@
                 sfxSyllableChant(); // 播放完成單一音節詠唱共鳴音
             }
         } 
+        // ★ 核心改動發揮作用的地方：因為 'c' 已經不在 validLetters 裡，它不會進入這層判斷，直接被忽略
         else if (validLetters.includes(key)) {
             if (currentSyllableIndex < parsedAnswer.length) typedBase += key;
         }
@@ -2028,7 +2031,6 @@
             }
         }
     }
-
     function checkAnswer() {
         let isCorrect = true;
         for (let i = 0; i < parsedAnswer.length; i++) {
@@ -2298,7 +2300,7 @@
             }
             else if (k === 'enter') handleInput('Enter');
             else if (k === 'backspace') handleInput('Backspace');
-            else handleInput(k);
+            else handleInput(k); // 這裡實體鍵盤打出的 'c' 會送進 handleInput，然後因為不在 validLetters 裡被無視
         }
     });
 
