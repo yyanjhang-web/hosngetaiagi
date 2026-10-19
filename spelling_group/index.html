@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 7.9)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 7.10)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -443,7 +443,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 7.9</div>
+<div id="version-tag">Ver 7.10</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -693,7 +693,7 @@
         <div id="keyboard"></div>
     </div>
 
-    <!-- 7. ★ 新增：學生平板專屬的結算畫面 -->
+    <!-- 7. 學生平板專屬的結算畫面 -->
     <div id="pad-gameover-screen" class="screen-layer">
         <div class="raid-join-card" style="max-width: 500px; width: 94%; padding: 20px;">
             <h2 style="color:#fde047; margin:0 0 10px 0; font-size:26px;">✨ 除魔結束 ✨</h2>
@@ -795,8 +795,11 @@
     let inputBoxes = [];
     let currentSyllableIndex = 0;
     let typedBase = "";
+    
+    // ★ 有效字母陣列移除了 'c'，確保 C 鍵無效
     const validLetters = ['a','b','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
     const toneDigits = ['1','2','3','4','5','7','8','9'];
+    
     let gourdsLeft = 3;
     let usedGourdOnCurrentQ = false;
     let timer = null;
@@ -1114,6 +1117,7 @@
         }
         btn.innerHTML = html;
 
+        // ★ 因為 'c' 已經不在 validLetters 裡，它會直接被套上 disabled-key
         if (!forceDisabled && (validLetters.includes(val) || toneDigits.includes(val) || val === 'Backspace')) {
             btn.classList.add('active-key');
             btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
@@ -1166,7 +1170,8 @@
 
         const row3 = document.createElement('div');
         row3.className = 'kb-row kb-row-3';
-        ['z','x','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k)));
+        // ★ 核心改動：將 'c' 放回鍵盤陣列中，維持視覺完整性
+        ['z','x','c','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k)));
         kbContainer.appendChild(row3);
     }
 
@@ -1219,7 +1224,6 @@
     function openRaidHostLobby() {
         getSfxCtx();
         
-        // ★ 每次創立大廳時，進行獨立雙重洗牌，保證組合隨機不重複
         currentAvatars = shuffleBank([...RAID_AVATARS]);
         currentWeapons = shuffleBank([...RAID_WEAPONS]);
 
@@ -1263,7 +1267,6 @@
         return finalName;
     }
 
-    // ★ 更新：新增 wrongList 專屬紀錄陣列
     function createRaidTeamObj(name, seatNo, padNo, avatar, hueRotate, weapon, conn, isBot) {
         const angle = Math.random() * Math.PI * 2;
         const radius = 28 + Math.random() * 12; 
@@ -1284,7 +1287,7 @@
             score: 0,
             totalQ: 0,
             correctQ: 0,
-            wrongList: [],  // ★ 紀錄學生專屬錯題
+            wrongList: [],  // 紀錄學生專屬錯題
             conn: conn,
             isBot: isBot,
             baseAngle: angle,
@@ -1299,7 +1302,6 @@
         if (data.type === 'JOIN') {
             const finalName = filterStudentName(data.name);
             const pCount = raidTeams.length;
-            // ★ 使用洗牌後的獨立陣列分配
             const icon = currentAvatars[pCount % currentAvatars.length];
             const hueRotate = Math.floor(pCount / currentAvatars.length) * 60;
             const weapon = currentWeapons[pCount % currentWeapons.length];
@@ -1349,7 +1351,6 @@
         const botNames = ["甲組", "乙組", "丙組", "丁組", "戊組", "己組", "庚組", "辛組"];
         const finalName = filterStudentName(botNames[raidTeams.length % botNames.length]);
         const pCount = raidTeams.length;
-        // ★ 使用洗牌後的獨立陣列分配
         const icon = currentAvatars[pCount % currentAvatars.length];
         const hueRotate = Math.floor(pCount / currentAvatars.length) * 60;
         const weapon = currentWeapons[pCount % currentWeapons.length];
@@ -1396,7 +1397,6 @@
 
         getSfxCtx();
         
-        // ★ 開戰時啟動無縫 BGM 播放
         playCurrentBGM();
 
         raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 25;
@@ -1578,1248 +1578,345 @@
         });
     }
 </script>
-<script>
-    // =========================================================
-    // 🎬 單題流程、中心包圍戰大招特效與究極完美判定
-    // =========================================================
-    function runNextRaidQuestion() {
-        if (raidCurrentQIdx >= raidTotalQuestions) {
-            finishRaidBattle();
-            return;
-        }
-
-        const card = raidQuestionDeck.shift();
-        raidQuestionDeck.push(card);
-
-        const parts = card.r.split(/([\s\-–—]+)/);
-        const sylIndices = [];
-        parts.forEach((p, idx) => {
-            if (p && !/^[\s\-–—]+$/.test(p) && /[a-zA-Z]/.test(p)) sylIndices.push(idx);
-        });
-        const targetPartIdx = sylIndices[Math.floor(Math.random() * sylIndices.length)];
-        const targetRawSyl = parts[targetPartIdx];
-        const targetParsed = parseTaiLoAnswer(targetRawSyl)[0];
-
-        const hostMaskedHtml = parts.map((p, idx) => {
-            if (idx === targetPartIdx) return `<span class="raid-blank-slot"></span>`;
-            return formatTailoDisplay(p);
-        }).join('');
-
-        const padMaskedHtml = parts.map((p, idx) => {
-            if (idx === targetPartIdx) return `<span class="blank-slot-inline"></span>`;
-            return formatTailoDisplay(p);
-        }).join('');
-
-        const fullRevealedHtml = parts.map((p, idx) => {
-            if (idx === targetPartIdx) return `<span style="color:#4ade80; text-decoration:underline;">${formatTailoDisplay(p)}</span>`;
-            return formatTailoDisplay(p);
-        }).join('');
-
-        raidCurrentMatch = {
-            card, targetParsed, hostMaskedHtml, padMaskedHtml, fullRevealedHtml,
-            submissions: {},
-            accepting: true,
-            startTime: Date.now() 
-        };
-
-        document.getElementById('raid-center-banner').style.display = 'none';
-        document.getElementById('raid-boss-stun-stars').style.display = 'none';
-        
-        document.querySelectorAll('.raid-unit').forEach(u => {
-            u.classList.remove('unit-chanting', 'unit-submitted');
-        });
-
-        const showHanzi = document.getElementById('raid-show-hanzi-toggle').checked;
-        const hanziEl = document.getElementById('raid-host-hanzi');
-        hanziEl.innerText = card.h;
-        hanziEl.style.display = showHanzi ? 'block' : 'none';
-        document.getElementById('raid-host-tailo').innerHTML = hostMaskedHtml;
-
-        document.getElementById('raid-hud-q-progress').innerText = `題目: ${raidCurrentQIdx + 1} / ${raidTotalQuestions}`;
-        document.getElementById('raid-hud-phase-msg').innerText = `🔥 請輸入空格處的羅馬字！`;
-        updateRaidLockedCountUI();
-
-        const deadCount = raidTeams.filter(t => t.hp <= 0).length;
-        const curBossSprite = raidAllBossesCleared ? '💀' : RAID_BOSS_LIST[raidBossIdx].sprite;
-        const curBossName = raidAllBossesCleared ? '獎勵骷髏頭' : RAID_BOSS_LIST[raidBossIdx].name;
-        
-        // 抓取全場存活玩家的頭像，準備傳給平板端顯示
-        const aliveAvatars = raidTeams.filter(t => t.hp > 0).map(t => `<span style="filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>`);
-
-        raidTeams.forEach(t => {
-            if (t.conn && t.conn.open) {
-                t.conn.send({
-                    type: 'RAID_QUESTION',
-                    qIndex: raidCurrentQIdx + 1,
-                    totalQ: raidTotalQuestions,
-                    difficulty: raidDifficulty,
-                    h: card.h,
-                    a: card.a,
-                    padMaskedHtml: padMaskedHtml,
-                    targetSyllable: targetParsed,
-                    bossSprite: curBossSprite,
-                    bossName: curBossName,       // ★ 傳送妖魔名稱
-                    deadCount: deadCount,
-                    aliveAvatars: aliveAvatars   // ★ 傳送存活隊友陣列
-                });
+function checkAnswer() {
+        let isCorrect = true;
+        for (let i = 0; i < parsedAnswer.length; i++) {
+            if (inputBoxes[i].base !== parsedAnswer[i].base || inputBoxes[i].tone !== parsedAnswer[i].tone) {
+                isCorrect = false; break;
             }
-        });
-
-        replayRaidAudio();
-
-        raidTeams.filter(t => t.isBot).forEach(bot => {
-            // ★ AI 隨機使用羽毛邏輯
-            if (bot.feathers > 0 && deadCount > 0) {
-                setTimeout(() => {
-                    let currentDead = raidTeams.filter(x => x.hp <= 0).length;
-                    if (raidCurrentMatch && raidCurrentMatch.accepting && bot.feathers > 0 && currentDead > 0) {
-                        if (Math.random() < 0.75) { // 75% 機率使用羽毛
-                            handleHostPhoenixFeatherRevive(bot);
-                        }
-                    }
-                }, 2000 + Math.random() * 4000);
-            }
-
-            // AI 作答邏輯
-            setTimeout(() => {
-                if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
-                const unitEl = document.getElementById(`raid-unit-${bot.id}`);
-                if (unitEl) unitEl.classList.add('unit-chanting');
-            }, 1200 + Math.random() * 2500);
-
-            setTimeout(() => {
-                if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
-                const botRight = (Math.random() < 0.78);
-                bot.submitTime = Date.now();
-                const unitEl = document.getElementById(`raid-unit-${bot.id}`);
-                if (unitEl) {
-                    unitEl.classList.remove('unit-chanting');
-                    unitEl.classList.add('unit-submitted');
-                }
-                recordRaidTeamSpell(bot.id, botRight, false);
-            }, 4000 + Math.random() * 5000);
-        });
-
-        const timerBar = document.getElementById('raid-host-timer-bar');
-        timerBar.style.width = '100%';
-        let timeLeftSec = 18.0;
-        clearInterval(raidHostTimer);
-        raidHostTimer = setInterval(() => {
-            timeLeftSec = Math.round((timeLeftSec - 0.1) * 10) / 10;
-            timerBar.style.width = `${Math.max(0, (timeLeftSec / 18.0) * 100)}%`;
-            if (timeLeftSec <= 0) {
-                clearInterval(raidHostTimer);
-                resolveRaidRound();
-            }
-        }, 100);
-    }
-
-    function replayRaidAudio() {
-        if (!raidCurrentMatch) return;
-        const rawUrl = raidCurrentMatch.card.a;
-        const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
-        audioPlayer.pause();
-        audioPlayer.src = safeUrl;
-        audioPlayer.currentTime = 0;
-        
-        // ★ 智慧避音：播放語音時平滑降低 BGM 音量，且絕對不會中斷 BGM 本身的進度
-        duckBGM();
-        audioPlayer.play().catch(() => { unduckBGM(); });
-    }
-
-    function recordRaidTeamSpell(teamId, isCorrect, usedGourd) {
-        if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
-        if (raidCurrentMatch.submissions[teamId] !== undefined) return;
-
-        raidCurrentMatch.submissions[teamId] = { isCorrect, usedGourd };
-        sfxSyllableChant();
-
-        updateRaidLockedCountUI();
-
-        const aliveTeams = raidTeams.filter(t => t.hp > 0);
-        const submittedAliveCount = aliveTeams.filter(t => raidCurrentMatch.submissions[t.id]).length;
-        
-        if (submittedAliveCount >= aliveTeams.length || aliveTeams.length === 0) {
-            clearInterval(raidHostTimer);
-            setTimeout(resolveRaidRound, 500);
         }
+        if (isCorrect) handleSuccess(); else handleFail(true);
     }
 
-    function updateRaidLockedCountUI() {
-        if (!raidCurrentMatch) return;
-        const aliveTeams = raidTeams.filter(t => t.hp > 0);
-        const submittedAliveCount = aliveTeams.filter(t => raidCurrentMatch.submissions[t.id]).length;
-        document.getElementById('raid-hud-locked-status').innerText = `存活已施咒: ${submittedAliveCount} / ${aliveTeams.length}`;
-    }
-
-    function handleHostPhoenixFeatherRevive(savior) {
-        const deadList = raidTeams.filter(t => t.hp <= 0);
-        if (deadList.length === 0) return;
-
-        savior.feathers--;
+    function spawnEffect(type) {
+        const arena = document.getElementById('rpg-arena');
+        const effect = document.createElement('div');
         
-        let pool = [];
-        deadList.forEach(d => {
-            let weight = 1 + d.ghostCorrectCount;
-            for (let i = 0; i < weight; i++) pool.push(d);
-        });
-        
-        const luckyTarget = pool[Math.floor(Math.random() * pool.length)];
-        luckyTarget.hp = 0.5;
-        luckyTarget.consecWrong = 0;
-        luckyTarget.ghostCorrectCount = 0;
-
-        sfxFeatherRevive();
-        updateRaidArmyUnitsVisual();
-        renderRaidLiveScoreboard();
-
-        const banner = document.getElementById('raid-center-banner');
-        banner.innerText = `🪶 ${savior.name} 施展鳳凰羽毛，復活了 ${luckyTarget.name}！`;
-        banner.style.display = 'block';
-        setTimeout(() => { banner.style.display = 'none'; }, 2800);
-
-        // 更新存活者陣列廣播
-        const aliveAvatars = raidTeams.filter(t => t.hp > 0).map(t => `<span style="filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>`);
-
-        if (savior.conn && savior.conn.open) {
-            savior.conn.send({ type: 'FEATHER_UPDATED', feathers: savior.feathers });
-        }
-        if (luckyTarget.conn && luckyTarget.conn.open) {
-            luckyTarget.conn.send({
-                type: 'REVIVED_BY_ALLY',
-                saviorName: savior.name,
-                hp: luckyTarget.hp
-            });
-        }
-        broadcastDeadCountToStudents(aliveAvatars);
-    }
-
-    function broadcastDeadCountToStudents(aliveAvatarsArray = null) {
-        const deadCount = raidTeams.filter(t => t.hp <= 0).length;
-        const aliveArr = aliveAvatarsArray || raidTeams.filter(t => t.hp > 0).map(t => `<span style="filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>`);
-        raidTeams.forEach(t => {
-            if (t.conn && t.conn.open) {
-                t.conn.send({ type: 'DEAD_COUNT_SYNC', deadCount: deadCount, feathers: t.feathers, aliveAvatars: aliveArr });
+        if (type === 'light') {
+            effect.className = 'light-beam-effect';
+        } else if (type === 'enemyAttack') {
+            effect.className = 'combat-effect';
+            if (!allEnemiesCleared && currentEnemyIdx === 0) {
+                effect.classList.add('dark-note');
             }
-        });
+            effect.innerText = allEnemiesCleared ? '🦴' : enemyConfig[currentEnemyIdx].attack;
+            
+            const arenaRect = arena.getBoundingClientRect();
+            const playerRect = document.getElementById('player-wrapper').getBoundingClientRect();
+            const enemyRect = document.getElementById('enemy-wrapper').getBoundingClientRect();
+            
+            const startLeft = enemyRect.left - arenaRect.left;
+            const targetLeft = playerRect.left - arenaRect.left + (playerRect.width * 0.25);
+            const flyDistance = targetLeft - startLeft;
+
+            effect.style.left = `${startLeft}px`;
+            effect.style.bottom = '12px';
+            effect.style.setProperty('--fly-x', `${flyDistance}px`);
+            effect.style.animation = 'projFly 0.5s ease-out forwards';
+        }
+        arena.appendChild(effect);
+        setTimeout(() => { effect.remove(); }, 500);
     }
 
-    function resolveRaidRound() {
-        if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
-        raidCurrentMatch.accepting = false;
-        clearInterval(raidHostTimer);
+    function handleSuccess() {
+        stopTimer();
+        document.getElementById('player-wrapper').classList.remove('chanting');
 
-        document.getElementById('raid-host-tailo').innerHTML = raidCurrentMatch.fullRevealedHtml;
-
-        // ★ 嚴格快照：回合開始前就活著的玩家，才能被視為「存活」並計算攻擊力
-        let activeTeams = raidTeams.filter(t => t.hp > 0);
-        let aliveCount = activeTeams.length;
-        let totalCount = raidTeams.length;
+        if (attempt === 1) {
+            streakCount++;
+            if (streakCount > 0 && streakCount % 2 === 0 && maxQuestions < questionBank.length) {
+                maxQuestions++;
+            }
+        } else {
+            streakCount = 0;
+        }
         
-        let correctActiveCount = 0;
-        let wrongTotalThisQ = 0;
-        let allAliveWithin10s = true;
-
-        raidTeams.forEach(t => {
-            const sub = raidCurrentMatch.submissions[t.id];
-            const gotRight = Boolean(sub && sub.isCorrect);
-            const wasAlive = (t.hp > 0); // 回合結算前是否存活
-
-            t.totalQ++;
-            if (gotRight) {
-                t.correctQ++;
-                if (wasAlive) {
-                    correctActiveCount++; // 只有活人的正確答案才算攻擊力
-                } else {
-                    t.ghostCorrectCount++; 
-                }
+        const player = document.getElementById('player-sprite');
+        const enemyEl = document.getElementById('enemy-sprite');
+        
+        player.classList.add('player-cast');
+        spawnEffect('light');
+        sfxEnemyHit(); // 播放聖光束與敵人受擊音效
+        
+        const currentAttempt = attempt;
+        let baseScore = (currentAttempt === 1) ? 20 : 10; // 既然只有一次重答，分數改為 20(首發) / 10(補考)
+        if (usedGourdOnCurrentQ) {
+            baseScore = Math.floor(baseScore / 2);
+        }
+        
+        let coinBonus = 0;
+        
+        setTimeout(() => { 
+            player.classList.remove('player-cast'); 
+            
+            if (allEnemiesCleared) {
+                enemyEl.classList.add('enemy-hit-flash');
+                setTimeout(() => enemyEl.classList.remove('enemy-hit-flash'), 400);
+                spawnCoin();
+                sfxCoin(); // 播放打骷髏頭獲得金幣音效
+                coinBonus = 10;
             } else {
-                if (wasAlive) wrongTotalThisQ++;
-                
-                // ★ 紀錄學生專屬錯題 (不論活人死人，答錯就記錄)
-                t.wrongList.push({
-                    h: raidCurrentMatch.card.h,
-                    r: raidCurrentMatch.card.r,
-                    a: raidCurrentMatch.card.a,
-                    fullRevealedHtml: raidCurrentMatch.fullRevealedHtml
-                });
+                currentEnemyHp--;
+                updateEnemyHpUI();
+                if (currentEnemyHp <= 0) {
+                    enemyEl.classList.add('enemy-dead');
+                    sfxEnemyDeath(); // 播放敵人死亡音效
+                    
+                    setTimeout(() => {
+                        if (currentEnemyIdx < 3) {
+                            currentEnemyIdx++;
+                            currentEnemyHp = enemyConfig[currentEnemyIdx].maxHp;
+                            enemyEl.innerText = enemyConfig[currentEnemyIdx].sprite;
+                            enemyEl.classList.remove('enemy-dead');
+                            updateEnemyHpUI();
+                        } else {
+                            allEnemiesCleared = true;
+                            enemyEl.innerText = '💀';
+                            enemyEl.classList.remove('enemy-dead');
+                            updateEnemyHpUI();
+                        }
+                    }, 700);
+                } else {
+                    enemyEl.classList.add('enemy-hit-flash');
+                    setTimeout(() => enemyEl.classList.remove('enemy-hit-flash'), 400);
+                }
             }
             
-            if (wasAlive) {
-                if (!sub || (t.submitTime - raidCurrentMatch.startTime > 10000)) {
-                    allAliveWithin10s = false;
-                }
-            }
-        });
-
-        // 結算全班攻擊力
-        const accuracyPct = aliveCount > 0 ? Math.round((correctActiveCount / aliveCount) * 100) : 0;
-        let canTriggerPerfect = (aliveCount > (totalCount / 2)) && (totalCount > 0);
-        let isPerfect = (accuracyPct === 100 && canTriggerPerfect);
-        let isUltimate = (isPerfect && allAliveWithin10s);
-
-        raidMissedStats.push({
-            h: raidCurrentMatch.card.h,
-            r: raidCurrentMatch.card.r,
-            a: raidCurrentMatch.card.a,
-            fullRevealedHtml: raidCurrentMatch.fullRevealedHtml,
-            wrongCount: wrongTotalThisQ
-        });
-
-        // 同步發射各玩家的「專屬攻擊道具」飛向中央
-        const refractLayer = document.getElementById('raid-refract-layer');
-        refractLayer.innerHTML = '';
+            score += baseScore + coinBonus;
+            updateDisplay();
+        }, 180);
         
-        let hasCorrect = false;
-        raidTeams.forEach(t => {
-            const sub = raidCurrentMatch.submissions[t.id];
-            if (t.hp > 0 && sub && sub.isCorrect) {
-                hasCorrect = true;
-                const orb = document.createElement('div');
-                orb.className = 'raid-orb';
-                orb.innerText = t.weapon; 
-                refractLayer.appendChild(orb);
-                
-                orb.animate([
-                    { left: `${t.x}%`, top: `${t.y}%`, transform: 'translate(-50%,-50%) scale(1) rotate(0deg)', opacity: 1 },
-                    { left: '50%', top: '50%', transform: 'translate(-50%,-50%) scale(0.5) rotate(360deg)', opacity: 0.7 }
-                ], { duration: 400, easing: 'ease-in', fill: 'forwards' });
-            }
-        });
-
-        setTimeout(() => {
-            refractLayer.innerHTML = ''; 
-
-            if (hasCorrect || accuracyPct > 0) {
-                const explosion = document.createElement('div');
-                explosion.className = 'boss-explosion';
-                if (isUltimate) explosion.classList.add('tier-ult');
-                else if (accuracyPct === 100) explosion.classList.add('tier-100');
-                else if (accuracyPct >= 90) explosion.classList.add('tier-90');
-                else if (accuracyPct >= 70) explosion.classList.add('tier-70');
-                else if (accuracyPct >= 50) explosion.classList.add('tier-50');
-                else explosion.classList.add('tier-low');
-                refractLayer.appendChild(explosion);
-                setTimeout(() => explosion.remove(), 1200); 
-                
-                const dmgText = document.createElement('div');
-                dmgText.className = 'damage-popup';
-                dmgText.innerText = `💥 攻擊力 ${accuracyPct}%`;
-                refractLayer.appendChild(dmgText);
-                setTimeout(() => dmgText.remove(), 1500);
-            }
-
-            const banner = document.getElementById('raid-center-banner');
-            if (isUltimate) {
-                banner.innerText = `🌟 究極完美攻擊！ 🌟`;
-                banner.style.display = 'block';
-                confetti({ particleCount: 150, spread: 90, origin: { y: 0.5 } });
-                if (typeof sfxUltimateVictory === 'function') sfxUltimateVictory();
-                else sfxVictory();
-            } else if (isPerfect) {
-                banner.innerText = `✨ 完美攻擊 ✨`;
-                banner.style.display = 'block';
-                confetti({ particleCount: 110, spread: 80, origin: { y: 0.5 } });
-            }
-
-            let bossDamage = accuracyPct;
-            const bossStunned = (accuracyPct >= 70);
-            const bossSpriteEl = document.getElementById('raid-boss-sprite');
-
-            if (bossDamage > 0) {
-                sfxEnemyHit();
-                bossSpriteEl.classList.add('enemy-hit-flash');
-                setTimeout(() => bossSpriteEl.classList.remove('enemy-hit-flash'), 400);
-            } else {
-                sfxError();
-            }
-
-            // 取消溢出傷害 (Overkill)。下一隻妖魔必定滿血。
-            if (raidAllBossesCleared) {
-                if (bossDamage > 0) sfxCoin();
-            } else {
-                raidBossHp -= bossDamage;
-                if (raidBossHp <= 0) {
-                    sfxEnemyDeath();
-                    if (raidBossIdx < RAID_BOSS_LIST.length - 1) {
-                        raidBossIdx++;
-                        // 新妖魔登場，直接賦予 100% 滿血，無視先前的溢出傷害
-                        raidBossHp = RAID_BOSS_LIST[raidBossIdx].maxHp;
-                    } else {
-                        raidAllBossesCleared = true;
-                        raidBossHp = 0;
-                    }
-                }
-                updateRaidBossUI();
-            }
-
-            if (bossStunned) {
-                document.getElementById('raid-boss-stun-stars').style.display = 'block';
-                document.getElementById('raid-hud-phase-msg').innerText = `💫 攻勢猛烈，妖魔袂振袂動！`;
-            } else {
-                document.getElementById('raid-hud-phase-msg').innerText = `⚠️ 攻勢傷弱，妖魔反擊！`;
-                bossSpriteEl.classList.add('enemy-attack');
-                setTimeout(() => bossSpriteEl.classList.remove('enemy-attack'), 450);
-
-                const curBossAtkIcon = raidAllBossesCleared ? '🦴' : RAID_BOSS_LIST[raidBossIdx].attack;
-                
-                const shockwave = document.createElement('div');
-                shockwave.className = 'ground-shockwave';
-                refractLayer.appendChild(shockwave);
-                setTimeout(() => shockwave.remove(), 550);
-
-                const angles = [0, 45, 90, 135, 180, 225, 270, 315];
-                angles.forEach(deg => {
-                    const eProj = document.createElement('div');
-                    eProj.innerText = curBossAtkIcon;
-                    eProj.style.position = 'absolute';
-                    eProj.style.fontSize = '35px';
-                    eProj.style.left = '50%';
-                    eProj.style.top = '50%';
-                    eProj.style.zIndex = '9';
-                    eProj.style.pointerEvents = 'none';
-                    refractLayer.appendChild(eProj);
-                    
-                    const rad = deg * Math.PI / 180;
-                    const dist = 60; 
-                    eProj.animate([
-                        { left: '50%', top: '50%', opacity: 1, transform: `translate(-50%, -50%) rotate(0deg)` },
-                        { left: `${50 + Math.cos(rad)*dist}%`, top: `${50 + Math.sin(rad)*dist}%`, opacity: 0.2, transform: `translate(-50%, -50%) rotate(${deg}deg)` }
-                    ], { duration: 550, easing: 'ease-out', fill: 'forwards' });
-                    
-                    setTimeout(() => eProj.remove(), 600);
-                });
-            }
-
-            // 更新結算後的存活陣列廣播
-            const finalAliveAvatars = raidTeams.filter(t => t.hp > 0 || (isUltimate && t.hp <= 0)).map(t => `<span style="filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>`);
-
-            // 結算每位玩家的狀態
-            raidTeams.forEach(t => {
-                const sub = raidCurrentMatch.submissions[t.id];
-                const gotRight = Boolean(sub && sub.isCorrect);
-                const usedGourd = Boolean(sub && sub.usedGourd);
-                const wasAlive = (t.hp > 0);
-
-                let outcome = 'DEAD_SPECTATE';
-                let earnedFeather = false;
-
-                if (isUltimate) {
-                    if (!wasAlive) {
-                        t.hp = 0.5; 
-                        t.consecWrong = 0;
-                        t.ghostCorrectCount = 0; 
-                        outcome = 'ULTIMATE_REVIVED';
-                    } else {
-                        t.hp = Math.min(t.maxHp, t.hp + 0.5);
-                    }
-                } else if (isPerfect) {
-                    if (wasAlive) {
-                        t.hp = Math.min(t.maxHp, t.hp + 0.5); 
-                    }
-                }
-
-                if (wasAlive) {
-                    if (gotRight) {
-                        let pts = usedGourd ? 10 : 20;
-                        if (accuracyPct === 100) pts += 10;
-                        if (raidAllBossesCleared) pts += 10;
-                        t.score += pts;
-
-                        t.consecWrong = 0;
-                        t.streak++;
-                        if (t.streak > 0 && t.streak % 3 === 0 && t.feathers < 1) {
-                            t.feathers++;
-                            earnedFeather = true;
-                        }
-                        outcome = bossStunned ? 'BOSS_STUNNED_SAFE' : 'DODGE_SAFE';
-                        if (isPerfect) outcome = 'PERFECT_HEAL';
-                        if (isUltimate) outcome = 'ULTIMATE_HEAL';
-                    } else {
-                        t.streak = 0;
-                        if (bossStunned) {
-                            outcome = 'PROTECTED_BY_TEAM';
-                            if (isPerfect) outcome = 'PERFECT_HEAL';
-                            if (isUltimate) outcome = 'ULTIMATE_HEAL';
-                        } else {
-                            t.consecWrong++;
-                            if (t.consecWrong === 1) {
-                                t.hp = Math.max(0, Math.round((t.hp - 0.5) * 10) / 10);
-                                outcome = 'SHIELD_BLOCK_HALF';
-                            } else {
-                                t.hp = Math.max(0, Math.round((t.hp - 1.0) * 10) / 10);
-                                outcome = 'SHIELD_BREAK_FULL';
-                            }
-                        }
-                    }
-                } else {
-                    if (gotRight) {
-                        let pts = usedGourd ? 10 : 20;
-                        if (accuracyPct === 100) pts += 10;
-                        if (raidAllBossesCleared) pts += 10;
-                        t.score += pts;
-                        if (outcome !== 'ULTIMATE_REVIVED') {
-                            outcome = 'GHOST_CORRECT';
-                        }
-                    }
-                }
-
-                const unitEl = document.getElementById(`raid-unit-${t.id}`);
-                if (unitEl) {
-                    unitEl.classList.remove('unit-chanting', 'unit-submitted');
-                    
-                    if (isUltimate) {
-                        unitEl.classList.add('flash-ultimate');
-                        setTimeout(() => unitEl.classList.remove('flash-ultimate'), 1500);
-                    } else if (isPerfect && wasAlive) {
-                        unitEl.classList.add('flash-gold');
-                        setTimeout(() => unitEl.classList.remove('flash-gold'), 1000);
-                    } else if (!wasAlive && gotRight && outcome === 'GHOST_CORRECT') {
-                        unitEl.classList.add('flash-gold');
-                        setTimeout(() => unitEl.classList.remove('flash-gold'), 1500);
-                    }
-
-                    if (gotRight && wasAlive && !bossStunned) {
-                        unitEl.classList.add('player-dodge');
-                        setTimeout(() => unitEl.classList.remove('player-dodge'), 600);
-                    } else if (!bossStunned && !gotRight && wasAlive) {
-                        unitEl.classList.add('player-hit');
-                        setTimeout(() => unitEl.classList.remove('player-hit'), 600);
-                    }
-                }
-
-                if (t.conn && t.conn.open) {
-                    t.conn.send({
-                        type: 'RAID_RESULT',
-                        gotRight: gotRight,
-                        bossStunned: bossStunned,
-                        accuracyPct: accuracyPct,
-                        outcome: outcome,
-                        hp: t.hp,
-                        consecWrong: t.consecWrong,
-                        feathers: t.feathers,
-                        ghostCorrectCount: t.ghostCorrectCount,
-                        earnedFeather: earnedFeather,
-                        score: t.score,
-                        isPerfect: isPerfect,
-                        isUltimate: isUltimate,
-                        correctReveal: raidCurrentMatch.card.r.split('(')[0].trim(),
-                        bossAttackIcon: raidAllBossesCleared ? '🦴' : RAID_BOSS_LIST[raidBossIdx].attack,
-                        aliveAvatars: finalAliveAvatars 
-                    });
-                }
-            });
-
-            updateRaidArmyUnitsVisual();
-            renderRaidLiveScoreboard();
-
-        }, 400); 
-
-        setTimeout(() => {
-            raidCurrentQIdx++;
-            runNextRaidQuestion();
-        }, 3800);
+        setTimeout(() => { currentQuestionIndex++; loadQuestion(); }, 900);
     }
 
-    // 結算時對所有平板發送個人的專屬成績單訊號
-    function finishRaidBattle() {
-        if (raidWanderInterval) clearInterval(raidWanderInterval);
-        clearInterval(raidHostTimer);
-        document.getElementById('raid-host-screen').classList.remove('active');
-        document.getElementById('raid-gameover-screen').classList.add('active');
+    function handleFail(isInputError = false) {
+        stopTimer();
+        streakCount = 0; 
+        recordWrongCurrentQuestion();
 
-        const subEl = document.getElementById('raid-go-sub-comment');
-        if (raidAllBossesCleared) {
-            sfxVictory();
-            confetti({ particleCount: 140, spread: 100, origin: { y: 0.5 } });
-            subEl.innerText = "全班齊心協力，成功將所有妖魔全數殲滅！";
+        if (isInputError) {
+            sfxError(); // 播放羅馬字輸入錯誤蜂鳴音效
+        }
+        
+        const container = document.getElementById('syllable-boxes-container');
+        container.classList.add('shake', 'error-shake');
+        setTimeout(() => { container.classList.remove('shake', 'error-shake'); }, 400);
+        
+        const player = document.getElementById('player-sprite');
+        const enemy = document.getElementById('enemy-sprite');
+
+        // 只有第一次答錯會給予重答機會 (attempt === 1)
+        if (!allEnemiesCleared && attempt === 1) {
+            enemy.classList.add('enemy-attack');
+            setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
+            spawnEffect('enemyAttack');
+            sfxPlayerDodge(); // 播放玩家閃避音效
+            
+            setTimeout(() => { player.classList.add('player-dodge'); }, 150); 
+            setTimeout(() => { player.classList.remove('player-dodge'); }, 600); 
+            
+            const wordCount = parsedAnswer.length;
+            let nextTime = wordCount * 20; // 每個字寬裕給 20 秒
+            attempt++; 
+            
+            // 加上流汗提示
+            player.innerHTML = '🧙‍♂️<span class="sweat-drop">💦</span>';
+
+            resetInputBoxes(); 
+            playAudio();
+            startTimer(nextTime);
         } else {
-            sfxVictory();
-            subEl.innerText = `本次推進至【${RAID_BOSS_LIST[raidBossIdx].name}】，繼續修行必能斬妖除魔！`;
+            // 第二次答錯，直接扣血換題
+            takeDamage();
         }
+    }
 
-        const lbBox = document.getElementById('raid-go-leaderboard');
-        lbBox.innerHTML = '';
-        const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.correctQ - a.correctQ);
+    function handleSkip() {
+        if (hearts <= 0) return; 
+        stopTimer(); 
+        streakCount = 0; 
+        recordWrongCurrentQuestion();
+        sfxSkipTrigger(); // 播放使用忍辱進前音效
         
-        // 渲染大屏戰績，並對各平板發送個人結算資料
-        sorted.forEach((t, idx) => {
-            const acc = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
-            const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
-            lbBox.innerHTML += `
-                <div class="review-item" style="font-size:17px;">
-                    <span><strong>${medal} <span style="display:inline-block; filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span> ${t.name}</strong> (❤️${t.hp.toFixed(1)})</span>
-                    <span>🎯 答對率 ${acc}% (${t.correctQ}/${t.totalQ}) ｜ <strong style="color:#fde047;">${t.score} 分</strong></span>
-                </div>`;
-                
-            // 傳送個人結算訊號
-            if (t.conn && t.conn.open) {
-                t.conn.send({
-                    type: 'GAME_OVER',
-                    score: t.score,
-                    accuracy: acc,
-                    wrongList: t.wrongList
-                });
-            }
-        });
-
-        const missedBox = document.getElementById('raid-go-missed-list');
-        missedBox.innerHTML = '';
-        const uniqueMissed = new Map();
-        raidMissedStats.forEach(item => {
-            if (item.wrongCount <= 0) return;
-            const key = `${item.h}_${item.r}`;
-            if (!uniqueMissed.has(key) || item.wrongCount > uniqueMissed.get(key).wrongCount) {
-                uniqueMissed.set(key, item);
-            }
-        });
-        const top5 = Array.from(uniqueMissed.values()).sort((a, b) => b.wrongCount - a.wrongCount).slice(0, 5);
-        if (top5.length === 0) {
-            missedBox.innerHTML = `<div style="text-align:center; color:#4ade80; padding:24px;">✨ 全軍表現完美，無任何失誤題目！ ✨</div>`;
-        } else {
-            top5.forEach((item, i) => {
-                const row = document.createElement('div');
-                row.className = 'review-item';
-                row.onclick = () => playAudio(item.a);
-                row.innerHTML = `
-                    <span class="review-hanzi">🔊 ${i + 1}. ${item.h} <span class="review-tailo" style="margin-left:8px;">${item.fullRevealedHtml}</span></span>
-                    <span style="color:#fca5a5; font-size:14px; font-weight:bold;">❌ 錯 ${item.wrongCount} 人</span>
-                `;
-                missedBox.appendChild(row);
-            });
-        }
-    }
-
-    function exportRaidGradesToExcel() {
-        if (raidTeams.length === 0) return alert("無成績資料可匯出！");
-        const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.correctQ - a.correctQ);
-        const lessonStr = raidSelectedLessons.join('、');
-        const diffName = (raidDifficulty === 'apprentice') ? '咒術師仔' : '咒術師父';
-
-        let csv = "\uFEFF排名,組別/稱呼,真實座號,平板編號,個人答對率(平時成績),答對題數,總題數,除魔總分,剩餘血量,難度,課次範圍\r\n";
-        sorted.forEach((t, idx) => {
-            const acc = t.totalQ > 0 ? Math.round((t.correctQ / t.totalQ) * 100) : 0;
-            const cleanName = t.name.replace(/,/g, ' ');
-            const sNo = t.seatNo.replace(/,/g, '');
-            const pNo = t.padNo.replace(/,/g, '');
-            csv += `${idx + 1},"${cleanName}","${sNo}","${pNo}",${acc}%,${t.correctQ},${t.totalQ},${t.score},${t.hp.toFixed(1)},"${diffName}","${lessonStr}"\r\n`;
-        });
-
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const hh = String(now.getHours()).padStart(2, '0');
-        const min = String(now.getMinutes()).padStart(2, '0');
-        const timeStr = `${yyyy}${mm}${dd}_${hh}${min}`;
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `除魔成績_${timeStr}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
-
-    // =========================================================
-    // 📱 學生平板端：加入團戰、虛擬鍵盤輸入、發射光束與結算
-    // =========================================================
-    let studentRaidPeer = null;
-    let studentHostConn = null;
-    let myRaidHp = 3.0;
-    let myRaidFeathers = 0;
-    let currentDeadTeammatesCount = 0;
-    let myRaidAvatar = '🧙‍♂️';
-    let myRaidHue = 0;      
-    let myRaidWeapon = '⭐'; 
-
-    function openRaidStudentJoin() {
-        getSfxCtx();
-        document.getElementById('entry-screen').classList.remove('active');
-        document.getElementById('raid-student-join-screen').classList.add('active');
-    }
-
-    function closeRaidStudentJoin() {
-        document.getElementById('raid-student-join-screen').classList.remove('active');
-        document.getElementById('entry-screen').classList.add('active');
-    }
-
-    function connectStudentToRaidHost() {
-        const pin = document.getElementById('raid-join-pin').value.trim();
-        const name = document.getElementById('raid-join-name').value.trim();
-        const seat = document.getElementById('raid-join-seat').value.trim();
-        const pad = document.getElementById('raid-join-pad').value.trim();
-        const msgEl = document.getElementById('raid-join-msg');
+        const container = document.getElementById('syllable-boxes-container');
+        container.classList.add('shake', 'error-shake');
+        setTimeout(() => { container.classList.remove('shake', 'error-shake'); }, 400);
         
-        if (!pin || !name || !seat || !pad) {
-            msgEl.innerText = "⚠️ 請完整輸入所有欄位！";
-            return;
-        }
-        msgEl.innerText = "⏳ 正在連線至除魔大廳...";
-        document.getElementById('raid-connect-btn').disabled = true;
-
-        if (studentRaidPeer) studentRaidPeer.destroy();
-        studentRaidPeer = new Peer();
-        studentRaidPeer.on('open', () => {
-            studentHostConn = studentRaidPeer.connect(`taigi-exorcist-${pin}`, { reliable: true });
-            studentHostConn.on('open', () => {
-                studentHostConn.send({ type: 'JOIN', name: name, seatNo: seat, padNo: pad });
-            });
-            studentHostConn.on('data', data => handleRaidStudentReceive(data));
-            studentHostConn.on('close', () => {
-                alert("與主辦方大屏的連線已結束！");
-                location.reload();
-            });
-        });
-        studentRaidPeer.on('error', () => {
-            msgEl.innerText = "❌ 找不到該大廳號碼，請確認老師大屏是否已開啟！";
-            document.getElementById('raid-connect-btn').disabled = false;
-        });
+        takeDamage();
     }
 
-    function updateGourdUI() {
-        const gourdBtn = document.getElementById('gourd-btn');
-        const gourdCount = document.getElementById('gourd-count');
-        gourdCount.innerText = gourdsLeft;
-        gourdBtn.classList.toggle('gourd-disabled', gourdsLeft <= 0);
+    function takeDamage() {
+        document.getElementById('player-wrapper').classList.remove('chanting');
+        const player = document.getElementById('player-sprite');
+        const enemy = document.getElementById('enemy-sprite');
+        
+        enemy.classList.add('enemy-attack');
+        setTimeout(() => { enemy.classList.remove('enemy-attack'); }, 400);
+        spawnEffect('enemyAttack');
+        
+        setTimeout(() => {
+            player.classList.add('player-hit');
+            sfxPlayerHit(); // 播放玩家受攻擊(扣心)音效
+        }, 200); 
+        setTimeout(() => { player.classList.remove('player-hit'); }, 700); 
+        
+        hearts--; updateHearts();
+        setTimeout(() => {
+            if (hearts <= 0) endGame(); else { currentQuestionIndex++; loadQuestion(); }
+        }, 1000);
     }
 
-    function useGourd() {
-        if (usedGourdOnCurrentQ || gourdsLeft <= 0 || !raidStudentCurrentQ) return;
-        gourdsLeft--;
-        usedGourdOnCurrentQ = true;
-        updateGourdUI();
-        sfxUseGourd();
-
-        const hintEl = document.getElementById('hanzi-hint');
-        hintEl.innerText = raidStudentCurrentQ.h;
-        hintEl.style.display = 'block';
-    }
-
-    function playAudio(customUrl) {
-        let rawUrl = customUrl || (raidStudentCurrentQ ? raidStudentCurrentQ.a : "");
-        if (!rawUrl) return;
-        const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
-        audioPlayer.pause();
-        audioPlayer.src = safeUrl;
-        audioPlayer.currentTime = 0;
-        audioPlayer.play().catch(() => {});
-    }
-
-    function resetInputBoxes() {
-        inputBoxes = new Array(parsedAnswer.length).fill(null);
-        currentSyllableIndex = 0;
-        typedBase = "";
-        updateDisplay();
-    }
-
-    function handleInput(key) {
-        if (!isRaidStudentMode || raidStudentLocked) return;
-        const chained = isCurrentSyllableToneChained();
-
-        if (key === 'Backspace') {
-            if (typedBase.length > 0) {
-                let chars = Array.from(typedBase); chars.pop(); typedBase = chars.join('');
-            } else if (currentSyllableIndex > 0) {
-                currentSyllableIndex--;
-                typedBase = inputBoxes[currentSyllableIndex].base;
-                inputBoxes[currentSyllableIndex] = null;
-            }
-        } else if (key === 'Enter') {
-            if (currentSyllableIndex === parsedAnswer.length) {
-                let ok = (inputBoxes[0].base === parsedAnswer[0].base && inputBoxes[0].tone === parsedAnswer[0].tone);
-                submitRaidStudentSpell(ok);
-            }
-        } else if (toneDigits.includes(key) || (key === '6' && chained)) {
-            if (typedBase.length > 0 && currentSyllableIndex < parsedAnswer.length) {
-                const finalTone = chained ? parsedAnswer[currentSyllableIndex].tone : key;
-                inputBoxes[currentSyllableIndex] = { base: typedBase, tone: finalTone };
-                currentSyllableIndex++;
-                typedBase = "";
-                sfxSyllableChant();
-                notifyHostStudentChanting(true);
-            }
-        } else if (validLetters.includes(key)) {
-            if (currentSyllableIndex < parsedAnswer.length) {
-                typedBase += key;
-                if (typedBase.length === 1) notifyHostStudentChanting(true);
-            }
-        }
-        updateDisplay();
-        triggerVisualFeedback(key);
-    }
-
-    function updateDisplay() {
-        const container = document.getElementById('inline-boxes-container') || document.getElementById('syllable-boxes-container');
-        if (!container) return;
-        container.innerHTML = '';
-
-        for (let i = 0; i < parsedAnswer.length; i++) {
-            const box = document.createElement('div');
-            box.className = 'syllable-box inline-box';
-            if (i < currentSyllableIndex) {
-                box.innerHTML = applyToneToSyllable(inputBoxes[i].base, inputBoxes[i].tone);
-            } else if (i === currentSyllableIndex) {
-                box.classList.add('active-box');
-                box.innerHTML = `<span>${typedBase}</span><span class="cursor"></span>`;
-            }
-            container.appendChild(box);
-        }
-
-        const toneGroup = document.getElementById('tone-keys-group');
-        if (toneGroup) {
-            toneGroup.classList.toggle('chained', isCurrentSyllableToneChained());
-        }
-
-        const playerWrapper = document.getElementById('player-wrapper');
-        if (playerWrapper) {
-            playerWrapper.classList.toggle('chanting', currentSyllableIndex > 0 || typedBase.length > 0);
-        }
-    }
-
-    function triggerVisualFeedback(key) {
-        const btn = document.querySelector(`[data-key="${key}"]`);
-        if (btn && (!btn.classList.contains('disabled-key') || isCurrentSyllableToneChained())) {
-            btn.style.background = '#00e5ff'; btn.style.color = '#000';
-            setTimeout(() => { btn.style.background = ''; btn.style.color = ''; }, 100);
-        }
-    }
-
-    function startTimer(seconds, onExpireCallback) {
+    function startTimer(seconds) {
         const container = document.getElementById('timer-container');
         const bar = document.getElementById('timer-bar');
         const text = document.getElementById('timer-text');
-
-        container.style.display = 'block';
+        
+        container.style.display = 'block'; 
         const totalTime = seconds;
         timeLeft = seconds;
-
-        bar.style.transition = 'none';
-        bar.style.width = '100%';
-        text.innerText = `${timeLeft}秒`;
-        bar.offsetHeight;
+        
+        bar.style.transition = 'none'; 
+        bar.style.width = '100%'; 
+        // 因為只有一次重答，直接用紅色警告條
+        bar.style.background = '#f44336';
+        text.innerText = Number.isInteger(timeLeft) ? `${timeLeft}秒` : `${timeLeft.toFixed(1)}秒`;
+        
+        bar.offsetHeight; 
         bar.style.transition = 'width 0.1s linear';
-
-        clearInterval(timer);
+        
         timer = setInterval(() => {
             timeLeft = Math.round((timeLeft - 0.1) * 10) / 10;
             if (timeLeft < 0) timeLeft = 0;
-            if (timeLeft === 3.0 || timeLeft === 2.0 || timeLeft === 1.0) sfxTimerTick();
+            
+            // 倒數最後 3 秒的整秒滴答提醒
+            if (timeLeft === 3.0 || timeLeft === 2.0 || timeLeft === 1.0) {
+                sfxTimerTick();
+            }
 
             bar.style.width = `${(timeLeft / totalTime) * 100}%`;
             text.innerText = Number.isInteger(timeLeft) ? `${timeLeft}秒` : `${timeLeft.toFixed(1)}秒`;
-
-            if (timeLeft <= 0) {
-                stopTimer();
-                if (typeof onExpireCallback === 'function') onExpireCallback();
+            
+            if (timeLeft <= 0) { 
+                stopTimer(); 
+                handleFail(false); 
             }
         }, 100);
     }
 
     function stopTimer() {
-        clearInterval(timer);
-        document.getElementById('timer-container').style.display = 'none';
+        clearInterval(timer); document.getElementById('timer-container').style.display = 'none';
+    }
+
+    function updateHearts() {
+        let hStr = "";
+        for(let i=0; i<3; i++) hStr += (i < hearts) ? "❤️" : "🖤";
+        document.getElementById('health-bar').innerText = hStr;
+    }
+
+    function spawnCoin() {
+        const arena = document.getElementById('rpg-arena');
+        const coin = document.createElement('div');
+        coin.className = 'coin'; coin.innerText = '🪙';
+        coin.style.right = '40px'; arena.appendChild(coin);
+        setTimeout(() => { coin.remove(); }, 1000);
+    }
+
+    function triggerVisualFeedback(key) {
+        const btn = document.querySelector(`[data-key="${key}"]`);
+        if(btn && (!btn.classList.contains('disabled-key') || isCurrentSyllableToneChained())) {
+            btn.style.background = '#00e5ff'; btn.style.color = '#000';
+            setTimeout(() => { btn.style.background = ''; btn.style.color = ''; }, 100);
+        }
     }
 
     window.addEventListener('keydown', e => {
-        if (document.getElementById('game-screen').style.display === 'flex') {
-            if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); useGourd(); return; }
+        if(document.getElementById('game-screen').style.display === 'flex') {
+            if (e.key === 'Control') {
+                if (!e.repeat) startSkip();
+                return;
+            }
+            if (e.code === 'Space' || e.key === ' ') {
+                e.preventDefault();
+                useGourd();
+                return;
+            }
             const k = e.key.toLowerCase();
-            if (k === 'control') { e.preventDefault(); triggerStudentUseFeather(); return; }
-            if (k === 'q') { e.preventDefault(); playAudio(); }
+            if (k === 'q') {
+                e.preventDefault();
+                playAudio();
+            }
             else if (k === 'enter') handleInput('Enter');
             else if (k === 'backspace') handleInput('Backspace');
             else handleInput(k);
         }
     });
 
-    function renderStudentRaidHpBar() {
-        const hb = document.getElementById('health-bar');
-        const pct = Math.max(0, Math.min(100, (myRaidHp / 3.0) * 100));
-        let color = '#22c55e';
-        if (myRaidHp <= 0.5) color = '#ef4444';
-        else if (myRaidHp <= 1.5) color = '#eab308';
-
-        hb.innerHTML = `
-            <div class="pad-hp-bar-wrap">
-                <span style="font-size:13px; color:#cbd5e1;">HP</span>
-                <div class="pad-hp-track"><div class="pad-hp-fill" style="width:${pct}%; background:${color};"></div></div>
-                <span style="font-size:13px; color:${color};">${myRaidHp.toFixed(1)}</span>
-            </div>`;
-    }
-
-    function updateStudentFeatherButtonUI() {
-        const skipBtn = document.getElementById('btn-skip');
-        if (!skipBtn) return;
-        const canUse = (myRaidFeathers > 0 && currentDeadTeammatesCount > 0);
-        skipBtn.className = 'action-btn key-feather ' + (canUse ? 'feather-ready' : 'feather-disabled');
-        skipBtn.innerHTML = `<div>🪶 鳳凰羽毛 (${myRaidFeathers}/1)</div>`;
-    }
-
-    function triggerStudentUseFeather() {
-        if (!isRaidStudentMode || !studentHostConn || !studentHostConn.open) return;
-        if (myRaidFeathers <= 0 || currentDeadTeammatesCount <= 0) return;
-        studentHostConn.send({ type: 'USE_FEATHER' });
-    }
-
-    function notifyHostStudentChanting(state) {
-        if (studentHostConn && studentHostConn.open && state) {
-            studentHostConn.send({ type: 'CHANTING' });
+    window.addEventListener('keyup', e => {
+        if(document.getElementById('game-screen').style.display === 'flex') {
+            if (e.key === 'Control') { cancelSkip(); }
         }
-    }
+    });
 
-    function updateTeammatesDisplay(aliveAvatars) {
-        const tmEl = document.getElementById('player-teammates-display');
-        if (!tmEl || !aliveAvatars) return;
-
-        let avatars = [...aliveAvatars];
-        if (myRaidHp > 0) {
-            const myAvatarHTML = `<span style="filter:hue-rotate(${myRaidHue}deg);">${myRaidAvatar}</span>`;
-            const myIdx = avatars.indexOf(myAvatarHTML);
-            if (myIdx > -1) avatars.splice(myIdx, 1);
-        }
-
-        const totalAlive = aliveAvatars.length;
-        let displayStr = "";
-
-        if (avatars.length > 0) {
-            for (let i = avatars.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [avatars[i], avatars[j]] = [avatars[j], avatars[i]];
-            }
-            const showCount = Math.min(3, avatars.length);
-            const showAvatars = avatars.slice(0, showCount).join('');
-            
-            // 計算尚未顯示出來的存活隊友數量 (扣除顯示的數量)
-            const plusN = avatars.length - showCount; 
-            displayStr = "存活 " + showAvatars + (plusN > 0 ? ` +${plusN}` : '');
-        } else if (totalAlive === 1 && myRaidHp > 0) {
-            displayStr = "存活 孤軍奮戰";
-        } else {
-            displayStr = "存活 全軍覆沒";
-        }
-        
-        tmEl.innerHTML = displayStr;
-        tmEl.style.display = 'block';
-    }
-
-    function submitRaidStudentSpell(isCorrect) {
-        if (raidStudentLocked) return;
-        raidStudentLocked = true;
+    function endGame() {
         stopTimer();
-
-        const enterBtn = document.getElementById('btn-enter');
-        enterBtn.classList.add('locked-in');
-        enterBtn.innerHTML = `<div>✅ 已傳送法力</div>`;
-
-        const playerWrapper = document.getElementById('player-wrapper');
-        playerWrapper.classList.remove('chanting');
-        playerWrapper.classList.add('submitted');
-
-        if (myRaidHp > 0) {
-            const arena = document.getElementById('rpg-arena');
-            const pSprite = document.getElementById('player-sprite');
-            const eSprite = document.getElementById('enemy-sprite');
-            if (arena && pSprite && eSprite) {
-                const aRect = arena.getBoundingClientRect();
-                const pRect = pSprite.getBoundingClientRect();
-                const eRect = eSprite.getBoundingClientRect();
-
-                const startX = pRect.left - aRect.left + pRect.width / 2 - 16;
-                const startY = pRect.top - aRect.top + pRect.height / 2 - 16;
-                const deltaX = eRect.left - pRect.left + (eRect.width / 2) - (pRect.width / 2);
-                const deltaY = eRect.top - pRect.top + (eRect.height / 2) - (pRect.height / 2);
-
-                const pProj = document.createElement('div');
-                pProj.innerText = myRaidWeapon;
-                pProj.style.position = 'absolute';
-                pProj.style.fontSize = '32px';
-                pProj.style.zIndex = '3';
-                pProj.style.left = `${startX}px`;
-                pProj.style.top = `${startY}px`;
-                pProj.style.pointerEvents = 'none';
-                arena.appendChild(pProj);
-
-                sfxEnemyHit(); 
-                pProj.animate([
-                    { transform: 'translate(0, 0) scale(1) rotate(0deg)', opacity: 1 },
-                    { transform: `translate(${deltaX}px, ${deltaY}px) scale(0.8) rotate(360deg)`, opacity: 0 }
-                ], { duration: 400, easing: 'ease-out', fill: 'forwards' });
-
-                setTimeout(() => { pProj.remove(); }, 400);
+        stopSkipChargeSfx();
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('game-over').style.display = 'flex';
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-diff-badge').innerText = difficultyNames[selectedDifficulty];
+        
+        let endComment = ""; let commentColor = "";
+        if (allEnemiesCleared && score >= 360) { 
+            endComment = "拍倒惡鬼，光榮倒轉來！"; commentColor = "#4caf50"; 
+            sfxVictory();
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
             }
+        } else if (allEnemiesCleared || score >= 160) { 
+            endComment = "Hiàm出惡鬼，繼續修行！"; commentColor = "#ff9800"; 
+            sfxVictory();
+        } else { 
+            endComment = "惡鬼koh teh作孽，毋通放棄！"; commentColor = "#f44336"; 
+            sfxDefeat();
         }
+        
+        const commentDiv = document.getElementById('end-comment');
+        commentDiv.innerText = endComment; commentDiv.style.color = commentColor;
 
-        if (studentHostConn && studentHostConn.open) {
-            studentHostConn.send({
-                type: 'SUBMIT_SPELL',
-                isCorrect: isCorrect,
-                usedGourd: usedGourdOnCurrentQ
-            });
+        const treasureBox = document.getElementById('treasure-box');
+        const reviewList = document.getElementById('review-list');
+        const normalReturnBtn = document.getElementById('normal-return-btn');
+
+        reviewList.style.display = 'none';
+
+        if (wrongQuestions.length > 0) {
+            treasureBox.style.display = 'block';
+            normalReturnBtn.style.display = 'none';
+            sfxTreasureDrop();
+        } else {
+            treasureBox.style.display = 'none';
+            normalReturnBtn.style.display = 'block';
         }
     }
 
-    function handleRaidStudentReceive(data) {
-        if (data.type === 'KICKED_BY_HOST') {
-            alert("您已被主辦方移出團戰大廳！");
-            location.reload();
-            return;
-        }
+    function showWrongReview() {
+        sfxUseGourd();
+        document.getElementById('treasure-box').style.display = 'none';
+        const reviewList = document.getElementById('review-list');
+        const container = document.getElementById('review-items-container');
+        container.innerHTML = '';
 
-        if (data.type === 'JOINED_OK') {
-            isRaidStudentMode = true;
-            raidDifficulty = data.difficulty || 'master';
-            myRaidHp = data.hp;
-            myRaidFeathers = data.feathers || 0;
-            myRaidAvatar = data.avatar || '🧙‍♂️';
-            myRaidHue = data.hueRotate || 0;     
-            myRaidWeapon = data.weapon || '⭐';   
-
-            document.getElementById('app-container').classList.add('pad-mode');
-            document.getElementById('raid-student-join-screen').classList.remove('active');
-            document.getElementById('game-screen').style.display = 'flex';
-
-            gourdsLeft = 3;
-            updateGourdUI();
-            buildKeyboard();
-
-            document.getElementById('score-display').innerText = `${myRaidAvatar} ${data.name}`;
-            
-            const playerSprite = document.getElementById('player-sprite');
-            playerSprite.style.setProperty('--hue', myRaidHue + 'deg');
-            playerSprite.style.filter = 'hue-rotate(var(--hue))';
-            playerSprite.innerHTML = myRaidAvatar;
-
-            document.getElementById('progress-display').innerText = `⏳ 等待大屏開始...`;
-            renderStudentRaidHpBar();
-            updateStudentFeatherButtonUI();
-
-        } else if (data.type === 'DEAD_COUNT_SYNC') {
-            currentDeadTeammatesCount = data.deadCount;
-            myRaidFeathers = data.feathers;
-            updateStudentFeatherButtonUI();
-            if (data.aliveAvatars) updateTeammatesDisplay(data.aliveAvatars);
-
-        } else if (data.type === 'FEATHER_UPDATED') {
-            myRaidFeathers = data.feathers;
-            updateStudentFeatherButtonUI();
-
-        } else if (data.type === 'REVIVED_BY_ALLY') {
-            myRaidHp = data.hp;
-            sfxFeatherRevive();
-            renderStudentRaidHpBar();
-            const playerEl = document.getElementById('player-sprite');
-            playerEl.style.filter = 'hue-rotate(var(--hue))';
-            playerEl.innerHTML = `${myRaidAvatar}<span class="shield-badge">✨</span>`;
-            document.getElementById('raid-word-mask-hint').innerHTML = `🪶 ${data.saviorName} 復活了你！`;
-
-        } else if (data.type === 'RAID_QUESTION') {
-            raidDifficulty = data.difficulty;
-            raidStudentCurrentQ = data;
-            raidStudentLocked = false;
-            usedGourdOnCurrentQ = false;
-            currentDeadTeammatesCount = data.deadCount || 0;
-
-            const playerWrapper = document.getElementById('player-wrapper');
-            playerWrapper.classList.remove('chanting', 'submitted');
-
-            document.getElementById('progress-display').innerText = `第 ${data.qIndex} / ${data.totalQ} 題`;
-            document.getElementById('enemy-sprite').innerText = data.bossSprite || '👹';
-            // ★ 動態顯示妖魔名稱
-            document.getElementById('enemy-hp-ui').innerText = `🎯 ${data.bossName}`;
-            
-            if (data.aliveAvatars) updateTeammatesDisplay(data.aliveAvatars);
-
-            const hintEl = document.getElementById('hanzi-hint');
-            hintEl.innerText = '';
-            hintEl.style.display = 'none';
-
-            let inlineHTML = data.padMaskedHtml.replace(
-                '<span class="blank-slot-inline"></span>',
-                '<span id="inline-boxes-container" class="inline-input-container"></span>'
-            );
-            document.getElementById('raid-word-mask-hint').innerHTML = inlineHTML;
-
-            const enterBtn = document.getElementById('btn-enter');
-            enterBtn.classList.remove('locked-in');
-            enterBtn.innerHTML = `<div>實施咒語</div>`;
-            updateStudentFeatherButtonUI();
-
-            parsedAnswer = [data.targetSyllable];
-            resetInputBoxes();
-
-            startTimer(18, () => {
-                if (!raidStudentLocked) {
-                    let ok = (currentSyllableIndex === 1 &&
-                              inputBoxes[0] &&
-                              inputBoxes[0].base === parsedAnswer[0].base &&
-                              inputBoxes[0].tone === parsedAnswer[0].tone);
-                    submitRaidStudentSpell(ok);
-                }
-            });
-
-        } else if (data.type === 'RAID_RESULT') {
-            stopTimer();
-            raidStudentLocked = true;
-            myRaidHp = data.hp;
-            myRaidFeathers = data.feathers;
-            renderStudentRaidHpBar();
-            updateStudentFeatherButtonUI();
-            
-            if (data.aliveAvatars) updateTeammatesDisplay(data.aliveAvatars);
-
-            document.getElementById('score-display').innerText = `${myRaidAvatar} ${data.score}分`;
-            const playerEl = document.getElementById('player-sprite');
-            const maskHint = document.getElementById('raid-word-mask-hint');
-
-            // ★ 平板端：動態計算妖魔對準玩家的精準反擊動畫
-            if (!data.bossStunned) {
-                const arena = document.getElementById('rpg-arena');
-                const pSprite = document.getElementById('player-sprite');
-                const eSprite = document.getElementById('enemy-sprite');
-                if (arena && pSprite && eSprite) {
-                    const aRect = arena.getBoundingClientRect();
-                    const pRect = pSprite.getBoundingClientRect();
-                    const eRect = eSprite.getBoundingClientRect();
-
-                    const startX = eRect.left - aRect.left + eRect.width / 2 - 18;
-                    const startY = eRect.top - aRect.top + eRect.height / 2 - 18;
-                    const deltaX = pRect.left - eRect.left + (pRect.width / 2) - (eRect.width / 2);
-                    const deltaY = pRect.top - eRect.top + (pRect.height / 2) - (eRect.height / 2);
-
-                    const eProj = document.createElement('div');
-                    eProj.innerText = data.bossAttackIcon;
-                    eProj.style.position = 'absolute';
-                    eProj.style.fontSize = '36px';
-                    eProj.style.zIndex = '3';
-                    eProj.style.left = `${startX}px`;
-                    eProj.style.top = `${startY}px`;
-                    eProj.style.pointerEvents = 'none';
-                    arena.appendChild(eProj);
-
-                    eProj.animate([
-                        { transform: 'translate(0, 0) scale(1) rotate(0deg)', opacity: 0 },
-                        { transform: 'translate(0, 0) scale(1) rotate(0deg)', opacity: 1, offset: 0.1 },
-                        { transform: `translate(${deltaX}px, ${deltaY}px) scale(0.8) rotate(-360deg)`, opacity: 0 }
-                    ], { duration: 400, easing: 'ease-in', fill: 'forwards' });
-
-                    setTimeout(() => { eProj.remove(); }, 400);
-                }
+        wrongQuestions.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'review-item';
+            row.innerHTML = `<span class="review-hanzi">🔊 ${item.h}</span><span class="review-tailo">${formatTailoDisplay(item.r)}</span>`;
+            if (item.a) {
+                row.onclick = () => playAudio(item.a);
             }
+            container.appendChild(row);
+        });
 
-            if (data.isUltimate) {
-                playerEl.classList.add('flash-ultimate');
-                setTimeout(() => playerEl.classList.remove('flash-ultimate'), 1500);
-                maskHint.innerHTML = `<span style="color:#c084fc;">🌟 究極完美攻擊！</span>`;
-                if (data.hp > 0 && data.outcome === 'ULTIMATE_REVIVED') {
-                    playerEl.style.filter = 'hue-rotate(var(--hue))';
-                    playerEl.innerHTML = `${myRaidAvatar}<span class="shield-badge">✨</span>`;
-                }
-            } else if (data.isPerfect) {
-                playerEl.classList.add('flash-gold');
-                setTimeout(() => playerEl.classList.remove('flash-gold'), 1000);
-                maskHint.innerHTML = `<span style="color:#fde047;">✨ 完美攻擊！</span>`;
-            } else if (data.outcome === 'BOSS_STUNNED_SAFE' || data.outcome === 'DODGE_SAFE' || data.outcome === 'PERFECT_HEAL' || data.outcome === 'ULTIMATE_HEAL') {
-                if (data.outcome === 'DODGE_SAFE') {
-                    sfxPlayerDodge();
-                    playerEl.classList.add('player-dodge');
-                    setTimeout(() => playerEl.classList.remove('player-dodge'), 650);
-                } 
-                maskHint.innerHTML = `<span style="color:#4ade80;">${formatTailoDisplay(data.correctReveal)}</span>`;
-                playerEl.innerHTML = `${myRaidAvatar}`;
-
-            } else if (data.outcome === 'PROTECTED_BY_TEAM') {
-                maskHint.innerHTML = `<span style="color:#fde047;">${formatTailoDisplay(data.correctReveal)}</span>`;
-
-            } else if (data.outcome === 'SHIELD_BLOCK_HALF') {
-                sfxShieldBlock();
-                playerEl.classList.add('player-hit');
-                setTimeout(() => playerEl.classList.remove('player-hit'), 650);
-                
-                // ★ 新增：護盾抵擋如果剛好扣到0滴血，立刻變成幽靈！
-                if (myRaidHp <= 0) {
-                    playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))';
-                    playerEl.innerHTML = `👻<span class="shield-badge">💀</span>`;
-                } else {
-                    playerEl.innerHTML = `${myRaidAvatar}<span class="sweat-drop">💦</span><span class="shield-badge">🛡️</span>`;
-                }
-                maskHint.innerHTML = `<span style="color:#fbbf24;">${formatTailoDisplay(data.correctReveal)}</span>`;
-
-            } else if (data.outcome === 'SHIELD_BREAK_FULL') {
-                sfxShieldBreak();
-                playerEl.classList.add('player-hit');
-                setTimeout(() => playerEl.classList.remove('player-hit'), 650);
-
-                if (myRaidHp <= 0) {
-                    playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))';
-                    playerEl.innerHTML = `👻<span class="shield-badge">💀</span>`;
-                    maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`;
-                } else {
-                    playerEl.innerHTML = `${myRaidAvatar}<span class="sweat-drop">💦</span><span class="shield-badge">💥</span>`;
-                    maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`;
-                }
-            } else if (data.outcome === 'GHOST_CORRECT') {
-                playerEl.classList.add('flash-gold');
-                setTimeout(() => playerEl.classList.remove('flash-gold'), 1500);
-                playerEl.style.filter = 'grayscale(1) opacity(0.8) hue-rotate(var(--hue))';
-                playerEl.innerHTML = `👻<span class="shield-badge" style="color:#4ade80; text-shadow:0 1px 2px #000;">+${data.ghostCorrectCount}</span>`;
-                maskHint.innerHTML = `<span style="color:#4ade80;">${formatTailoDisplay(data.correctReveal)}</span>`;
-            } else {
-                playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))';
-                if (data.ghostCorrectCount > 0) {
-                    playerEl.innerHTML = `👻<span class="shield-badge" style="color:#4ade80; text-shadow:0 1px 2px #000;">+${data.ghostCorrectCount}</span>`;
-                } else {
-                    playerEl.innerHTML = `👻<span class="shield-badge">💀</span>`;
-                }
-                maskHint.innerHTML = `<span style="color:#94a3b8;">${formatTailoDisplay(data.correctReveal)}</span>`;
-            }
-        
-        // 學生平板接收到大屏的遊戲結束訊號，跳轉個人結算畫面
-        } else if (data.type === 'GAME_OVER') {
-            stopTimer();
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('pad-gameover-screen').classList.add('active');
-            
-            document.getElementById('pad-go-score').innerText = data.score;
-            document.getElementById('pad-go-acc').innerText = data.accuracy + '%';
-            
-            const listEl = document.getElementById('pad-go-wrong-list');
-            listEl.innerHTML = '';
-            
-            if (data.wrongList && data.wrongList.length > 0) {
-                // 過濾重複的錯題
-                const uniqueMissed = new Map();
-                data.wrongList.forEach(item => {
-                    const key = `${item.h}_${item.r}`;
-                    uniqueMissed.set(key, item);
-                });
-                
-                let idx = 1;
-                uniqueMissed.forEach(item => {
-                    const row = document.createElement('div');
-                    row.style.marginBottom = '12px';
-                    row.style.padding = '10px';
-                    row.style.background = 'rgba(0,0,0,0.4)';
-                    row.style.borderRadius = '8px';
-                    row.style.border = '1px solid #334155';
-                    row.style.cursor = 'pointer';
-                    row.onclick = () => playAudio(item.a);
-                    row.innerHTML = `
-                        <div style="color:#f9a826; font-weight:bold; margin-bottom:4px; font-size:16px;">🔊 ${idx}. ${item.h}</div>
-                        <div style="color:#00e5ff; letter-spacing:1px;">${item.fullRevealedHtml}</div>
-                    `;
-                    listEl.appendChild(row);
-                    idx++;
-                });
-            } else {
-                // 滿分玩家專屬特效與稱讚
-                listEl.innerHTML = `<div style="text-align:center; padding: 30px 0; color:#4ade80; font-size:18px; font-weight:bold; text-shadow:0 0 10px rgba(74,222,128,0.5);">✨ 太神啦！零失誤完美通關！ ✨</div>`;
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-            }
-        }
+        reviewList.style.display = 'block';
     }
 </script>
 </body>
