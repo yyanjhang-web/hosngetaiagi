@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 7.11)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 7.12)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -321,12 +321,10 @@
             border-color: #00e5ff; box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.3), 0 4px 6px rgba(0,0,0,0.3); color: #00e5ff;
         }
 
-        /* ★ 修改：加高戰鬥區塊給妖魔名字充足的呼吸空間 */
         #rpg-arena { position: relative; width: 100%; height: 110px; background: rgba(0,0,0,0.35); border-radius: 10px; border-bottom: 3px solid #4a5c88; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; margin-bottom: 6px; overflow: hidden; flex-shrink: 0;}
         
         #player-wrapper { position: relative; display: flex; align-items: flex-end; justify-content: center; z-index: 2; }
         
-        /* ★ 新增：獨立的玩家狀態容器，縮小並定位在右上方 */
         #player-status-icon { position: absolute; top: -8px; right: -18px; font-size: 16px; pointer-events: none; z-index: 5; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); white-space: nowrap; line-height: 1; }
 
         #player-wrapper::before {
@@ -344,7 +342,6 @@
         #player-sprite { transform-origin: bottom center; }
 
         #enemy-wrapper { display: flex; flex-direction: column; align-items: center; z-index: 1; position: relative; }
-        /* ★ 修改：給妖魔血量文字加上行高與 padding 避免裁切 */
         #enemy-hp-ui { font-size: 12px; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; line-height: 1.2; padding-top: 2px; }
         #enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
 
@@ -430,11 +427,9 @@
         @media (max-height: 700px) {
             #game-screen { padding: 4px 10px; }
             .header-info { margin-bottom: 3px; font-size: 14px; }
-            /* ★ 修改：壓縮模式下也稍微加高一點確保不被裁切 */
             #rpg-arena { height: 75px; padding: 0 20px; margin-bottom: 2px; }
             .rpg-sprite { font-size: 38px; }
             #player-wrapper::before { width: 50px; height: 50px; bottom: -2px; }
-            /* ★ 新增：壓縮模式下的小圖示定位 */
             #player-status-icon { top: -6px; right: -12px; font-size: 13px; }
             
             .question-row { gap: 10px; margin-bottom: 2px; min-height: 32px; }
@@ -453,7 +448,7 @@
 </head>
 <body>
 
-<div id="version-tag">Ver 7.11</div>
+<div id="version-tag">Ver 7.12</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -666,7 +661,7 @@
             <div id="rpg-arena">
                 <div id="player-wrapper">
                     <div class="rpg-sprite" id="player-sprite">🧙‍♂️</div>
-                    <!-- ★ 新增：專屬的狀態圖示容器，縮小且定位在右上角 -->
+                    <!-- 專屬的狀態圖示容器，縮小且定位在右上角 -->
                     <div id="player-status-icon"></div>
                 </div>
                 <div id="enemy-wrapper">
@@ -1299,7 +1294,8 @@
             score: 0,
             totalQ: 0,
             correctQ: 0,
-            wrongList: [],  
+            wrongList: [],
+            reviveProtected: false, // ★ 新增：回魂庇佑標記
             conn: conn,
             isBot: isBot,
             baseAngle: angle,
@@ -1449,7 +1445,8 @@
         raidTeams.forEach(t => {
             t.hp = 3.0; t.consecWrong = 0; t.ghostCorrectCount = 0; t.streak = 0; t.feathers = 0;
             t.score = 0; t.totalQ = 0; t.correctQ = 0; t.submitTime = 0;
-            t.wrongList = []; // 重置錯題庫
+            t.wrongList = []; 
+            t.reviveProtected = false; // ★ 開局重置
         });
         raidBossIdx = 0;
         raidBossHp = RAID_BOSS_LIST[0].maxHp;
@@ -1779,13 +1776,15 @@
         luckyTarget.hp = 0.5;
         luckyTarget.consecWrong = 0;
         luckyTarget.ghostCorrectCount = 0;
+        luckyTarget.reviveProtected = true; // ★ 賦予剛復活無敵保護標記
 
         sfxFeatherRevive();
         updateRaidArmyUnitsVisual();
         renderRaidLiveScoreboard();
 
         const banner = document.getElementById('raid-center-banner');
-        banner.innerText = `🪶 ${savior.name} 施展鳳凰羽毛，復活了 ${luckyTarget.name}！`;
+        // ★ 在地化台語顯示
+        banner.innerText = `🪶 ${savior.name} 施展鳳凰羽毛，共 ${luckyTarget.name} 回魂矣！`;
         banner.style.display = 'block';
         setTimeout(() => { banner.style.display = 'none'; }, 2800);
 
@@ -2043,23 +2042,31 @@
                             t.feathers++;
                             earnedFeather = true;
                         }
+                        t.reviveProtected = false; // 答對了解除保護
                         outcome = bossStunned ? 'BOSS_STUNNED_SAFE' : 'DODGE_SAFE';
                         if (isPerfect) outcome = 'PERFECT_HEAL';
                         if (isUltimate) outcome = 'ULTIMATE_HEAL';
                     } else {
                         t.streak = 0;
                         if (bossStunned) {
+                            t.reviveProtected = false; // 安全狀態解除保護
                             outcome = 'PROTECTED_BY_TEAM';
                             if (isPerfect) outcome = 'PERFECT_HEAL';
                             if (isUltimate) outcome = 'ULTIMATE_HEAL';
                         } else {
-                            t.consecWrong++;
-                            if (t.consecWrong === 1) {
-                                t.hp = Math.max(0, Math.round((t.hp - 0.5) * 10) / 10);
-                                outcome = 'SHIELD_BLOCK_HALF';
+                            if (t.reviveProtected) {
+                                // ★ 觸發回魂庇佑機制！強制閃避，不扣血也不算連續錯誤
+                                outcome = 'REVIVE_PROTECTED';
+                                t.reviveProtected = false; // 消耗保護
                             } else {
-                                t.hp = Math.max(0, Math.round((t.hp - 1.0) * 10) / 10);
-                                outcome = 'SHIELD_BREAK_FULL';
+                                t.consecWrong++;
+                                if (t.consecWrong === 1) {
+                                    t.hp = Math.max(0, Math.round((t.hp - 0.5) * 10) / 10);
+                                    outcome = 'SHIELD_BLOCK_HALF';
+                                } else {
+                                    t.hp = Math.max(0, Math.round((t.hp - 1.0) * 10) / 10);
+                                    outcome = 'SHIELD_BREAK_FULL';
+                                }
                             }
                         }
                     }
@@ -2094,8 +2101,14 @@
                         unitEl.classList.add('player-dodge');
                         setTimeout(() => unitEl.classList.remove('player-dodge'), 600);
                     } else if (!bossStunned && !gotRight && wasAlive) {
-                        unitEl.classList.add('player-hit');
-                        setTimeout(() => unitEl.classList.remove('player-hit'), 600);
+                        // ★ 若為回魂庇佑，則大屏上顯示閃避動畫
+                        if (outcome === 'REVIVE_PROTECTED') {
+                            unitEl.classList.add('player-dodge');
+                            setTimeout(() => unitEl.classList.remove('player-dodge'), 600);
+                        } else {
+                            unitEl.classList.add('player-hit');
+                            setTimeout(() => unitEl.classList.remove('player-hit'), 600);
+                        }
                     }
                 }
 
@@ -2633,7 +2646,8 @@
             playerEl.innerHTML = myRaidAvatar;
             if (statusIconEl) statusIconEl.innerHTML = `✨`;
             
-            document.getElementById('raid-word-mask-hint').innerHTML = `🪶 ${data.saviorName} 復活了你！`;
+            // ★ 在地化台語顯示
+            document.getElementById('raid-word-mask-hint').innerHTML = `🪶 ${data.saviorName} 共你回魂矣！`;
 
         } else if (data.type === 'RAID_QUESTION') {
             raidDifficulty = data.difficulty;
@@ -2735,7 +2749,17 @@
             }
 
             // ★ 根據不同 outcome 設定頭像與狀態
-            if (data.isUltimate) {
+            if (data.outcome === 'REVIVE_PROTECTED') {
+                // ★ 平板端處理「回魂庇佑」特效
+                sfxPlayerDodge();
+                playerEl.classList.add('player-dodge');
+                setTimeout(() => playerEl.classList.remove('player-dodge'), 650);
+                
+                playerEl.innerHTML = myRaidAvatar;
+                statusIconEl.innerHTML = `✨`;
+                maskHint.innerHTML = `<span style="color:#fde047; font-size:24px;">✨ 回魂庇佑，閃過一劫！</span>`;
+
+            } else if (data.isUltimate) {
                 playerEl.classList.add('flash-ultimate');
                 setTimeout(() => playerEl.classList.remove('flash-ultimate'), 1500);
                 maskHint.innerHTML = `<span style="color:#c084fc;">🌟 究極完美攻擊！</span>`;
