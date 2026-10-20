@@ -1,15 +1,189 @@
-<div class="footer">
-        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
-        <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
-            Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
-            未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
-        </p>
-        <div class="counter-container">
-            <a href="https://www.hitwebcounter.com/" target="_blank">
-                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
-            </a>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台語互動派題系統</title>
+  <!-- 引入 豆腐烏 (Tauhu-Oo) 官方網頁字型 -->
+  <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
+  <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
+  <style>
+    /* === 基礎與美化樣式 === */
+    :root { --primary: #1976d2; --teacher: #ffebee; --student: #e3f2fd; --danger: #d32f2f; --success: #388e3c; }
+    body { font-family: 'Tauhu Oo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, '微軟正黑體'; margin: 0; padding: 20px; background: #f4f4f9; color: #333; min-height: 100vh; position: relative; padding-bottom: 100px;}
+    .hidden { display: none !important; }
+    h1, h2, h3 { margin-top: 0; }
+    button { cursor: pointer; border-radius: 8px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Tauhu Oo', sans-serif;}
+    button:active { transform: scale(0.98); }
+    
+    /* 版號與 Footer */
+    .version-tag { position: absolute; top: 10px; right: 10px; background: #333; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.2; }
+    .footer p { margin: 2px 0; }
+    .counter-container { margin-top: 5px; opacity: 0.7; }
+
+    /* 大廳樣式 */
+    #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .role-btn { padding: 15px 30px; font-size: 20px; margin: 10px; background: var(--primary); color: white; }
+    input[type="text"] { padding: 15px; font-size: 18px; width: 80%; margin-bottom: 20px; border: 2px solid #ccc; border-radius: 8px; font-family: 'Tauhu Oo';}
+
+    /* 教師控制台佈局 */
+    #teacherView { max-width: 1300px; margin: 0 auto; }
+    .teacher-header { background: var(--teacher); padding: 15px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .workspace { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; }
+    
+    /* 控制開關與按鈕 */
+    .control-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; align-items: center;}
+    .toggle-btn { padding: 8px 12px; background: #e0e0e0; color: #333; font-size: 15px; }
+    .toggle-btn.active { background: var(--primary); color: white; }
+    .stop-btn { background: var(--danger); color: white; padding: 8px 12px; font-size: 15px; }
+    .hide-panel-btn { position: absolute; top: 15px; right: 15px; background: #607d8b; color: white; padding: 5px 10px; font-size: 12px; }
+
+    /* 題庫清單與動畫區 */
+    .question-item { border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #fff;}
+    .send-btn { background: var(--primary); color: white; padding: 8px 15px; font-size: 15px; }
+    .send-btn:disabled { background: #9e9e9e; cursor: not-allowed; }
+    #animationPanel { text-align: center; padding: 40px 20px; background: #fffde7; border-radius: 8px; min-height: 300px; border: 2px dashed #ffc107;}
+    .timer-display { font-size: 60px; font-weight: bold; color: var(--danger); font-family: monospace; }
+
+    /* 學生列表與管理 (無痕剔除設計) */
+    .student-list { max-height: 500px; overflow-y: auto; }
+    .student-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; font-size: 16px; transition: 0.2s;}
+    .student-item:hover { text-decoration: line-through; color: var(--danger); cursor: pointer; background: #ffebee; }
+
+    /* 學生作答區樣式 */
+    #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: var(--student); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
+    .student-info-bar { position: absolute; top: 15px; right: 20px; color: #555; font-size: 14px; text-align: right; }
+    #studentQuestion { font-size: 32px; font-weight: bold; margin-bottom: 20px; color: #0d47a1; line-height: 1.4; }
+    #myAnswerDisplay { margin-bottom: 20px; font-size: 20px; font-weight: bold; color: #e65100; min-height: 30px; }
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-bottom: 20px;}
+    .option-btn { padding: 20px; font-size: 22px; background: white; color: var(--primary); border: 3px solid var(--primary); box-shadow: 0 4px 0 var(--primary); }
+    .option-btn:disabled { background: #e0e0e0; border-color: #9e9e9e; color: #757575; box-shadow: none; cursor: not-allowed; }
+    .option-btn.correct { background: var(--success); border-color: var(--success); color: white; box-shadow: 0 4px 0 #1b5e20; }
+    .option-btn.wrong { background: var(--danger); border-color: var(--danger); color: white; box-shadow: 0 4px 0 #b71c1c; }
+    .test-nav-btns { display: flex; justify-content: space-between; margin-top: 20px; }
+    .nav-btn { padding: 10px 20px; font-size: 18px; background: #ff9800; color: white; }
+  </style>
+</head>
+<body>
+
+  <div class="version-tag">Ver 1.1</div>
+
+  <!-- 登入大廳 -->
+  <div id="lobby">
+    <h1>🎈 台語互動派題系統</h1>
+    <div id="roleSelection">
+      <h2>請選擇您的身分</h2>
+      <button class="role-btn" onclick="showTeacherModeSelect()">📺 老師大屏</button>
+      <button class="role-btn" onclick="showStudentLogin()">📱 學生平板</button>
+    </div>
+    
+    <!-- 教師模式選擇 -->
+    <div id="teacherModeBox" class="hidden">
+      <h2>選擇測驗模式</h2>
+      <button class="role-btn" style="background:#4caf50;" onclick="joinAsTeacher('kahoot')">⚡ 即時回饋模式 (大屏主控)</button>
+      <button class="role-btn" style="background:#ff9800;" onclick="joinAsTeacher('test')">📝 測驗模式 (學生自控+倒數)</button>
+    </div>
+
+    <!-- 學生登入 -->
+    <div id="studentLoginBox" class="hidden">
+      <h2>輸入真實姓名</h2>
+      <input type="text" id="realNameInput" placeholder="例如：王小明">
+      <button class="role-btn" onclick="joinAsStudent()">進入教室</button>
+    </div>
+  </div>
+
+  <!-- 教師控制台 -->
+  <div id="teacherView" class="hidden">
+    <div class="teacher-header">
+      <h2 style="margin:0;">📺 教師控制台 (<span id="modeDisplay"></span>)</h2>
+      <div>
+        <span>🎵 BGM：</span>
+        <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">播放</button>
+        <audio id="bgmAudio" loop src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3"></audio>
+        <button class="toggle-btn" style="background:#4caf50; color:white; margin-left:10px;" onclick="exportCSV()">匯出成績 CSV</button>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <!-- 左側：題庫與動畫區 -->
+      <div class="panel" id="leftPanel">
+        <button class="hide-panel-btn" onclick="toggleLeftPanel()">👁️ 隱藏題庫顯示動畫</button>
+        
+        <!-- 全域設定區 -->
+        <div class="control-group">
+          <button id="toggleQText" class="toggle-btn active" onclick="toggleSetting('showQuestion', this)">平板題目：開</button>
+          <button id="toggleAns" class="toggle-btn" onclick="toggleSetting('showAnswer', this)">公布解答：關</button>
+          <select id="audioSource" class="toggle-btn" onchange="updateSettings('audioSource', this.value)">
+            <option value="teacher">聽力題播放：大屏</option>
+            <option value="student">聽力題播放：平板</option>
+          </select>
+          <button class="stop-btn" onclick="stopAnswering()">🛑 中止作答 / 收卷</button>
         </div>
-        <script type="module">
+
+        <!-- 題庫清單 (預設顯示) -->
+        <div id="questionListWrapper">
+          <h3 id="questionListTitle">📚 試算表題庫</h3>
+          <div class="control-group hidden" id="testModeControls">
+            測驗時間 (分鐘)：<input type="number" id="testMinutes" value="5" style="width:60px; padding:5px; margin:0;">
+            <button class="send-btn" onclick="startTestMode()">🚀 發派全卷並開始倒數</button>
+          </div>
+          <div id="questionList">載入題庫中...</div>
+        </div>
+
+        <!-- 動畫與數據區 (隱藏題庫後顯示) -->
+        <div id="animationPanel" class="hidden">
+          <h2 id="animTitle">📊 課堂即時動態</h2>
+          <div id="animContent">請先派題或開始測驗...</div>
+        </div>
+      </div>
+
+      <!-- 右側：學生名單 -->
+      <div class="panel">
+        <h3 style="margin:0 0 15px 0;">👥 已連線學生 (<span id="studentCount">0</span>)</h3>
+        <p style="font-size:12px; color:#888; margin-top:-10px;">(💡 提示：滑鼠移至暱稱上點擊即可剔除)</p>
+        <div id="studentList" class="student-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 學生作答區 -->
+  <div id="studentView" class="hidden">
+    <div class="student-info-bar">
+      <div id="sNickname" style="font-weight:bold; font-size:18px;"></div>
+      <div id="sRealName"></div>
+    </div>
+    <div id="studentQuestion">等待老師開始...</div>
+    <div id="myAnswerDisplay"></div>
+    <div id="optionsContainer" class="options-grid hidden"></div>
+    
+    <!-- 測驗模式專用導覽列 -->
+    <div id="testNav" class="test-nav-btns hidden">
+      <button class="nav-btn" onclick="navTest(-1)">⬅️ 上一題</button>
+      <span id="testProgress" style="font-size: 18px; line-height: 40px; font-weight:bold;"></span>
+      <button class="nav-btn" onclick="navTest(1)">下一題 ➡️</button>
+    </div>
+
+    <audio id="studentAudio"></audio>
+  </div>
+
+  <!-- 版權與計數器宣告 -->
+  <div class="footer">
+    <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+    <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
+      Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
+      未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
+    </p>
+    <div class="counter-container">
+      <a href="https://www.hitwebcounter.com/" target="_blank">
+        <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+      </a>
+    </div>
+  </div>
+
+  <!-- ================= 系統邏輯 ================= -->
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getDatabase, ref, set, onValue, onDisconnect, remove, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
@@ -33,13 +207,13 @@
     // 全域變數
     let allQuestions = [];
     let myStudentId = null;
-    let roomMode = 'kahoot'; // 'kahoot' 或 'test'
+    let roomMode = 'kahoot'; 
     let currentSettings = { showQuestion: true, showAnswer: false, acceptAnswers: true, audioSource: 'teacher' };
     let currentCorrectAnswer = "";
     
     // 測驗模式專用變數
     let myTestIndex = 0;
-    let myTestAnswers = {}; // { 0: '選項A', 1: '選項B' }
+    let myTestAnswers = {}; 
     let testCountdownTimer = null;
 
     // === 大廳介面切換 ===
@@ -52,14 +226,11 @@
       document.getElementById('studentLoginBox').classList.remove('hidden');
     };
 
-    // 暱稱產生器
     const adjs = ["古錐的", "緣投的", "𠢕早的", "打拚的", "快樂的", "勇敢的"];
     const animals = ["台灣黑熊", "石虎", "水鹿", "台灣藍鵲", "水豚", "獼猴"];
     function generateNickname() { return adjs[Math.floor(Math.random() * adjs.length)] + animals[Math.floor(Math.random() * animals.length)]; }
 
-    // ==========================================
-    // 學生端邏輯
-    // ==========================================
+    // === 學生端邏輯 ===
     window.joinAsStudent = () => {
       const realName = document.getElementById('realNameInput').value.trim() || "未命名";
       const nickname = generateNickname();
@@ -74,7 +245,6 @@
       document.getElementById('sNickname').innerText = `👤 ${nickname}`;
       document.getElementById('sRealName').innerText = `(本名: ${realName})`;
 
-      // 監聽是否被剔除
       onValue(myRef, (snap) => {
         if (!snap.exists()) { alert("您已被老師移出教室！"); window.location.reload(); }
       });
@@ -83,7 +253,6 @@
     };
 
     function listenToRoom() {
-      // 監聽全域設定與模式
       onValue(ref(db, 'room/settings'), (snap) => {
         if(snap.exists()) {
           currentSettings = snap.val();
@@ -92,7 +261,6 @@
         }
       });
 
-      // Kahoot 模式：監聽單一題目
       onValue(ref(db, 'room/currentQuestion'), (snap) => {
         if(roomMode === 'kahoot' && snap.exists()) {
           renderStudentQuestion(snap.val());
@@ -103,7 +271,6 @@
         }
       });
 
-      // 測驗模式：監聽整份考卷派發
       onValue(ref(db, 'room/testPaper'), (snap) => {
         if(roomMode === 'test' && snap.exists()) {
           allQuestions = snap.val();
@@ -114,11 +281,10 @@
       });
     }
 
-    // 渲染單一題目介面
     function renderStudentQuestion(qData) {
       currentCorrectAnswer = qData.correctAnswer;
       document.getElementById('studentQuestion').innerText = currentSettings.showQuestion ? qData.question : "請看大屏題目並作答";
-      document.getElementById('myAnswerDisplay').innerText = ""; // 清除上一題的顯示
+      document.getElementById('myAnswerDisplay').innerText = ""; 
       
       const optContainer = document.getElementById('optionsContainer');
       optContainer.innerHTML = '';
@@ -140,7 +306,6 @@
       updateStudentUI();
     }
 
-    // 學生送出答案
     function submitAnswer(selectedOpt, btnElement, qId = 'current') {
       if(!currentSettings.acceptAnswers) return;
 
@@ -150,7 +315,7 @@
       } else {
         myTestAnswers[myTestIndex] = selectedOpt;
         set(ref(db, `room/testAnswers/${myStudentId}/${myTestIndex}`), selectedOpt);
-        renderTestQuestion(); // 重新渲染以反映選中狀態
+        renderTestQuestion();
       }
 
       document.getElementById('myAnswerDisplay').innerText = `👉 您已選擇：${selectedOpt}`;
@@ -161,7 +326,6 @@
       }
     }
 
-    // 測驗模式：學生本地切換題目
     window.navTest = (dir) => {
       myTestIndex += dir;
       if(myTestIndex < 0) myTestIndex = 0;
@@ -175,16 +339,16 @@
       document.getElementById('testProgress').innerText = `第 ${myTestIndex + 1} / ${allQuestions.length} 題`;
       renderStudentQuestion(qData);
       
-      // 標示已選答案
       if(myTestAnswers[myTestIndex]) {
         document.getElementById('myAnswerDisplay').innerText = `👉 您已選擇：${myTestAnswers[myTestIndex]}`;
         const btns = document.querySelectorAll('.option-btn');
         btns.forEach(b => {
           if(b.innerText === myTestAnswers[myTestIndex]) {
             b.style.backgroundColor = '#bbdefb';
-            b.style.borderColor = var(--primary);
+            b.style.borderColor = '#1976d2';
           } else {
             b.style.backgroundColor = 'white';
+            b.style.borderColor = '#1976d2';
           }
         });
       }
@@ -197,9 +361,7 @@
       }
     }
 
-    // ==========================================
-    // 教師端邏輯
-    // ==========================================
+    // === 教師端邏輯 ===
     window.joinAsTeacher = (mode) => {
       roomMode = mode;
       document.getElementById('lobby').classList.add('hidden');
@@ -211,7 +373,6 @@
         document.getElementById('questionListTitle').innerText = '📝 測驗卷預覽';
       }
 
-      // 初始化：清空舊資料
       remove(ref(db, 'room/currentQuestion'));
       remove(ref(db, 'room/testPaper'));
       remove(ref(db, 'room/answers'));
@@ -219,7 +380,6 @@
       currentSettings.mode = mode;
       set(ref(db, 'room/settings'), currentSettings);
       
-      // 載入題庫
       fetch(sheetUrl).then(res => res.text()).then(text => {
         const data = JSON.parse(text.substring(47).slice(0, -2));
         const list = document.getElementById('questionList');
@@ -235,7 +395,7 @@
         allQuestions.forEach((item, idx) => {
           const btnHtml = mode === 'kahoot' 
             ? `<button id="btn-dispatch-${idx}" class="send-btn" onclick="dispatch(${idx}, this)">🚀 派送</button>`
-            : `<span>題目已就緒</span>`;
+            : `<span style="color:#1976d2;">題目已就緒</span>`;
           list.innerHTML += `
             <div class="question-item">
               <span><b>Q${idx+1}:</b> ${item.q} ${item.audio ? '🎵' : ''}</span>
@@ -245,7 +405,6 @@
         });
       });
 
-      // 監聽學生名單 (滑鼠點擊無痕剔除)
       onValue(ref(db, 'room/students'), (snap) => {
         const sList = document.getElementById('studentList');
         sList.innerHTML = '';
@@ -254,7 +413,6 @@
           snap.forEach(child => {
             count++;
             const s = child.val();
-            // 直接將 onclick 綁定在整個學生項目上
             sList.innerHTML += `
               <div class="student-item" title="點擊即可剔除此學生" onclick="kickStudent('${child.key}')">
                 <span>${s.nickname}</span>
@@ -266,7 +424,6 @@
         document.getElementById('studentCount').innerText = count;
       });
       
-      // 監聽排行榜動畫數據
       onValue(ref(db, 'room/answers'), (snap) => {
          if(roomMode === 'kahoot' && document.getElementById('animationPanel').classList.contains('hidden') === false) {
              updateKahootLeaderboard(snap);
@@ -274,12 +431,10 @@
       });
     };
 
-    // Kahoot 派題
     window.dispatch = (idx, btnElement) => {
-      // 鎖定當前按鈕防呆
-      document.querySelectorAll('.send-btn').forEach(b => b.disabled = false);
+      document.querySelectorAll('.send-btn').forEach(b => { b.disabled = false; b.innerText = "🚀 派送"; });
       btnElement.disabled = true;
-      btnElement.innerText = "已派送";
+      btnElement.innerText = "✅ 已派送";
 
       const qData = allQuestions[idx];
       remove(ref(db, 'room/answers'));
@@ -289,7 +444,7 @@
       document.getElementById('toggleAns').classList.remove('active');
       set(ref(db, 'room/settings'), currentSettings);
 
-      const shuffled = qData.opts.sort(() => Math.random() - 0.5);
+      const shuffled = [...qData.opts].sort(() => Math.random() - 0.5);
       set(ref(db, 'room/currentQuestion'), {
         questionId: qData.questionId,
         question: qData.q,
@@ -306,7 +461,6 @@
       }
     };
 
-    // 測驗模式：發派全卷與倒數
     window.startTestMode = () => {
       const mins = parseInt(document.getElementById('testMinutes').value) || 5;
       const confirmStart = confirm(`確定要發派測驗並倒數 ${mins} 分鐘嗎？`);
@@ -315,19 +469,17 @@
       currentSettings.acceptAnswers = true;
       set(ref(db, 'room/settings'), currentSettings);
 
-      // 處理所有題目的洗牌
       const paper = allQuestions.map(q => {
          return {
              questionId: q.questionId,
              question: q.q,
-             options: q.opts.sort(() => Math.random() - 0.5),
+             options: [...q.opts].sort(() => Math.random() - 0.5),
              correctAnswer: q.ans,
              audio: q.audio
          };
       });
       set(ref(db, 'room/testPaper'), paper);
       
-      // 切換為動畫(碼錶)面板
       if(document.getElementById('animationPanel').classList.contains('hidden')) {
           toggleLeftPanel();
       }
@@ -350,7 +502,6 @@
       }, 1000);
     };
 
-    // 隱藏/顯示 左側題庫與動畫面板
     window.toggleLeftPanel = () => {
       const qw = document.getElementById('questionListWrapper');
       const ap = document.getElementById('animationPanel');
@@ -363,7 +514,6 @@
       }
     };
 
-    // Kahoot 簡易排行榜動畫 (顯示已作答人數)
     function updateKahootLeaderboard(answersSnap) {
        let count = 0;
        if(answersSnap.exists()) {
@@ -375,7 +525,6 @@
        }
     }
 
-    // 控制台更新設定
     window.updateSettings = (key, val) => {
       currentSettings[key] = val;
       set(ref(db, 'room/settings'), currentSettings);
@@ -405,7 +554,6 @@
     };
 
     window.exportCSV = async () => {
-      // CSV 匯出邏輯保持不變...
       alert("成績匯出功能已觸發 (開發測試中)");
     };
   </script>
