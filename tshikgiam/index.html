@@ -7,98 +7,101 @@
   <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
   <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
   <style>
-    :root { --primary: #1976d2; --teacher: #ffebee; --student: #e3f2fd; --danger: #d32f2f; --success: #388e3c; }
-    body { font-family: 'Tauhu Oo', sans-serif; margin: 0; padding: 20px; background: #f4f4f9; color: #333; min-height: 100vh; position: relative; padding-bottom: 100px;}
+    :root { --primary: #475569; --teacher: #f8f9fa; --student: #f1f5f9; --danger: #ef4444; --success: #22c55e; --accent: #3b82f6; }
+    body { font-family: 'Tauhu Oo', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 100px;}
     .hidden { display: none !important; }
-    button { cursor: pointer; border-radius: 8px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Tauhu Oo', sans-serif;}
+    button { cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Tauhu Oo', sans-serif;}
     button:active { transform: scale(0.98); }
     
-    .version-tag { position: absolute; top: 10px; right: 10px; background: #333; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.2; }
+    .version-tag { position: absolute; top: 10px; right: 10px; background: #94a3b8; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: #64748b; font-size: 12px; line-height: 1.2; }
     .footer p { margin: 2px 0; }
 
-    #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .role-btn { padding: 15px 30px; font-size: 20px; margin: 10px; background: var(--primary); color: white; }
-    input[type="text"], input[type="number"] { padding: 10px; font-size: 18px; border: 2px solid #ccc; border-radius: 8px; font-family: 'Tauhu Oo'; margin-bottom:15px; width:80%;}
+    #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .role-btn { padding: 12px 24px; font-size: 18px; margin: 10px; background: var(--primary); color: white; }
+    input[type="text"], input[type="number"] { padding: 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tauhu Oo'; margin-bottom:15px; width:80%;}
 
     #teacherView { max-width: 1300px; margin: 0 auto; }
-    .teacher-header { background: var(--teacher); padding: 15px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .pin-display { font-size: 24px; font-weight: bold; color: var(--danger); background: #ffcdd2; padding: 5px 15px; border-radius: 8px; border: 2px dashed var(--danger); }
+    .teacher-header { background: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;}
+    .pin-display { font-size: 18px; font-weight: bold; color: var(--primary); background: #f1f5f9; padding: 5px 12px; border-radius: 6px; border: 1px solid #cbd5e1; }
     .workspace { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-    .panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; }
+    .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; border: 1px solid #e2e8f0;}
     
-    .control-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; align-items: center;}
-    .toggle-btn { padding: 8px 12px; background: #e0e0e0; color: #333; font-size: 15px; }
+    .control-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px; align-items: center; border: 1px solid #e2e8f0;}
+    .toggle-btn { padding: 6px 12px; background: #e2e8f0; color: #475569; font-size: 14px; }
     .toggle-btn.active { background: var(--primary); color: white; }
-    .stop-btn { background: var(--danger); color: white; padding: 8px 12px; font-size: 15px; }
-    .hide-panel-btn { position: absolute; top: 15px; right: 15px; background: #607d8b; color: white; padding: 5px 10px; font-size: 12px; }
+    .stop-btn { background: var(--danger); color: white; padding: 6px 12px; font-size: 14px; }
+    .hide-panel-btn { position: absolute; top: 15px; right: 15px; background: #94a3b8; color: white; padding: 4px 8px; font-size: 12px; }
 
-    .question-item { border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #fff;}
-    .send-btn { background: var(--primary); color: white; padding: 10px 20px; font-size: 18px; }
-    #animationPanel { text-align: center; padding: 40px 20px; background: #fffde7; border-radius: 8px; min-height: 400px; border: 2px dashed #ffc107;}
-    .timer-display { font-size: 80px; font-weight: bold; color: var(--danger); font-family: monospace; margin: 20px 0;}
-    .stat-bar { background: #e0e0e0; height: 30px; border-radius: 15px; margin: 10px 0; overflow: hidden; position: relative;}
-    .stat-fill { background: var(--primary); height: 100%; width: 0%; transition: width 0.5s; }
-    .stat-text { position: absolute; left: 10px; top: 4px; font-weight: bold; color: #333; z-index: 2;}
-    .podium-item { font-size: 24px; font-weight: bold; margin: 10px 0; padding: 15px; background: #ffecb3; border-radius: 8px;}
+    .question-item { border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background: #fff;}
+    .send-btn { background: var(--accent); color: white; padding: 8px 16px; font-size: 16px; }
+    .send-btn:disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.7;}
+    #animationPanel { text-align: left; padding: 30px; background: #f8f9fa; border-radius: 8px; min-height: 400px; border: 1px solid #e2e8f0;}
+    .timer-display { font-size: 60px; font-weight: bold; color: var(--primary); font-family: monospace; text-align:center; margin: 20px 0;}
+    
+    /* 大屏統計圖表樣式 */
+    .stat-container { margin-bottom: 20px; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e2e8f0;}
+    .stat-q-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: var(--primary);}
+    .stat-bar-wrapper { display: flex; align-items: center; margin-bottom: 8px; font-size: 14px;}
+    .stat-label { width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; text-align: right;}
+    .stat-bar-bg { flex-grow: 1; background: #e2e8f0; height: 20px; border-radius: 4px; position: relative; overflow: hidden;}
+    .stat-bar-fill { height: 100%; background: #94a3b8; transition: width 0.5s; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; color: white; font-size: 12px;}
+    .stat-bar-fill.correct { background: var(--success); }
 
     .student-list { max-height: 500px; overflow-y: auto; }
-    .student-item { display: block; padding: 12px; border-bottom: 1px solid #eee; font-size: 16px; transition: 0.2s; text-align: left;}
-    .student-item:hover { text-decoration: line-through; color: var(--danger); cursor: pointer; background: #ffebee; }
+    .student-item { display: block; padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 15px; transition: 0.2s; text-align: left; color: #475569;}
+    .student-item:hover { text-decoration: line-through; color: var(--danger); cursor: pointer; background: #fef2f2; }
 
-    #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: var(--student); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
-    .student-info-bar { position: absolute; top: 15px; right: 20px; color: #555; font-size: 14px; text-align: right; }
-    #studentQuestion { font-size: 32px; font-weight: bold; margin-bottom: 20px; color: #0d47a1; line-height: 1.4; }
-    #myAnswerDisplay { margin-bottom: 20px; font-size: 20px; font-weight: bold; color: #e65100; min-height: 30px; }
+    #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
+    .student-info-bar { position: absolute; top: 15px; right: 20px; color: #64748b; font-size: 13px; text-align: right; }
+    #studentQuestion { font-size: 28px; font-weight: bold; margin-bottom: 20px; color: var(--primary); line-height: 1.4; }
+    #myAnswerDisplay { margin-bottom: 20px; font-size: 18px; font-weight: bold; color: var(--accent); min-height: 30px; }
     .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-bottom: 20px;}
-    .option-btn { padding: 20px; font-size: 22px; background: white; color: var(--primary); border: 3px solid var(--primary); box-shadow: 0 4px 0 var(--primary); }
-    .option-btn:disabled { background: #e0e0e0; border-color: #9e9e9e; color: #757575; box-shadow: none; cursor: not-allowed; }
-    .option-btn.correct { background: var(--success); border-color: var(--success); color: white; box-shadow: 0 4px 0 #1b5e20; }
-    .option-btn.wrong { background: var(--danger); border-color: var(--danger); color: white; box-shadow: 0 4px 0 #b71c1c; }
-    .nav-btn { padding: 10px 20px; font-size: 18px; background: #ff9800; color: white; }
+    .option-btn { padding: 15px; font-size: 20px; background: white; color: var(--primary); border: 2px solid #cbd5e1; box-shadow: 0 3px 0 #cbd5e1; }
+    .option-btn:disabled { background: #f8f9fa; border-color: #e2e8f0; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
+    .option-btn.correct { background: var(--success); border-color: var(--success); color: white; box-shadow: 0 3px 0 #16a34a; }
+    .option-btn.wrong { background: var(--danger); border-color: var(--danger); color: white; box-shadow: 0 3px 0 #dc2626; }
+    .nav-btn { padding: 8px 16px; font-size: 16px; background: #94a3b8; color: white; }
     
-    #offlineOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); color: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    #offlineOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.95); color: var(--primary); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align:center;}
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 1.3</div>
+  <div class="version-tag">Ver 1.4</div>
   
-  <!-- 大廳 -->
   <div id="lobby">
-    <h1>🎈 台語互動派題系統</h1>
+    <h1 style="color:var(--primary);">台語互動派題系統</h1>
     <div id="roleSelection">
-      <h2>請選擇您的身分</h2>
-      <button class="role-btn" onclick="showTeacherModeSelect()">📺 老師大屏</button>
-      <button class="role-btn" onclick="showStudentLogin()">📱 學生平板</button>
+      <button class="role-btn" onclick="showTeacherModeSelect()">老師大屏</button>
+      <button class="role-btn" onclick="showStudentLogin()">學生平板</button>
     </div>
     <div id="teacherModeBox" class="hidden">
-      <h2>選擇測驗模式</h2>
-      <button class="role-btn" style="background:#4caf50;" onclick="joinAsTeacher('kahoot')">⚡ 即時回饋 (Kahoot)</button>
-      <button class="role-btn" style="background:#ff9800;" onclick="joinAsTeacher('test')">📝 嚴謹測驗模式</button>
+      <button class="role-btn" style="background:var(--accent);" onclick="joinAsTeacher('kahoot')">即時回饋模式</button>
+      <button class="role-btn" style="background:var(--primary);" onclick="joinAsTeacher('test')">測驗模式</button>
     </div>
     <div id="studentLoginBox" class="hidden">
-      <h2>學生報到</h2>
-      <input type="text" id="pinInput" placeholder="輸入 4 碼試場編號 (大屏右上角)">
-      <input type="text" id="realNameInput" placeholder="輸入真實姓名 (必填)">
+      <input type="text" id="pinInput" placeholder="輸入 4 碼試場編號">
+      <input type="text" id="realNameInput" placeholder="輸入真實姓名">
       <button class="role-btn" onclick="joinAsStudent()">進入教室</button>
     </div>
   </div>
 
-  <!-- 老師大屏 -->
   <div id="teacherView" class="hidden">
     <div class="teacher-header">
-      <h2 style="margin:0;">📺 控制台 (<span id="modeDisplay"></span>)</h2>
-      <div class="pin-display">試場編號：<span id="tPinDisplay">----</span></div>
-      <div>
-        <span>🎵 BGM：</span>
-        <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">播放</button>
-        <audio id="bgmAudio" loop src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3"></audio>
-        <button class="toggle-btn" style="background:#4caf50; color:white; margin-left:10px;" onclick="exportCSV()">匯出成績 CSV</button>
+      <div style="display:flex; align-items:center; gap:15px;">
+          <h2 style="margin:0; color:var(--primary);">控制台 (<span id="modeDisplay"></span>)</h2>
+          <span>🎵 BGM：</span>
+          <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">播放</button>
+          <audio id="bgmAudio" loop src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3"></audio>
+      </div>
+      <div style="display:flex; align-items:center; gap:15px;">
+          <button class="toggle-btn" style="background:var(--success); color:white;" onclick="exportCSV()">匯出成績 CSV</button>
+          <div class="pin-display">試場編號：<span id="tPinDisplay">----</span></div>
       </div>
     </div>
     <div class="workspace">
       <div class="panel" id="leftPanel">
-        <button class="hide-panel-btn" onclick="toggleLeftPanel()">👁️ 切換：題庫 / 動畫區</button>
+        <button class="hide-panel-btn" onclick="toggleLeftPanel()">👁️ 切換檢視</button>
         
         <div id="questionListWrapper">
           <div class="control-group">
@@ -108,42 +111,41 @@
               <option value="student">聽力平板播放</option>
             </select>
           </div>
-          <div class="control-group" id="testModeControls" style="background:#fff3e0;">
+          <div class="control-group" id="testModeControls">
             <div id="kahootControls" class="hidden">
-              <span style="font-weight:bold; color:#e65100;">⚡ Kahoot 模式：</span>每題作答 <input type="number" id="kahootTime" value="15" style="width:60px; padding:5px; margin:0;"> 秒
+              <span style="font-weight:bold;">Kahoot 模式：</span>每題 <input type="number" id="kahootTime" value="15" style="width:60px; padding:4px; margin:0;"> 秒
               <button class="send-btn" onclick="startKahoot()">開始 Kahoot！</button>
             </div>
             <div id="testControls" class="hidden">
-              <span style="font-weight:bold; color:#e65100;">📝 測驗模式：</span>總計 <input type="number" id="testMinutes" value="5" style="width:60px; padding:5px; margin:0;"> 分鐘
+              <span style="font-weight:bold;">測驗模式：</span>總計 <input type="number" id="testMinutes" value="5" style="width:60px; padding:4px; margin:0;"> 分
               <button class="send-btn" onclick="startTestMode()">發派全卷並開始</button>
-              <button class="stop-btn" onclick="triggerTestStop('manual')">🛑 提前收卷</button>
+              <button class="stop-btn" onclick="triggerTestStop('manual')">提前收卷</button>
             </div>
           </div>
-          <h3 id="questionListTitle">📚 請勾選要派送的題目：</h3>
-          <div id="questionList">載入題庫中...</div>
+          <h3 id="questionListTitle" style="font-size:16px;">請勾選要派送的題目：</h3>
+          <div id="questionList">載入中...</div>
         </div>
 
         <div id="animationPanel" class="hidden">
-          <h2 id="animTitle" style="font-size:32px;">📊 課堂即時動態</h2>
-          <div id="animContent">請先派題或開始測驗...</div>
-          <button id="kahootNextBtn" class="send-btn hidden" style="margin-top:20px;" onclick="nextKahootQuestion()">下一題 ➡️</button>
+          <h2 id="animTitle" style="font-size:24px; color:var(--primary); text-align:center;">測驗動態</h2>
+          <div id="animContent">等待中...</div>
+          <div style="text-align:center;"><button id="kahootNextBtn" class="send-btn hidden" style="margin-top:20px;" onclick="nextKahootQuestion()">下一題</button></div>
         </div>
       </div>
 
       <div class="panel">
-        <h3 style="margin:0 0 15px 0;">👥 考生名單 (<span id="studentCount">0</span>)</h3>
-        <p style="font-size:12px; color:#888; margin-top:-10px;">(點擊暱稱剔除)</p>
+        <h3 style="margin:0 0 10px 0; font-size:16px;">考生名單 (<span id="studentCount">0</span>)</h3>
+        <p style="font-size:11px; color:#94a3b8; margin-top:-5px;">(點擊剔除)</p>
         <div id="studentList" class="student-list"></div>
       </div>
     </div>
   </div>
 
-  <!-- 學生作答區 -->
   <div id="studentView" class="hidden">
     <div class="student-info-bar">
-      <div style="font-weight:bold; color:var(--danger);">編號：<span id="sPinDisplay"></span></div>
-      <div id="sNickname" style="font-weight:bold; font-size:18px; margin-top:5px;"></div>
-      <div id="sRealName"></div>
+      <div style="color:var(--primary);">編號：<span id="sPinDisplay" style="font-weight:bold;"></span></div>
+      <div id="sNickname" style="font-weight:bold; font-size:15px; margin-top:2px;"></div>
+      <div id="sRealName" style="font-size:12px;"></div>
     </div>
     
     <div id="studentMainContent">
@@ -151,24 +153,22 @@
         <div id="myAnswerDisplay"></div>
         <div id="optionsContainer" class="options-grid hidden"></div>
         <div id="testNav" class="hidden" style="display: flex; justify-content: space-between; margin-top: 20px;">
-          <button class="nav-btn" onclick="navTest(-1)">⬅️ 上一題</button>
-          <span id="testProgress" style="font-size: 18px; line-height: 40px; font-weight:bold;"></span>
-          <button id="nextOrSubmitBtn" class="nav-btn" onclick="navTest(1)">下一題 ➡️</button>
+          <button class="nav-btn" onclick="navTest(-1)">上一題</button>
+          <span id="testProgress" style="font-size: 16px; line-height: 35px; color:var(--primary);"></span>
+          <button id="nextOrSubmitBtn" class="nav-btn" onclick="navTest(1)">下一題</button>
         </div>
     </div>
     <audio id="studentAudio"></audio>
   </div>
 
-  <!-- 離線遮罩 -->
   <div id="offlineOverlay" class="hidden">
-    <h1 style="font-size:48px; color:#ef5350;">⚠️ 臨時中止</h1>
-    <h2>老師大屏已離線或關閉，請勿離開此畫面。</h2>
-    <h2>等待老師重新連線中...</h2>
+    <h1 style="font-size:36px; color:var(--danger);">臨時中止</h1>
+    <p>老師已離線，請等待重新連線...</p>
   </div>
 
   <div class="footer">
     <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
-    <p style="font-size: 10px; color: #64748b; margin-top: 2px;">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。</p>
+    <p style="font-size: 10px;">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>未經授權，嚴禁重製、改作或商用。</p>
     <div class="counter-container"><a href="https://www.hitwebcounter.com/" target="_blank"><img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" border="0" /></a></div>
   </div>
   <script type="module">
@@ -189,71 +189,53 @@
     const db = getDatabase(app);
     const sheetUrl = `https://docs.google.com/spreadsheets/d/1qe2gPJA_feyOCjUNz5iMHkeCWDHxTefQZ5d8QCBsrZA/gviz/tq?tqx=out:json`;
     
-    // 全域變數
-    let allQuestions = []; // 試算表抓下來的原始題庫
-    let selectedQuestions = []; // 老師打勾的題目
-    let myStudentId = null;
-    let roomMode = 'kahoot'; 
+    let allQuestions = [], selectedQuestions = [];
+    let myStudentId = null, roomMode = 'kahoot'; 
     let currentSettings = { pin: '', showQuestion: true, status: 'waiting', audioSource: 'teacher' };
     
-    // 測驗模式專用
-    let myTestAnswers = {}; 
-    let testCountdownTimer = null;
-    let hasSubmittedTest = false;
-    let myTestIndex = 0;
-    
-    // Kahoot模式專用
-    let kahootIndex = 0;
-    let kahootTimer = null;
-    let kahootStartTime = 0;
+    let myTestAnswers = {}, testCountdownTimer = null, hasSubmittedTest = false, myTestIndex = 0;
+    let kahootIndex = 0, kahootTimer = null;
 
-    // === 大廳切換 ===
     window.showTeacherModeSelect = () => { document.getElementById('roleSelection').classList.add('hidden'); document.getElementById('teacherModeBox').classList.remove('hidden'); };
     window.showStudentLogin = () => { document.getElementById('roleSelection').classList.add('hidden'); document.getElementById('studentLoginBox').classList.remove('hidden'); };
 
     const adjs = ["古錐的", "緣投的", "𠢕早的", "打拚的", "快樂的", "勇敢的"];
-    const animals = ["台灣黑熊", "石虎", "水鹿", "台灣藍鵲", "水豚", "獼猴"];
+    const animals = ["黑熊", "石虎", "水鹿", "藍鵲", "水豚", "獼猴"];
 
-    // === 學生端登入與連線 ===
     window.joinAsStudent = async () => {
       const pin = document.getElementById('pinInput').value.trim();
       const realName = document.getElementById('realNameInput').value.trim();
-      if(!pin || !realName) return alert("請輸入試場編號與真實姓名！");
+      if(!pin || !realName) return alert("請輸入編號與姓名！");
 
       const settingsSnap = await get(ref(db, 'room/settings'));
-      if(!settingsSnap.exists() || settingsSnap.val().pin !== pin) return alert("試場編號錯誤或考試未建立！");
+      if(!settingsSnap.exists() || settingsSnap.val().pin !== pin) return alert("編號錯誤！");
 
       const nickname = adjs[Math.floor(Math.random()*adjs.length)] + animals[Math.floor(Math.random()*animals.length)];
       myStudentId = 'student_' + Date.now();
-      
       const myRef = ref(db, `room/students/${myStudentId}`);
       set(myRef, { realName, nickname, score: 0 });
       onDisconnect(myRef).remove();
 
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('studentView').classList.remove('hidden');
-      document.getElementById('sNickname').innerText = `👤 ${nickname}`;
+      document.getElementById('sNickname').innerText = `${nickname}`;
       document.getElementById('sRealName').innerText = `(${realName})`;
       document.getElementById('sPinDisplay').innerText = pin;
 
-      // 監聽是否被剔除
-      onValue(myRef, snap => { if (!snap.exists()) { alert("您已被移出教室！"); window.location.reload(); }});
+      onValue(myRef, snap => { if (!snap.exists()) { alert("已被移出！"); window.location.reload(); }});
       listenToRoom();
     };
 
     function listenToRoom() {
-      // 監聽老師離線狀態
       onValue(ref(db, 'room/settings/teacherOnline'), snap => {
          if(snap.val() === false) document.getElementById('offlineOverlay').classList.remove('hidden');
          else document.getElementById('offlineOverlay').classList.add('hidden');
       });
 
-      // 監聽全域設定
       onValue(ref(db, 'room/settings'), snap => {
         if(snap.exists()) {
           currentSettings = snap.val();
           roomMode = currentSettings.mode || 'kahoot';
-          
           if(currentSettings.status === 'waiting') {
             document.getElementById('studentQuestion').innerText = "等待老師開始...";
             document.getElementById('optionsContainer').classList.add('hidden');
@@ -262,8 +244,7 @@
             hasSubmittedTest = false; myTestAnswers = {};
           }
           if(currentSettings.status === 'ended') {
-             alert("測驗已徹底結束！");
-             document.getElementById('studentQuestion').innerText = "考試結束，請聽老師講解。";
+             document.getElementById('studentQuestion').innerText = "測驗結束，請聽老師講解。";
              document.getElementById('optionsContainer').classList.add('hidden');
              document.getElementById('testNav').classList.add('hidden');
           }
@@ -271,18 +252,13 @@
         }
       });
 
-      // Kahoot 題目監聽
       onValue(ref(db, 'room/currentKahootQ'), snap => {
-        if(roomMode === 'kahoot' && snap.exists() && currentSettings.status === 'kahoot_active') {
-          renderStudentQuestion(snap.val());
-        }
+        if(roomMode === 'kahoot' && snap.exists() && currentSettings.status === 'kahoot_active') renderStudentQuestion(snap.val());
       });
 
-      // 測驗模式 題目監聽
       onValue(ref(db, 'room/testPaper'), snap => {
         if(roomMode === 'test' && snap.exists() && currentSettings.status === 'testing' && !hasSubmittedTest) {
-          selectedQuestions = snap.val();
-          myTestIndex = 0;
+          selectedQuestions = snap.val(); myTestIndex = 0;
           document.getElementById('testNav').classList.remove('hidden');
           renderTestQuestion();
         }
@@ -291,33 +267,27 @@
 
     function renderStudentQuestion(qData) {
       if(hasSubmittedTest && !currentSettings.showAnswer) return;
-      document.getElementById('studentQuestion').innerText = currentSettings.showQuestion ? qData.question : "請看大屏題目並作答";
+      document.getElementById('studentQuestion').innerText = currentSettings.showQuestion ? qData.question : "請看大屏題目作答";
       document.getElementById('myAnswerDisplay').innerText = ""; 
       
-      const optContainer = document.getElementById('optionsContainer');
-      optContainer.innerHTML = ''; optContainer.classList.remove('hidden');
-
+      const optC = document.getElementById('optionsContainer');
+      optC.innerHTML = ''; optC.classList.remove('hidden');
       qData.options.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'option-btn'; btn.innerText = opt;
         btn.onclick = () => submitAnswer(opt, btn, qData.questionId);
-        optContainer.appendChild(btn);
+        optC.appendChild(btn);
       });
-
-      if(qData.audio && currentSettings.audioSource === 'student') {
-        const aEl = document.getElementById('studentAudio'); aEl.src = qData.audio; aEl.play().catch(e=>{});
-      }
+      if(qData.audio && currentSettings.audioSource === 'student') { document.getElementById('studentAudio').src = qData.audio; document.getElementById('studentAudio').play().catch(e=>{}); }
       updateStudentUI();
     }
 
     function submitAnswer(selectedOpt, btnElement, qId) {
       if(currentSettings.status !== 'testing' && currentSettings.status !== 'kahoot_active') return;
-
       if(roomMode === 'kahoot') {
-        const timeTaken = Date.now() - currentSettings.qStartTime;
-        set(ref(db, `room/kahootAnswers/${myStudentId}`), { answer: selectedOpt, time: timeTaken });
+        set(ref(db, `room/kahootAnswers/${myStudentId}`), { answer: selectedOpt, time: Date.now() - currentSettings.qStartTime });
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
-        document.getElementById('myAnswerDisplay').innerText = `👉 已送出答案，等待計時結束...`;
+        document.getElementById('myAnswerDisplay').innerText = `已送出，等待計時...`;
       } else {
         myTestAnswers[myTestIndex] = selectedOpt;
         set(ref(db, `room/testAnswers/${myStudentId}/${myTestIndex}`), {answer: selectedOpt});
@@ -325,14 +295,13 @@
       }
     }
 
-    // === 測驗模式學生導覽 ===
     window.navTest = (dir) => {
       if(hasSubmittedTest && !currentSettings.showAnswer) return;
       if(dir === 1 && myTestIndex === selectedQuestions.length - 1) {
-          if(confirm("交卷後不得修改答案，是否真的要交卷？\n按「確定」交卷，按「取消」繼續檢查。")) {
+          if(confirm("交卷後不得修改，確定交卷？")) {
             hasSubmittedTest = true;
             set(ref(db, `room/testAnswers/${myStudentId}/isSubmitted`), true);
-            document.getElementById('studentQuestion').innerText = "請靜待所有考生作答完畢，並且不要關閉本畫面";
+            document.getElementById('studentQuestion').innerText = "請靜待所有考生作答完畢，勿關閉畫面。";
             document.getElementById('optionsContainer').classList.add('hidden');
             document.getElementById('myAnswerDisplay').innerText = "";
             document.getElementById('testNav').classList.add('hidden');
@@ -348,308 +317,244 @@
     function renderTestQuestion() {
       if(selectedQuestions.length === 0) return;
       const qData = selectedQuestions[myTestIndex];
-      document.getElementById('testProgress').innerText = `第 ${myTestIndex + 1} / ${selectedQuestions.length} 題`;
+      document.getElementById('testProgress').innerText = `${myTestIndex + 1} / ${selectedQuestions.length}`;
       const nBtn = document.getElementById('nextOrSubmitBtn');
-      if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest) {
-          nBtn.innerText = "交卷 📥"; nBtn.style.background = "#d32f2f";
-      } else { nBtn.innerText = "下一題 ➡️"; nBtn.style.background = "#ff9800"; }
+      if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest) { nBtn.innerText = "交卷"; nBtn.style.background = "var(--danger)"; } 
+      else { nBtn.innerText = "下一題"; nBtn.style.background = "#94a3b8"; }
 
       renderStudentQuestion(qData);
-      
       if(myTestAnswers[myTestIndex]) {
-        document.getElementById('myAnswerDisplay').innerText = `👉 您已選擇：${myTestAnswers[myTestIndex]}`;
+        document.getElementById('myAnswerDisplay').innerText = `已選擇：${myTestAnswers[myTestIndex]}`;
         document.querySelectorAll('.option-btn').forEach(b => {
-          if(b.innerText === myTestAnswers[myTestIndex]) { b.style.backgroundColor = '#bbdefb'; b.style.borderColor = '#1976d2'; } 
-          else { b.style.backgroundColor = 'white'; b.style.borderColor = '#1976d2'; }
+          b.style.backgroundColor = (b.innerText === myTestAnswers[myTestIndex]) ? '#e2e8f0' : 'white';
         });
       }
-      
-      // 檢討模式上色
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
-          const correctAns = qData.correctAnswer;
+          const cAns = qData.correctAnswer;
           document.querySelectorAll('.option-btn').forEach(b => {
              b.disabled = true; 
-             if(b.innerText === correctAns) b.classList.add('correct');
-             else if (b.innerText === myTestAnswers[myTestIndex] && myTestAnswers[myTestIndex] !== correctAns) b.classList.add('wrong');
+             if(b.innerText === cAns) b.classList.add('correct');
+             else if (b.innerText === myTestAnswers[myTestIndex]) b.classList.add('wrong');
           });
-          const isRight = myTestAnswers[myTestIndex] === correctAns;
-          document.getElementById('myAnswerDisplay').innerText += isRight ? " 🟢 (答對！)" : ` 🔴 (答錯，正解: ${correctAns})`;
       }
     }
 
     function updateStudentUI() {
       if (currentSettings.status === 'reviewing' && roomMode === 'test' && hasSubmittedTest) {
-          document.getElementById('testNav').classList.remove('hidden');
-          renderTestQuestion();
+          document.getElementById('testNav').classList.remove('hidden'); renderTestQuestion();
       }
-      // Kahoot 解答變色
       if(currentSettings.status === 'kahoot_result' && roomMode === 'kahoot') {
-          let myAnsText = document.getElementById('myAnswerDisplay').innerText.replace('👉 已送出答案，等待計時結束...', '').trim();
           document.getElementById('myAnswerDisplay').innerText = "";
           document.querySelectorAll('.option-btn').forEach(b => {
              b.disabled = true;
              if(b.innerText === currentSettings.currentCorrect) b.classList.add('correct');
-             else b.classList.add('wrong'); // 其他全錯色
+             else b.classList.add('wrong'); 
           });
       }
     }
 
-
-    // ==========================================
-    // 教師端邏輯
-    // ==========================================
+    // === 教師端 ===
     window.joinAsTeacher = (mode) => {
       roomMode = mode;
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('teacherView').classList.remove('hidden');
-      document.getElementById('modeDisplay').innerText = mode === 'kahoot' ? 'Kahoot 模式' : '測驗模式';
+      document.getElementById('modeDisplay').innerText = mode === 'kahoot' ? '即時回饋' : '測驗';
       if(mode === 'kahoot') document.getElementById('kahootControls').classList.remove('hidden');
       if(mode === 'test') document.getElementById('testControls').classList.remove('hidden');
 
-      // 初始化房間
       const pin = Math.floor(1000 + Math.random() * 9000).toString();
       document.getElementById('tPinDisplay').innerText = pin;
       currentSettings = { mode: mode, pin: pin, showQuestion: true, showAnswer: false, status: 'waiting', audioSource: 'teacher', teacherOnline: true };
       
       set(ref(db, 'room/settings'), currentSettings);
-      remove(ref(db, 'room/students')); // 清空舊學生
-      remove(ref(db, 'room/testAnswers')); remove(ref(db, 'room/testPaper'));
+      remove(ref(db, 'room/students')); remove(ref(db, 'room/testAnswers')); remove(ref(db, 'room/testPaper'));
       remove(ref(db, 'room/kahootAnswers')); remove(ref(db, 'room/currentKahootQ'));
 
-      // 監聽連線並設置斷線機制
-      const connectedRef = ref(db, ".info/connected");
-      onValue(connectedRef, (snap) => {
-        if (snap.val() === true) {
-          const tRef = ref(db, 'room/settings/teacherOnline');
-          onDisconnect(tRef).set(false);
-          set(tRef, true);
-        }
+      onValue(ref(db, ".info/connected"), (snap) => {
+        if (snap.val() === true) { const tRef = ref(db, 'room/settings/teacherOnline'); onDisconnect(tRef).set(false); set(tRef, true); }
       });
       
-      // 載入題庫加 Checkbox
       fetch(sheetUrl).then(res => res.text()).then(text => {
         const data = JSON.parse(text.substring(47).slice(0, -2));
-        const list = document.getElementById('questionList');
-        list.innerHTML = '';
+        const list = document.getElementById('questionList'); list.innerHTML = '';
         allQuestions = data.table.rows.map((row, index) => ({
           questionId: index, q: row.c[0]?.v || '', ans: row.c[1]?.v || '',
           opts: [row.c[1]?.v, row.c[2]?.v, row.c[3]?.v, row.c[4]?.v].filter(Boolean), audio: row.c[5]?.v || null
         })).filter(item => item.q);
-
         allQuestions.forEach((item, idx) => {
-          list.innerHTML += `<div class="question-item">
-              <label style="cursor:pointer; display:flex; align-items:center;">
-                  <input type="checkbox" class="q-checkbox" value="${idx}" checked style="width:20px;height:20px;margin-right:15px;">
-                  <span><b>Q${idx+1}:</b> ${item.q} ${item.audio ? '🎵' : ''}</span>
-              </label>
-            </div>`;
+          list.innerHTML += `<div class="question-item"><label style="cursor:pointer; display:flex; align-items:center;"><input type="checkbox" class="q-checkbox" value="${idx}" checked style="margin-right:10px;"><span><b>Q${idx+1}:</b> ${item.q}</span></label></div>`;
         });
       });
 
-      // 監聽學生與自動收卷機制
       onValue(ref(db, 'room/students'), snap => {
         const sList = document.getElementById('studentList'); sList.innerHTML = ''; let count = 0;
-        if(snap.exists()) {
-          snap.forEach(child => { count++;
-            sList.innerHTML += `<div class="student-item" title="點擊踢出" onclick="kickStudent('${child.key}')"><span>👤 ${child.val().nickname}</span></div>`;
-          });
-        }
+        if(snap.exists()) { snap.forEach(child => { count++; sList.innerHTML += `<div class="student-item" onclick="kickStudent('${child.key}')">${child.val().nickname}</div>`; }); }
         document.getElementById('studentCount').innerText = count;
       });
 
-      // 監聽測驗交卷狀態
       onValue(ref(db, 'room/testAnswers'), snap => {
          if(roomMode === 'test' && currentSettings.status === 'testing') {
              const ans = snap.val() || {};
              const stuCount = parseInt(document.getElementById('studentCount').innerText);
              const submitCount = Object.values(ans).filter(a => a.isSubmitted).length;
-             if(stuCount > 0 && submitCount >= stuCount) { triggerTestStop('auto'); }
+             if(stuCount > 0 && submitCount >= stuCount) triggerTestStop('auto');
          }
       });
     };
 
     function getSelectedQs() {
-       const checkboxes = document.querySelectorAll('.q-checkbox:checked');
-       if(checkboxes.length === 0) { alert("請至少勾選一題！"); return []; }
-       return Array.from(checkboxes).map(cb => allQuestions[cb.value]);
+       const cb = document.querySelectorAll('.q-checkbox:checked');
+       if(cb.length === 0) { alert("請勾選題目！"); return []; }
+       return Array.from(cb).map(c => allQuestions[c.value]);
     }
 
-    // === Kahoot 模式邏輯 ===
-    window.startKahoot = () => {
-      selectedQuestions = getSelectedQs();
-      if(selectedQuestions.length === 0) return;
-      kahootIndex = 0;
-      toggleLeftPanel(); // 切換到動畫區
-      playKahootQuestion();
-    };
-
+    // === Kahoot ===
+    window.startKahoot = () => { selectedQuestions = getSelectedQs(); if(selectedQuestions.length>0){ kahootIndex = 0; toggleLeftPanel(); playKahootQuestion(); }};
     function playKahootQuestion() {
-      remove(ref(db, 'room/kahootAnswers'));
-      const qData = selectedQuestions[kahootIndex];
-      const timeLimit = parseInt(document.getElementById('kahootTime').value) || 15;
-      
-      currentSettings.status = 'kahoot_active';
-      currentSettings.qStartTime = Date.now();
-      currentSettings.currentCorrect = qData.ans;
+      remove(ref(db, 'room/kahootAnswers')); const qData = selectedQuestions[kahootIndex]; const t = parseInt(document.getElementById('kahootTime').value) || 15;
+      currentSettings.status = 'kahoot_active'; currentSettings.qStartTime = Date.now(); currentSettings.currentCorrect = qData.ans;
       update(ref(db, 'room/settings'), currentSettings);
+      set(ref(db, 'room/currentKahootQ'), { questionId: qData.questionId, question: qData.q, options: [...qData.opts].sort(() => Math.random() - 0.5), audio: qData.audio });
 
-      const shuffled = [...qData.opts].sort(() => Math.random() - 0.5);
-      set(ref(db, 'room/currentKahootQ'), { questionId: qData.questionId, question: qData.q, options: shuffled, audio: qData.audio });
-
-      document.getElementById('animTitle').innerText = `⚡ 第 ${kahootIndex + 1} 題作答中`;
-      document.getElementById('kahootNextBtn').classList.add('hidden');
-      
-      let timeLeft = timeLimit;
-      clearInterval(kahootTimer);
+      document.getElementById('animTitle').innerText = `第 ${kahootIndex + 1} 題作答中`; document.getElementById('kahootNextBtn').classList.add('hidden');
+      let timeLeft = t; clearInterval(kahootTimer);
       kahootTimer = setInterval(() => {
-         document.getElementById('animContent').innerHTML = `<div class="timer-display">${timeLeft}</div>`;
-         timeLeft--;
+         document.getElementById('animContent').innerHTML = `<div class="timer-display">${timeLeft}</div>`; timeLeft--;
          if(timeLeft < 0) { clearInterval(kahootTimer); endKahootQuestion(); }
       }, 1000);
-      
-      if(qData.audio && currentSettings.audioSource === 'teacher') {
-        const aEl = document.getElementById('studentAudio'); aEl.src = qData.audio; aEl.play().catch(e=>{});
-      }
+      if(qData.audio && currentSettings.audioSource === 'teacher') { document.getElementById('studentAudio').src = qData.audio; document.getElementById('studentAudio').play().catch(e=>{}); }
     }
 
     async function endKahootQuestion() {
-       currentSettings.status = 'kahoot_result';
-       update(ref(db, 'room/settings'), currentSettings);
-       
-       const ansSnap = await get(ref(db, 'room/kahootAnswers'));
-       const stuSnap = await get(ref(db, 'room/students'));
-       const answers = ansSnap.val() || {};
-       const students = stuSnap.val() || {};
-       
-       let correctCount = 0; let fastestTime = 999999; let fastestStu = "無";
-       
-       // 計算得分寫入 Firebase
+       currentSettings.status = 'kahoot_result'; update(ref(db, 'room/settings'), currentSettings);
+       const aSnap = await get(ref(db, 'room/kahootAnswers')), sSnap = await get(ref(db, 'room/students'));
+       const answers = aSnap.val() || {}, students = sSnap.val() || {};
+       let cc = 0, fT = 999999, fS = "無";
        for(let sid in answers) {
            if(answers[sid].answer === currentSettings.currentCorrect) {
-               correctCount++;
-               if(answers[sid].time < fastestTime) { fastestTime = answers[sid].time; fastestStu = students[sid]?.nickname || "未知"; }
-               let addScore = Math.max(10, 100 - Math.floor(answers[sid].time / 200));
-               students[sid].score = (students[sid].score || 0) + addScore;
+               cc++; if(answers[sid].time < fT) { fT = answers[sid].time; fS = students[sid]?.nickname || ""; }
+               students[sid].score = (students[sid].score || 0) + Math.max(10, 100 - Math.floor(answers[sid].time / 200));
            }
        }
-       set(ref(db, 'room/students'), students); // 更新總分
-
-       let html = `<h2>正確答案：<span style="color:var(--success);">${currentSettings.currentCorrect}</span></h2>`;
-       html += `<div style="font-size:24px; margin:20px 0;">答對人數：<b>${correctCount}</b> 人</div>`;
-       if(correctCount > 0) html += `<div style="font-size:20px; color:#e65100;">🚀 最快答對：<b>${fastestStu}</b> (${(fastestTime/1000).toFixed(1)}秒)</div>`;
-       
-       document.getElementById('animTitle').innerText = "📊 結算";
-       document.getElementById('animContent').innerHTML = html;
+       set(ref(db, 'room/students'), students); 
+       document.getElementById('animTitle').innerText = "結算";
+       document.getElementById('animContent').innerHTML = `<h3>正確答案：<span style="color:var(--success);">${currentSettings.currentCorrect}</span></h3><p>答對人數：${cc} 人</p>` + (cc>0 ? `<p>最快答對：${fS} (${(fT/1000).toFixed(1)}秒)</p>` : "");
        document.getElementById('kahootNextBtn').classList.remove('hidden');
     }
 
     window.nextKahootQuestion = async () => {
        kahootIndex++;
-       if(kahootIndex < selectedQuestions.length) {
-           playKahootQuestion();
-       } else {
-           // 頒獎台
-           document.getElementById('kahootNextBtn').classList.add('hidden');
-           document.getElementById('animTitle').innerText = "🏆 最終排行榜";
-           const stuSnap = await get(ref(db, 'room/students'));
-           const students = stuSnap.val() || {};
-           const sorted = Object.values(students).sort((a,b) => b.score - a.score).slice(0, 5); // 取前五
-           
-           let html = "";
-           sorted.forEach((s, i) => {
-               const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":`#${i+1}`;
-               html += `<div class="podium-item">${medal} ${s.nickname} <span style="color:#d32f2f;">(${s.score}分)</span></div>`;
-           });
-           document.getElementById('animContent').innerHTML = html;
-           currentSettings.status = 'ended';
-           update(ref(db, 'room/settings'), currentSettings);
+       if(kahootIndex < selectedQuestions.length) playKahootQuestion();
+       else {
+           document.getElementById('kahootNextBtn').classList.add('hidden'); document.getElementById('animTitle').innerText = "🏆 排行榜";
+           const sSnap = await get(ref(db, 'room/students')); const st = sSnap.val() || {};
+           const sorted = Object.values(st).sort((a,b) => b.score - a.score).slice(0, 5);
+           let html = ""; sorted.forEach((s, i) => { html += `<div style="font-size:20px; padding:10px;">#${i+1} ${s.nickname} (${s.score}分)</div>`; });
+           document.getElementById('animContent').innerHTML = html; currentSettings.status = 'ended'; update(ref(db, 'room/settings'), currentSettings);
        }
     };
 
-    // === 測驗模式邏輯 ===
+    // === 測驗模式 ===
     window.startTestMode = () => {
-      selectedQuestions = getSelectedQs();
-      if(selectedQuestions.length === 0) return;
-
+      selectedQuestions = getSelectedQs(); if(selectedQuestions.length === 0) return;
       const mins = parseInt(document.getElementById('testMinutes').value) || 5;
-      currentSettings.status = 'testing';
-      update(ref(db, 'room/settings'), currentSettings);
-
-      const paper = selectedQuestions.map((q, idx) => ({
-         questionId: q.questionId, question: q.q, options: [...q.opts].sort(() => Math.random() - 0.5), correctAnswer: q.ans, audio: q.audio
-      }));
+      currentSettings.status = 'testing'; update(ref(db, 'room/settings'), currentSettings);
+      const paper = selectedQuestions.map((q, idx) => ({ questionId: q.questionId, question: q.q, options: [...q.opts].sort(() => Math.random() - 0.5), correctAnswer: q.ans, audio: q.audio }));
       set(ref(db, 'room/testPaper'), paper);
       
       if(document.getElementById('animationPanel').classList.contains('hidden')) toggleLeftPanel();
+      document.getElementById('animTitle').innerText = "測驗倒數中"; document.getElementById('animTitle').style.textAlign = "center";
       
-      document.getElementById('animTitle').innerText = "⏳ 測驗倒數中";
-      let timeLeft = mins * 60;
-      clearInterval(testCountdownTimer);
+      let timeLeft = mins * 60; clearInterval(testCountdownTimer);
       testCountdownTimer = setInterval(() => {
-          timeLeft--;
-          const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-          const s = (timeLeft % 60).toString().padStart(2, '0');
+          timeLeft--; const m = Math.floor(timeLeft / 60).toString().padStart(2, '0'), s = (timeLeft % 60).toString().padStart(2, '0');
           document.getElementById('animContent').innerHTML = `<div class="timer-display">${m}:${s}</div>`;
           if(timeLeft <= 0) triggerTestStop('timeup');
       }, 1000);
     };
 
-    window.triggerTestStop = (reason) => {
+    window.triggerTestStop = async (reason) => {
        clearInterval(testCountdownTimer);
-       let msg = reason === 'auto' ? "已全數交卷！" : (reason === 'timeup' ? "時間到！" : "已手動提前收卷！");
-       document.getElementById('animContent').innerHTML = `<div class="timer-display" style="color:red;">00:00</div><br><h2>${msg}，考試結束。</h2>`;
+       let msg = reason === 'auto' ? "已全數交卷！" : (reason === 'timeup' ? "時間到！" : "已手動收卷！");
+       document.getElementById('animContent').innerHTML = `<div class="timer-display" style="color:var(--danger);">00:00</div><h3 style="text-align:center;">${msg}</h3>`;
        
-       setTimeout(() => {
-           if(confirm(`考試結束 (${msg})，是否要公布正解進行檢討？\n按「確定」學生可看正解，按「取消」則直接結束。`)) {
+       setTimeout(async () => {
+           if(confirm(`考試結束 (${msg})，是否要公布正解進行檢討？`)) {
                currentSettings.status = 'reviewing'; currentSettings.showAnswer = true;
+               update(ref(db, 'room/settings'), currentSettings);
+               await renderTestStatistics(); // 繪製統計圖
            } else {
-               currentSettings.status = 'ended';
+               currentSettings.status = 'ended'; update(ref(db, 'room/settings'), currentSettings);
+               document.getElementById('animContent').innerHTML += "<p style='text-align:center;'>測驗已結束，未開啟檢討。</p>";
            }
-           update(ref(db, 'room/settings'), currentSettings);
        }, 500);
     };
 
-    // 共用開關
-    window.toggleSetting = (key, btn) => {
-      currentSettings[key] = !currentSettings[key];
-      btn.innerText = (key === 'showQuestion' ? '平板題目：' : '公布解答：') + (currentSettings[key] ? '開' : '關');
-      btn.classList.toggle('active', currentSettings[key]);
-      update(ref(db, 'room/settings'), currentSettings);
-    };
+    // 繪製測驗統計圖
+    async function renderTestStatistics() {
+        document.getElementById('animTitle').innerText = "📈 測驗統計與檢討";
+        document.getElementById('animTitle').style.textAlign = "left";
+        const aSnap = await get(ref(db, 'room/testAnswers')), sSnap = await get(ref(db, 'room/students'));
+        const answers = aSnap.val() || {}, students = sSnap.val() || {};
+        
+        let html = "";
+        let unsubmitted = [];
+        for(let sid in students) { if(!answers[sid] || !answers[sid].isSubmitted) unsubmitted.push(students[sid].nickname); }
+        if(unsubmitted.length > 0) html += `<div style="color:var(--danger); margin-bottom:20px;">未交卷名單：${unsubmitted.join(', ')}</div>`;
+
+        selectedQuestions.forEach((q, qIdx) => {
+            let totalAnswers = 0, correctAnswers = 0;
+            let optCounts = {}; q.opts.forEach(o => optCounts[o] = 0);
+            
+            for(let sid in answers) {
+                if(answers[sid][qIdx]) {
+                    totalAnswers++;
+                    const ansStr = answers[sid][qIdx].answer;
+                    if(optCounts[ansStr] !== undefined) optCounts[ansStr]++;
+                    if(ansStr === q.ans) correctAnswers++;
+                }
+            }
+            
+            let accuracy = totalAnswers > 0 ? Math.round((correctAnswers/totalAnswers)*100) : 0;
+            html += `<div class="stat-container">
+                        <div class="stat-q-title">Q${qIdx+1}: ${q.q} <span style="color:#64748b; font-size:14px; font-weight:normal;">(答對率: ${accuracy}%)</span></div>`;
+            
+            q.opts.forEach(opt => {
+                let count = optCounts[opt];
+                let pct = totalAnswers > 0 ? Math.round((count/totalAnswers)*100) : 0;
+                let isCorrect = (opt === q.ans);
+                html += `<div class="stat-bar-wrapper">
+                            <div class="stat-label" style="${isCorrect ? 'color:var(--success); font-weight:bold;' : ''}">${opt}</div>
+                            <div class="stat-bar-bg">
+                                <div class="stat-bar-fill ${isCorrect ? 'correct' : ''}" style="width: ${pct > 0 ? Math.max(pct, 5) : 0}%;">${count > 0 ? count : ''}</div>
+                            </div>
+                         </div>`;
+            });
+            html += `</div>`;
+        });
+        document.getElementById('animContent').innerHTML = html;
+    }
+
+    window.toggleSetting = (key, btn) => { currentSettings[key] = !currentSettings[key]; btn.innerText = (key === 'showQuestion' ? '平板題目：' : '公布解答：') + (currentSettings[key] ? '開' : '關'); btn.classList.toggle('active', currentSettings[key]); update(ref(db, 'room/settings'), currentSettings); };
     window.kickStudent = (id) => { remove(ref(db, `room/students/${id}`)); };
     window.toggleLeftPanel = () => { document.getElementById('questionListWrapper').classList.toggle('hidden'); document.getElementById('animationPanel').classList.toggle('hidden'); };
     window.updateSettings = (k, v) => { currentSettings[k] = v; update(ref(db, 'room/settings'), currentSettings); };
     window.toggleBGM = () => { const a=document.getElementById('bgmAudio'), b=document.getElementById('bgmBtn'); if(a.paused){a.play();b.innerText="暫停";b.classList.add('active');}else{a.pause();b.innerText="播放";b.classList.remove('active');}};
 
-    // 匯出 CSV (以勾選的題目數量為準)
     window.exportCSV = async () => {
-      const stuSnap = await get(ref(db, 'room/students'));
-      const tAnsSnap = await get(ref(db, 'room/testAnswers'));
-      if(!stuSnap.exists()) return alert("目前沒有學生資料");
-
-      let csvContent = "\uFEFF真實姓名,暱稱,總分";
-      selectedQuestions.forEach((_,i) => csvContent += `,Q${i+1}`);
-      csvContent += "\n";
-
-      stuSnap.forEach(child => {
-        const s = child.val();
-        let totalScore = 0; let rowAnswers = "";
+      const stuSnap = await get(ref(db, 'room/students')), tAnsSnap = await get(ref(db, 'room/testAnswers'));
+      if(!stuSnap.exists()) return alert("無資料");
+      let csv = "\uFEFF姓名,暱稱,總分"; selectedQuestions.forEach((_,i) => csv += `,Q${i+1}`); csv += "\n";
+      stuSnap.forEach(c => {
+        let sc = 0, row = "";
         selectedQuestions.forEach((_,i) => {
-           let isC = false, ansTxt = "未答";
-           if(tAnsSnap.exists() && tAnsSnap.val()[child.key] && tAnsSnap.val()[child.key][i]) {
-               ansTxt = tAnsSnap.val()[child.key][i].answer;
-               isC = (ansTxt === selectedQuestions[i].ans);
-           }
-           if(isC) totalScore += 100/selectedQuestions.length;
-           rowAnswers += `,${ansTxt}`;
+           let isC = false, aTxt = "未答";
+           if(tAnsSnap.exists() && tAnsSnap.val()[c.key] && tAnsSnap.val()[c.key][i]) { aTxt = tAnsSnap.val()[c.key][i].answer; isC = (aTxt === selectedQuestions[i].ans); }
+           if(isC) sc += 100/selectedQuestions.length; row += `,${aTxt}`;
         });
-        csvContent += `${s.realName},${s.nickname},${Math.round(totalScore)}${rowAnswers}\n`;
+        csv += `${c.val().realName},${c.val().nickname},${Math.round(sc)}${row}\n`;
       });
-      
-      const link = document.createElement("a");
-      link.href = encodeURI("data:text/csv;charset=utf-8," + csvContent);
-      link.download = "成績紀錄.csv";
-      document.body.appendChild(link); link.click();
+      const a = document.createElement("a"); a.href = encodeURI("data:text/csv;charset=utf-8," + csv); a.download = "成績.csv"; document.body.appendChild(a); a.click();
     };
   </script>
 </body>
