@@ -21,10 +21,12 @@
     .role-btn { padding: 12px 24px; font-size: 18px; margin: 10px; background: var(--primary); color: white; }
     input[type="text"], input[type="number"] { padding: 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tauhu Oo'; margin-bottom:15px; width:80%;}
 
-    #teacherView { max-width: 1300px; margin: 0 auto; }
+    #teacherView { max-width: 1400px; margin: 0 auto; }
     .teacher-header { background: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;}
     .pin-display { font-size: 18px; font-weight: bold; color: var(--primary); background: #f1f5f9; padding: 5px 12px; border-radius: 6px; border: 1px solid #cbd5e1; }
-    .workspace { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    
+    /* 調整左右兩欄比例為 3:1 (讓左側變更寬，右側變窄) */
+    .workspace { display: grid; grid-template-columns: 3fr 1fr; gap: 20px; }
     .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; border: 1px solid #e2e8f0;}
     
     .control-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px; align-items: center; border: 1px solid #e2e8f0;}
@@ -32,6 +34,10 @@
     .toggle-btn.active { background: var(--primary); color: white; }
     .stop-btn { background: var(--danger); color: white; padding: 6px 12px; font-size: 14px; }
     .hide-panel-btn { position: absolute; top: 15px; right: 15px; background: #94a3b8; color: white; padding: 4px 8px; font-size: 12px; }
+
+    /* 題庫手風琴折疊樣式 */
+    .accordion-header { cursor: pointer; padding: 10px; background: #f1f5f9; border-radius: 6px; font-weight: bold; font-size: 16px; color: var(--primary); border: 1px solid #cbd5e1; margin-bottom: 10px; transition: 0.2s;}
+    .accordion-header:hover { background: #e2e8f0; }
 
     .question-item { border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background: #fff;}
     .send-btn { background: var(--accent); color: white; padding: 8px 16px; font-size: 16px; }
@@ -66,7 +72,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 1.5</div>
+  <div class="version-tag">Ver 1.6</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary);">台語互動派題系統</h1>
@@ -89,16 +95,12 @@
     <div class="teacher-header">
       <div style="display:flex; align-items:center; gap:15px;">
           <h2 style="margin:0; color:var(--primary);">控制台 (<span id="modeDisplay"></span>)</h2>
-          <span>🎵 BGM：</span>
-          <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">播放</button>
-          <audio id="bgmAudio" loop src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3"></audio>
       </div>
-      <div style="display:flex; align-items:center; gap:15px;">
-          <button class="toggle-btn" style="background:var(--success); color:white;" onclick="exportCSV()">匯出成績 CSV</button>
-          <div class="pin-display">試場編號：<span id="tPinDisplay">----</span></div>
-      </div>
+      <div class="pin-display">試場編號：<span id="tPinDisplay">----</span></div>
     </div>
+    
     <div class="workspace">
+      <!-- 左欄：控制與展示 -->
       <div class="panel" id="leftPanel">
         <button class="hide-panel-btn" onclick="toggleLeftPanel()">👁️ 切換檢視</button>
         
@@ -109,20 +111,31 @@
               <option value="teacher">聽力大屏播放</option>
               <option value="student">聽力平板播放</option>
             </select>
+            <!-- BGM 按鈕移至此處 -->
+            <span style="margin-left:10px; color:#64748b; font-size:14px;">🎵 BGM：</span>
+            <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">開啟 BGM</button>
+            <audio id="bgmAudio" loop src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3"></audio>
           </div>
+          
           <div class="control-group" id="testModeControls">
-            <div id="kahootControls" class="hidden">
+            <div id="kahootControls" class="hidden" style="width:100%;">
               <span style="font-weight:bold;">Kahoot 模式：</span>每題 <input type="number" id="kahootTime" value="15" style="width:60px; padding:4px; margin:0;"> 秒
               <button class="send-btn" onclick="startKahoot()">開始 Kahoot！</button>
             </div>
-            <div id="testControls" class="hidden">
+            <div id="testControls" class="hidden" style="width:100%;">
               <span style="font-weight:bold;">測驗模式：</span>總計 <input type="number" id="testMinutes" value="5" style="width:60px; padding:4px; margin:0;"> 分
               <button class="send-btn" onclick="startTestMode()">發派全卷並開始</button>
               <button class="stop-btn" onclick="triggerTestStop('manual')">提前收卷</button>
             </div>
           </div>
-          <h3 id="questionListTitle" style="font-size:16px;">請勾選要派送的題目：</h3>
-          <div id="questionList">載入中...</div>
+          
+          <!-- 手風琴折疊題庫 -->
+          <div class="accordion-header" onclick="toggleQList()">
+              <span id="accordionArrow">▶</span> 勾選要派送的題目
+          </div>
+          <div id="questionListContainer" class="hidden">
+              <div id="questionList">載入中...</div>
+          </div>
         </div>
 
         <div id="animationPanel" class="hidden">
@@ -132,9 +145,16 @@
         </div>
       </div>
 
+      <!-- 右欄：考生名單與匯出 -->
       <div class="panel">
-        <h3 style="margin:0 0 10px 0; font-size:16px;">考生名單 (<span id="studentCount">0</span>)</h3>
-        <p style="font-size:11px; color:#94a3b8; margin-top:-5px;">(點擊剔除)</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div>
+                <h3 style="margin:0; font-size:16px;">考生名單 (<span id="studentCount">0</span>)</h3>
+                <p style="font-size:11px; color:#94a3b8; margin:0;">(點擊剔除)</p>
+            </div>
+            <!-- CSV 按鈕移至名單旁 -->
+            <button class="toggle-btn" style="background:var(--success); color:white; padding:4px 8px;" onclick="exportCSV()">匯出 CSV</button>
+        </div>
         <div id="studentList" class="student-list"></div>
       </div>
     </div>
@@ -195,6 +215,27 @@
     let myTestAnswers = {}, testCountdownTimer = null, hasSubmittedTest = false, myTestIndex = 0;
     let kahootIndex = 0, kahootTimer = null;
 
+    // 解除瀏覽器音效播放限制的小撇步
+    function unlockAudio() {
+        const bgm = document.getElementById('bgmAudio');
+        const stuAud = document.getElementById('studentAudio');
+        if(bgm) { bgm.play().then(() => bgm.pause()).catch(e=>{}); }
+        if(stuAud) { stuAud.play().then(() => stuAud.pause()).catch(e=>{}); }
+    }
+
+    // 展開/收合題庫名單
+    window.toggleQList = () => {
+        const container = document.getElementById('questionListContainer');
+        const arrow = document.getElementById('accordionArrow');
+        if(container.classList.contains('hidden')) {
+            container.classList.remove('hidden');
+            arrow.innerText = "▼";
+        } else {
+            container.classList.add('hidden');
+            arrow.innerText = "▶";
+        }
+    };
+
     window.showTeacherModeSelect = () => { document.getElementById('roleSelection').classList.add('hidden'); document.getElementById('teacherModeBox').classList.remove('hidden'); };
     window.showStudentLogin = () => { document.getElementById('roleSelection').classList.add('hidden'); document.getElementById('studentLoginBox').classList.remove('hidden'); };
 
@@ -202,6 +243,7 @@
     const animals = ["黑熊", "石虎", "水鹿", "藍鵲", "水豚", "獼猴"];
 
     window.joinAsStudent = async () => {
+      unlockAudio(); // 學生點擊「進入教室」時解除音效限制
       const pin = document.getElementById('pinInput').value.trim();
       const realName = document.getElementById('realNameInput').value.trim();
       if(!pin || !realName) return alert("請輸入編號與姓名！");
@@ -354,6 +396,7 @@
 
     // === 教師端 ===
     window.joinAsTeacher = (mode) => {
+      unlockAudio(); // 教師點擊模式時解除音效限制
       roomMode = mode;
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('teacherView').classList.remove('hidden');
@@ -478,18 +521,19 @@
        document.getElementById('animContent').innerHTML = `<div class="timer-display" style="color:var(--danger);">00:00</div><h3 style="text-align:center;">${msg}</h3>`;
        
        setTimeout(async () => {
-           // 大屏永遠強制進入檢討模式 (顯示統計數據)
-           if(confirm(`考試結束 (${msg})！\n\n是否允許「學生平板」也同步查看正確答案與成績？\n(按確定：學生可看解答 / 按取消：學生不顯示解答。無論選哪個，大屏皆會顯示統計數據供您講解)`)) {
+           // 測驗結束，一律強制畫出大屏檢討圖表
+           await renderTestStatistics();
+           
+           if(confirm(`考試結束 (${msg})！\n\n是否允許「學生平板」也同步查看正確答案與成績？\n(按確定：學生可看解答 / 按取消：學生不顯示解答。大屏皆已顯示統計數據)`)) {
                currentSettings.status = 'reviewing'; currentSettings.showAnswer = true;
            } else {
                currentSettings.status = 'ended'; currentSettings.showAnswer = false;
            }
            update(ref(db, 'room/settings'), currentSettings);
-           await renderTestStatistics(); // 強制繪製大屏統計圖
        }, 500);
     };
 
-    // 繪製測驗統計圖 (大屏強制顯示)
+    // 繪製測驗統計圖
     async function renderTestStatistics() {
         document.getElementById('animTitle').innerText = "📈 全班作答統計與檢討";
         document.getElementById('animTitle').style.textAlign = "left";
@@ -539,23 +583,34 @@
     window.toggleLeftPanel = () => { document.getElementById('questionListWrapper').classList.toggle('hidden'); document.getElementById('animationPanel').classList.toggle('hidden'); };
     window.updateSettings = (k, v) => { currentSettings[k] = v; update(ref(db, 'room/settings'), currentSettings); };
     
-    // BGM 切換邏輯優化
+    // BGM 切換邏輯 (強制交替)
     window.toggleBGM = () => { 
         const audio = document.getElementById('bgmAudio');
         const btn = document.getElementById('bgmBtn'); 
         if(audio.paused) {
             audio.play().then(() => {
-                btn.innerText = "暫停"; 
+                btn.innerText = "暫停 BGM"; 
                 btn.classList.add('active');
             }).catch(e => {
                 alert("瀏覽器阻擋自動播放，請先點擊網頁任意空白處後再試一次。");
             });
         } else {
             audio.pause(); 
-            btn.innerText = "播放"; 
+            btn.innerText = "開啟 BGM"; 
             btn.classList.remove('active');
         }
     };
+
+    // CSV 時間戳記檔名
+    function getFormattedTime() {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        return `${yyyy}${mm}${dd}_${hh}${min}`;
+    }
 
     window.exportCSV = async () => {
       const stuSnap = await get(ref(db, 'room/students')), tAnsSnap = await get(ref(db, 'room/testAnswers'));
@@ -570,7 +625,12 @@
         });
         csv += `${c.val().realName},${c.val().nickname},${Math.round(sc)}${row}\n`;
       });
-      const a = document.createElement("a"); a.href = encodeURI("data:text/csv;charset=utf-8," + csv); a.download = "成績.csv"; document.body.appendChild(a); a.click();
+      
+      const a = document.createElement("a"); 
+      a.href = encodeURI("data:text/csv;charset=utf-8," + csv); 
+      a.download = `成績_${getFormattedTime()}.csv`; 
+      document.body.appendChild(a); 
+      a.click();
     };
   </script>
 </body>
