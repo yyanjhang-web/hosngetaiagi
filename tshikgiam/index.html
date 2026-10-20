@@ -39,7 +39,6 @@
     #animationPanel { text-align: left; padding: 30px; background: #f8f9fa; border-radius: 8px; min-height: 400px; border: 1px solid #e2e8f0;}
     .timer-display { font-size: 60px; font-weight: bold; color: var(--primary); font-family: monospace; text-align:center; margin: 20px 0;}
     
-    /* 大屏統計圖表樣式 */
     .stat-container { margin-bottom: 20px; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e2e8f0;}
     .stat-q-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: var(--primary);}
     .stat-bar-wrapper { display: flex; align-items: center; margin-bottom: 8px; font-size: 14px;}
@@ -67,7 +66,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 1.4</div>
+  <div class="version-tag">Ver 1.5</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary);">台語互動派題系統</h1>
@@ -244,7 +243,7 @@
             hasSubmittedTest = false; myTestAnswers = {};
           }
           if(currentSettings.status === 'ended') {
-             document.getElementById('studentQuestion').innerText = "測驗結束，請聽老師講解。";
+             document.getElementById('studentQuestion').innerText = "測驗已結束，請聽老師講解。";
              document.getElementById('optionsContainer').classList.add('hidden');
              document.getElementById('testNav').classList.add('hidden');
           }
@@ -475,24 +474,24 @@
 
     window.triggerTestStop = async (reason) => {
        clearInterval(testCountdownTimer);
-       let msg = reason === 'auto' ? "已全數交卷！" : (reason === 'timeup' ? "時間到！" : "已手動收卷！");
+       let msg = reason === 'auto' ? "已全數交卷" : (reason === 'timeup' ? "時間到" : "已手動收卷");
        document.getElementById('animContent').innerHTML = `<div class="timer-display" style="color:var(--danger);">00:00</div><h3 style="text-align:center;">${msg}</h3>`;
        
        setTimeout(async () => {
-           if(confirm(`考試結束 (${msg})，是否要公布正解進行檢討？`)) {
+           // 大屏永遠強制進入檢討模式 (顯示統計數據)
+           if(confirm(`考試結束 (${msg})！\n\n是否允許「學生平板」也同步查看正確答案與成績？\n(按確定：學生可看解答 / 按取消：學生不顯示解答。無論選哪個，大屏皆會顯示統計數據供您講解)`)) {
                currentSettings.status = 'reviewing'; currentSettings.showAnswer = true;
-               update(ref(db, 'room/settings'), currentSettings);
-               await renderTestStatistics(); // 繪製統計圖
            } else {
-               currentSettings.status = 'ended'; update(ref(db, 'room/settings'), currentSettings);
-               document.getElementById('animContent').innerHTML += "<p style='text-align:center;'>測驗已結束，未開啟檢討。</p>";
+               currentSettings.status = 'ended'; currentSettings.showAnswer = false;
            }
+           update(ref(db, 'room/settings'), currentSettings);
+           await renderTestStatistics(); // 強制繪製大屏統計圖
        }, 500);
     };
 
-    // 繪製測驗統計圖
+    // 繪製測驗統計圖 (大屏強制顯示)
     async function renderTestStatistics() {
-        document.getElementById('animTitle').innerText = "📈 測驗統計與檢討";
+        document.getElementById('animTitle').innerText = "📈 全班作答統計與檢討";
         document.getElementById('animTitle').style.textAlign = "left";
         const aSnap = await get(ref(db, 'room/testAnswers')), sSnap = await get(ref(db, 'room/students'));
         const answers = aSnap.val() || {}, students = sSnap.val() || {};
@@ -539,7 +538,24 @@
     window.kickStudent = (id) => { remove(ref(db, `room/students/${id}`)); };
     window.toggleLeftPanel = () => { document.getElementById('questionListWrapper').classList.toggle('hidden'); document.getElementById('animationPanel').classList.toggle('hidden'); };
     window.updateSettings = (k, v) => { currentSettings[k] = v; update(ref(db, 'room/settings'), currentSettings); };
-    window.toggleBGM = () => { const a=document.getElementById('bgmAudio'), b=document.getElementById('bgmBtn'); if(a.paused){a.play();b.innerText="暫停";b.classList.add('active');}else{a.pause();b.innerText="播放";b.classList.remove('active');}};
+    
+    // BGM 切換邏輯優化
+    window.toggleBGM = () => { 
+        const audio = document.getElementById('bgmAudio');
+        const btn = document.getElementById('bgmBtn'); 
+        if(audio.paused) {
+            audio.play().then(() => {
+                btn.innerText = "暫停"; 
+                btn.classList.add('active');
+            }).catch(e => {
+                alert("瀏覽器阻擋自動播放，請先點擊網頁任意空白處後再試一次。");
+            });
+        } else {
+            audio.pause(); 
+            btn.innerText = "播放"; 
+            btn.classList.remove('active');
+        }
+    };
 
     window.exportCSV = async () => {
       const stuSnap = await get(ref(db, 'room/students')), tAnsSnap = await get(ref(db, 'room/testAnswers'));
