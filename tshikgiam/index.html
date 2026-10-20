@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台語互動派題系統</title>
+  <style>
+    /* === 基礎與美化樣式 === */
+    :root { --primary: #1976d2; --teacher: #ffebee; --student: #e3f2fd; --danger: #d32f2f; --success: #388e3c; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, '微軟正黑體'; margin: 0; padding: 20px; background: #f4f4f9; color: #333; }
+    .hidden { display: none !important; }
+    h1, h2, h3 { margin-top: 0; }
+    button { cursor: pointer; border-radius: 8px; border: none; font-weight: bold; transition: 0.2s; }
+    button:active { transform: scale(0.98); }
+    
+    /* 大廳樣式 */
+    #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .role-btn { padding: 20px 40px; font-size: 24px; margin: 10px; background: var(--primary); color: white; }
+    input[type="text"] { padding: 15px; font-size: 18px; width: 80%; margin-bottom: 20px; border: 2px solid #ccc; border-radius: 8px; }
+
+    /* 教師控制台佈局 */
+    #teacherView { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
+    .panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .teacher-header { grid-column: 1 / -1; background: var(--teacher); display: flex; justify-content: space-between; align-items: center; }
+    .control-group { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; }
+    .toggle-btn { padding: 10px 15px; background: #e0e0e0; color: #333; font-size: 16px; }
+    .toggle-btn.active { background: var(--primary); color: white; }
+    .stop-btn { background: var(--danger); color: white; padding: 10px 15px; font-size: 16px; }
+    
+    /* 題庫清單 */
+    .question-item { border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .send-btn { background: var(--primary); color: white; padding: 10px 20px; font-size: 16px; }
+    
+    /* 學生列表與管理 */
+    .student-list { max-height: 400px; overflow-y: auto; }
+    .student-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center; }
+    .kick-btn { background: #ffccbc; color: var(--danger); padding: 5px 10px; font-size: 12px; }
+
+    /* 學生作答區樣式 */
+    #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: var(--student); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 70vh; display: flex; flex-direction: column; justify-content: center;}
+    #studentQuestion { font-size: 32px; font-weight: bold; margin-bottom: 30px; color: #0d47a1; }
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+    .option-btn { padding: 30px; font-size: 24px; background: white; color: var(--primary); border: 3px solid var(--primary); box-shadow: 0 4px 0 var(--primary); }
+    .option-btn:disabled { background: #e0e0e0; border-color: #9e9e9e; color: #757575; box-shadow: none; cursor: not-allowed; }
+    .option-btn.correct { background: var(--success); border-color: var(--success); color: white; box-shadow: 0 4px 0 #1b5e20; }
+    .option-btn.wrong { background: var(--danger); border-color: var(--danger); color: white; box-shadow: 0 4px 0 #b71c1c; }
+  </style>
+</head>
+<body>
+
+  <!-- ================= 模組 1：登入大廳 ================= -->
+  <div id="lobby">
+    <h1>🎈 台語派題系統</h1>
+    <div id="roleSelection">
+      <h2>請選擇您的身分</h2>
+      <button class="role-btn" onclick="showTeacherLogin()">📺 老師大屏</button>
+      <button class="role-btn" onclick="showStudentLogin()">📱 學生平板</button>
+    </div>
+    
+    <div id="studentLoginBox" class="hidden">
+      <h2>輸入真實姓名 (大屏僅顯示暱稱)</h2>
+      <input type="text" id="realNameInput" placeholder="例如：王小明">
+      <button class="role-btn" onclick="joinAsStudent()">進入教室</button>
+    </div>
+  </div>
+
+  <!-- ================= 模組 2 & 4：教師控制台 ================= -->
+  <div id="teacherView" class="hidden">
+    <div class="panel teacher-header">
+      <h2>📺 教師控制台</h2>
+      <div>
+        <!-- 模組 3：BGM 控制 -->
+        <span>🎵 背景音樂：</span>
+        <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">播放</button>
+        <audio id="bgmAudio" loop src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3"></audio>
+        <button class="toggle-btn" style="background:#4caf50; color:white;" onclick="exportCSV()">匯出成績 CSV</button>
+      </div>
+    </div>
+
+    <!-- 左側：控制開關與題庫 -->
+    <div class="panel">
+      <h3>⚙️ 全域控制開關</h3>
+      <div class="control-group">
+        <button id="toggleQText" class="toggle-btn active" onclick="toggleSetting('showQuestion', this)">平板顯示題目：開</button>
+        <button id="toggleAns" class="toggle-btn" onclick="toggleSetting('showAnswer', this)">公布正確解答：關</button>
+        <button class="stop-btn" onclick="stopAnswering()">🛑 中止作答 (鎖定平板)</button>
+      </div>
+
+      <h3>📚 試算表題庫</h3>
+      <div id="questionList">正在從 Google 試算表載入題目...</div>
+    </div>
+
+    <!-- 右側：學生名單與管理 -->
+    <div class="panel">
+      <h3>👥 已連線學生 (<span id="studentCount">0</span>)</h3>
+      <div id="studentList" class="student-list"></div>
+    </div>
+  </div>
+
+  <!-- ================= 模組 1 & 2：學生作答區 ================= -->
+  <div id="studentView" class="hidden">
+    <h3 id="studentNicknameDisplay" style="color: #666; text-align: right; margin: 0;"></h3>
+    <div id="studentQuestion">等待老師派題中...</div>
+    <div id="optionsContainer" class="options-grid hidden"></div>
+    <!-- 模組 3：平板音效播放器 -->
+    <audio id="studentAudio"></audio>
+  </div>
+
+  <!-- ================= 系統核心邏輯 (Firebase & 運作機制) ================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, onDisconnect, remove, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    // 您的 Firebase 專屬金鑰
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXiyLVZfkGbKlBcFamVTjP3CfhSQfqy9c",
+      authDomain: "tigitshikgiam.firebaseapp.com",
+      databaseURL: "https://tigitshikgiam-default-rtdb.firebaseio.com",
+      projectId: "tigitshikgiam",
+      storageBucket: "tigitshikgiam.firebasestorage.app",
+      messagingSenderId: "159559991455",
+      appId: "1:159559991455:web:454559a0458d9ca461e2aa"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Google Sheets 設定
+    const sheetId = '1qe2gPJA_feyOCjUNz5iMHkeCWDHxTefQZ5d8QCBsrZA';
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+    
+    // 全域變數
+    let allQuestions = [];
+    let myStudentId = null;
+    let currentSettings = { showQuestion: true, showAnswer: false, acceptAnswers: true };
+    let currentCorrectAnswer = "";
+
+    // === 介面切換函數 ===
+    window.showTeacherLogin = () => {
+      document.getElementById('lobby').classList.add('hidden');
+      document.getElementById('teacherView').classList.remove('hidden');
+      initTeacher();
+    };
+    window.showStudentLogin = () => {
+      document.getElementById('roleSelection').classList.add('hidden');
+      document.getElementById('studentLoginBox').classList.remove('hidden');
+    };
+
+    // === 自動暱稱產生器 ===
+    const adjs = ["古錐的", "緣投的", "𠢕早的", "打拚的", "快樂的", "勇敢的"];
+    const animals = ["台灣黑熊", "石虎", "水鹿", "台灣藍鵲", "水豚", "獼猴"];
+    function generateNickname() {
+      return adjs[Math.floor(Math.random() * adjs.length)] + animals[Math.floor(Math.random() * animals.length)];
+    }
+
+    // === 學生端邏輯 ===
+    window.joinAsStudent = () => {
+      const realName = document.getElementById('realNameInput').value.trim() || "未命名";
+      const nickname = generateNickname();
+      myStudentId = 'student_' + Date.now(); // 產生唯一ID
+
+      // 寫入 Firebase
+      const myRef = ref(db, `room/students/${myStudentId}`);
+      set(myRef, { realName, nickname, score: 0 });
+      onDisconnect(myRef).remove(); // 斷線自動移除
+
+      // 切換畫面
+      document.getElementById('lobby').classList.add('hidden');
+      document.getElementById('studentView').classList.remove('hidden');
+      document.getElementById('studentNicknameDisplay').innerText = `👤 ${nickname}`;
+
+      // 監聽是否被老師剔除
+      onValue(myRef, (snap) => {
+        if (!snap.exists()) {
+          alert("您已被老師移出教室！");
+          window.location.reload();
+        }
+      });
+
+      listenToRoom();
+    };
+
+    function listenToRoom() {
+      // 監聽全域設定
+      onValue(ref(db, 'room/settings'), (snap) => {
+        if(snap.exists()) {
+          currentSettings = snap.val();
+          updateStudentUI();
+        }
+      });
+
+      // 監聽當前題目
+      onValue(ref(db, 'room/currentQuestion'), (snap) => {
+        if(snap.exists()) {
+          const qData = snap.val();
+          currentCorrectAnswer = qData.correctAnswer;
+          document.getElementById('studentQuestion').innerText = currentSettings.showQuestion ? qData.question : "請看大屏題目並作答";
+          
+          const optContainer = document.getElementById('optionsContainer');
+          optContainer.innerHTML = '';
+          optContainer.classList.remove('hidden');
+
+          qData.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => submitAnswer(opt, btn);
+            optContainer.appendChild(btn);
+          });
+
+          // 如果有音檔，觸發播放
+          if(qData.audio) {
+            const audioEl = document.getElementById('studentAudio');
+            audioEl.src = qData.audio;
+            audioEl.play().catch(e=>console.log("自動播放被瀏覽器阻擋", e));
+          }
+        }
+      });
+    }
+
+    // 學生送出答案
+    function submitAnswer(selectedOpt, btnElement) {
+      // 紀錄作答
+      set(ref(db, `room/answers/${myStudentId}`), { answer: selectedOpt });
+      
+      // 鎖定所有按鈕
+      const allBtns = document.querySelectorAll('.option-btn');
+      allBtns.forEach(b => b.disabled = true);
+      
+      // 變色給回饋 (只有在老師開啟公布解答時才顯示正確與否)
+      if (currentSettings.showAnswer) {
+         if(selectedOpt === currentCorrectAnswer) btnElement.classList.add('correct');
+         else btnElement.classList.add('wrong');
+      } else {
+         btnElement.style.backgroundColor = '#bbdefb'; // 僅標示已選
+      }
+    }
+
+    function updateStudentUI() {
+      // 處理是否隱藏題目
+      const qText = document.getElementById('studentQuestion').innerText;
+      if (!currentSettings.showQuestion && qText !== "等待老師派題中...") {
+        document.getElementById('studentQuestion').innerText = "請看大屏題目並作答";
+      }
+      // 處理是否中止作答
+      if (!currentSettings.acceptAnswers) {
+        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+      }
+    }
+
+    // === 教師端邏輯 ===
+    function initTeacher() {
+      // 1. 初始化設定
+      set(ref(db, 'room/settings'), currentSettings);
+      
+      // 2. 載入題庫 (抓取 F 欄作為音檔)
+      fetch(sheetUrl).then(res => res.text()).then(text => {
+        const data = JSON.parse(text.substring(47).slice(0, -2));
+        const list = document.getElementById('questionList');
+        list.innerHTML = '';
+        allQuestions = data.table.rows.map(row => ({
+          q: row.c[0]?.v || '',
+          ans: row.c[1]?.v || '',
+          opts: [row.c[1]?.v, row.c[2]?.v, row.c[3]?.v, row.c[4]?.v].filter(Boolean),
+          audio: row.c[5]?.v || null // 讀取 F 欄音檔網址
+        })).filter(item => item.q);
+
+        allQuestions.forEach((item, idx) => {
+          list.innerHTML += `
+            <div class="question-item">
+              <span><b>Q${idx+1}:</b> ${item.q} ${item.audio ? '🎵' : ''}</span>
+              <button class="send-btn" onclick="dispatch(${idx})">🚀 派送</button>
+            </div>
+          `;
+        });
+      });
+
+      // 3. 監聽學生名單
+      onValue(ref(db, 'room/students'), (snap) => {
+        const sList = document.getElementById('studentList');
+        sList.innerHTML = '';
+        let count = 0;
+        if(snap.exists()) {
+          snap.forEach(child => {
+            count++;
+            const s = child.val();
+            sList.innerHTML += `
+              <div class="student-item">
+                <span>${s.nickname} <small style="color:#aaa">(${s.realName})</small></span>
+                <button class="kick-btn" onclick="kickStudent('${child.key}')">踢出</button>
+              </div>
+            `;
+          });
+        }
+        document.getElementById('studentCount').innerText = count;
+      });
+    }
+
+    // 教師派題
+    window.dispatch = (idx) => {
+      const qData = allQuestions[idx];
+      // 清空上一題的作答紀錄，重置設定
+      remove(ref(db, 'room/answers'));
+      currentSettings.acceptAnswers = true;
+      currentSettings.showAnswer = false; // 派新題時自動關閉解答
+      document.getElementById('toggleAns').innerText = '公布正確解答：關';
+      document.getElementById('toggleAns').classList.remove('active');
+      set(ref(db, 'room/settings'), currentSettings);
+
+      // 洗牌並派發
+      const shuffled = qData.opts.sort(() => Math.random() - 0.5);
+      set(ref(db, 'room/currentQuestion'), {
+        question: qData.q,
+        options: shuffled,
+        correctAnswer: qData.ans,
+        audio: qData.audio,
+        timestamp: Date.now()
+      });
+    };
+
+    // 控制台開關操作
+    window.toggleSetting = (key, btn) => {
+      currentSettings[key] = !currentSettings[key];
+      btn.innerText = (key === 'showQuestion' ? '平板顯示題目：' : '公布正確解答：') + (currentSettings[key] ? '開' : '關');
+      btn.classList.toggle('active', currentSettings[key]);
+      set(ref(db, 'room/settings'), currentSettings);
+    };
+
+    window.stopAnswering = () => {
+      currentSettings.acceptAnswers = false;
+      set(ref(db, 'room/settings'), currentSettings);
+      alert("已鎖定學生平板，停止作答。");
+    };
+
+    window.kickStudent = (id) => {
+      remove(ref(db, `room/students/${id}`));
+    };
+
+    // BGM 控制
+    window.toggleBGM = () => {
+      const audio = document.getElementById('bgmAudio');
+      const btn = document.getElementById('bgmBtn');
+      if (audio.paused) { audio.play(); btn.innerText = "暫停"; btn.classList.add('active'); } 
+      else { audio.pause(); btn.innerText = "播放"; btn.classList.remove('active'); }
+    };
+
+    // 匯出 CSV (結合學生名單與最新作答紀錄)
+    window.exportCSV = async () => {
+      const stuSnap = await get(ref(db, 'room/students'));
+      const ansSnap = await get(ref(db, 'room/answers'));
+      
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF真實姓名,暱稱,最新選項紀錄\n";
+      
+      if (stuSnap.exists()) {
+        stuSnap.forEach(child => {
+          const s = child.val();
+          const ans = ansSnap.exists() && ansSnap.val()[child.key] ? ansSnap.val()[child.key].answer : "未作答";
+          csvContent += `${s.realName},${s.nickname},${ans}\n`;
+        });
+      }
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "台語派題成績紀錄.csv");
+      document.body.appendChild(link);
+      link.click();
+    };
+  </script>
+</body>
+</html>
