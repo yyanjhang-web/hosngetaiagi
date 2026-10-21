@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 8.1)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 8.2)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- Google Firebase 模組 -->
     <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -90,7 +89,7 @@
         @keyframes popIn { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
         /* ========================================================= */
-        /* ★ 獨立且一致的聲音開關 UI (音樂、音效共用) */
+        /* ★ 獨立且一致的聲音開關 UI */
         /* ========================================================= */
         .sound-toggle-btn {
             position: relative; padding: 3px 10px; background: rgba(0, 229, 255, 0.12);
@@ -107,7 +106,7 @@
         }
 
         /* ========================================================= */
-        /* 3. 教師大屏：團戰主舞台 (中央妖魔、四周包圍游走) */
+        /* 3. 教師大屏：團戰主舞台 */
         /* ========================================================= */
         #raid-host-screen { justify-content: space-between; overflow: hidden; padding: 10px 18px; }
         .raid-hud-bar { width: 100%; max-width: 1400px; display: flex; justify-content: space-between; align-items: center; background: #1c2541; border: 1.5px solid #3a506b; border-radius: 12px; padding: 6px 16px; font-size: 17px; flex-shrink: 0; gap: 10px; }
@@ -127,7 +126,6 @@
             box-shadow: inset 0 0 40px rgba(0,0,0,0.7);
         }
 
-        /* 玩家單位游走層 */
         #raid-units-layer { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
         .army-zone-title { position: absolute; top: 8px; left: 12px; font-size: 13px; color: #84ffff; opacity: 0.75; z-index: 2; }
         
@@ -137,7 +135,6 @@
             transform: translate(-50%, -50%);
         }
         
-        /* 施咒光圈特效 */
         .raid-unit.unit-chanting .unit-avatar-box::before {
             content: ''; position: absolute; width: 50px; height: 50px; bottom: -6px; left: 50%; transform: translateX(-50%);
             border: 2.5px dashed #00e5ff; border-radius: 50%; box-shadow: 0 0 10px #00e5ff; animation: spinCircle 1.5s linear infinite; z-index: -1;
@@ -159,7 +156,6 @@
         .unit-name-tag { font-size: 11.5px; font-weight: bold; color: #f8fafc; background: rgba(15, 23, 42, 0.82); padding: 1px 6px; border-radius: 6px; border: 1px solid #475569; white-space: nowrap; max-width: 86px; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
         .raid-unit.bot-unit .unit-name-tag { background: #fde047; color: #000; border-color: #ca8a04; }
 
-        /* 中央：巨型妖魔區 */
         #raid-boss-center-zone {
             position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -179,7 +175,6 @@
         #raid-boss-stun-stars { display: none; position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 36px; white-space: nowrap; animation: dizzySpin 1.1s linear infinite; z-index: 8; }
         @keyframes dizzySpin { 0% { transform: translateX(-50%) rotate(-8deg) scale(0.95); } 50% { transform: translateX(-50%) rotate(8deg) scale(1.1); } 100% { transform: translateX(-50%) rotate(-8deg) scale(0.95); } }
 
-        /* 全域折射光束與爆炸容器 */
         #raid-refract-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
 
         .raid-orb {
@@ -187,7 +182,6 @@
             filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
         }
 
-        /* 妖魔反擊：地面震波 */
         .ground-shockwave {
             position: absolute; left: 50%; top: 50%;
             width: 0; height: 0; border: 6px solid #e94560; border-radius: 50%;
@@ -199,7 +193,6 @@
             100% { width: 350px; height: 350px; opacity: 0; border-width: 1px; }
         }
 
-        /* 大型爆炸特效 */
         .boss-explosion { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; z-index: 15; pointer-events: none; mix-blend-mode: screen; }
         .boss-explosion.tier-ult { width: 400px; height: 400px; background: radial-gradient(circle, #fff 10%, #c084fc 40%, transparent 70%); animation: boom 1.2s ease-out forwards; }
         .boss-explosion.tier-100 { width: 350px; height: 350px; background: radial-gradient(circle, #fff 10%, #fde047 40%, transparent 70%); animation: boom 1s ease-out forwards; }
@@ -209,7 +202,6 @@
         .boss-explosion.tier-low { width: 80px; height: 80px; background: radial-gradient(circle, #94a3b8 20%, transparent 60%); animation: boom 0.5s ease-out forwards; mix-blend-mode: normal; opacity: 0.8;}
         @keyframes boom { 0% { transform: translate(-50%, -50%) scale(0); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
 
-        /* 結算時浮現的攻擊力文字 */
         .damage-popup {
             position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%);
             font-size: 48px; font-weight: bold; color: #fde047; text-shadow: 0 0 20px #e94560, 2px 2px 5px #000;
@@ -222,7 +214,6 @@
             100% { transform: translate(-50%, -65%) scale(0.8); opacity: 0; }
         }
 
-        /* 大屏中央特效橫幅 */
         #raid-center-banner {
             display: none; position: absolute; top: 18%; left: 50%; transform: translateX(-50%);
             background: linear-gradient(90deg, #b91c1c, #f59e0b, #b91c1c); border: 3px solid #fde047;
@@ -231,7 +222,6 @@
             white-space: nowrap; animation: popIn 0.3s ease-out; pointer-events: none;
         }
 
-        /* 玩家閃爍與受擊特效 */
         .flash-gold { animation: flashGoldAnim 1s ease-out; }
         .flash-ultimate { animation: flashUltAnim 1.5s ease-out; }
         @keyframes flashGoldAnim { 0% { filter: drop-shadow(0 0 20px #fde047) brightness(1.5); } 100% { filter: none; } }
@@ -243,7 +233,6 @@
         .enemy-hit-flash { transform: scale(1.1) rotate(5deg) !important; filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 25px #00e5ff) !important; }
         .enemy-dead { transform: rotate(90deg) translateY(30px) !important; filter: grayscale(1) opacity(0.7) drop-shadow(0 0 0 transparent) !important; }
 
-        /* 最右側：即時戰況榜 */
         .raid-side-board { flex: 0.65; min-width: 240px; max-width: 300px; background: #1c2541; border: 2px solid #3a506b; border-radius: 18px; padding: 10px 12px; display: flex; flex-direction: column; overflow: hidden; z-index: 10; }
         .raid-sb-title { font-size: 15px; font-weight: bold; color: #fde047; text-align: center; padding-bottom: 6px; margin-bottom: 6px; border-bottom: 1px solid #3a506b; }
         #raid-live-sb-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
@@ -446,7 +435,7 @@
     </style>
 </head>
 <body>
-    <div id="version-tag">Ver 8.1</div>
+    <div id="version-tag">Ver 8.2</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -745,12 +734,13 @@
 </div>
 <script>
     // =========================================================
-    // ★ Firebase 伺服器連線設定 (取代原有的 PeerJS)
+    // ★ Firebase 伺服器連線設定 (修復伺服器位置綁定問題)
     // =========================================================
     const firebaseConfig = {
         apiKey: "AIzaSyB5KFifSLLKSTvXBiz6ufHeyvVfWyhyZa0",
         authDomain: "exorcist-a55db.firebaseapp.com",
-        databaseURL: "https://exorcist-a55db-default-rtdb.firebaseio.com",
+        // ▼▼ 這裡就是關鍵的修正！指定亞洲新加坡伺服器網址 ▼▼
+        databaseURL: "https://exorcist-a55db-default-rtdb.asia-southeast1.firebasedatabase.app",
         projectId: "exorcist-a55db",
         storageBucket: "exorcist-a55db.firebasestorage.app",
         messagingSenderId: "400132667587",
@@ -984,7 +974,6 @@
         raidDifficulty = diff; document.getElementById('raid-diff-apprentice').classList.toggle('active', diff === 'apprentice'); document.getElementById('raid-diff-master').classList.toggle('active', diff === 'master'); sfxSyllableChant();
     }
 
-    // ★ 開啟大屏：使用 Firebase 創建大廳並監聽學生加入
     function openRaidHostLobby() {
         getSfxCtx();
         currentAvatars = shuffleBank([...RAID_AVATARS]); currentWeapons = shuffleBank([...RAID_WEAPONS]);
@@ -1138,7 +1127,9 @@
     function renderRaidLiveScoreboard() {
         const box = document.getElementById('raid-live-sb-list'); if (!box) return;
         const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.hp - a.hp); box.innerHTML = '';
-        sorted.forEach((t, idx) => { const hpText = t.hp <= 0 ? '💀陣亡' : `❤️${t.hp.toFixed(1)}`; const featherTag = t.feathers > 0 ? `🪶x${t.feathers}` : ''; box.innerHTML += `<div class="raid-sb-row"><span style="font-weight:bold; color:${t.hp <= 0 ? '#94a3b8' : '#fff'};">${idx + 1}. <span style="display:inline-block; filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>${t.name} ${featherTag}</span><span style="color:#00e5ff; font-weight:bold;">${hpText}｜${t.score}分</span></div>`; });
+        sorted.forEach((t, idx) => {
+            const hpText = t.hp <= 0 ? '💀陣亡' : `❤️${t.hp.toFixed(1)}`; const featherTag = t.feathers > 0 ? `🪶x${t.feathers}` : ''; box.innerHTML += `<div class="raid-sb-row"><span style="font-weight:bold; color:${t.hp <= 0 ? '#94a3b8' : '#fff'};">${idx + 1}. <span style="display:inline-block; filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>${t.name} ${featherTag}</span><span style="color:#00e5ff; font-weight:bold;">${hpText}｜${t.score}分</span></div>`;
+        });
     }
 
     function runNextRaidQuestion() {
