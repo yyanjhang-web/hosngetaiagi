@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 8.4)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 8.5)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -73,6 +73,7 @@
         .raid-teams-box { width: 100%; max-width: 1180px; flex: 1; background: rgba(28, 37, 65, 0.65); border: 2px dashed #4a5c88; border-radius: 16px; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; }
         #raid-lobby-teams-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 8px; }
         .raid-team-badge { background: #16213e; border: 2px solid #4ade80; border-radius: 10px; padding: 10px 12px; font-size: 18px; font-weight: bold; color: #4ade80; text-align: center; cursor: pointer; transition: 0.15s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popIn 0.2s ease-out; }
+        
         .raid-team-badge.bot-unit { background: #fde047 !important; border-color: #ca8a04 !important; color: #000 !important; }
         .raid-team-badge:hover, .raid-team-badge:active, .raid-team-badge.removing { background: rgba(220, 38, 38, 0.3) !important; border-color: #ef4444 !important; color: #fca5a5 !important; text-decoration: line-through; text-decoration-thickness: 3px; transform: scale(0.95); }
         @keyframes popIn { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -158,7 +159,7 @@
         .raid-input-group input::placeholder { font-size: 14px; font-weight: normal; color: #475569; }
 
         /* ========================================================= */
-        /* ★ 6. 學生平板：全新 2.5D 戰鬥 UI 與 虛擬鍵盤 */
+        /* ★ 6. 學生平板：全新 2.5D 戰鬥 UI (地平線與魔法微塵) */
         /* ========================================================= */
         #game-screen { display: none; flex-direction: column; height: 100%; width: 100%; padding: 10px 12px; justify-content: space-between; z-index: 20; }
         .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 6px; font-weight: bold; flex-shrink: 0; gap: 8px; }
@@ -171,31 +172,35 @@
         .pad-hp-track { width: 96px; height: 12px; background: #1e293b; border-radius: 6px; overflow: hidden; border: 1px solid #475569; }
         .pad-hp-fill { height: 100%; width: 100%; background: #22c55e; transition: width 0.3s ease, background 0.3s ease; }
 
-        /* 全新 3D 競技場樣式 */
+        /* ★ 帶有清晰地平線的漸層背景 */
         #rpg-arena { 
-            position: relative; width: 100%; height: 135px; /* 加高營造縱深 */
-            background: linear-gradient(to bottom, #0f172a 0%, #1e293b 60%, #334155 100%); 
+            position: relative; width: 100%; height: 135px;
+            background: linear-gradient(to bottom, #090e17 0%, #16213e 55%, #3a506b 55%, #1e293b 100%); 
             border-radius: 10px; border-bottom: 3px solid #4a5c88; 
             margin-bottom: 6px; overflow: hidden; flex-shrink: 0;
-            box-shadow: inset 0 20px 30px rgba(0,0,0,0.5); /* 內陰影增強空間感 */
+            box-shadow: inset 0 20px 30px rgba(0,0,0,0.5); 
         }
         
-        /* 遠景裝飾 (紅點區) */
-        .bg-scenery { position: absolute; font-size: 20px; filter: brightness(0.5) blur(0.5px); z-index: 1; pointer-events: none; }
-        /* 近景裝飾 (綠點區) */
-        .fg-scenery { position: absolute; font-size: 45px; z-index: 10; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); }
+        /* 遠景裝飾 (加上景深模糊) */
+        .bg-scenery { position: absolute; font-size: 24px; filter: brightness(0.35) blur(1px); z-index: 1; pointer-events: none; }
         
-        /* 腳下陰影 (產生立體感的關鍵) */
+        /* 魔法微塵特效 */
+        .dust { position: absolute; width: 4px; height: 4px; background: #fde047; border-radius: 50%; box-shadow: 0 0 8px #fde047; animation: floatUp 3s infinite ease-in; opacity: 0; z-index: 2; pointer-events: none; }
+        .dust:nth-child(2) { animation-delay: 1s; left: 30%; background: #00e5ff; box-shadow: 0 0 8px #00e5ff; }
+        .dust:nth-child(3) { animation-delay: 2s; left: 70%; background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+        @keyframes floatUp { 0% { transform: translateY(10px) scale(0.5); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-40px) scale(1.5); opacity: 0; } }
+
+        /* 腳下陰影 */
         .stage-shadow { position: absolute; bottom: -5px; width: 60px; height: 12px; background: rgba(0, 0, 0, 0.7); border-radius: 50%; filter: blur(3px); z-index: 1; pointer-events: none; }
 
-        /* 玩家在左下，較大 */
+        /* 玩家 (左側前排) */
         #player-wrapper { position: absolute; left: 12%; bottom: 10px; display: flex; align-items: flex-end; justify-content: center; z-index: 5; }
         #player-status-icon { position: absolute; top: -8px; right: -18px; font-size: 16px; pointer-events: none; z-index: 6; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); white-space: nowrap; line-height: 1; }
         #player-wrapper::before { content: ''; position: absolute; width: 70px; height: 70px; bottom: -5px; left: 50%; transform: translateX(-50%); border-radius: 50%; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 1; }
         #player-wrapper.chanting::before { opacity: 1; border: 3px dashed #00e5ff; box-shadow: 0 0 10px #00e5ff; animation: spinCircle 1.5s linear infinite; }
         #player-wrapper.submitted::before { opacity: 1; border: 4px solid #00e5ff; box-shadow: 0 0 15px #00e5ff; animation: none; }
 
-        /* 妖魔在右上，較小 */
+        /* 妖魔 (右側後排) */
         #enemy-wrapper { position: absolute; right: 12%; bottom: 40px; display: flex; flex-direction: column; align-items: center; z-index: 4; transform: scale(0.85); }
         #enemy-hp-ui { font-size: 14px; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; line-height: 1.2; text-shadow: 0 2px 4px #000; }
         
@@ -203,7 +208,6 @@
         #player-sprite { transform-origin: bottom center; }
         #enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
 
-        /* 玩家閃爍與受擊特效 (基於絕對定位微調) */
         .flash-gold { animation: flashGoldAnim 1s ease-out; }
         .flash-ultimate { animation: flashUltAnim 1.5s ease-out; }
         .player-dodge { transform: scale(1) translate(-20px, -10px) rotate(-15deg) !important; }
@@ -265,7 +269,6 @@
         .key[data-key="6"] { flex: 0.65; opacity: 0.5; pointer-events: none; }
         .key-delete { background: #e94560 !important; border-color: #ff6b81 !important; color: white !important; flex: 1.35; font-size: 20px;}
 
-        /* 遊戲介紹彈窗 */
         #info-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 80; align-items: center; justify-content: center; padding: 12px; }
         .modal-card { background: #16213e; border: 2px solid #00e5ff; border-radius: 12px; max-width: 460px; width: 96%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #0f3460; border-bottom: 1px solid #4a5c88; }
@@ -277,12 +280,11 @@
         @media (max-height: 700px) {
             #game-screen { padding: 4px 10px; }
             .header-info { margin-bottom: 3px; font-size: 14px; }
-            #rpg-arena { height: 95px; } /* 稍微加高以容納 3D 空間 */
+            #rpg-arena { height: 95px; } 
             .rpg-sprite { font-size: 38px; }
             #player-wrapper::before { width: 50px; height: 50px; bottom: -2px; }
             #player-status-icon { top: -6px; right: -12px; font-size: 13px; }
             .stage-shadow { width: 40px; height: 8px; }
-            .fg-scenery { font-size: 32px; }
             
             .question-row { gap: 10px; margin-bottom: 2px; min-height: 32px; }
             .audio-icon { font-size: 22px; }
@@ -299,7 +301,7 @@
     </style>
 </head>
 <body>
-    <div id="version-tag">Ver 8.4</div>
+    <div id="version-tag">Ver 8.5</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -460,6 +462,7 @@
         <div class="raid-join-card">
             <h2 style="color:#4ade80; margin:0 0 14px 0;">📱 加入除魔團戰</h2>
             
+            <!-- 自動生成的專屬暱稱顯示區 -->
             <div id="auto-nickname-display" style="font-size:18px; color:#fde047; font-weight:bold; margin-bottom:16px; background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; border:1px dashed #4a5c88;"></div>
             
             <div class="raid-input-group">
@@ -482,7 +485,7 @@
         </div>
     </div>
 
-    <!-- 6. 學生平板：戰鬥 UI 與 虛擬鍵盤 -->
+    <!-- 6. 學生平板：全新 2.5D 戰鬥 UI 與 虛擬鍵盤 -->
     <div id="game-screen">
         <div class="header-info">
             <div class="header-left-group">
@@ -499,10 +502,15 @@
         <div class="question-area">
             <!-- 全新 3D 競技場 -->
             <div id="rpg-arena">
-                <!-- 遠景裝飾 (上方紅點區域) -->
-                <div class="bg-scenery" style="left: 15%; top: 12px;">🌳</div>
-                <div class="bg-scenery" style="left: 50%; top: 8px;">🏚️</div>
-                <div class="bg-scenery" style="left: 85%; top: 15px;">🌳</div>
+                <!-- 遠景裝飾 (地平線上方) -->
+                <div class="bg-scenery" style="left: 15%; top: 25px;">🌲</div>
+                <div class="bg-scenery" style="left: 50%; top: 20px; font-size: 32px;">⛰️</div>
+                <div class="bg-scenery" style="left: 80%; top: 30px;">🌲</div>
+
+                <!-- 魔法微塵 -->
+                <div class="dust" style="left: 20%; bottom: 20px;"></div>
+                <div class="dust" style="left: 55%; bottom: 35px;"></div>
+                <div class="dust" style="left: 85%; bottom: 15px;"></div>
 
                 <!-- 玩家 (左側前排) -->
                 <div id="player-wrapper">
@@ -517,10 +525,6 @@
                     <div id="enemy-hp-ui">🪞法力同步中</div>
                     <div class="rpg-sprite" id="enemy-sprite">🦇</div>
                 </div>
-
-                <!-- 近景裝飾 (下方綠點區域) -->
-                <div class="fg-scenery" style="left: 30%; bottom: -12px;">🌳</div>
-                <div class="fg-scenery" style="left: 70%; bottom: -8px;">🏚️</div>
             </div>
 
             <div id="timer-container">
@@ -1406,7 +1410,7 @@
         tmEl.innerHTML = displayStr; tmEl.style.display = 'block';
     }
 
-    // ★ 玩家發射武器：加入拋物線縮放的 3D 視覺
+    // ★ 玩家發射武器：拋物線縮放的 3D 視覺
     function submitRaidStudentSpell(isCorrect) {
         if (raidStudentLocked) return; raidStudentLocked = true; stopTimer();
         const enterBtn = document.getElementById('btn-enter'); enterBtn.classList.add('locked-in'); enterBtn.innerHTML = `<div>✅ 已傳送法力</div>`;
@@ -1424,7 +1428,7 @@
                     { left: '15%', bottom: '25px', transform: 'scale(1) rotate(0deg)', opacity: 1 },
                     { left: '45%', bottom: '70px', transform: 'scale(0.8) rotate(180deg)', opacity: 1 },
                     { left: '75%', bottom: '45px', transform: 'scale(0.5) rotate(360deg)', opacity: 0 }
-                ], { duration: 400, easing: 'linear', fill: 'forwards' });
+                ], { duration: 400, easing: 'ease-out', fill: 'forwards' });
                 setTimeout(() => { pProj.remove(); }, 400);
             }
         }
@@ -1484,7 +1488,7 @@
                         { left: '75%', bottom: '45px', transform: 'scale(0.5) rotate(0deg)', opacity: 1, offset: 0.1 },
                         { left: '45%', bottom: '70px', transform: 'scale(0.8) rotate(-180deg)', opacity: 1, offset: 0.5 },
                         { left: '15%', bottom: '25px', transform: 'scale(1.2) rotate(-360deg)', opacity: 0 }
-                    ], { duration: 400, easing: 'linear', fill: 'forwards' });
+                    ], { duration: 400, easing: 'ease-in', fill: 'forwards' });
                     setTimeout(() => { eProj.remove(); }, 400);
                 }
             }
