@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 8.0)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 8.1)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- 替換為 Google Firebase 模組 -->
+    <!-- Google Firebase 模組 -->
     <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -100,7 +100,6 @@
         }
         .sound-toggle-btn:active { transform: scale(0.95); }
         .sound-toggle-btn.muted { opacity: 0.45; border-color: #555; background: rgba(0, 0, 0, 0.5); }
-        /* 紅色對角斜線：表示靜音狀態 */
         .sound-toggle-btn.muted::after {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(to top right, transparent calc(50% - 1.5px), #ef4444 calc(50% - 1.5px), #ef4444 calc(50% + 1.5px), transparent calc(50% + 1.5px));
@@ -138,7 +137,7 @@
             transform: translate(-50%, -50%);
         }
         
-        /* 施咒光圈特效：大屏專用 */
+        /* 施咒光圈特效 */
         .raid-unit.unit-chanting .unit-avatar-box::before {
             content: ''; position: absolute; width: 50px; height: 50px; bottom: -6px; left: 50%; transform: translateX(-50%);
             border: 2.5px dashed #00e5ff; border-radius: 50%; box-shadow: 0 0 10px #00e5ff; animation: spinCircle 1.5s linear infinite; z-index: -1;
@@ -149,7 +148,6 @@
         }
         @keyframes spinCircle { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
         
-        /* 陣亡與頭像色相處理 */
         .raid-unit.unit-dead { opacity: 0.48; filter: none !important; }
         .raid-unit.unit-dead .unit-avatar-box > span:first-child { filter: hue-rotate(var(--hue)) grayscale(1) !important; }
 
@@ -184,7 +182,6 @@
         /* 全域折射光束與爆炸容器 */
         #raid-refract-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
 
-        /* 專屬道具 (大屏專用) */
         .raid-orb {
             position: absolute; font-size: 28px; z-index: 10; pointer-events: none;
             filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
@@ -202,7 +199,7 @@
             100% { width: 350px; height: 350px; opacity: 0; border-width: 1px; }
         }
 
-        /* 大型爆炸特效 (5+1階段) */
+        /* 大型爆炸特效 */
         .boss-explosion { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 50%; z-index: 15; pointer-events: none; mix-blend-mode: screen; }
         .boss-explosion.tier-ult { width: 400px; height: 400px; background: radial-gradient(circle, #fff 10%, #c084fc 40%, transparent 70%); animation: boom 1.2s ease-out forwards; }
         .boss-explosion.tier-100 { width: 350px; height: 350px; background: radial-gradient(circle, #fff 10%, #fde047 40%, transparent 70%); animation: boom 1s ease-out forwards; }
@@ -449,7 +446,7 @@
     </style>
 </head>
 <body>
- <div id="version-tag">Ver 8.0</div>
+    <div id="version-tag">Ver 8.1</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -745,8 +742,8 @@
             </div>
         </div>
     </div>
-</div> 
-    <script>
+</div>
+<script>
     // =========================================================
     // ★ Firebase 伺服器連線設定 (取代原有的 PeerJS)
     // =========================================================
@@ -759,7 +756,6 @@
         messagingSenderId: "400132667587",
         appId: "1:400132667587:web:9ad6fe161c45617d29ca76"
     };
-    // 初始化 Firebase 與 即時資料庫
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
@@ -768,13 +764,12 @@
     // =========================================================
     const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
     const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
-    
     const audioFolderMap = {
         "B1L1": "育達B1L1音檔", "B1L2": "育達B1L2音檔", "B1L3": "育達B1L3音檔", "B1L4": "育達B1L4音檔",
         "B3L1": "康軒B3L1音檔", "B3L2": "康軒B3L2音檔", "B3L3": "康軒B3L3音檔", "防災素一": "康軒防災素一音檔", "拼音練習": "拼音練習音檔"
     };
 
-    const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦', '🦚','🐏','🐮','🦉','🐋','🐴','🐵'];
+    const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦','🦚','🐏','🐮','🦉','🐋','🐴','🐵'];
     const RAID_WEAPONS = ['☀️','🥚','🌸','🌼','🌷','🌱','☘️','🍇','🍉','🍓','🫐','🥝','🌪️','🌬️','🌀','❄️','🌊','⭐','🧡','🍬','🍭','🫛','🫜','⚾','🥎'];
     
     let currentAvatars = [...RAID_AVATARS];
@@ -793,39 +788,20 @@
     let raidStudentCurrentQ = null;
     let raidStudentLocked = false;
 
-    let parsedAnswer = [];
-    let inputBoxes = [];
-    let currentSyllableIndex = 0;
-    let typedBase = "";
-    
+    let parsedAnswer = []; let inputBoxes = []; let currentSyllableIndex = 0; let typedBase = "";
     const validLetters = ['a','b','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
     const toneDigits = ['1','2','3','4','5','7','8','9'];
     
-    let gourdsLeft = 3;
-    let usedGourdOnCurrentQ = false;
-    let timer = null;
-    let timeLeft = 0;
-
-    let studentHostConn = null; // 模擬連線物件，保留相容性
-    let raidRoomPin = "";
-    let raidSelectedLessons = ["B1L1"];
-    let raidTeams = [];
-    let raidQuestionDeck = [];
-    let raidTotalQuestions = 25;
-    let raidCurrentQIdx = 0;
-    let raidCurrentMatch = null;
-    let raidBossIdx = 0;
-    let raidBossHp = 200;
-    let raidAllBossesCleared = false;
-    let raidHostTimer = null;
-    let raidWanderInterval = null;
-    let raidMissedStats = [];
+    let gourdsLeft = 3; let usedGourdOnCurrentQ = false; let timer = null; let timeLeft = 0;
+    let studentHostConn = null; let raidRoomPin = ""; let raidSelectedLessons = ["B1L1"];
+    let raidTeams = []; let raidQuestionDeck = []; let raidTotalQuestions = 25; let raidCurrentQIdx = 0;
+    let raidCurrentMatch = null; let raidBossIdx = 0; let raidBossHp = 200; let raidAllBossesCleared = false;
+    let raidHostTimer = null; let raidWanderInterval = null; let raidMissedStats = [];
 
     // =========================================================
     // 🎵 音效與 BGM 引擎
     // =========================================================
-    let sfxCtx = null;
-    let sfxMuted = false;
+    let sfxCtx = null; let sfxMuted = false;
     const BGM_TRACKS = [
         "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-01.mp3",
         "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-02.mp3",
@@ -838,95 +814,61 @@
         "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-09.mp3",
         "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-10.mp3"
     ];
-    let bgmPlayer = new Audio();
-    bgmPlayer.volume = 0.35;
-    let isBgmMuted = false; 
-    let currentBgmIndex = Math.floor(Math.random() * BGM_TRACKS.length);
-    let bgmFadeInterval = null;
+    let bgmPlayer = new Audio(); bgmPlayer.volume = 0.35; let isBgmMuted = false; let currentBgmIndex = Math.floor(Math.random() * BGM_TRACKS.length); let bgmFadeInterval = null;
 
     function playCurrentBGM() {
         if (isBgmMuted) return;
         if (bgmPlayer.src !== BGM_TRACKS[currentBgmIndex]) bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
         bgmPlayer.play().catch(()=>{});
     }
-
-    bgmPlayer.addEventListener('ended', () => {
-        currentBgmIndex = (currentBgmIndex + 1) % BGM_TRACKS.length;
-        bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
-        playCurrentBGM();
-    });
+    bgmPlayer.addEventListener('ended', () => { currentBgmIndex = (currentBgmIndex + 1) % BGM_TRACKS.length; bgmPlayer.src = BGM_TRACKS[currentBgmIndex]; playCurrentBGM(); });
 
     function toggleBGM() {
-        const btn = document.getElementById('bgm-toggle-btn');
-        if (!btn) return;
+        const btn = document.getElementById('bgm-toggle-btn'); if (!btn) return;
         isBgmMuted = !isBgmMuted;
-        if (isBgmMuted) {
-            clearInterval(bgmFadeInterval);
-            bgmPlayer.pause();
-            btn.classList.add('muted');
-        } else {
-            bgmPlayer.volume = 0.35;
-            playCurrentBGM();
-            btn.classList.remove('muted');
-        }
+        if (isBgmMuted) { clearInterval(bgmFadeInterval); bgmPlayer.pause(); btn.classList.add('muted'); } 
+        else { bgmPlayer.volume = 0.35; playCurrentBGM(); btn.classList.remove('muted'); }
     }
 
     function fadeBGM(targetVol, duration) {
-        if (isBgmMuted || !bgmPlayer.src) return;
-        clearInterval(bgmFadeInterval);
+        if (isBgmMuted || !bgmPlayer.src) return; clearInterval(bgmFadeInterval);
         if (bgmPlayer.paused && targetVol > 0.05) bgmPlayer.play().catch(()=>{});
         const steps = 20; const stepTime = duration / steps; const volChange = (targetVol - bgmPlayer.volume) / steps;
         bgmFadeInterval = setInterval(() => {
             let nextVol = bgmPlayer.volume + volChange;
             if (nextVol > 1) nextVol = 1; if (nextVol < 0) nextVol = 0;
-            if ((volChange > 0 && nextVol >= targetVol) || (volChange < 0 && nextVol <= targetVol)) {
-                bgmPlayer.volume = targetVol; clearInterval(bgmFadeInterval);
-            } else bgmPlayer.volume = nextVol;
+            if ((volChange > 0 && nextVol >= targetVol) || (volChange < 0 && nextVol <= targetVol)) { bgmPlayer.volume = targetVol; clearInterval(bgmFadeInterval); } 
+            else bgmPlayer.volume = nextVol;
         }, stepTime);
     }
 
     function duckBGM() { fadeBGM(0.05, 400); }
     function unduckBGM() { fadeBGM(0.35, 800); }
-    
-    audioPlayer.addEventListener('ended', unduckBGM);
-    audioPlayer.addEventListener('pause', unduckBGM);
+    audioPlayer.addEventListener('ended', unduckBGM); audioPlayer.addEventListener('pause', unduckBGM);
 
     function getSfxCtx() {
-        if (!sfxCtx) {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (AudioCtx) sfxCtx = new AudioCtx();
-        }
-        if (sfxCtx && sfxCtx.state === 'suspended') sfxCtx.resume();
-        return sfxCtx;
+        if (!sfxCtx) { const AudioCtx = window.AudioContext || window.webkitAudioContext; if (AudioCtx) sfxCtx = new AudioCtx(); }
+        if (sfxCtx && sfxCtx.state === 'suspended') sfxCtx.resume(); return sfxCtx;
     }
 
     function toggleSfx() {
         sfxMuted = !sfxMuted;
-        const btnHost = document.getElementById('sfx-toggle-btn-host');
-        if (btnHost) btnHost.classList.toggle('muted', sfxMuted);
-        const btnPad = document.getElementById('sfx-toggle-btn');
-        if (btnPad) btnPad.classList.toggle('muted', sfxMuted);
+        const btnHost = document.getElementById('sfx-toggle-btn-host'); if (btnHost) btnHost.classList.toggle('muted', sfxMuted);
+        const btnPad = document.getElementById('sfx-toggle-btn'); if (btnPad) btnPad.classList.toggle('muted', sfxMuted);
         if (!sfxMuted) sfxSyllableChant();
     }
 
     function playToneNode(freqStart, freqEnd, duration, type = 'sine', maxGain = 0.2, delay = 0) {
         if (sfxMuted) return;
         const ctx = getSfxCtx(); if (!ctx) return;
-        const t0 = ctx.currentTime + delay;
-        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        const t0 = ctx.currentTime + delay; const osc = ctx.createOscillator(); const gain = ctx.createGain();
         osc.type = type; osc.frequency.setValueAtTime(freqStart, t0);
         if (freqEnd !== freqStart) osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
-        gain.gain.setValueAtTime(0.001, t0);
-        gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2));
-        gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(t0); osc.stop(t0 + duration + 0.02);
+        gain.gain.setValueAtTime(0.001, t0); gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2)); gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+        osc.connect(gain); gain.connect(ctx.destination); osc.start(t0); osc.stop(t0 + duration + 0.02);
     }
 
-    function sfxEnemyDeath() {
-        playToneNode(180, 42, 0.32, 'sawtooth', 0.24, 0); playToneNode(130, 35, 0.35, 'square', 0.16, 0.04);
-        playToneNode(523.25, 523.25, 0.12, 'triangle', 0.22, 0.22); playToneNode(659.25, 783.99, 0.25, 'triangle', 0.25, 0.32);
-    }
+    function sfxEnemyDeath() { playToneNode(180, 42, 0.32, 'sawtooth', 0.24, 0); playToneNode(130, 35, 0.35, 'square', 0.16, 0.04); playToneNode(523.25, 523.25, 0.12, 'triangle', 0.22, 0.22); playToneNode(659.25, 783.99, 0.25, 'triangle', 0.25, 0.32); }
     function sfxEnemyHit() { playToneNode(880, 260, 0.18, 'sine', 0.22, 0); playToneNode(587.33, 1174.66, 0.16, 'triangle', 0.2, 0.08); playToneNode(150, 55, 0.14, 'sawtooth', 0.22, 0.14); }
     function sfxPlayerDodge() { playToneNode(240, 720, 0.14, 'sine', 0.14, 0.12); playToneNode(320, 880, 0.12, 'triangle', 0.1, 0.15); }
     function sfxPlayerHit() { playToneNode(150, 38, 0.28, 'sawtooth', 0.32, 0); playToneNode(95, 30, 0.32, 'square', 0.25, 0.03); }
@@ -942,8 +884,7 @@
     function sfxUltimateVictory() { [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => playToneNode(f, f, 0.2, 'square', 0.2, i * 0.1)); }
 
     function toggleInfoModal(show) { document.getElementById('info-modal').style.display = show ? 'flex' : 'none'; }
-</script>
-<script>
+
     // =========================================================
     // ⌨️ 虛擬鍵盤與台羅音節拆解系統
     // =========================================================
@@ -961,7 +902,6 @@
         const vb = isChecked ? "3.5 0 13 26" : "0 0 20 26";
         return `<svg class="tone-svg-unified" viewBox="${vb}">${markPath}<circle cx="10" cy="18" r="5.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5,2" /></svg>`;
     }
-
     const ptkhGridHtml = `<div class="checked-tone-grid"><span>p</span><span>t</span><span>k</span><span>h</span></div>`;
     const subTone4 = `<div class="checked-tone-group">${getToneSvg(4, true)}${ptkhGridHtml}</div>`;
     const subTone8 = `<div class="checked-tone-group">${getToneSvg(8, true)}${ptkhGridHtml}</div>`;
@@ -970,112 +910,63 @@
 
     function formatTailoDisplay(str) {
         if (!str) return '';
-        let nfd = str.normalize('NFD');
-        let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>');
-        res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
+        let nfd = str.normalize('NFD'); let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>'); res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
         return res.normalize('NFC');
     }
 
     function parseTaiLoAnswer(rawText) {
-        let text = rawText.split('(')[0].toLowerCase().trim();
-        let rawSyllables = text.split(/[\s\-–—]+/).filter(s => s.length > 0);
+        let text = rawText.split('(')[0].toLowerCase().trim(); let rawSyllables = text.split(/[\s\-–—]+/).filter(s => s.length > 0);
         const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
         let parsed = [];
         for (let s of rawSyllables) {
             let nfd = s.normalize("NFD"); let base = ""; let tone = null;
-            for (let char of nfd) {
-                if (toneMap[char]) tone = toneMap[char];
-                else if (/[a-z]/.test(char)) base += char;
-            }
-            if (!tone) tone = /[ptkh]$/.test(base) ? '4' : '1';
-            parsed.push({ base: base, tone: tone });
+            for (let char of nfd) { if (toneMap[char]) tone = toneMap[char]; else if (/[a-z]/.test(char)) base += char; }
+            if (!tone) tone = /[ptkh]$/.test(base) ? '4' : '1'; parsed.push({ base: base, tone: tone });
         }
         return parsed;
     }
 
     function applyToneToSyllable(syllable, toneDigit) {
         if (toneDigit === '1' || toneDigit === '4') return syllable;
-        const marks = { '2': '\u0301', '3': '\u0300', '5': '\u0302', '7': '\u0304', '8': '\u030D', '9': '\u030B' };
-        const m = marks[toneDigit];
-        if (!m) return syllable;
-
+        const marks = { '2': '\u0301', '3': '\u0300', '5': '\u0302', '7': '\u0304', '8': '\u030D', '9': '\u030B' }; const m = marks[toneDigit]; if (!m) return syllable;
         let res = syllable;
-        if (res.includes('a')) res = res.replace('a', 'a' + m);
-        else if (res.includes('oo')) res = res.replace('oo', 'o' + m + 'o');
-        else if (res.includes('o') && !res.includes('oa') && !res.includes('oe')) res = res.replace('o', 'o' + m);
-        else if (res.includes('e')) res = res.replace('e', 'e' + m);
-        else if (res.includes('iu')) res = res.replace('iu', 'i' + 'u' + m);
-        else if (res.includes('ui')) res = res.replace('ui', 'u' + 'i' + m);
-        else if (res.includes('i')) res = res.replace('i', 'i' + m);
-        else if (res.includes('u')) res = res.replace('u', 'u' + m);
-        else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g');
-        else if (res.includes('m')) res = res.replace('m', 'm' + m);
+        if (res.includes('a')) res = res.replace('a', 'a' + m); else if (res.includes('oo')) res = res.replace('oo', 'o' + m + 'o'); else if (res.includes('o') && !res.includes('oa') && !res.includes('oe')) res = res.replace('o', 'o' + m); else if (res.includes('e')) res = res.replace('e', 'e' + m); else if (res.includes('iu')) res = res.replace('iu', 'i' + 'u' + m); else if (res.includes('ui')) res = res.replace('ui', 'u' + 'i' + m); else if (res.includes('i')) res = res.replace('i', 'i' + m); else if (res.includes('u')) res = res.replace('u', 'u' + m); else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g'); else if (res.includes('m')) res = res.replace('m', 'm' + m);
         return formatTailoDisplay(res);
     }
 
     function createKeyDiv(keyObj) {
-        let val = typeof keyObj === 'string' ? keyObj : keyObj.val;
-        let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display;
-        let subText = typeof keyObj === 'object' ? keyObj.sub : null;
-        let forceDisabled = typeof keyObj === 'object' && keyObj.disabled;
-        let customClass = typeof keyObj === 'object' && keyObj.customClass ? keyObj.customClass : '';
-
-        const btn = document.createElement('div');
-        btn.className = `key ${customClass}`;
-        btn.dataset.key = val;
-        
-        let html = '';
-        if (toneDigits.includes(val) || val === '6') {
-            html += `<div class="tone-num">${display}</div><div class="tone-symbol">${subText}</div>`;
-        } else {
-            html = `<div>${display}</div>`;
-        }
+        let val = typeof keyObj === 'string' ? keyObj : keyObj.val; let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display; let subText = typeof keyObj === 'object' ? keyObj.sub : null; let forceDisabled = typeof keyObj === 'object' && keyObj.disabled; let customClass = typeof keyObj === 'object' && keyObj.customClass ? keyObj.customClass : '';
+        const btn = document.createElement('div'); btn.className = `key ${customClass}`; btn.dataset.key = val; let html = '';
+        if (toneDigits.includes(val) || val === '6') { html += `<div class="tone-num">${display}</div><div class="tone-symbol">${subText}</div>`; } else { html = `<div>${display}</div>`; }
         btn.innerHTML = html;
-
         if (!forceDisabled && (validLetters.includes(val) || toneDigits.includes(val) || val === 'Backspace')) {
-            btn.classList.add('active-key');
-            btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); });
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
+            btn.classList.add('active-key'); btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); }); btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
         } else if (val === '6') {
-            btn.classList.add('disabled-key');
-            btn.addEventListener('mousedown', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); });
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); }, {passive: false});
-        } else {
-            btn.classList.add('disabled-key');
-        }
+            btn.classList.add('disabled-key'); btn.addEventListener('mousedown', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); }); btn.addEventListener('touchstart', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); }, {passive: false});
+        } else btn.classList.add('disabled-key');
         return btn;
     }
 
     function buildKeyboard() {
-        const kbContainer = document.getElementById('keyboard');
-        kbContainer.innerHTML = '';
-
-        const row0 = document.createElement('div'); row0.className = 'kb-row';
-        const toneGroup = document.createElement('div'); toneGroup.className = 'tone-keys-group'; toneGroup.id = 'tone-keys-group';
-        const toneKeys = [
-            {val: '1', display: '1', sub: getToneSvg(1)}, {val: '2', display: '2', sub: getToneSvg(2)}, {val: '3', display: '3', sub: getToneSvg(3)},
-            {val: '4', display: '4', sub: subTone4}, {val: '5', display: '5', sub: getToneSvg(5)}, {val: '6', display: '6', sub: getToneSvg(6), disabled: true}, 
-            {val: '7', display: '7', sub: getToneSvg(7)}, {val: '8', display: '8', sub: subTone8}, {val: '9', display: '9', sub: getToneSvg(9)}
-        ];
-        toneKeys.forEach(k => toneGroup.appendChild(createKeyDiv(k)));
-        row0.appendChild(toneGroup); row0.appendChild(createKeyDiv({val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'})); kbContainer.appendChild(row0);
+        const kbContainer = document.getElementById('keyboard'); kbContainer.innerHTML = '';
+        const row0 = document.createElement('div'); row0.className = 'kb-row'; const toneGroup = document.createElement('div'); toneGroup.className = 'tone-keys-group'; toneGroup.id = 'tone-keys-group';
+        const toneKeys = [ {val: '1', display: '1', sub: getToneSvg(1)}, {val: '2', display: '2', sub: getToneSvg(2)}, {val: '3', display: '3', sub: getToneSvg(3)}, {val: '4', display: '4', sub: subTone4}, {val: '5', display: '5', sub: getToneSvg(5)}, {val: '6', display: '6', sub: getToneSvg(6), disabled: true}, {val: '7', display: '7', sub: getToneSvg(7)}, {val: '8', display: '8', sub: subTone8}, {val: '9', display: '9', sub: getToneSvg(9)} ];
+        toneKeys.forEach(k => toneGroup.appendChild(createKeyDiv(k))); row0.appendChild(toneGroup); row0.appendChild(createKeyDiv({val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'})); kbContainer.appendChild(row0);
         const row1 = document.createElement('div'); row1.className = 'kb-row'; ['q','w','e','r','t','y','u','i','o','p'].forEach(k => row1.appendChild(createKeyDiv(k))); kbContainer.appendChild(row1);
         const row2 = document.createElement('div'); row2.className = 'kb-row kb-row-2'; ['a','s','d','f','g','h','j','k','l'].forEach(k => row2.appendChild(createKeyDiv(k))); kbContainer.appendChild(row2);
         const row3 = document.createElement('div'); row3.className = 'kb-row kb-row-3'; ['z','x','c','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k))); kbContainer.appendChild(row3);
     }
 
     function shuffleBank(array) {
-        const arr = [...array];
-        for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
-        return arr;
+        const arr = [...array]; for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr;
     }
-
+</script>
+<script>
     // =========================================================
     // 🖥️ 教師大屏邏輯 (大廳管理與出題)
     // =========================================================
     function initRaidLessonButtons() {
-        const container = document.getElementById('raid-lessons-container');
-        if (!container) return; container.innerHTML = '';
+        const container = document.getElementById('raid-lessons-container'); if (!container) return; container.innerHTML = '';
         lessons.forEach(l => {
             const btn = document.createElement('button'); btn.className = 'lesson-btn' + (raidSelectedLessons.includes(l) ? ' active' : ''); btn.innerText = l;
             btn.onclick = () => { btn.classList.toggle('active'); if (raidSelectedLessons.includes(l)) raidSelectedLessons = raidSelectedLessons.filter(x => x !== l); else raidSelectedLessons.push(l); };
@@ -1085,42 +976,29 @@
     initRaidLessonButtons();
 
     window.addEventListener('DOMContentLoaded', () => {
-        const params = new URLSearchParams(window.location.search);
-        const raidPin = params.get('raid');
+        const params = new URLSearchParams(window.location.search); const raidPin = params.get('raid');
         if (raidPin) { openRaidStudentJoin(); document.getElementById('raid-join-pin').value = raidPin; }
     });
 
     function selectRaidDifficulty(diff) {
-        raidDifficulty = diff;
-        document.getElementById('raid-diff-apprentice').classList.toggle('active', diff === 'apprentice');
-        document.getElementById('raid-diff-master').classList.toggle('active', diff === 'master');
-        sfxSyllableChant();
+        raidDifficulty = diff; document.getElementById('raid-diff-apprentice').classList.toggle('active', diff === 'apprentice'); document.getElementById('raid-diff-master').classList.toggle('active', diff === 'master'); sfxSyllableChant();
     }
 
     // ★ 開啟大屏：使用 Firebase 創建大廳並監聽學生加入
     function openRaidHostLobby() {
         getSfxCtx();
-        currentAvatars = shuffleBank([...RAID_AVATARS]);
-        currentWeapons = shuffleBank([...RAID_WEAPONS]);
+        currentAvatars = shuffleBank([...RAID_AVATARS]); currentWeapons = shuffleBank([...RAID_WEAPONS]);
+        document.getElementById('app-container').classList.remove('pad-mode'); document.getElementById('entry-screen').classList.remove('active'); document.getElementById('raid-lobby-screen').classList.add('active');
 
-        document.getElementById('app-container').classList.remove('pad-mode');
-        document.getElementById('entry-screen').classList.remove('active');
-        document.getElementById('raid-lobby-screen').classList.add('active');
-
-        raidRoomPin = String(Math.floor(1000 + Math.random() * 9000));
-        document.getElementById('raid-pin-display').innerText = raidRoomPin;
-
+        raidRoomPin = String(Math.floor(1000 + Math.random() * 9000)); document.getElementById('raid-pin-display').innerText = raidRoomPin;
         const joinUrl = `${window.location.origin}${window.location.pathname}?raid=${raidRoomPin}`;
-        const qrBox = document.getElementById('raid-qrcode-box');
-        qrBox.innerHTML = ''; new QRCode(qrBox, { text: joinUrl, width: 110, height: 110 }); 
+        const qrBox = document.getElementById('raid-qrcode-box'); qrBox.innerHTML = ''; new QRCode(qrBox, { text: joinUrl, width: 110, height: 110 }); 
 
         const roomRef = database.ref('raid_rooms/' + raidRoomPin);
-        roomRef.set({ created: Date.now(), status: 'waiting' });
-        roomRef.onDisconnect().remove();
+        roomRef.set({ created: Date.now(), status: 'waiting' }); roomRef.onDisconnect().remove();
 
         roomRef.child('players').on('child_added', snapshot => {
-            const playerId = snapshot.key;
-            const data = snapshot.val().info;
+            const playerId = snapshot.key; const data = snapshot.val().info;
             const mockConn = {
                 open: true, _id: playerId,
                 send: (payload) => { roomRef.child('direct_messages').child(playerId).set({ ...payload, _ts: Date.now(), _rand: Math.random() }); },
@@ -1131,25 +1009,19 @@
 
         roomRef.child('players').on('child_changed', snapshot => {
             const playerId = snapshot.key; const playerNode = snapshot.val();
-            if (playerNode && playerNode.action) {
-                const team = raidTeams.find(t => t.conn && t.conn._id === playerId);
-                if(team) handleRaidHostReceive(team.conn, playerNode.action);
-            }
+            if (playerNode && playerNode.action) { const team = raidTeams.find(t => t.conn && t.conn._id === playerId); if(team) handleRaidHostReceive(team.conn, playerNode.action); }
         });
 
         roomRef.child('players').on('child_removed', snapshot => {
-            const playerId = snapshot.key;
-            const team = raidTeams.find(t => t.conn && t.conn._id === playerId);
+            const playerId = snapshot.key; const team = raidTeams.find(t => t.conn && t.conn._id === playerId);
             if(team) { raidTeams = raidTeams.filter(t => t.id !== team.id); renderRaidLobbyTeams(); }
         });
     }
 
     function filterStudentName(rawName) {
-        let cleanName = rawName.trim().substring(0, 12);
-        const badWords = ['幹', '靠北', '三字經', '垃圾'];
+        let cleanName = rawName.trim().substring(0, 12); const badWords = ['幹', '靠北', '三字經', '垃圾'];
         badWords.forEach(bw => { if (cleanName.includes(bw)) cleanName = cleanName.replace(new RegExp(bw, 'g'), '***'); });
-        if (!cleanName) cleanName = "無名英雄";
-        let counter = 1; let finalName = cleanName;
+        if (!cleanName) cleanName = "無名英雄"; let counter = 1; let finalName = cleanName;
         while (raidTeams.some(t => t.name === finalName)) { finalName = `${cleanName}(${counter})`; counter++; }
         return finalName;
     }
@@ -1157,49 +1029,30 @@
     function createRaidTeamObj(name, seatNo, padNo, avatar, hueRotate, weapon, conn, isBot) {
         const angle = Math.random() * Math.PI * 2; const radius = 28 + Math.random() * 12; 
         return {
-            id: (isBot ? 'bot_' : 'p_') + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-            name: name, seatNo: seatNo || 'N/A', padNo: padNo || 'N/A', avatar: avatar, hueRotate: hueRotate, weapon: weapon,
-            hp: 3.0, maxHp: 3.0, consecWrong: 0, ghostCorrectCount: 0, streak: 0, feathers: 0, score: 0, totalQ: 0, correctQ: 0,
-            wrongList: [], reviveProtected: false, conn: conn, isBot: isBot, baseAngle: angle, baseRadius: radius,
-            x: 50 + Math.cos(angle) * radius, y: 50 + Math.sin(angle) * radius, submitTime: 0 
+            id: (isBot ? 'bot_' : 'p_') + Date.now() + '_' + Math.random().toString(36).substr(2, 4), name: name, seatNo: seatNo || 'N/A', padNo: padNo || 'N/A', avatar: avatar, hueRotate: hueRotate, weapon: weapon, hp: 3.0, maxHp: 3.0, consecWrong: 0, ghostCorrectCount: 0, streak: 0, feathers: 0, score: 0, totalQ: 0, correctQ: 0, wrongList: [], reviveProtected: false, conn: conn, isBot: isBot, baseAngle: angle, baseRadius: radius, x: 50 + Math.cos(angle) * radius, y: 50 + Math.sin(angle) * radius, submitTime: 0 
         };
     }
 
     function handleRaidHostReceive(conn, data) {
         if (data.type === 'JOIN') {
             const finalName = filterStudentName(data.name); const pCount = raidTeams.length;
-            const icon = currentAvatars[pCount % currentAvatars.length];
-            const hueRotate = Math.floor(pCount / currentAvatars.length) * 60;
-            const weapon = currentWeapons[pCount % currentWeapons.length];
-
-            const teamObj = createRaidTeamObj(finalName, data.seatNo, data.padNo, icon, hueRotate, weapon, conn, false);
-            raidTeams.push(teamObj);
-            
+            const icon = currentAvatars[pCount % currentAvatars.length]; const hueRotate = Math.floor(pCount / currentAvatars.length) * 60; const weapon = currentWeapons[pCount % currentWeapons.length];
+            const teamObj = createRaidTeamObj(finalName, data.seatNo, data.padNo, icon, hueRotate, weapon, conn, false); raidTeams.push(teamObj);
             conn.send({ type: 'JOINED_OK', name: teamObj.name, avatar: teamObj.avatar, hueRotate: teamObj.hueRotate, weapon: teamObj.weapon, hp: teamObj.hp, feathers: teamObj.feathers, difficulty: raidDifficulty });
             sfxSyllableChant(); renderRaidLobbyTeams();
         } else if (data.type === 'CHANTING') {
-            const team = raidTeams.find(t => t.conn === conn);
-            if (team && raidCurrentMatch && raidCurrentMatch.accepting) { const unitEl = document.getElementById(`raid-unit-${team.id}`); if (unitEl) unitEl.classList.add('unit-chanting'); }
+            const team = raidTeams.find(t => t.conn === conn); if (team && raidCurrentMatch && raidCurrentMatch.accepting) { const unitEl = document.getElementById(`raid-unit-${team.id}`); if (unitEl) unitEl.classList.add('unit-chanting'); }
         } else if (data.type === 'SUBMIT_SPELL') {
-            const team = raidTeams.find(t => t.conn === conn);
-            if (team && raidCurrentMatch && raidCurrentMatch.accepting) {
-                const unitEl = document.getElementById(`raid-unit-${team.id}`);
-                if (unitEl) { unitEl.classList.remove('unit-chanting'); unitEl.classList.add('unit-submitted'); }
-                team.submitTime = Date.now(); recordRaidTeamSpell(team.id, data.isCorrect, data.usedGourd);
-            }
+            const team = raidTeams.find(t => t.conn === conn); if (team && raidCurrentMatch && raidCurrentMatch.accepting) { const unitEl = document.getElementById(`raid-unit-${team.id}`); if (unitEl) { unitEl.classList.remove('unit-chanting'); unitEl.classList.add('unit-submitted'); } team.submitTime = Date.now(); recordRaidTeamSpell(team.id, data.isCorrect, data.usedGourd); }
         } else if (data.type === 'USE_FEATHER') {
-            const savior = raidTeams.find(t => t.conn === conn);
-            if (savior && savior.feathers > 0) handleHostPhoenixFeatherRevive(savior);
+            const savior = raidTeams.find(t => t.conn === conn); if (savior && savior.feathers > 0) handleHostPhoenixFeatherRevive(savior);
         }
     }
 
     function addRaidBot() {
         getSfxCtx(); const botNames = ["甲組", "乙組", "丙組", "丁組", "戊組", "己組", "庚組", "辛組"];
-        const finalName = filterStudentName(botNames[raidTeams.length % botNames.length]); const pCount = raidTeams.length;
-        const icon = currentAvatars[pCount % currentAvatars.length]; const hueRotate = Math.floor(pCount / currentAvatars.length) * 60;
-        const weapon = currentWeapons[pCount % currentWeapons.length];
-        raidTeams.push(createRaidTeamObj(finalName, 'bot', 'bot', icon, hueRotate, weapon, null, true));
-        sfxSyllableChant(); renderRaidLobbyTeams();
+        const finalName = filterStudentName(botNames[raidTeams.length % botNames.length]); const pCount = raidTeams.length; const icon = currentAvatars[pCount % currentAvatars.length]; const hueRotate = Math.floor(pCount / currentAvatars.length) * 60; const weapon = currentWeapons[pCount % currentWeapons.length];
+        raidTeams.push(createRaidTeamObj(finalName, 'bot', 'bot', icon, hueRotate, weapon, null, true)); sfxSyllableChant(); renderRaidLobbyTeams();
     }
 
     function removeRaidTeamFromLobby(teamId, badgeEl) {
@@ -1212,8 +1065,7 @@
     }
 
     function renderRaidLobbyTeams() {
-        document.getElementById('raid-team-count').innerText = raidTeams.length;
-        const list = document.getElementById('raid-lobby-teams-list'); list.innerHTML = '';
+        document.getElementById('raid-team-count').innerText = raidTeams.length; const list = document.getElementById('raid-lobby-teams-list'); list.innerHTML = '';
         raidTeams.forEach(t => {
             const div = document.createElement('div'); div.className = 'raid-team-badge' + (t.isBot ? ' bot-unit' : '');
             div.innerHTML = `<span style="display:inline-block; filter:hue-rotate(${t.hueRotate}deg); margin-right:4px;">${t.avatar}</span>${t.name} <span style="font-size:14px; opacity:0.8;">[${t.weapon}]</span>`;
@@ -1222,84 +1074,47 @@
     }
 
     async function startRaidBattle() {
-        if (raidSelectedLessons.length === 0) return alert("請至少選擇一課！");
-        if (raidTeams.length < 1) return alert("請至少加入 1 組除魔師 (可點擊『➕ 加入AI隊友』測試)！");
-
-        getSfxCtx(); playCurrentBGM();
-        raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 25;
-
-        let hpConfig = [200, 400, 500, 650]; 
-        if (raidTotalQuestions === 12) hpConfig = [100, 150, 250, 350];
-        else if (raidTotalQuestions === 18) hpConfig = [150, 250, 350, 500];
-
+        if (raidSelectedLessons.length === 0) return alert("請至少選擇一課！"); if (raidTeams.length < 1) return alert("請至少加入 1 組除魔師 (可點擊『➕ 加入AI隊友』測試)！");
+        getSfxCtx(); playCurrentBGM(); raidTotalQuestions = parseInt(document.getElementById('raid-qcount-select').value, 10) || 25;
+        let hpConfig = [200, 400, 500, 650]; if (raidTotalQuestions === 12) hpConfig = [100, 150, 250, 350]; else if (raidTotalQuestions === 18) hpConfig = [150, 250, 350, 500];
         RAID_BOSS_LIST[0].maxHp = hpConfig[0]; RAID_BOSS_LIST[1].maxHp = hpConfig[1]; RAID_BOSS_LIST[2].maxHp = hpConfig[2]; RAID_BOSS_LIST[3].maxHp = hpConfig[3];
 
-        const fetchPromises = raidSelectedLessons.map(sheet =>
-            fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`)
-                .then(res => res.text()).then(text => ({ sheet, text }))
-        );
-
-        const results = await Promise.all(fetchPromises);
-        let rawCards = [];
+        const fetchPromises = raidSelectedLessons.map(sheet => fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`).then(res => res.text()).then(text => ({ sheet, text })));
+        const results = await Promise.all(fetchPromises); let rawCards = [];
         results.forEach(({ sheet, text }) => {
             let rowNumber = 0;
             text.split(/\r?\n/).forEach(l => {
                 const p = l.replace(/"/g, '').replace(/，/g, ',').split(',');
                 if (p.length >= 2 && p[0].trim() !== "" && p[1].trim() !== "") {
-                    rowNumber++; const numStr = String(rowNumber).padStart(2, '0');
-                    const folderName = audioFolderMap[sheet] || `${sheet}音檔`;
-                    const fallbackAudioUrl = `https://yyanjhang-web.github.io/hosngetaiagi/${folderName}/-${numStr}.mp3`;
-                    const colCAudioUrl = (p.length >= 3 && p[2].trim() !== "") ? p[2].trim() : fallbackAudioUrl;
-                    rawCards.push({ h: p[0].trim(), r: p[1].trim().split('(')[0].trim(), a: colCAudioUrl });
+                    rowNumber++; const numStr = String(rowNumber).padStart(2, '0'); const folderName = audioFolderMap[sheet] || `${sheet}音檔`; const fallbackAudioUrl = `https://yyanjhang-web.github.io/hosngetaiagi/${folderName}/-${numStr}.mp3`; const colCAudioUrl = (p.length >= 3 && p[2].trim() !== "") ? p[2].trim() : fallbackAudioUrl; rawCards.push({ h: p[0].trim(), r: p[1].trim().split('(')[0].trim(), a: colCAudioUrl });
                 }
             });
         });
 
-        if (rawCards.length === 0) return alert("題庫載入失敗！");
-        raidQuestionDeck = shuffleBank(rawCards);
-
-        raidTeams.forEach(t => {
-            t.hp = 3.0; t.consecWrong = 0; t.ghostCorrectCount = 0; t.streak = 0; t.feathers = 0;
-            t.score = 0; t.totalQ = 0; t.correctQ = 0; t.submitTime = 0; t.wrongList = []; t.reviveProtected = false;
-        });
+        if (rawCards.length === 0) return alert("題庫載入失敗！"); raidQuestionDeck = shuffleBank(rawCards);
+        raidTeams.forEach(t => { t.hp = 3.0; t.consecWrong = 0; t.ghostCorrectCount = 0; t.streak = 0; t.feathers = 0; t.score = 0; t.totalQ = 0; t.correctQ = 0; t.submitTime = 0; t.wrongList = []; t.reviveProtected = false; });
         raidBossIdx = 0; raidBossHp = RAID_BOSS_LIST[0].maxHp; raidAllBossesCleared = false; raidCurrentQIdx = 0; raidMissedStats = [];
 
-        document.getElementById('raid-lobby-screen').classList.remove('active');
-        document.getElementById('raid-host-screen').classList.add('active');
-        document.getElementById('raid-hud-diff-label').innerText = (raidDifficulty === 'apprentice') ? '咒術師仔' : '咒術師父';
-
+        document.getElementById('raid-lobby-screen').classList.remove('active'); document.getElementById('raid-host-screen').classList.add('active'); document.getElementById('raid-hud-diff-label').innerText = (raidDifficulty === 'apprentice') ? '咒術師仔' : '咒術師父';
         initRaidArmyUnitsDOM(); updateRaidBossUI(); renderRaidLiveScoreboard(); startRaidWanderingLoop(); runNextRaidQuestion();
     }
 
     function initRaidArmyUnitsDOM() {
         const layer = document.getElementById('raid-units-layer'); layer.innerHTML = '';
         raidTeams.forEach(t => {
-            const unit = document.createElement('div'); unit.className = 'raid-unit' + (t.isBot ? ' bot-unit' : '');
-            unit.id = `raid-unit-${t.id}`; unit.style.left = `${t.x}%`; unit.style.top = `${t.y}%`;
-            unit.innerHTML = `
-                <div class="unit-hp-track"><div class="unit-hp-fill" id="unit-hp-${t.id}"></div></div>
-                <div class="unit-avatar-box"><span id="unit-avatar-${t.id}" style="--hue:${t.hueRotate}deg; filter: hue-rotate(var(--hue)); display:inline-block;">${t.avatar}</span><span class="unit-status-icon" id="unit-status-${t.id}"></span></div>
-                <div class="unit-name-tag">${t.name}</div>`;
+            const unit = document.createElement('div'); unit.className = 'raid-unit' + (t.isBot ? ' bot-unit' : ''); unit.id = `raid-unit-${t.id}`; unit.style.left = `${t.x}%`; unit.style.top = `${t.y}%`;
+            unit.innerHTML = `<div class="unit-hp-track"><div class="unit-hp-fill" id="unit-hp-${t.id}"></div></div><div class="unit-avatar-box"><span id="unit-avatar-${t.id}" style="--hue:${t.hueRotate}deg; filter: hue-rotate(var(--hue)); display:inline-block;">${t.avatar}</span><span class="unit-status-icon" id="unit-status-${t.id}"></span></div><div class="unit-name-tag">${t.name}</div>`;
             layer.appendChild(unit);
         });
     }
 
     function updateRaidArmyUnitsVisual() {
         raidTeams.forEach(t => {
-            const unit = document.getElementById(`raid-unit-${t.id}`); const hpFill = document.getElementById(`unit-hp-${t.id}`);
-            const avatarSpan = document.getElementById(`unit-avatar-${t.id}`); const statusSpan = document.getElementById(`unit-status-${t.id}`);
-            if (!unit || !hpFill) return;
-            const pct = Math.max(0, Math.min(100, (t.hp / t.maxHp) * 100));
-            hpFill.style.width = `${pct}%`;
+            const unit = document.getElementById(`raid-unit-${t.id}`); const hpFill = document.getElementById(`unit-hp-${t.id}`); const avatarSpan = document.getElementById(`unit-avatar-${t.id}`); const statusSpan = document.getElementById(`unit-status-${t.id}`); if (!unit || !hpFill) return;
+            const pct = Math.max(0, Math.min(100, (t.hp / t.maxHp) * 100)); hpFill.style.width = `${pct}%`;
             if (t.hp > 1.5) hpFill.style.background = '#22c55e'; else if (t.hp > 0.5) hpFill.style.background = '#eab308'; else hpFill.style.background = '#ef4444';
-            if (t.hp <= 0) {
-                unit.classList.add('unit-dead'); avatarSpan.innerText = '👻';
-                if (t.ghostCorrectCount > 0) statusSpan.innerHTML = `<span style="color:#4ade80; font-weight:bold; font-size:14px; text-shadow:0 1px 2px #000;">+${t.ghostCorrectCount}</span>`;
-                else statusSpan.innerText = '💀';
-            } else {
-                unit.classList.remove('unit-dead'); avatarSpan.innerText = t.avatar;
-                statusSpan.innerText = (t.consecWrong === 1) ? '🛡️💦' : (t.consecWrong >= 2 ? '💥💦' : '');
-            }
+            if (t.hp <= 0) { unit.classList.add('unit-dead'); avatarSpan.innerText = '👻'; if (t.ghostCorrectCount > 0) statusSpan.innerHTML = `<span style="color:#4ade80; font-weight:bold; font-size:14px; text-shadow:0 1px 2px #000;">+${t.ghostCorrectCount}</span>`; else statusSpan.innerText = '💀'; } 
+            else { unit.classList.remove('unit-dead'); avatarSpan.innerText = t.avatar; statusSpan.innerText = (t.consecWrong === 1) ? '🛡️💦' : (t.consecWrong >= 2 ? '💥💦' : ''); }
         });
         broadcastDeadCountToStudents();
     }
@@ -1308,46 +1123,29 @@
         if (raidWanderInterval) clearInterval(raidWanderInterval);
         raidWanderInterval = setInterval(() => {
             if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
-            raidTeams.forEach(t => {
-                if (t.hp <= 0) return;
-                t.baseAngle += (Math.random() * 0.4 - 0.2); t.baseRadius = Math.max(25, Math.min(42, t.baseRadius + (Math.random() * 4 - 2)));
-                t.x = 50 + Math.cos(t.baseAngle) * t.baseRadius; t.y = 50 + Math.sin(t.baseAngle) * t.baseRadius;
-                const unit = document.getElementById(`raid-unit-${t.id}`); if (unit) { unit.style.left = `${t.x}%`; unit.style.top = `${t.y}%`; }
-            });
+            raidTeams.forEach(t => { if (t.hp <= 0) return; t.baseAngle += (Math.random() * 0.4 - 0.2); t.baseRadius = Math.max(25, Math.min(42, t.baseRadius + (Math.random() * 4 - 2))); t.x = 50 + Math.cos(t.baseAngle) * t.baseRadius; t.y = 50 + Math.sin(t.baseAngle) * t.baseRadius; const unit = document.getElementById(`raid-unit-${t.id}`); if (unit) { unit.style.left = `${t.x}%`; unit.style.top = `${t.y}%`; } });
             const bossZone = document.getElementById('raid-boss-center-zone'); const bossWrap = document.getElementById('raid-boss-sprite-wrap');
-            if (bossZone && bossWrap) {
-                const bX = 50 + (Math.random() * 6 - 3); const bY = 50 + (Math.random() * 2 - 1); const bRot = Math.random() * 30 - 15;
-                bossZone.style.left = `${bX}%`; bossZone.style.top = `${bY}%`; bossWrap.style.transform = `rotate(${bRot}deg)`;
-            }
+            if (bossZone && bossWrap) { const bX = 50 + (Math.random() * 6 - 3); const bY = 50 + (Math.random() * 2 - 1); const bRot = Math.random() * 30 - 15; bossZone.style.left = `${bX}%`; bossZone.style.top = `${bY}%`; bossWrap.style.transform = `rotate(${bRot}deg)`; }
         }, 2200);
     }
 
     function updateRaidBossUI() {
         const nameTag = document.getElementById('raid-boss-name-tag'); const hpFill = document.getElementById('raid-boss-hp-fill'); const spriteEl = document.getElementById('raid-boss-sprite');
-        if (raidAllBossesCleared) {
-            nameTag.innerText = '🪙 獎勵時間：狂揍骷髏頭賺金幣！'; hpFill.style.width = '100%'; hpFill.style.background = 'linear-gradient(90deg, #eab308, #fde047)'; spriteEl.innerText = '💀'; return;
-        }
-        const boss = RAID_BOSS_LIST[raidBossIdx]; nameTag.innerText = boss.name; 
-        const pct = Math.max(0, (raidBossHp / boss.maxHp) * 100); hpFill.style.width = `${pct}%`; hpFill.style.background = 'linear-gradient(90deg, #dc2626, #f97316)'; spriteEl.innerText = boss.sprite;
+        if (raidAllBossesCleared) { nameTag.innerText = '🪙 獎勵時間：狂揍骷髏頭賺金幣！'; hpFill.style.width = '100%'; hpFill.style.background = 'linear-gradient(90deg, #eab308, #fde047)'; spriteEl.innerText = '💀'; return; }
+        const boss = RAID_BOSS_LIST[raidBossIdx]; nameTag.innerText = boss.name; const pct = Math.max(0, (raidBossHp / boss.maxHp) * 100); hpFill.style.width = `${pct}%`; hpFill.style.background = 'linear-gradient(90deg, #dc2626, #f97316)'; spriteEl.innerText = boss.sprite;
     }
 
     function renderRaidLiveScoreboard() {
         const box = document.getElementById('raid-live-sb-list'); if (!box) return;
-        const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.hp - a.hp);
-        box.innerHTML = '';
-        sorted.forEach((t, idx) => {
-            const hpText = t.hp <= 0 ? '💀陣亡' : `❤️${t.hp.toFixed(1)}`; const featherTag = t.feathers > 0 ? `🪶x${t.feathers}` : '';
-            box.innerHTML += `<div class="raid-sb-row"><span style="font-weight:bold; color:${t.hp <= 0 ? '#94a3b8' : '#fff'};">${idx + 1}. <span style="display:inline-block; filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>${t.name} ${featherTag}</span><span style="color:#00e5ff; font-weight:bold;">${hpText}｜${t.score}分</span></div>`;
-        });
+        const sorted = [...raidTeams].sort((a, b) => b.score - a.score || b.hp - a.hp); box.innerHTML = '';
+        sorted.forEach((t, idx) => { const hpText = t.hp <= 0 ? '💀陣亡' : `❤️${t.hp.toFixed(1)}`; const featherTag = t.feathers > 0 ? `🪶x${t.feathers}` : ''; box.innerHTML += `<div class="raid-sb-row"><span style="font-weight:bold; color:${t.hp <= 0 ? '#94a3b8' : '#fff'};">${idx + 1}. <span style="display:inline-block; filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>${t.name} ${featherTag}</span><span style="color:#00e5ff; font-weight:bold;">${hpText}｜${t.score}分</span></div>`; });
     }
 
     function runNextRaidQuestion() {
         if (raidCurrentQIdx >= raidTotalQuestions) { finishRaidBattle(); return; }
         const card = raidQuestionDeck.shift(); raidQuestionDeck.push(card);
-        const parts = card.r.split(/([\s\-–—]+)/); const sylIndices = [];
-        parts.forEach((p, idx) => { if (p && !/^[\s\-–—]+$/.test(p) && /[a-zA-Z]/.test(p)) sylIndices.push(idx); });
-        const targetPartIdx = sylIndices[Math.floor(Math.random() * sylIndices.length)];
-        const targetRawSyl = parts[targetPartIdx]; const targetParsed = parseTaiLoAnswer(targetRawSyl)[0];
+        const parts = card.r.split(/([\s\-–—]+)/); const sylIndices = []; parts.forEach((p, idx) => { if (p && !/^[\s\-–—]+$/.test(p) && /[a-zA-Z]/.test(p)) sylIndices.push(idx); });
+        const targetPartIdx = sylIndices[Math.floor(Math.random() * sylIndices.length)]; const targetRawSyl = parts[targetPartIdx]; const targetParsed = parseTaiLoAnswer(targetRawSyl)[0];
 
         const hostMaskedHtml = parts.map((p, idx) => { if (idx === targetPartIdx) return `<span class="raid-blank-slot"></span>`; return formatTailoDisplay(p); }).join('');
         const padMaskedHtml = parts.map((p, idx) => { if (idx === targetPartIdx) return `<span class="blank-slot-inline"></span>`; return formatTailoDisplay(p); }).join('');
@@ -1358,120 +1156,78 @@
         document.getElementById('raid-center-banner').style.display = 'none'; document.getElementById('raid-boss-stun-stars').style.display = 'none';
         document.querySelectorAll('.raid-unit').forEach(u => { u.classList.remove('unit-chanting', 'unit-submitted'); });
 
-        const showHanzi = document.getElementById('raid-show-hanzi-toggle').checked;
-        const hanziEl = document.getElementById('raid-host-hanzi'); hanziEl.innerText = card.h; hanziEl.style.display = showHanzi ? 'block' : 'none';
-        document.getElementById('raid-host-tailo').innerHTML = hostMaskedHtml;
-        document.getElementById('raid-hud-q-progress').innerText = `題目: ${raidCurrentQIdx + 1} / ${raidTotalQuestions}`;
-        document.getElementById('raid-hud-phase-msg').innerText = `🔥 請輸入空格處的羅馬字！`;
+        const showHanzi = document.getElementById('raid-show-hanzi-toggle').checked; const hanziEl = document.getElementById('raid-host-hanzi'); hanziEl.innerText = card.h; hanziEl.style.display = showHanzi ? 'block' : 'none';
+        document.getElementById('raid-host-tailo').innerHTML = hostMaskedHtml; document.getElementById('raid-hud-q-progress').innerText = `題目: ${raidCurrentQIdx + 1} / ${raidTotalQuestions}`; document.getElementById('raid-hud-phase-msg').innerText = `🔥 請輸入空格處的羅馬字！`;
         updateRaidLockedCountUI();
 
-        const deadCount = raidTeams.filter(t => t.hp <= 0).length;
-        const curBossSprite = raidAllBossesCleared ? '💀' : RAID_BOSS_LIST[raidBossIdx].sprite;
-        const curBossName = raidAllBossesCleared ? '獎勵骷髏頭' : RAID_BOSS_LIST[raidBossIdx].name;
+        const deadCount = raidTeams.filter(t => t.hp <= 0).length; const curBossSprite = raidAllBossesCleared ? '💀' : RAID_BOSS_LIST[raidBossIdx].sprite; const curBossName = raidAllBossesCleared ? '獎勵骷髏頭' : RAID_BOSS_LIST[raidBossIdx].name;
         const aliveAvatars = raidTeams.filter(t => t.hp > 0).map(t => `<span style="filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>`);
 
-        raidTeams.forEach(t => {
-            if (t.conn && t.conn.open) {
-                t.conn.send({ type: 'RAID_QUESTION', qIndex: raidCurrentQIdx + 1, totalQ: raidTotalQuestions, difficulty: raidDifficulty, h: card.h, a: card.a, padMaskedHtml: padMaskedHtml, targetSyllable: targetParsed, bossSprite: curBossSprite, bossName: curBossName, deadCount: deadCount, aliveAvatars: aliveAvatars });
-            }
-        });
+        raidTeams.forEach(t => { if (t.conn && t.conn.open) { t.conn.send({ type: 'RAID_QUESTION', qIndex: raidCurrentQIdx + 1, totalQ: raidTotalQuestions, difficulty: raidDifficulty, h: card.h, a: card.a, padMaskedHtml: padMaskedHtml, targetSyllable: targetParsed, bossSprite: curBossSprite, bossName: curBossName, deadCount: deadCount, aliveAvatars: aliveAvatars }); } });
         replayRaidAudio();
 
         raidTeams.filter(t => t.isBot).forEach(bot => {
-            if (bot.feathers > 0 && deadCount > 0) {
-                setTimeout(() => { let currentDead = raidTeams.filter(x => x.hp <= 0).length; if (raidCurrentMatch && raidCurrentMatch.accepting && bot.feathers > 0 && currentDead > 0) { if (Math.random() < 0.75) handleHostPhoenixFeatherRevive(bot); } }, 2000 + Math.random() * 4000);
-            }
+            if (bot.feathers > 0 && deadCount > 0) { setTimeout(() => { let currentDead = raidTeams.filter(x => x.hp <= 0).length; if (raidCurrentMatch && raidCurrentMatch.accepting && bot.feathers > 0 && currentDead > 0) { if (Math.random() < 0.75) handleHostPhoenixFeatherRevive(bot); } }, 2000 + Math.random() * 4000); }
             setTimeout(() => { if (!raidCurrentMatch || !raidCurrentMatch.accepting) return; const unitEl = document.getElementById(`raid-unit-${bot.id}`); if (unitEl) unitEl.classList.add('unit-chanting'); }, 1200 + Math.random() * 2500);
-            setTimeout(() => {
-                if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
-                const botRight = (Math.random() < 0.78); bot.submitTime = Date.now();
-                const unitEl = document.getElementById(`raid-unit-${bot.id}`); if (unitEl) { unitEl.classList.remove('unit-chanting'); unitEl.classList.add('unit-submitted'); }
-                recordRaidTeamSpell(bot.id, botRight, false);
-            }, 4000 + Math.random() * 5000);
+            setTimeout(() => { if (!raidCurrentMatch || !raidCurrentMatch.accepting) return; const botRight = (Math.random() < 0.78); bot.submitTime = Date.now(); const unitEl = document.getElementById(`raid-unit-${bot.id}`); if (unitEl) { unitEl.classList.remove('unit-chanting'); unitEl.classList.add('unit-submitted'); } recordRaidTeamSpell(bot.id, botRight, false); }, 4000 + Math.random() * 5000);
         });
 
-        const timerBar = document.getElementById('raid-host-timer-bar'); timerBar.style.width = '100%'; let timeLeftSec = 18.0;
-        clearInterval(raidHostTimer);
-        raidHostTimer = setInterval(() => {
-            timeLeftSec = Math.round((timeLeftSec - 0.1) * 10) / 10; timerBar.style.width = `${Math.max(0, (timeLeftSec / 18.0) * 100)}%`;
-            if (timeLeftSec <= 0) { clearInterval(raidHostTimer); resolveRaidRound(); }
-        }, 100);
+        const timerBar = document.getElementById('raid-host-timer-bar'); timerBar.style.width = '100%'; let timeLeftSec = 18.0; clearInterval(raidHostTimer);
+        raidHostTimer = setInterval(() => { timeLeftSec = Math.round((timeLeftSec - 0.1) * 10) / 10; timerBar.style.width = `${Math.max(0, (timeLeftSec / 18.0) * 100)}%`; if (timeLeftSec <= 0) { clearInterval(raidHostTimer); resolveRaidRound(); } }, 100);
     }
 
     function replayRaidAudio() {
-        if (!raidCurrentMatch) return;
-        const rawUrl = raidCurrentMatch.card.a; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
-        audioPlayer.pause(); audioPlayer.src = safeUrl; audioPlayer.currentTime = 0;
-        duckBGM(); audioPlayer.play().catch(() => { unduckBGM(); });
+        if (!raidCurrentMatch) return; const rawUrl = raidCurrentMatch.card.a; const safeUrl = rawUrl.includes('%') ? rawUrl : encodeURI(rawUrl);
+        audioPlayer.pause(); audioPlayer.src = safeUrl; audioPlayer.currentTime = 0; duckBGM(); audioPlayer.play().catch(() => { unduckBGM(); });
     }
 
     function recordRaidTeamSpell(teamId, isCorrect, usedGourd) {
-        if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
-        if (raidCurrentMatch.submissions[teamId] !== undefined) return;
-        raidCurrentMatch.submissions[teamId] = { isCorrect, usedGourd };
-        sfxSyllableChant(); updateRaidLockedCountUI();
+        if (!raidCurrentMatch || !raidCurrentMatch.accepting) return; if (raidCurrentMatch.submissions[teamId] !== undefined) return;
+        raidCurrentMatch.submissions[teamId] = { isCorrect, usedGourd }; sfxSyllableChant(); updateRaidLockedCountUI();
         const aliveTeams = raidTeams.filter(t => t.hp > 0); const submittedAliveCount = aliveTeams.filter(t => raidCurrentMatch.submissions[t.id]).length;
         if (submittedAliveCount >= aliveTeams.length || aliveTeams.length === 0) { clearInterval(raidHostTimer); setTimeout(resolveRaidRound, 500); }
     }
 
     function updateRaidLockedCountUI() {
-        if (!raidCurrentMatch) return;
-        const aliveTeams = raidTeams.filter(t => t.hp > 0); const submittedAliveCount = aliveTeams.filter(t => raidCurrentMatch.submissions[t.id]).length;
+        if (!raidCurrentMatch) return; const aliveTeams = raidTeams.filter(t => t.hp > 0); const submittedAliveCount = aliveTeams.filter(t => raidCurrentMatch.submissions[t.id]).length;
         document.getElementById('raid-hud-locked-status').innerText = `存活已施咒: ${submittedAliveCount} / ${aliveTeams.length}`;
     }
 
     function handleHostPhoenixFeatherRevive(savior) {
         const deadList = raidTeams.filter(t => t.hp <= 0); if (deadList.length === 0) return;
-        savior.feathers--; let pool = [];
-        deadList.forEach(d => { let weight = 1 + d.ghostCorrectCount; for (let i = 0; i < weight; i++) pool.push(d); });
-        const luckyTarget = pool[Math.floor(Math.random() * pool.length)];
-        luckyTarget.hp = 0.5; luckyTarget.consecWrong = 0; luckyTarget.ghostCorrectCount = 0; luckyTarget.reviveProtected = true;
+        savior.feathers--; let pool = []; deadList.forEach(d => { let weight = 1 + d.ghostCorrectCount; for (let i = 0; i < weight; i++) pool.push(d); });
+        const luckyTarget = pool[Math.floor(Math.random() * pool.length)]; luckyTarget.hp = 0.5; luckyTarget.consecWrong = 0; luckyTarget.ghostCorrectCount = 0; luckyTarget.reviveProtected = true;
         sfxFeatherRevive(); updateRaidArmyUnitsVisual(); renderRaidLiveScoreboard();
-        const banner = document.getElementById('raid-center-banner');
-        banner.innerText = `🪶 ${savior.name} 施展鳳凰羽毛，共 ${luckyTarget.name} 回魂矣！`; banner.style.display = 'block';
-        setTimeout(() => { banner.style.display = 'none'; }, 2800);
+        const banner = document.getElementById('raid-center-banner'); banner.innerText = `🪶 ${savior.name} 施展鳳凰羽毛，共 ${luckyTarget.name} 回魂矣！`; banner.style.display = 'block'; setTimeout(() => { banner.style.display = 'none'; }, 2800);
         const aliveAvatars = raidTeams.filter(t => t.hp > 0).map(t => `<span style="filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>`);
-        if (savior.conn && savior.conn.open) savior.conn.send({ type: 'FEATHER_UPDATED', feathers: savior.feathers });
-        if (luckyTarget.conn && luckyTarget.conn.open) luckyTarget.conn.send({ type: 'REVIVED_BY_ALLY', saviorName: savior.name, hp: luckyTarget.hp });
-        broadcastDeadCountToStudents(aliveAvatars);
+        if (savior.conn && savior.conn.open) savior.conn.send({ type: 'FEATHER_UPDATED', feathers: savior.feathers }); if (luckyTarget.conn && luckyTarget.conn.open) luckyTarget.conn.send({ type: 'REVIVED_BY_ALLY', saviorName: savior.name, hp: luckyTarget.hp }); broadcastDeadCountToStudents(aliveAvatars);
     }
 
     function broadcastDeadCountToStudents(aliveAvatarsArray = null) {
-        const deadCount = raidTeams.filter(t => t.hp <= 0).length;
-        const aliveArr = aliveAvatarsArray || raidTeams.filter(t => t.hp > 0).map(t => `<span style="filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>`);
+        const deadCount = raidTeams.filter(t => t.hp <= 0).length; const aliveArr = aliveAvatarsArray || raidTeams.filter(t => t.hp > 0).map(t => `<span style="filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>`);
         raidTeams.forEach(t => { if (t.conn && t.conn.open) t.conn.send({ type: 'DEAD_COUNT_SYNC', deadCount: deadCount, feathers: t.feathers, aliveAvatars: aliveArr }); });
     }
 
     function resolveRaidRound() {
-        if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
-        raidCurrentMatch.accepting = false; clearInterval(raidHostTimer);
+        if (!raidCurrentMatch || !raidCurrentMatch.accepting) return; raidCurrentMatch.accepting = false; clearInterval(raidHostTimer);
         document.getElementById('raid-host-tailo').innerHTML = raidCurrentMatch.fullRevealedHtml;
 
-        let activeTeams = raidTeams.filter(t => t.hp > 0); let aliveCount = activeTeams.length; let totalCount = raidTeams.length;
-        let correctActiveCount = 0; let wrongTotalThisQ = 0; let allAliveWithin10s = true;
+        let activeTeams = raidTeams.filter(t => t.hp > 0); let aliveCount = activeTeams.length; let totalCount = raidTeams.length; let correctActiveCount = 0; let wrongTotalThisQ = 0; let allAliveWithin10s = true;
 
         raidTeams.forEach(t => {
-            const sub = raidCurrentMatch.submissions[t.id]; const gotRight = Boolean(sub && sub.isCorrect); const wasAlive = (t.hp > 0);
-            t.totalQ++;
+            const sub = raidCurrentMatch.submissions[t.id]; const gotRight = Boolean(sub && sub.isCorrect); const wasAlive = (t.hp > 0); t.totalQ++;
             if (gotRight) { t.correctQ++; if (wasAlive) correctActiveCount++; else t.ghostCorrectCount++; } 
             else { if (wasAlive) wrongTotalThisQ++; t.wrongList.push({ h: raidCurrentMatch.card.h, r: raidCurrentMatch.card.r, a: raidCurrentMatch.card.a, fullRevealedHtml: raidCurrentMatch.fullRevealedHtml }); }
             if (wasAlive) { if (!sub || (t.submitTime - raidCurrentMatch.startTime > 10000)) allAliveWithin10s = false; }
         });
 
-        const accuracyPct = aliveCount > 0 ? Math.round((correctActiveCount / aliveCount) * 100) : 0;
-        let canTriggerPerfect = (aliveCount > (totalCount / 2)) && (totalCount > 0);
-        let isPerfect = (accuracyPct === 100 && canTriggerPerfect); let isUltimate = (isPerfect && allAliveWithin10s);
-
+        const accuracyPct = aliveCount > 0 ? Math.round((correctActiveCount / aliveCount) * 100) : 0; let canTriggerPerfect = (aliveCount > (totalCount / 2)) && (totalCount > 0); let isPerfect = (accuracyPct === 100 && canTriggerPerfect); let isUltimate = (isPerfect && allAliveWithin10s);
         raidMissedStats.push({ h: raidCurrentMatch.card.h, r: raidCurrentMatch.card.r, a: raidCurrentMatch.card.a, fullRevealedHtml: raidCurrentMatch.fullRevealedHtml, wrongCount: wrongTotalThisQ });
 
-        const refractLayer = document.getElementById('raid-refract-layer'); refractLayer.innerHTML = '';
-        let hasCorrect = false;
+        const refractLayer = document.getElementById('raid-refract-layer'); refractLayer.innerHTML = ''; let hasCorrect = false;
         raidTeams.forEach(t => {
             const sub = raidCurrentMatch.submissions[t.id];
-            if (t.hp > 0 && sub && sub.isCorrect) {
-                hasCorrect = true; const orb = document.createElement('div'); orb.className = 'raid-orb'; orb.innerText = t.weapon; refractLayer.appendChild(orb);
-                orb.animate([ { left: `${t.x}%`, top: `${t.y}%`, transform: 'translate(-50%,-50%) scale(1) rotate(0deg)', opacity: 1 }, { left: '50%', top: '50%', transform: 'translate(-50%,-50%) scale(0.5) rotate(360deg)', opacity: 0.7 } ], { duration: 400, easing: 'ease-in', fill: 'forwards' });
-            }
+            if (t.hp > 0 && sub && sub.isCorrect) { hasCorrect = true; const orb = document.createElement('div'); orb.className = 'raid-orb'; orb.innerText = t.weapon; refractLayer.appendChild(orb); orb.animate([ { left: `${t.x}%`, top: `${t.y}%`, transform: 'translate(-50%,-50%) scale(1) rotate(0deg)', opacity: 1 }, { left: '50%', top: '50%', transform: 'translate(-50%,-50%) scale(0.5) rotate(360deg)', opacity: 0.7 } ], { duration: 400, easing: 'ease-in', fill: 'forwards' }); }
         });
 
         setTimeout(() => {
@@ -1480,8 +1236,7 @@
                 const explosion = document.createElement('div'); explosion.className = 'boss-explosion';
                 if (isUltimate) explosion.classList.add('tier-ult'); else if (accuracyPct === 100) explosion.classList.add('tier-100'); else if (accuracyPct >= 90) explosion.classList.add('tier-90'); else if (accuracyPct >= 70) explosion.classList.add('tier-70'); else if (accuracyPct >= 50) explosion.classList.add('tier-50'); else explosion.classList.add('tier-low');
                 refractLayer.appendChild(explosion); setTimeout(() => explosion.remove(), 1200); 
-                const dmgText = document.createElement('div'); dmgText.className = 'damage-popup'; dmgText.innerText = `💥 攻擊力 ${accuracyPct}%`;
-                refractLayer.appendChild(dmgText); setTimeout(() => dmgText.remove(), 1500);
+                const dmgText = document.createElement('div'); dmgText.className = 'damage-popup'; dmgText.innerText = `💥 攻擊力 ${accuracyPct}%`; refractLayer.appendChild(dmgText); setTimeout(() => dmgText.remove(), 1500);
             }
 
             const banner = document.getElementById('raid-center-banner');
@@ -1492,11 +1247,7 @@
             if (bossDamage > 0) { sfxEnemyHit(); bossSpriteEl.classList.add('enemy-hit-flash'); setTimeout(() => bossSpriteEl.classList.remove('enemy-hit-flash'), 400); } else sfxError();
 
             if (raidAllBossesCleared) { if (bossDamage > 0) sfxCoin(); } 
-            else {
-                raidBossHp -= bossDamage;
-                if (raidBossHp <= 0) { sfxEnemyDeath(); if (raidBossIdx < RAID_BOSS_LIST.length - 1) { raidBossIdx++; raidBossHp = RAID_BOSS_LIST[raidBossIdx].maxHp; } else { raidAllBossesCleared = true; raidBossHp = 0; } }
-                updateRaidBossUI();
-            }
+            else { raidBossHp -= bossDamage; if (raidBossHp <= 0) { sfxEnemyDeath(); if (raidBossIdx < RAID_BOSS_LIST.length - 1) { raidBossIdx++; raidBossHp = RAID_BOSS_LIST[raidBossIdx].maxHp; } else { raidAllBossesCleared = true; raidBossHp = 0; } } updateRaidBossUI(); }
 
             if (bossStunned) { document.getElementById('raid-boss-stun-stars').style.display = 'block'; document.getElementById('raid-hud-phase-msg').innerText = `💫 攻勢猛烈，妖魔袂振袂動！`; } 
             else {
@@ -1504,12 +1255,7 @@
                 const curBossAtkIcon = raidAllBossesCleared ? '🦴' : RAID_BOSS_LIST[raidBossIdx].attack;
                 const shockwave = document.createElement('div'); shockwave.className = 'ground-shockwave'; refractLayer.appendChild(shockwave); setTimeout(() => shockwave.remove(), 550);
                 const angles = [0, 45, 90, 135, 180, 225, 270, 315];
-                angles.forEach(deg => {
-                    const eProj = document.createElement('div'); eProj.innerText = curBossAtkIcon; eProj.style.position = 'absolute'; eProj.style.fontSize = '35px'; eProj.style.left = '50%'; eProj.style.top = '50%'; eProj.style.zIndex = '9'; eProj.style.pointerEvents = 'none'; refractLayer.appendChild(eProj);
-                    const rad = deg * Math.PI / 180; const dist = 60; 
-                    eProj.animate([ { left: '50%', top: '50%', opacity: 1, transform: `translate(-50%, -50%) rotate(0deg)` }, { left: `${50 + Math.cos(rad)*dist}%`, top: `${50 + Math.sin(rad)*dist}%`, opacity: 0.2, transform: `translate(-50%, -50%) rotate(${deg}deg)` } ], { duration: 550, easing: 'ease-out', fill: 'forwards' });
-                    setTimeout(() => eProj.remove(), 600);
-                });
+                angles.forEach(deg => { const eProj = document.createElement('div'); eProj.innerText = curBossAtkIcon; eProj.style.position = 'absolute'; eProj.style.fontSize = '35px'; eProj.style.left = '50%'; eProj.style.top = '50%'; eProj.style.zIndex = '9'; eProj.style.pointerEvents = 'none'; refractLayer.appendChild(eProj); const rad = deg * Math.PI / 180; const dist = 60; eProj.animate([ { left: '50%', top: '50%', opacity: 1, transform: `translate(-50%, -50%) rotate(0deg)` }, { left: `${50 + Math.cos(rad)*dist}%`, top: `${50 + Math.sin(rad)*dist}%`, opacity: 0.2, transform: `translate(-50%, -50%) rotate(${deg}deg)` } ], { duration: 550, easing: 'ease-out', fill: 'forwards' }); setTimeout(() => eProj.remove(), 600); });
             }
 
             const finalAliveAvatars = raidTeams.filter(t => t.hp > 0 || (isUltimate && t.hp <= 0)).map(t => `<span style="filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>`);
@@ -1524,10 +1270,8 @@
                 if (wasAlive) {
                     if (gotRight) {
                         let pts = usedGourd ? 10 : 20; if (accuracyPct === 100) pts += 10; if (raidAllBossesCleared) pts += 10; t.score += pts;
-                        t.consecWrong = 0; t.streak++;
-                        if (t.streak > 0 && t.streak % 3 === 0 && t.feathers < 1) { t.feathers++; earnedFeather = true; }
-                        t.reviveProtected = false; outcome = bossStunned ? 'BOSS_STUNNED_SAFE' : 'DODGE_SAFE';
-                        if (isPerfect) outcome = 'PERFECT_HEAL'; if (isUltimate) outcome = 'ULTIMATE_HEAL';
+                        t.consecWrong = 0; t.streak++; if (t.streak > 0 && t.streak % 3 === 0 && t.feathers < 1) { t.feathers++; earnedFeather = true; }
+                        t.reviveProtected = false; outcome = bossStunned ? 'BOSS_STUNNED_SAFE' : 'DODGE_SAFE'; if (isPerfect) outcome = 'PERFECT_HEAL'; if (isUltimate) outcome = 'ULTIMATE_HEAL';
                     } else {
                         t.streak = 0;
                         if (bossStunned) { t.reviveProtected = false; outcome = 'PROTECTED_BY_TEAM'; if (isPerfect) outcome = 'PERFECT_HEAL'; if (isUltimate) outcome = 'ULTIMATE_HEAL'; } 
@@ -1550,13 +1294,11 @@
                     if (gotRight && wasAlive && !bossStunned) { unitEl.classList.add('player-dodge'); setTimeout(() => unitEl.classList.remove('player-dodge'), 600); } 
                     else if (!bossStunned && !gotRight && wasAlive) { if (outcome === 'REVIVE_PROTECTED') { unitEl.classList.add('player-dodge'); setTimeout(() => unitEl.classList.remove('player-dodge'), 600); } else { unitEl.classList.add('player-hit'); setTimeout(() => unitEl.classList.remove('player-hit'), 600); } }
                 }
-
                 if (t.conn && t.conn.open) { t.conn.send({ type: 'RAID_RESULT', gotRight: gotRight, bossStunned: bossStunned, accuracyPct: accuracyPct, outcome: outcome, hp: t.hp, consecWrong: t.consecWrong, feathers: t.feathers, ghostCorrectCount: t.ghostCorrectCount, earnedFeather: earnedFeather, score: t.score, isPerfect: isPerfect, isUltimate: isUltimate, correctReveal: raidCurrentMatch.card.r.split('(')[0].trim(), bossAttackIcon: raidAllBossesCleared ? '🦴' : RAID_BOSS_LIST[raidBossIdx].attack, aliveAvatars: finalAliveAvatars }); }
             });
 
             updateRaidArmyUnitsVisual(); renderRaidLiveScoreboard();
         }, 400); 
-
         setTimeout(() => { raidCurrentQIdx++; runNextRaidQuestion(); }, 3800);
     }
 
@@ -1591,7 +1333,8 @@
         const now = new Date(); const yyyy = now.getFullYear(); const mm = String(now.getMonth() + 1).padStart(2, '0'); const dd = String(now.getDate()).padStart(2, '0'); const hh = String(now.getHours()).padStart(2, '0'); const min = String(now.getMinutes()).padStart(2, '0'); const timeStr = `${yyyy}${mm}${dd}_${hh}${min}`;
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `除魔成績_${timeStr}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     }
-
+</script>
+<script>
     // =========================================================
     // 📱 學生平板端邏輯 (連線與 Firebase 即時互動)
     // =========================================================
@@ -1656,10 +1399,8 @@
                 }
             };
 
-            // 監聽來自大屏的直接訊息
-            let initialLoad = true;
+            // ★ 監聽來自大屏的直接訊息 (已移除 initialLoad 防呆限制)
             roomRef.child('direct_messages').child(playerId).on('value', msgSnap => {
-                if(initialLoad) { initialLoad = false; return; }
                 const data = msgSnap.val();
                 if (data) handleRaidStudentReceive(data);
             });
