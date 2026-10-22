@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>教師控制台 - 台語互動派題系統</title>
-  <!-- 引入 Google Fonts 保證罕見字與羅馬字顯示正常 -->
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
     
@@ -45,6 +44,10 @@
     .sheet-content { padding: 10px; background: white;}
     .question-item { border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;}
     
+    /* 大手風琴按鈕 */
+    .accordion-main { cursor: pointer; padding: 12px; background: #f1f5f9; border-radius: 6px; font-weight: bold; font-size: 16px; color: var(--primary); border: 1px solid #cbd5e1; margin-bottom: 15px; display: flex; align-items: center; justify-content: flex-start;}
+    .accordion-main:hover { background: #e2e8f0; }
+
     .send-btn { background: var(--accent); color: white; padding: 8px 16px; font-size: 16px; }
     #animationPanel { text-align: left; padding: 30px; background: #f8f9fa; border-radius: 8px; min-height: 400px; border: 1px solid #e2e8f0;}
     .timer-display { font-size: 60px; font-weight: bold; color: var(--primary); font-family: monospace; text-align:center; margin: 20px 0;}
@@ -64,7 +67,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="version-tag">Ver 2.3 (Teacher)</div>
+  <div class="version-tag">Ver 2.4 (Teacher)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary);">請選擇本次測驗模式</h1>
@@ -112,8 +115,9 @@
             </div>
           </div>
           
-          <div class="accordion-header" onclick="toggleQList()">
-              <span id="accordionArrow">▶</span> 勾選要派送的題目
+          <!-- 修復手風琴按鈕 -->
+          <div class="accordion-main" onclick="toggleMainQList()">
+              <span id="mainAccordionArrow" style="margin-right:10px;">▶</span> 勾選要派送的題目
           </div>
           <div id="questionListContainer" class="hidden">
               <div id="questionList">正在從 Google 試算表載入多工作表題庫...</div>
@@ -180,18 +184,29 @@
         if(bgm) { bgm.play().then(() => bgm.pause()).catch(e=>{}); }
     }
 
-    // 展開/收起個別工作表內容 (點擊不自動展開)
+    // 主題庫區塊的展開與收合 (修復)
+    window.toggleMainQList = () => {
+        const container = document.getElementById('questionListContainer');
+        const arrow = document.getElementById('mainAccordionArrow');
+        if(container.classList.contains('hidden')) { 
+            container.classList.remove('hidden'); 
+            arrow.innerText = "▼"; 
+        } else { 
+            container.classList.add('hidden'); 
+            arrow.innerText = "▶"; 
+        }
+    };
+
+    // 單一工作表內容的展開/收起
     window.toggleSheetContent = (e, idx) => {
-        // 防止點擊 checkbox 觸發展開
         if(e.target.tagName.toLowerCase() === 'input') return; 
-        
         const content = document.getElementById(`sheet-content-${idx}`);
         const arrow = document.getElementById(`sheet-arrow-${idx}`);
         if(content.classList.contains('hidden')) { content.classList.remove('hidden'); arrow.innerText = "▼"; } 
         else { content.classList.add('hidden'); arrow.innerText = "▶"; }
     };
 
-    // 工作表全選聯動邏輯修改
+    // 勾選工作表：全選底下的題目 (但不自動展開)
     window.toggleSheetAll = (e, idx) => {
         e.stopPropagation(); 
         const isChecked = e.target.checked;
@@ -251,7 +266,7 @@
       });
     };
 
-    // 抓取多工作表 (預設不勾選、不展開)
+    // 抓取多工作表 (預設全不勾選、不展開)
     async function loadGoogleSheets() {
         const listDiv = document.getElementById('questionList');
         listDiv.innerHTML = "正在讀取目錄頁...";
@@ -282,7 +297,7 @@
 
                     if (qRows.length === 0) continue; 
 
-                    // 預設 input 不帶 checked
+                    // 預設全不勾選，內容預設 hidden
                     finalHtml += `
                     <div class="sheet-group">
                         <div class="sheet-header" onclick="toggleSheetContent(event, ${sIdx})">
