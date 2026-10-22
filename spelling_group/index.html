@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 8.7)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 8.8)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -14,6 +14,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        :root { --aura-color: #00e5ff; } /* 光環預設顏色 */
+
         body {
             font-family: 'tauhu-oo-bold', 'tauhu-oo', PingFangTC-Bold, "Microsoft JhengHei Bold", sans-serif; margin: 0; padding: 0;
             background-color: #0b132b; color: #fff;
@@ -84,7 +86,9 @@
         .sound-toggle-btn.muted { opacity: 0.45; border-color: #555; background: rgba(0, 0, 0, 0.5); }
         .sound-toggle-btn.muted::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top right, transparent calc(50% - 1.5px), #ef4444 calc(50% - 1.5px), #ef4444 calc(50% + 1.5px), transparent calc(50% + 1.5px)); pointer-events: none; }
 
-        /* 3. 教師大屏：團戰主舞台 */
+        /* ========================================================= */
+        /* ★ 3. 教師大屏：全新 RPG 3D 對峙主舞台 */
+        /* ========================================================= */
         #raid-host-screen { justify-content: space-between; overflow: hidden; padding: 10px 18px; }
         .raid-hud-bar { width: 100%; max-width: 1400px; display: flex; justify-content: space-between; align-items: center; background: #1c2541; border: 1.5px solid #3a506b; border-radius: 12px; padding: 6px 16px; font-size: 17px; flex-shrink: 0; gap: 10px; }
         .raid-prompt-stage { width: 100%; max-width: 1400px; display: flex; align-items: center; justify-content: center; gap: 20px; background: linear-gradient(90deg, rgba(28,37,65,0.4), rgba(28,37,65,0.95), rgba(28,37,65,0.4)); border-top: 2px solid #00e5ff; border-bottom: 2px solid #00e5ff; padding: 8px 24px; margin: 6px 0; flex-shrink: 0; z-index: 20; }
@@ -109,11 +113,15 @@
         #raid-units-layer { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
         .army-zone-title { position: absolute; bottom: 8px; left: 16px; font-size: 14px; color: #84ffff; opacity: 0.6; z-index: 2; font-weight: bold; }
         
+        /* 學生陣線佈局 */
         .raid-unit {
             position: absolute; width: 88px; display: flex; flex-direction: column; align-items: center;
-            transform: translate(-50%, -50%);
-            transition: left 1s ease-in-out, top 1s ease-in-out, filter 0.25s; /* 走動的平滑過渡 */
+            transform: translate(-50%, -50%); transition: left 1s ease-in-out, top 1s ease-in-out, filter 0.25s;
         }
+        
+        /* ★ 修正後的玩家血條 (懸浮在頭像上方、縮短) */
+        .unit-hp-track { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 45px; height: 6px; background: #0f172a; border: 1px solid #64748b; border-radius: 3px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.6); z-index: 10; }
+        .unit-hp-fill { height: 100%; width: 100%; background: #22c55e; transition: width 0.3s ease, background 0.3s ease; }
         
         .unit-avatar-box { position: relative; font-size: 42px; line-height: 1.05; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); animation: breathe 3s infinite ease-in-out alternate; }
         .raid-unit:nth-child(even) .unit-avatar-box { animation-duration: 3.5s; animation-delay: -1s; }
@@ -122,32 +130,59 @@
 
         .host-stage-shadow { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 45px; height: 12px; background: rgba(0, 0, 0, 0.7); border-radius: 50%; filter: blur(3px); z-index: -1; pointer-events: none; }
         
-        .unit-chanting .unit-avatar-box { transform: scale(0.85) translateY(-30px) !important; animation: none !important; filter: drop-shadow(0 0 20px #00e5ff) brightness(1.3); transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+        /* ★ 新版專屬魔法光環特效 (大屏與平板共用) */
+        .unit-avatar-box::before, #pad-player-wrapper::before {
+            content: ''; position: absolute; width: 56px; height: 56px; bottom: -8px; left: 50%; transform: translateX(-50%);
+            border-radius: 50%; opacity: 0; z-index: -1; pointer-events: none; transition: 0.2s;
+        }
+        /* 作答中：呼吸閃爍燈效 */
+        .unit-chanting .unit-avatar-box::before, #pad-player-wrapper.chanting::before {
+            opacity: 1; border: 2.5px dashed var(--aura-color); 
+            box-shadow: 0 0 12px var(--aura-color), inset 0 0 8px var(--aura-color); 
+            animation: auraBreathe 1s infinite alternate, spinCircle 2.5s linear infinite !important; 
+        }
+        /* 送出後：定型高亮光環 */
+        .unit-submitted .unit-avatar-box::before, #pad-player-wrapper.submitted::before {
+            opacity: 1; border: 3px solid var(--aura-color); 
+            box-shadow: 0 0 15px var(--aura-color), inset 0 0 10px var(--aura-color); 
+            animation: none !important; 
+        }
+        @keyframes auraBreathe { 0% { opacity: 0.3; transform: translateX(-50%) scale(0.95); } 100% { opacity: 1; transform: translateX(-50%) scale(1.15); } }
+        @keyframes spinCircle { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
+
+        /* Z軸突進攻擊 */
+        .unit-chanting .unit-avatar-box { transform: scale(0.85) translateY(-30px) !important; animation: none !important; filter: drop-shadow(0 0 15px var(--aura-color)) brightness(1.2); transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
         
         .raid-unit.unit-dead { opacity: 0.48; filter: none !important; }
         .raid-unit.unit-dead .unit-avatar-box { animation: none !important; }
         .raid-unit.unit-dead .unit-avatar-box > span:first-child { filter: hue-rotate(var(--hue)) grayscale(1) !important; }
 
-        .unit-hp-track { width: 64px; height: 7px; background: #0f172a; border: 1px solid #64748b; border-radius: 4px; overflow: hidden; margin-bottom: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.6); }
-        .unit-hp-fill { height: 100%; width: 100%; background: #22c55e; transition: width 0.3s ease, background 0.3s ease; }
-        .unit-status-icon { position: absolute; top: -6px; right: -12px; font-size: 16px; }
-        .unit-name-tag { font-size: 11.5px; font-weight: bold; color: #f8fafc; background: rgba(15, 23, 42, 0.82); padding: 1px 6px; border-radius: 6px; border: 1px solid #475569; white-space: nowrap; max-width: 86px; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+        /* ★ 縮小並對齊右上角的狀態圖示 (包含大屏與平板) */
+        .unit-status-icon, #pad-player-status-icon { position: absolute; top: -10px; right: -15px; font-size: 14px; pointer-events: none; z-index: 15; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); white-space: nowrap; line-height: 1; }
+        .unit-name-tag { font-size: 11.5px; font-weight: bold; color: #f8fafc; background: rgba(15, 23, 42, 0.82); padding: 1px 6px; border-radius: 6px; border: 1px solid #475569; white-space: nowrap; max-width: 86px; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
         .raid-unit.bot-unit .unit-name-tag { background: #fde047; color: #000; border-color: #ca8a04; }
 
+        /* 中央巨大妖魔 */
         #raid-boss-center-zone {
             position: absolute; left: 50%; top: 25%; transform: translate(-50%, -50%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 4; pointer-events: none; width: 350px;
+            z-index: 4; pointer-events: none; width: 350px; transition: left 1s ease-in-out, top 1s ease-in-out;
         }
         .boss-stage-shadow { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 140px; height: 30px; background: rgba(0, 0, 0, 0.8); border-radius: 50%; filter: blur(8px); z-index: -1; pointer-events: none; }
         
         .boss-stage-tag { font-size: 20px; font-weight: bold; color: #fde047; margin-bottom: 6px; text-shadow: 0 2px 6px #000; letter-spacing: 2px; }
-        .boss-hp-bar-outer { width: 100%; max-width: 300px; height: 18px; background: #0f172a; border: 2px solid #f8fafc; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); margin-bottom: 12px; }
+        /* ★ 妖魔血條縮短 */
+        .boss-hp-bar-outer { width: 100%; max-width: 180px; height: 16px; background: #0f172a; border: 2px solid #f8fafc; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); margin-bottom: 12px; }
         #raid-boss-hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #dc2626, #f97316); transition: width 0.4s ease; }
         
         #raid-boss-sprite-wrap { position: relative; display: flex; align-items: center; justify-content: center; animation: bossHover 4s infinite ease-in-out alternate; }
         #raid-boss-sprite { font-size: 180px; line-height: 1; filter: drop-shadow(0 0 35px rgba(239, 68, 68, 0.8)); transition: all 0.3s; }
         @keyframes bossHover { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+
+        /* ★ 妖魔特化定位與特效 */
+        .boss-grounded #raid-boss-sprite-wrap, .boss-grounded #pad-enemy-sprite { transform: translateY(35px) !important; animation: snakeBreathe 3s infinite alternate !important; }
+        @keyframes snakeBreathe { 0% { transform: translateY(35px) scaleY(1); } 100% { transform: translateY(35px) scaleY(0.95); } }
+        .boss-hanging::after { content: ''; position: absolute; bottom: 50%; left: 50%; width: 2px; height: 400px; background: linear-gradient(to top, rgba(255,255,255,0.9), rgba(255,255,255,0)); transform: translateX(-50%); pointer-events: none; z-index: -1; }
 
         .boss-attack-dive { transform: scale(1.4) translateY(60px) !important; filter: drop-shadow(0 0 50px red) brightness(1.5) !important; animation: none !important; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .boss-hit-recoil { transform: scale(0.85) translate(30px, -30px) rotate(15deg) !important; filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 25px #00e5ff) !important; transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -175,7 +210,6 @@
 
         #raid-center-banner { display: none; position: absolute; top: 35%; left: 50%; transform: translateX(-50%); background: linear-gradient(90deg, #b91c1c, #f59e0b, #b91c1c); border: 3px solid #fde047; color: #fff; padding: 12px 40px; border-radius: 40px; font-size: clamp(26px, 4vw, 42px); font-weight: bold; z-index: 50; box-shadow: 0 0 50px rgba(253, 224, 71, 0.9); text-shadow: 2px 2px 5px #000; white-space: nowrap; animation: popIn 0.3s ease-out; pointer-events: none; }
 
-        /* 玩家狀態特效 (修復 ID 以相容平板端) */
         .flash-gold .unit-avatar-box, .flash-gold { animation: flashGoldAnim 1s ease-out !important; }
         .flash-ultimate .unit-avatar-box, .flash-ultimate { animation: flashUltAnim 1.5s ease-out !important; }
         @keyframes flashGoldAnim { 0% { filter: drop-shadow(0 0 25px #fde047) brightness(1.5); } 100% { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); } }
@@ -205,9 +239,7 @@
         .raid-input-group input { width: 100%; padding: 8px 12px; font-size: 18px; font-weight: bold; background: #0b132b; border: 2px solid #4a5c88; border-radius: 8px; color: #fff; text-align: center; font-family: inherit; }
         .raid-input-group input::placeholder { font-size: 14px; font-weight: normal; color: #475569; }
 
-        /* ========================================================= */
-        /* ★ 6. 學生平板：全新 2.5D 戰鬥 UI (地平線與魔法微塵) */
-        /* ========================================================= */
+        /* 6. 學生平板：全新 2.5D 戰鬥 UI */
         #game-screen { display: none; flex-direction: column; height: 100%; width: 100%; padding: 10px 12px; justify-content: space-between; z-index: 20; }
         .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 6px; font-weight: bold; flex-shrink: 0; gap: 8px; }
         .header-left-group { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
@@ -219,17 +251,8 @@
         .pad-hp-track { width: 96px; height: 12px; background: #1e293b; border-radius: 6px; overflow: hidden; border: 1px solid #475569; }
         .pad-hp-fill { height: 100%; width: 100%; background: #22c55e; transition: width 0.3s ease, background 0.3s ease; }
 
-        /* 帶有清晰地平線的漸層背景 */
-        #rpg-arena { 
-            position: relative; width: 100%; height: 135px;
-            background: linear-gradient(to bottom, #090e17 0%, #16213e 55%, #3a506b 55%, #1e293b 100%); 
-            border-radius: 10px; border-bottom: 3px solid #4a5c88; 
-            margin-bottom: 6px; overflow: hidden; flex-shrink: 0;
-            box-shadow: inset 0 20px 30px rgba(0,0,0,0.5); 
-        }
-        
+        #rpg-arena { position: relative; width: 100%; height: 135px; background: linear-gradient(to bottom, #090e17 0%, #16213e 55%, #3a506b 55%, #1e293b 100%); border-radius: 10px; border-bottom: 3px solid #4a5c88; margin-bottom: 6px; overflow: hidden; flex-shrink: 0; box-shadow: inset 0 20px 30px rgba(0,0,0,0.5); }
         .bg-scenery { position: absolute; font-size: 24px; filter: brightness(0.35) blur(1px); z-index: 1; pointer-events: none; }
-        
         .dust { position: absolute; width: 4px; height: 4px; background: #fde047; border-radius: 50%; box-shadow: 0 0 8px #fde047; animation: floatUp 3s infinite ease-in; opacity: 0; z-index: 2; pointer-events: none; }
         .dust:nth-child(2) { animation-delay: 1s; left: 30%; background: #00e5ff; box-shadow: 0 0 8px #00e5ff; }
         .dust:nth-child(3) { animation-delay: 2s; left: 70%; background: #4ade80; box-shadow: 0 0 8px #4ade80; }
@@ -237,23 +260,18 @@
 
         .stage-shadow { position: absolute; bottom: -5px; width: 60px; height: 12px; background: rgba(0, 0, 0, 0.7); border-radius: 50%; filter: blur(3px); z-index: 1; pointer-events: none; }
 
-        /* 玩家 (左側前排) */
-        #player-wrapper { position: absolute; left: 12%; bottom: 10px; display: flex; align-items: flex-end; justify-content: center; z-index: 5; }
-        #player-status-icon { position: absolute; top: -8px; right: -18px; font-size: 16px; pointer-events: none; z-index: 6; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); white-space: nowrap; line-height: 1; }
-        #player-wrapper::before { content: ''; position: absolute; width: 70px; height: 70px; bottom: -5px; left: 50%; transform: translateX(-50%); border-radius: 50%; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 1; }
-        #player-wrapper.chanting::before { opacity: 1; border: 3px dashed #00e5ff; box-shadow: 0 0 10px #00e5ff; animation: spinCircle 1.5s linear infinite; }
-        #player-wrapper.submitted::before { opacity: 1; border: 4px solid #00e5ff; box-shadow: 0 0 15px #00e5ff; animation: none; }
+        #pad-player-wrapper { position: absolute; left: 12%; bottom: 10px; display: flex; align-items: flex-end; justify-content: center; z-index: 5; }
+        .pad-rpg-sprite { font-size: 55px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; position: relative; z-index: 3; }
+        #pad-player-sprite { transform-origin: bottom center; }
+        #pad-enemy-wrapper { position: absolute; right: 12%; bottom: 40px; display: flex; flex-direction: column; align-items: center; z-index: 4; transform: scale(0.85); transition: all 1s; }
+        #pad-enemy-hp-ui { font-size: 14px; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; line-height: 1.2; text-shadow: 0 2px 4px #000; }
+        #pad-enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
 
-        /* 妖魔 (右側後排) */
-        #enemy-wrapper { position: absolute; right: 12%; bottom: 40px; display: flex; flex-direction: column; align-items: center; z-index: 4; transform: scale(0.85); }
-        #enemy-hp-ui { font-size: 14px; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; line-height: 1.2; text-shadow: 0 2px 4px #000; }
-        
-        .rpg-sprite { font-size: 55px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; position: relative; z-index: 3; }
-        #player-sprite { transform-origin: bottom center; }
-        #enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
-
-        .enemy-hit-flash { transform: scale(0.75) translate(20px, -20px) rotate(10deg) !important; filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 25px #00e5ff) !important; }
-        .enemy-attack { transform: scale(0.95) translate(-20px, 20px) rotate(-10deg) !important; }
+        .pad-player-dodge { transform: scale(1.1) translate(-20px, -10px) rotate(-15deg) !important; }
+        .pad-player-hit { transform: scale(1) translate(-10px, 0) rotate(-10deg) !important; filter: drop-shadow(0 0 20px red) sepia(1) hue-rotate(-50deg) saturate(5) !important; }
+        .pad-enemy-hit-flash { transform: scale(0.75) translate(20px, -20px) rotate(10deg) !important; filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 25px #00e5ff) !important; }
+        .pad-enemy-attack { transform: scale(0.95) translate(-20px, 20px) rotate(-10deg) !important; }
+        .pad-enemy-dead { transform: scale(0.85) rotate(90deg) translate(30px, 30px) !important; filter: grayscale(1) opacity(0.7) drop-shadow(0 0 0 transparent) !important; }
 
         .question-row { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 8px; min-height: 46px; flex-wrap: wrap; }
         #gourd-btn { display: flex; align-items: center; gap: 5px; background: rgba(249, 168, 38, 0.15); border: 2px solid #f9a826; border-radius: 24px; padding: 4px 12px 4px 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(249, 168, 38, 0.35); }
@@ -321,9 +339,9 @@
             #game-screen { padding: 4px 10px; }
             .header-info { margin-bottom: 3px; font-size: 14px; }
             #rpg-arena { height: 95px; } 
-            .rpg-sprite { font-size: 38px; }
-            #player-wrapper::before { width: 50px; height: 50px; bottom: -2px; }
-            #player-status-icon { top: -6px; right: -12px; font-size: 13px; }
+            .pad-rpg-sprite { font-size: 38px; }
+            #pad-player-wrapper::before { width: 50px; height: 50px; bottom: -2px; }
+            #pad-player-status-icon { top: -6px; right: -12px; font-size: 13px; }
             .stage-shadow { width: 40px; height: 8px; }
             
             .question-row { gap: 10px; margin-bottom: 2px; min-height: 32px; }
@@ -341,7 +359,7 @@
     </style>
 </head>
 <body>
- <div id="version-tag">Ver 8.7</div>
+    <div id="version-tag">Ver 8.8</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -542,7 +560,7 @@
         </div>
     </div>
 
-    <!-- 6. 學生平板：全新 2.5D 戰鬥 UI 與 虛擬鍵盤 (修復了 HTML IDs 讓它能被 JS 找到) -->
+    <!-- 6. 學生平板：戰鬥 UI 與 虛擬鍵盤 -->
     <div id="game-screen">
         <div class="header-info">
             <div class="header-left-group">
@@ -567,16 +585,19 @@
                 <div class="dust" style="left: 55%; bottom: 35px;"></div>
                 <div class="dust" style="left: 85%; bottom: 15px;"></div>
 
-                <div id="player-wrapper">
+                <div id="pad-player-wrapper">
+                    <!-- ★ 加入平板專屬血條 -->
+                    <div class="unit-hp-track" style="z-index:10;"><div class="unit-hp-fill" id="pad-unit-hp"></div></div>
                     <div class="stage-shadow"></div>
-                    <div class="rpg-sprite" id="player-sprite">🧙‍♂️</div>
-                    <div id="player-status-icon"></div>
+                    <div class="pad-rpg-sprite" id="player-sprite">🧙‍♂️</div>
+                    <!-- ★ 補回並調整右上角狀態圖示 -->
+                    <div id="pad-player-status-icon"></div>
                 </div>
 
-                <div id="enemy-wrapper">
+                <div id="pad-enemy-wrapper">
                     <div class="stage-shadow" style="width: 45px;"></div>
-                    <div id="enemy-hp-ui">🪞法力同步中</div>
-                    <div class="rpg-sprite" id="enemy-sprite">🦇</div>
+                    <div id="pad-enemy-hp-ui">🪞法力同步中</div>
+                    <div class="pad-rpg-sprite" id="enemy-sprite">🦇</div>
                 </div>
             </div>
 
@@ -666,225 +687,7 @@
             </div>
         </div>
     </div>
-</div>   
-    <script>
-    // =========================================================
-    // ★ Firebase 伺服器連線設定
-    // =========================================================
-    const firebaseConfig = {
-        apiKey: "AIzaSyB5KFifSLLKSTvXBiz6ufHeyvVfWyhyZa0",
-        authDomain: "exorcist-a55db.firebaseapp.com",
-        databaseURL: "https://exorcist-a55db-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "exorcist-a55db",
-        storageBucket: "exorcist-a55db.firebasestorage.app",
-        messagingSenderId: "400132667587",
-        appId: "1:400132667587:web:9ad6fe161c45617d29ca76"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // =========================================================
-    // 📚 題庫設定與全域團戰變數
-    // =========================================================
-    const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
-    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
-    const audioFolderMap = {
-        "B1L1": "育達B1L1音檔", "B1L2": "育達B1L2音檔", "B1L3": "育達B1L3音檔", "B1L4": "育達B1L4音檔",
-        "B3L1": "康軒B3L1音檔", "B3L2": "康軒B3L2音檔", "B3L3": "康軒B3L3音檔", "防災素一": "康軒防災素一音檔", "拼音練習": "拼音練習音檔"
-    };
-
-    const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦','🦚','🐏','🐮','🦉','🐋','🐴','🐵'];
-    const RAID_WEAPONS = ['☀️','🥚','🌸','🌼','🌷','🌱','☘️','🍇','🍉','🍓','🫐','🥝','🌪️','🌬️','🌀','❄️','🌊','⭐','🧡','🍬','🍭','🫛','🫜','⚾','🥎'];
-    
-    let currentAvatars = [...RAID_AVATARS];
-    let currentWeapons = [...RAID_WEAPONS];
-
-    let RAID_BOSS_LIST = [
-        { name: '暗夜密婆', sprite: '🦇', maxHp: 200, attack: '🎵' },
-        { name: '劇毒青蛇', sprite: '🐍', maxHp: 400, attack: '💧' },
-        { name: '魔窟妖蛛', sprite: '🕷️', maxHp: 500, attack: '🕸️' },
-        { name: '赤焰紅鬼', sprite: '👹', maxHp: 650, attack: '🔥' }
-    ];
-
-    const audioPlayer = new Audio();
-    let raidDifficulty = 'master'; 
-    let isRaidStudentMode = false;
-    let raidStudentCurrentQ = null;
-    let raidStudentLocked = false;
-
-    let parsedAnswer = []; let inputBoxes = []; let currentSyllableIndex = 0; let typedBase = "";
-    const validLetters = ['a','b','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
-    const toneDigits = ['1','2','3','4','5','7','8','9'];
-    
-    let gourdsLeft = 3; let usedGourdOnCurrentQ = false; let timer = null; let timeLeft = 0;
-    let studentHostConn = null; let raidRoomPin = ""; let raidSelectedLessons = ["B1L1"];
-    let raidTeams = []; let raidQuestionDeck = []; let raidTotalQuestions = 25; let raidCurrentQIdx = 0;
-    let raidCurrentMatch = null; let raidBossIdx = 0; let raidBossHp = 200; let raidAllBossesCleared = false;
-    let raidHostTimer = null; let raidWanderInterval = null; let raidMissedStats = [];
-
-    // =========================================================
-    // 🎵 音效與 BGM 引擎
-    // =========================================================
-    let sfxCtx = null; let sfxMuted = false;
-    const BGM_TRACKS = [
-        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-01.mp3",
-        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-02.mp3",
-        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-03.mp3",
-        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-04.mp3",
-        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-05.mp3",
-        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-06.mp3",
-        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-07.mp3",
-        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-08.mp3",
-        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-09.mp3",
-        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-10.mp3"
-    ];
-    let bgmPlayer = new Audio(); bgmPlayer.volume = 0.35; let isBgmMuted = false; let currentBgmIndex = Math.floor(Math.random() * BGM_TRACKS.length); let bgmFadeInterval = null;
-
-    function playCurrentBGM() {
-        if (isBgmMuted) return;
-        if (bgmPlayer.src !== BGM_TRACKS[currentBgmIndex]) bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
-        bgmPlayer.play().catch(()=>{});
-    }
-    bgmPlayer.addEventListener('ended', () => { currentBgmIndex = (currentBgmIndex + 1) % BGM_TRACKS.length; bgmPlayer.src = BGM_TRACKS[currentBgmIndex]; playCurrentBGM(); });
-
-    function toggleBGM() {
-        const btn = document.getElementById('bgm-toggle-btn'); if (!btn) return;
-        isBgmMuted = !isBgmMuted;
-        if (isBgmMuted) { clearInterval(bgmFadeInterval); bgmPlayer.pause(); btn.classList.add('muted'); } 
-        else { bgmPlayer.volume = 0.35; playCurrentBGM(); btn.classList.remove('muted'); }
-    }
-
-    function fadeBGM(targetVol, duration) {
-        if (isBgmMuted || !bgmPlayer.src) return; clearInterval(bgmFadeInterval);
-        if (bgmPlayer.paused && targetVol > 0.05) bgmPlayer.play().catch(()=>{});
-        const steps = 20; const stepTime = duration / steps; const volChange = (targetVol - bgmPlayer.volume) / steps;
-        bgmFadeInterval = setInterval(() => {
-            let nextVol = bgmPlayer.volume + volChange;
-            if (nextVol > 1) nextVol = 1; if (nextVol < 0) nextVol = 0;
-            if ((volChange > 0 && nextVol >= targetVol) || (volChange < 0 && nextVol <= targetVol)) { bgmPlayer.volume = targetVol; clearInterval(bgmFadeInterval); } 
-            else bgmPlayer.volume = nextVol;
-        }, stepTime);
-    }
-
-    function duckBGM() { fadeBGM(0.05, 400); }
-    function unduckBGM() { fadeBGM(0.35, 800); }
-    audioPlayer.addEventListener('ended', unduckBGM); audioPlayer.addEventListener('pause', unduckBGM);
-
-    function getSfxCtx() {
-        if (!sfxCtx) { const AudioCtx = window.AudioContext || window.webkitAudioContext; if (AudioCtx) sfxCtx = new AudioCtx(); }
-        if (sfxCtx && sfxCtx.state === 'suspended') sfxCtx.resume(); return sfxCtx;
-    }
-
-    function toggleSfx() {
-        sfxMuted = !sfxMuted;
-        const btnHost = document.getElementById('sfx-toggle-btn-host'); if (btnHost) btnHost.classList.toggle('muted', sfxMuted);
-        const btnPad = document.getElementById('sfx-toggle-btn'); if (btnPad) btnPad.classList.toggle('muted', sfxMuted);
-        if (!sfxMuted) sfxSyllableChant();
-    }
-
-    function playToneNode(freqStart, freqEnd, duration, type = 'sine', maxGain = 0.2, delay = 0) {
-        if (sfxMuted) return;
-        const ctx = getSfxCtx(); if (!ctx) return;
-        const t0 = ctx.currentTime + delay; const osc = ctx.createOscillator(); const gain = ctx.createGain();
-        osc.type = type; osc.frequency.setValueAtTime(freqStart, t0);
-        if (freqEnd !== freqStart) osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
-        gain.gain.setValueAtTime(0.001, t0); gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2)); gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
-        osc.connect(gain); gain.connect(ctx.destination); osc.start(t0); osc.stop(t0 + duration + 0.02);
-    }
-
-    function sfxEnemyDeath() { playToneNode(180, 42, 0.32, 'sawtooth', 0.24, 0); playToneNode(130, 35, 0.35, 'square', 0.16, 0.04); playToneNode(523.25, 523.25, 0.12, 'triangle', 0.22, 0.22); playToneNode(659.25, 783.99, 0.25, 'triangle', 0.25, 0.32); }
-    function sfxEnemyHit() { playToneNode(880, 260, 0.18, 'sine', 0.22, 0); playToneNode(587.33, 1174.66, 0.16, 'triangle', 0.2, 0.08); playToneNode(150, 55, 0.14, 'sawtooth', 0.22, 0.14); }
-    function sfxPlayerDodge() { playToneNode(240, 720, 0.14, 'sine', 0.14, 0.12); playToneNode(320, 880, 0.12, 'triangle', 0.1, 0.15); }
-    function sfxPlayerHit() { playToneNode(150, 38, 0.28, 'sawtooth', 0.32, 0); playToneNode(95, 30, 0.32, 'square', 0.25, 0.03); }
-    function sfxShieldBlock() { playToneNode(420, 280, 0.14, 'triangle', 0.25, 0); playToneNode(600, 350, 0.12, 'sine', 0.18, 0.05); }
-    function sfxShieldBreak() { playToneNode(280, 55, 0.32, 'sawtooth', 0.32, 0); playToneNode(190, 40, 0.35, 'square', 0.26, 0.06); }
-    function sfxFeatherRevive() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, idx) => playToneNode(f, f * 1.05, 0.18, 'triangle', 0.24, idx * 0.07)); }
-    function sfxUseGourd() { [523.25, 659.25, 783.99, 1046.5].forEach((n, idx) => playToneNode(n, n, 0.16, 'sine', 0.2, idx * 0.055)); }
-    function sfxCoin() { playToneNode(987.77, 987.77, 0.08, 'sine', 0.25, 0); playToneNode(1318.51, 1318.51, 0.28, 'sine', 0.28, 0.08); }
-    function sfxError() { playToneNode(175, 145, 0.08, 'sawtooth', 0.12, 0); playToneNode(145, 115, 0.11, 'sawtooth', 0.12, 0.09); }
-    function sfxSyllableChant() { playToneNode(659.25, 880, 0.12, 'sine', 0.14, 0); }
-    function sfxTimerTick() { playToneNode(880, 660, 0.045, 'triangle', 0.15, 0); }
-    function sfxVictory() { [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playToneNode(f, f, 0.16, 'triangle', 0.24, i * 0.12)); }
-    function sfxUltimateVictory() { [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => playToneNode(f, f, 0.2, 'square', 0.2, i * 0.1)); }
-
-    function toggleInfoModal(show) { document.getElementById('info-modal').style.display = show ? 'flex' : 'none'; }
-
-    // =========================================================
-    // ⌨️ 虛擬鍵盤與台羅音節拆解系統
-    // =========================================================
-    function getToneSvg(tone, isChecked = false) {
-        let markPath = '';
-        switch(tone) {
-            case 2: markPath = `<line x1="12.5" y1="3.5" x2="8" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
-            case 3: markPath = `<line x1="7.5" y1="3.5" x2="12" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
-            case 5: markPath = `<path d="M 6.2 9 L 10 3.8 L 13.8 9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />`; break;
-            case 6: markPath = `<path d="M 6.5 5 L 10 9 L 13.5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />`; break;
-            case 7: markPath = `<line x1="6.2" y1="6.8" x2="13.8" y2="6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
-            case 8: markPath = `<line x1="10" y1="3" x2="10" y2="9.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />`; break;
-            case 9: markPath = `<line x1="9.8" y1="3.5" x2="6.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" /><line x1="13.8" y1="3.5" x2="10.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />`; break;
-        }
-        const vb = isChecked ? "3.5 0 13 26" : "0 0 20 26";
-        return `<svg class="tone-svg-unified" viewBox="${vb}">${markPath}<circle cx="10" cy="18" r="5.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5,2" /></svg>`;
-    }
-    const ptkhGridHtml = `<div class="checked-tone-grid"><span>p</span><span>t</span><span>k</span><span>h</span></div>`;
-    const subTone4 = `<div class="checked-tone-group">${getToneSvg(4, true)}${ptkhGridHtml}</div>`;
-    const subTone8 = `<div class="checked-tone-group">${getToneSvg(8, true)}${ptkhGridHtml}</div>`;
-
-    function isCurrentSyllableToneChained() { return raidDifficulty === 'apprentice'; }
-
-    function formatTailoDisplay(str) {
-        if (!str) return '';
-        let nfd = str.normalize('NFD'); let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>'); res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
-        return res.normalize('NFC');
-    }
-
-    function parseTaiLoAnswer(rawText) {
-        let text = rawText.split('(')[0].toLowerCase().trim(); let rawSyllables = text.split(/[\s\-–—]+/).filter(s => s.length > 0);
-        const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
-        let parsed = [];
-        for (let s of rawSyllables) {
-            let nfd = s.normalize("NFD"); let base = ""; let tone = null;
-            for (let char of nfd) { if (toneMap[char]) tone = toneMap[char]; else if (/[a-z]/.test(char)) base += char; }
-            if (!tone) tone = /[ptkh]$/.test(base) ? '4' : '1'; parsed.push({ base: base, tone: tone });
-        }
-        return parsed;
-    }
-
-    function applyToneToSyllable(syllable, toneDigit) {
-        if (toneDigit === '1' || toneDigit === '4') return syllable;
-        const marks = { '2': '\u0301', '3': '\u0300', '5': '\u0302', '7': '\u0304', '8': '\u030D', '9': '\u030B' }; const m = marks[toneDigit]; if (!m) return syllable;
-        let res = syllable;
-        if (res.includes('a')) res = res.replace('a', 'a' + m); else if (res.includes('oo')) res = res.replace('oo', 'o' + m + 'o'); else if (res.includes('o') && !res.includes('oa') && !res.includes('oe')) res = res.replace('o', 'o' + m); else if (res.includes('e')) res = res.replace('e', 'e' + m); else if (res.includes('iu')) res = res.replace('iu', 'i' + 'u' + m); else if (res.includes('ui')) res = res.replace('ui', 'u' + 'i' + m); else if (res.includes('i')) res = res.replace('i', 'i' + m); else if (res.includes('u')) res = res.replace('u', 'u' + m); else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g'); else if (res.includes('m')) res = res.replace('m', 'm' + m);
-        return formatTailoDisplay(res);
-    }
-
-    function createKeyDiv(keyObj) {
-        let val = typeof keyObj === 'string' ? keyObj : keyObj.val; let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display; let subText = typeof keyObj === 'object' ? keyObj.sub : null; let forceDisabled = typeof keyObj === 'object' && keyObj.disabled; let customClass = typeof keyObj === 'object' && keyObj.customClass ? keyObj.customClass : '';
-        const btn = document.createElement('div'); btn.className = `key ${customClass}`; btn.dataset.key = val; let html = '';
-        if (toneDigits.includes(val) || val === '6') { html += `<div class="tone-num">${display}</div><div class="tone-symbol">${subText}</div>`; } else { html = `<div>${display}</div>`; }
-        btn.innerHTML = html;
-        if (!forceDisabled && (validLetters.includes(val) || toneDigits.includes(val) || val === 'Backspace')) {
-            btn.classList.add('active-key'); btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); }); btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
-        } else if (val === '6') {
-            btn.classList.add('disabled-key'); btn.addEventListener('mousedown', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); }); btn.addEventListener('touchstart', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); }, {passive: false});
-        } else btn.classList.add('disabled-key');
-        return btn;
-    }
-
-    function buildKeyboard() {
-        const kbContainer = document.getElementById('keyboard'); kbContainer.innerHTML = '';
-        const row0 = document.createElement('div'); row0.className = 'kb-row'; const toneGroup = document.createElement('div'); toneGroup.className = 'tone-keys-group'; toneGroup.id = 'tone-keys-group';
-        const toneKeys = [ {val: '1', display: '1', sub: getToneSvg(1)}, {val: '2', display: '2', sub: getToneSvg(2)}, {val: '3', display: '3', sub: getToneSvg(3)}, {val: '4', display: '4', sub: subTone4}, {val: '5', display: '5', sub: getToneSvg(5)}, {val: '6', display: '6', sub: getToneSvg(6), disabled: true}, {val: '7', display: '7', sub: getToneSvg(7)}, {val: '8', display: '8', sub: subTone8}, {val: '9', display: '9', sub: getToneSvg(9)} ];
-        toneKeys.forEach(k => toneGroup.appendChild(createKeyDiv(k))); row0.appendChild(toneGroup); row0.appendChild(createKeyDiv({val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'})); kbContainer.appendChild(row0);
-        const row1 = document.createElement('div'); row1.className = 'kb-row'; ['q','w','e','r','t','y','u','i','o','p'].forEach(k => row1.appendChild(createKeyDiv(k))); kbContainer.appendChild(row1);
-        const row2 = document.createElement('div'); row2.className = 'kb-row kb-row-2'; ['a','s','d','f','g','h','j','k','l'].forEach(k => row2.appendChild(createKeyDiv(k))); kbContainer.appendChild(row2);
-        const row3 = document.createElement('div'); row3.className = 'kb-row kb-row-3'; ['z','x','c','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k))); kbContainer.appendChild(row3);
-    }
-
-    function shuffleBank(array) {
-        const arr = [...array]; for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr;
-    }
-</script>
+</div>
 <script>
     // =========================================================
     // ★ Firebase 伺服器連線設定
@@ -914,6 +717,9 @@
     const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦','🦚','🐏','🐮','🦉','🐋','🐴','🐵'];
     const RAID_WEAPONS = ['☀️','🥚','🌸','🌼','🌷','🌱','☘️','🍇','🍉','🍓','🫐','🥝','🌪️','🌬️','🌀','❄️','🌊','⭐','🧡','🍬','🍭','🫛','🫜','⚾','🥎'];
     
+    // ★ 6 色專屬魔法光環 (冰藍、幻紫、櫻粉、螢綠、烈橘、雷黃)
+    const AURA_COLORS = ['#38bdf8', '#c084fc', '#f472b6', '#4ade80', '#fb923c', '#fde047'];
+
     let currentAvatars = [...RAID_AVATARS];
     let currentWeapons = [...RAID_WEAPONS];
 
@@ -1167,11 +973,11 @@
         return finalName;
     }
 
-    // ★ 創建時賦予每個學生一個 baseAngle，確保未來站位排序不會亂掉
-    function createRaidTeamObj(name, seatNo, padNo, avatar, hueRotate, weapon, conn, isBot) {
+    // ★ 分配專屬光環與固定角度
+    function createRaidTeamObj(name, seatNo, padNo, avatar, hueRotate, weapon, auraColor, conn, isBot) {
         const teamCount = raidTeams.length;
         return {
-            id: (isBot ? 'bot_' : 'p_') + Date.now() + '_' + Math.random().toString(36).substr(2, 4), name: name, seatNo: seatNo || 'N/A', padNo: padNo || 'N/A', avatar: avatar, hueRotate: hueRotate, weapon: weapon, hp: 3.0, maxHp: 3.0, consecWrong: 0, ghostCorrectCount: 0, streak: 0, feathers: 0, score: 0, totalQ: 0, correctQ: 0, wrongList: [], reviveProtected: false, conn: conn, isBot: isBot, baseAngle: teamCount, x: 50, y: 80, submitTime: 0 
+            id: (isBot ? 'bot_' : 'p_') + Date.now() + '_' + Math.random().toString(36).substr(2, 4), name: name, seatNo: seatNo || 'N/A', padNo: padNo || 'N/A', avatar: avatar, hueRotate: hueRotate, weapon: weapon, aura: auraColor, hp: 3.0, maxHp: 3.0, consecWrong: 0, ghostCorrectCount: 0, streak: 0, feathers: 0, score: 0, totalQ: 0, correctQ: 0, wrongList: [], reviveProtected: false, conn: conn, isBot: isBot, baseAngle: teamCount, x: 50, y: 80, submitTime: 0 
         };
     }
 
@@ -1179,8 +985,11 @@
         if (data.type === 'JOIN') {
             const finalName = filterStudentName(data.name); const pCount = raidTeams.length;
             const icon = currentAvatars[pCount % currentAvatars.length]; const hueRotate = Math.floor(pCount / currentAvatars.length) * 60; const weapon = currentWeapons[pCount % currentWeapons.length];
-            const teamObj = createRaidTeamObj(finalName, data.seatNo, data.padNo, icon, hueRotate, weapon, conn, false); raidTeams.push(teamObj);
-            conn.send({ type: 'JOINED_OK', name: teamObj.name, avatar: teamObj.avatar, hueRotate: teamObj.hueRotate, weapon: teamObj.weapon, hp: teamObj.hp, feathers: teamObj.feathers, difficulty: raidDifficulty });
+            const auraColor = AURA_COLORS[pCount % AURA_COLORS.length];
+            const teamObj = createRaidTeamObj(finalName, data.seatNo, data.padNo, icon, hueRotate, weapon, auraColor, conn, false); raidTeams.push(teamObj);
+            
+            // ★ 將專屬顏色傳給學生平板
+            conn.send({ type: 'JOINED_OK', name: teamObj.name, avatar: teamObj.avatar, hueRotate: teamObj.hueRotate, weapon: teamObj.weapon, aura: teamObj.aura, hp: teamObj.hp, feathers: teamObj.feathers, difficulty: raidDifficulty });
             sfxSyllableChant(); renderRaidLobbyTeams();
         } else if (data.type === 'CHANTING') {
             const team = raidTeams.find(t => t.conn === conn); if (team && raidCurrentMatch && raidCurrentMatch.accepting) { const unitEl = document.getElementById(`raid-unit-${team.id}`); if (unitEl) unitEl.classList.add('unit-chanting'); }
@@ -1193,8 +1002,8 @@
 
     function addRaidBot() {
         getSfxCtx(); const botNames = ["甲組", "乙組", "丙組", "丁組", "戊組", "己組", "庚組", "辛組"];
-        const finalName = filterStudentName(botNames[raidTeams.length % botNames.length]); const pCount = raidTeams.length; const icon = currentAvatars[pCount % currentAvatars.length]; const hueRotate = Math.floor(pCount / currentAvatars.length) * 60; const weapon = currentWeapons[pCount % currentWeapons.length];
-        raidTeams.push(createRaidTeamObj(finalName, 'bot', 'bot', icon, hueRotate, weapon, null, true)); sfxSyllableChant(); renderRaidLobbyTeams();
+        const finalName = filterStudentName(botNames[raidTeams.length % botNames.length]); const pCount = raidTeams.length; const icon = currentAvatars[pCount % currentAvatars.length]; const hueRotate = Math.floor(pCount / currentAvatars.length) * 60; const weapon = currentWeapons[pCount % currentWeapons.length]; const auraColor = AURA_COLORS[pCount % AURA_COLORS.length];
+        raidTeams.push(createRaidTeamObj(finalName, 'bot', 'bot', icon, hueRotate, weapon, auraColor, null, true)); sfxSyllableChant(); renderRaidLobbyTeams();
     }
 
     function removeRaidTeamFromLobby(teamId, badgeEl) {
@@ -1244,41 +1053,28 @@
         document.getElementById('raid-lobby-screen').classList.remove('active'); document.getElementById('raid-host-screen').classList.add('active'); document.getElementById('raid-hud-diff-label').innerText = (raidDifficulty === 'apprentice') ? '咒術師仔' : '咒術師父';
         
         initRaidArmyUnitsDOM(); 
-        updateRaidArmyPositions(); // ★ 首次安排陣型
+        updateRaidArmyPositions(); 
         updateRaidBossUI(); 
         renderRaidLiveScoreboard(); 
-        startRaidWanderingLoop(); // ★ 啟動自動走動與收攏引擎
+        startRaidWanderingLoop(); 
         runNextRaidQuestion();
     }
 
-    // ★ 核心動態列陣引擎：只針對活著的玩家重新計算間距，並加上隨機位移
     function updateRaidArmyPositions() {
         const aliveTeams = raidTeams.filter(t => t.hp > 0);
         const totalAlive = aliveTeams.length;
-        // 依據原始報數排序，確保左到右的相對位置不變
         aliveTeams.sort((a, b) => a.baseAngle - b.baseAngle);
         
         aliveTeams.forEach((t, idx) => {
             let targetX = 50;
-            // 根據存活人數動態將 15%~85% 的區域均分，有人陣亡自動向內靠攏
-            if (totalAlive > 1) {
-                targetX = 15 + (idx * (70 / (totalAlive - 1)));
-            }
-            // 每隔幾秒加入輕微的隨機腳步偏移 (-4% 到 +4%)
+            if (totalAlive > 1) targetX = 15 + (idx * (70 / (totalAlive - 1)));
             const wanderX = targetX + (Math.random() * 8 - 4);
-            
-            // 扇形透視計算：越往兩側走，距離鏡頭越近(Y 越小)
             const distFromCenter = Math.abs(wanderX - 50) / 35; 
             const targetY = 72 + (distFromCenter * 16) + (Math.random() * 4 - 2);
-            
-            t.x = wanderX;
-            t.y = targetY;
+            t.x = wanderX; t.y = targetY;
             
             const unit = document.getElementById(`raid-unit-${t.id}`);
-            if (unit) {
-                unit.style.left = `${t.x}%`;
-                unit.style.top = `${t.y}%`;
-            }
+            if (unit) { unit.style.left = `${t.x}%`; unit.style.top = `${t.y}%`; }
         });
     }
 
@@ -1287,11 +1083,11 @@
         raidTeams.forEach(t => {
             const unit = document.createElement('div'); unit.className = 'raid-unit' + (t.isBot ? ' bot-unit' : ''); unit.id = `raid-unit-${t.id}`; 
             
-            unit.style.left = `50%`; 
-            unit.style.top = `80%`;
+            // ★ 將專屬光環色與座標注入 style
+            unit.style = `--aura-color: ${t.aura}; left: 50%; top: 80%;`;
             
             unit.innerHTML = `
-                <div class="unit-hp-track" style="position:relative; z-index:3;"><div class="unit-hp-fill" id="unit-hp-${t.id}"></div></div>
+                <div class="unit-hp-track"><div class="unit-hp-fill" id="unit-hp-${t.id}"></div></div>
                 <div class="host-stage-shadow"></div>
                 <div class="unit-avatar-box"><span id="unit-avatar-${t.id}" style="--hue:${t.hueRotate}deg; filter: hue-rotate(var(--hue)); display:inline-block;">${t.avatar}</span><span class="unit-status-icon" id="unit-status-${t.id}"></span></div>
                 <div class="unit-name-tag" style="position:relative; z-index:3;">${t.name}</div>`;
@@ -1304,15 +1100,19 @@
             const unit = document.getElementById(`raid-unit-${t.id}`); const hpFill = document.getElementById(`unit-hp-${t.id}`); const avatarSpan = document.getElementById(`unit-avatar-${t.id}`); const statusSpan = document.getElementById(`unit-status-${t.id}`); if (!unit || !hpFill) return;
             const pct = Math.max(0, Math.min(100, (t.hp / t.maxHp) * 100)); hpFill.style.width = `${pct}%`;
             if (t.hp > 1.5) hpFill.style.background = '#22c55e'; else if (t.hp > 0.5) hpFill.style.background = '#eab308'; else hpFill.style.background = '#ef4444';
-            if (t.hp <= 0) { unit.classList.add('unit-dead'); avatarSpan.innerText = '👻'; if (t.ghostCorrectCount > 0) statusSpan.innerHTML = `<span style="color:#4ade80; font-weight:bold; font-size:14px; text-shadow:0 1px 2px #000;">+${t.ghostCorrectCount}</span>`; else statusSpan.innerText = '💀'; } 
-            else { unit.classList.remove('unit-dead'); avatarSpan.innerText = t.avatar; statusSpan.innerText = (t.consecWrong === 1) ? '🛡️💦' : (t.consecWrong >= 2 ? '💥💦' : ''); }
+            if (t.hp <= 0) { 
+                unit.classList.add('unit-dead'); avatarSpan.innerText = '👻'; 
+                if (t.ghostCorrectCount > 0) statusSpan.innerHTML = `<span style="color:#4ade80; font-weight:bold; font-size:14px; text-shadow:0 1px 2px #000;">+${t.ghostCorrectCount}</span>`; else statusSpan.innerText = '💀'; 
+            } else { 
+                unit.classList.remove('unit-dead'); avatarSpan.innerText = t.avatar; 
+                // ★ 縮小的汗水與盾牌圖示
+                statusSpan.innerHTML = (t.consecWrong === 1) ? '<span style="font-size:12px;">💦</span>🛡️' : (t.consecWrong >= 2 ? '<span style="font-size:12px;">💦</span>💥' : ''); 
+            }
         });
-        // 視覺更新後順便觸發一次重新列陣，讓剛死掉或復活的人位置能馬上校正
         updateRaidArmyPositions();
         broadcastDeadCountToStudents();
     }
 
-    // ★ 啟動每 3 秒自動走動一次的機制
     function startRaidWanderingLoop() {
         if (raidWanderInterval) clearInterval(raidWanderInterval);
         raidWanderInterval = setInterval(() => {
@@ -1323,8 +1123,16 @@
 
     function updateRaidBossUI() {
         const nameTag = document.getElementById('raid-boss-name-tag'); const hpFill = document.getElementById('raid-boss-hp-fill'); const spriteEl = document.getElementById('raid-boss-sprite');
+        const bossZone = document.getElementById('raid-boss-center-zone');
+        
+        bossZone.classList.remove('boss-grounded', 'boss-hanging');
+
         if (raidAllBossesCleared) { nameTag.innerText = '🪙 獎勵時間：狂揍骷髏頭賺金幣！'; hpFill.style.width = '100%'; hpFill.style.background = 'linear-gradient(90deg, #eab308, #fde047)'; spriteEl.innerText = '💀'; return; }
         const boss = RAID_BOSS_LIST[raidBossIdx]; nameTag.innerText = boss.name; const pct = Math.max(0, (raidBossHp / boss.maxHp) * 100); hpFill.style.width = `${pct}%`; hpFill.style.background = 'linear-gradient(90deg, #dc2626, #f97316)'; spriteEl.innerText = boss.sprite;
+
+        // ★ 妖魔專屬物理定位
+        if (raidBossIdx === 1) bossZone.classList.add('boss-grounded'); // 青蛇落地
+        if (raidBossIdx === 2) bossZone.classList.add('boss-hanging');  // 妖蛛倒掛
     }
 
     function renderRaidLiveScoreboard() {
@@ -1357,7 +1165,7 @@
         const deadCount = raidTeams.filter(t => t.hp <= 0).length; const curBossSprite = raidAllBossesCleared ? '💀' : RAID_BOSS_LIST[raidBossIdx].sprite; const curBossName = raidAllBossesCleared ? '獎勵骷髏頭' : RAID_BOSS_LIST[raidBossIdx].name;
         const aliveAvatars = raidTeams.filter(t => t.hp > 0).map(t => `<span style="filter:hue-rotate(${t.hueRotate}deg);">${t.avatar}</span>`);
 
-        raidTeams.forEach(t => { if (t.conn && t.conn.open) { t.conn.send({ type: 'RAID_QUESTION', qIndex: raidCurrentQIdx + 1, totalQ: raidTotalQuestions, difficulty: raidDifficulty, h: card.h, a: card.a, padMaskedHtml: padMaskedHtml, targetSyllable: targetParsed, bossSprite: curBossSprite, bossName: curBossName, deadCount: deadCount, aliveAvatars: aliveAvatars }); } });
+        raidTeams.forEach(t => { if (t.conn && t.conn.open) { t.conn.send({ type: 'RAID_QUESTION', qIndex: raidCurrentQIdx + 1, totalQ: raidTotalQuestions, difficulty: raidDifficulty, h: card.h, a: card.a, padMaskedHtml: padMaskedHtml, targetSyllable: targetParsed, bossIdx: raidBossIdx, bossSprite: curBossSprite, bossName: curBossName, deadCount: deadCount, aliveAvatars: aliveAvatars, consecWrong: t.consecWrong, ghostCorrectCount: t.ghostCorrectCount }); } });
         replayRaidAudio();
 
         raidTeams.filter(t => t.isBot).forEach(bot => {
@@ -1507,6 +1315,8 @@
                 const unitEl = document.getElementById(`raid-unit-${t.id}`);
                 if (unitEl) {
                     unitEl.classList.remove('unit-chanting', 'unit-submitted');
+                    const avatarBox = unitEl.querySelector('.unit-avatar-box');
+
                     if (isUltimate) { unitEl.classList.add('flash-ultimate'); setTimeout(() => unitEl.classList.remove('flash-ultimate'), 1500); } 
                     else if (isPerfect && wasAlive) { unitEl.classList.add('flash-gold'); setTimeout(() => unitEl.classList.remove('flash-gold'), 1000); } 
                     else if (!wasAlive && gotRight && outcome === 'GHOST_CORRECT') { unitEl.classList.add('flash-gold'); setTimeout(() => unitEl.classList.remove('flash-gold'), 1500); }
@@ -1564,6 +1374,9 @@
     let myRaidAvatar = '🧙‍♂️';
     let myRaidHue = 0;      
     let myRaidWeapon = '⭐'; 
+    let myRaidAura = '#00e5ff';
+    let myRaidConsecWrong = 0;
+    let myGhostCorrectCount = 0;
 
     const raidAdjectives = ['骨力的', '拍拚的', '有心的', '頂真的', '古錐的', '緣投的', '媠氣的', '飄撇的', '勇敢的', '歡喜的', '上巧的', '上𠢕的', '條直的', '實在的', '猛掠的', '樂觀的', '爽快的', '幼秀的', '標緻的', '有氣魄的', '貼心的', '活潑的'];
     const raidAnimals = ['石虎', '長鬃山羊', '臺灣黑熊', '臺灣獼猴', '帝雉', '臺灣藍鵲', '梅花鹿', '櫻花鉤吻鮭', '穿山甲', '黃頸蝠', '黑面琵鷺', '白海豚', '綠蠵龜', '臺灣水鹿', '寬尾鳳蝶', '諸羅樹蛙', '臺灣野兔', '臺灣山豬', '臺灣草鴞', '臺灣犬'];
@@ -1621,7 +1434,6 @@
                 }
             };
 
-            // ★ 此處已拿掉 initialLoad 防呆，完美接收大屏指令！
             roomRef.child('direct_messages').child(playerId).on('value', msgSnap => {
                 const data = msgSnap.val();
                 if (data) handleRaidStudentReceive(data);
@@ -1631,6 +1443,20 @@
                 if (!roomSnap.exists()) { alert("與主辦方大屏的連線已結束！"); location.reload(); }
             });
         });
+    }
+
+    function updatePadPlayerStatusIcon(outcome = null) {
+        const statusIconEl = document.getElementById('pad-player-status-icon');
+        if (!statusIconEl) return;
+        if (myRaidHp <= 0) {
+            statusIconEl.innerHTML = (myGhostCorrectCount > 0) ? `<span style="color:#4ade80; font-weight:bold; font-size:12px; text-shadow:0 1px 2px #000;">+${myGhostCorrectCount}</span>` : '💀';
+        } else {
+            if (outcome === 'REVIVE_PROTECTED' || outcome === 'ULTIMATE_REVIVED') {
+                statusIconEl.innerHTML = `✨`;
+            } else {
+                statusIconEl.innerHTML = (myRaidConsecWrong === 1) ? '<span style="font-size:12px;">💦</span>🛡️' : (myRaidConsecWrong >= 2 ? '<span style="font-size:12px;">💦</span>💥' : '');
+            }
+        }
     }
 
     function updateGourdUI() {
@@ -1683,7 +1509,7 @@
             container.appendChild(box);
         }
         const toneGroup = document.getElementById('tone-keys-group'); if (toneGroup) toneGroup.classList.toggle('chained', isCurrentSyllableToneChained());
-        const playerWrapper = document.getElementById('player-wrapper'); if (playerWrapper) playerWrapper.classList.toggle('chanting', currentSyllableIndex > 0 || typedBase.length > 0);
+        const playerWrapper = document.getElementById('pad-player-wrapper'); if (playerWrapper) playerWrapper.classList.toggle('chanting', currentSyllableIndex > 0 || typedBase.length > 0);
     }
 
     function triggerVisualFeedback(key) {
@@ -1716,9 +1542,12 @@
     });
 
     function renderStudentRaidHpBar() {
-        const hb = document.getElementById('health-bar'); const pct = Math.max(0, Math.min(100, (myRaidHp / 3.0) * 100));
+        const hb = document.getElementById('health-bar'); const padHp = document.getElementById('pad-unit-hp');
+        const pct = Math.max(0, Math.min(100, (myRaidHp / 3.0) * 100));
         let color = '#22c55e'; if (myRaidHp <= 0.5) color = '#ef4444'; else if (myRaidHp <= 1.5) color = '#eab308';
+        
         hb.innerHTML = `<div class="pad-hp-bar-wrap"><span style="font-size:13px; color:#cbd5e1;">HP</span><div class="pad-hp-track"><div class="pad-hp-fill" style="width:${pct}%; background:${color};"></div></div><span style="font-size:13px; color:${color};">${myRaidHp.toFixed(1)}</span></div>`;
+        if (padHp) { padHp.style.width = `${pct}%`; padHp.style.background = color; }
     }
 
     function updateStudentFeatherButtonUI() {
@@ -1753,7 +1582,7 @@
     function submitRaidStudentSpell(isCorrect) {
         if (raidStudentLocked) return; raidStudentLocked = true; stopTimer();
         const enterBtn = document.getElementById('btn-enter'); enterBtn.classList.add('locked-in'); enterBtn.innerHTML = `<div>✅ 已傳送法力</div>`;
-        const playerWrapper = document.getElementById('player-wrapper'); playerWrapper.classList.remove('chanting'); playerWrapper.classList.add('submitted');
+        const playerWrapper = document.getElementById('pad-player-wrapper'); playerWrapper.classList.remove('chanting'); playerWrapper.classList.add('submitted');
 
         if (myRaidHp > 0) {
             const arena = document.getElementById('rpg-arena'); 
@@ -1778,28 +1607,45 @@
         if (data.type === 'KICKED_BY_HOST') { alert("您已被主辦方移出團戰大廳！"); location.reload(); return; }
 
         if (data.type === 'JOINED_OK') {
-            isRaidStudentMode = true; raidDifficulty = data.difficulty || 'master'; myRaidHp = data.hp; myRaidFeathers = data.feathers || 0; myRaidAvatar = data.avatar || '🧙‍♂️'; myRaidHue = data.hueRotate || 0; myRaidWeapon = data.weapon || '⭐';   
+            isRaidStudentMode = true; raidDifficulty = data.difficulty || 'master'; myRaidHp = data.hp; myRaidFeathers = data.feathers || 0; myRaidAvatar = data.avatar || '🧙‍♂️'; myRaidHue = data.hueRotate || 0; myRaidWeapon = data.weapon || '⭐'; myRaidAura = data.aura || '#00e5ff';
             document.getElementById('app-container').classList.add('pad-mode'); document.getElementById('raid-student-join-screen').classList.remove('active'); document.getElementById('game-screen').style.display = 'flex';
             gourdsLeft = 3; updateGourdUI(); buildKeyboard();
             
             document.getElementById('score-display').innerText = `${myRaidAvatar} ${data.name}`;
-            const playerSprite = document.getElementById('player-sprite'); const statusIconEl = document.getElementById('player-status-icon');
+            const playerSprite = document.getElementById('player-sprite'); 
             playerSprite.style.setProperty('--hue', myRaidHue + 'deg'); playerSprite.style.filter = 'hue-rotate(var(--hue))'; playerSprite.innerHTML = myRaidAvatar;
-            if (statusIconEl) statusIconEl.innerHTML = '';
+            
+            // ★ 套用專屬光環色
+            document.getElementById('pad-player-wrapper').style.setProperty('--aura-color', myRaidAura);
+            
             document.getElementById('progress-display').innerText = `⏳ 等待大屏開始...`; renderStudentRaidHpBar(); updateStudentFeatherButtonUI();
+            updatePadPlayerStatusIcon();
         } else if (data.type === 'DEAD_COUNT_SYNC') {
             currentDeadTeammatesCount = data.deadCount; myRaidFeathers = data.feathers; updateStudentFeatherButtonUI(); if (data.aliveAvatars) updateTeammatesDisplay(data.aliveAvatars);
         } else if (data.type === 'FEATHER_UPDATED') {
             myRaidFeathers = data.feathers; updateStudentFeatherButtonUI();
         } else if (data.type === 'REVIVED_BY_ALLY') {
             myRaidHp = data.hp; sfxFeatherRevive(); renderStudentRaidHpBar();
-            const playerEl = document.getElementById('player-sprite'); const statusIconEl = document.getElementById('player-status-icon');
-            playerEl.style.filter = 'hue-rotate(var(--hue))'; playerEl.innerHTML = myRaidAvatar; if (statusIconEl) statusIconEl.innerHTML = `✨`;
+            const playerEl = document.getElementById('player-sprite'); 
+            playerEl.style.filter = 'hue-rotate(var(--hue))'; playerEl.innerHTML = myRaidAvatar; 
+            updatePadPlayerStatusIcon('REVIVE_PROTECTED');
             document.getElementById('raid-word-mask-hint').innerHTML = `🪶 ${data.saviorName} 共你回魂矣！`;
         } else if (data.type === 'RAID_QUESTION') {
             raidDifficulty = data.difficulty; raidStudentCurrentQ = data; raidStudentLocked = false; usedGourdOnCurrentQ = false; currentDeadTeammatesCount = data.deadCount || 0;
-            const playerWrapper = document.getElementById('player-wrapper'); playerWrapper.classList.remove('chanting', 'submitted');
-            document.getElementById('progress-display').innerText = `第 ${data.qIndex} / ${data.totalQ} 題`; document.getElementById('enemy-sprite').innerText = data.bossSprite || '👹'; document.getElementById('enemy-hp-ui').innerText = `🎯 ${data.bossName}`;
+            
+            // ★ 更新狀態與清除上一題動畫
+            myRaidConsecWrong = data.consecWrong || 0; myGhostCorrectCount = data.ghostCorrectCount || 0;
+            updatePadPlayerStatusIcon();
+            
+            const playerWrapper = document.getElementById('pad-player-wrapper'); playerWrapper.classList.remove('chanting', 'submitted');
+            
+            // ★ 同步平板妖魔物理定位 (落地蛇、掛天蛛)
+            const padEnemyWrap = document.getElementById('pad-enemy-wrapper');
+            padEnemyWrap.classList.remove('boss-grounded', 'boss-hanging');
+            if (data.bossIdx === 1) padEnemyWrap.classList.add('boss-grounded');
+            if (data.bossIdx === 2) padEnemyWrap.classList.add('boss-hanging');
+
+            document.getElementById('progress-display').innerText = `第 ${data.qIndex} / ${data.totalQ} 題`; document.getElementById('enemy-sprite').innerText = data.bossSprite || '👹'; document.getElementById('pad-enemy-hp-ui').innerText = `🎯 ${data.bossName}`;
             if (data.aliveAvatars) updateTeammatesDisplay(data.aliveAvatars);
             const hintEl = document.getElementById('hanzi-hint'); hintEl.innerText = ''; hintEl.style.display = 'none';
             let inlineHTML = data.padMaskedHtml.replace('<span class="blank-slot-inline"></span>', '<span id="inline-boxes-container" class="inline-input-container"></span>');
@@ -1809,10 +1655,12 @@
             startTimer(18, () => { if (!raidStudentLocked) { let ok = (currentSyllableIndex === 1 && inputBoxes[0] && inputBoxes[0].base === parsedAnswer[0].base && inputBoxes[0].tone === parsedAnswer[0].tone); submitRaidStudentSpell(ok); } });
         } else if (data.type === 'RAID_RESULT') {
             stopTimer(); raidStudentLocked = true; myRaidHp = data.hp; myRaidFeathers = data.feathers;
+            
+            myRaidConsecWrong = data.consecWrong; myGhostCorrectCount = data.ghostCorrectCount;
+            
             renderStudentRaidHpBar(); updateStudentFeatherButtonUI(); if (data.aliveAvatars) updateTeammatesDisplay(data.aliveAvatars);
             document.getElementById('score-display').innerText = `${myRaidAvatar} ${data.score}分`;
-            const playerEl = document.getElementById('player-sprite'); const statusIconEl = document.getElementById('player-status-icon'); const maskHint = document.getElementById('raid-word-mask-hint');
-            if (statusIconEl) statusIconEl.innerHTML = '';
+            const playerEl = document.getElementById('player-sprite'); const maskHint = document.getElementById('raid-word-mask-hint');
             
             if (!data.bossStunned) {
                 const arena = document.getElementById('rpg-arena'); 
@@ -1832,30 +1680,30 @@
             }
 
             if (data.outcome === 'REVIVE_PROTECTED') {
-                sfxPlayerDodge(); playerEl.classList.add('player-dodge'); setTimeout(() => playerEl.classList.remove('player-dodge'), 650);
-                playerEl.innerHTML = myRaidAvatar; statusIconEl.innerHTML = `✨`; maskHint.innerHTML = `<span style="color:#fde047; font-size:24px;">✨ 回魂庇佑，閃過一劫！</span>`;
+                sfxPlayerDodge(); playerEl.classList.add('pad-player-dodge'); setTimeout(() => playerEl.classList.remove('pad-player-dodge'), 650);
+                playerEl.innerHTML = myRaidAvatar; updatePadPlayerStatusIcon('REVIVE_PROTECTED'); maskHint.innerHTML = `<span style="color:#fde047; font-size:24px;">✨ 回魂庇佑，閃過一劫！</span>`;
             } else if (data.isUltimate) {
                 playerEl.classList.add('flash-ultimate'); setTimeout(() => playerEl.classList.remove('flash-ultimate'), 1500); maskHint.innerHTML = `<span style="color:#c084fc;">🌟 究極完美攻擊！</span>`;
-                if (data.hp > 0 && data.outcome === 'ULTIMATE_REVIVED') { playerEl.style.filter = 'hue-rotate(var(--hue))'; playerEl.innerHTML = myRaidAvatar; statusIconEl.innerHTML = `✨`; }
+                if (data.hp > 0 && data.outcome === 'ULTIMATE_REVIVED') { playerEl.style.filter = 'hue-rotate(var(--hue))'; playerEl.innerHTML = myRaidAvatar; updatePadPlayerStatusIcon('ULTIMATE_REVIVED'); }
             } else if (data.isPerfect) {
-                playerEl.classList.add('flash-gold'); setTimeout(() => playerEl.classList.remove('flash-gold'), 1000); maskHint.innerHTML = `<span style="color:#fde047;">✨ 完美攻擊！</span>`; if (data.hp > 0) playerEl.innerHTML = myRaidAvatar;
+                playerEl.classList.add('flash-gold'); setTimeout(() => playerEl.classList.remove('flash-gold'), 1000); maskHint.innerHTML = `<span style="color:#fde047;">✨ 完美攻擊！</span>`; if (data.hp > 0) { playerEl.innerHTML = myRaidAvatar; updatePadPlayerStatusIcon(); }
             } else if (data.outcome === 'BOSS_STUNNED_SAFE' || data.outcome === 'DODGE_SAFE' || data.outcome === 'PERFECT_HEAL' || data.outcome === 'ULTIMATE_HEAL') {
-                if (data.outcome === 'DODGE_SAFE') { sfxPlayerDodge(); playerEl.classList.add('player-dodge'); setTimeout(() => playerEl.classList.remove('player-dodge'), 650); } 
-                maskHint.innerHTML = `<span style="color:#4ade80;">${formatTailoDisplay(data.correctReveal)}</span>`; playerEl.innerHTML = myRaidAvatar;
+                if (data.outcome === 'DODGE_SAFE') { sfxPlayerDodge(); playerEl.classList.add('pad-player-dodge'); setTimeout(() => playerEl.classList.remove('pad-player-dodge'), 650); } 
+                maskHint.innerHTML = `<span style="color:#4ade80;">${formatTailoDisplay(data.correctReveal)}</span>`; playerEl.innerHTML = myRaidAvatar; updatePadPlayerStatusIcon();
             } else if (data.outcome === 'PROTECTED_BY_TEAM') {
-                maskHint.innerHTML = `<span style="color:#fde047;">${formatTailoDisplay(data.correctReveal)}</span>`;
+                maskHint.innerHTML = `<span style="color:#fde047;">${formatTailoDisplay(data.correctReveal)}</span>`; updatePadPlayerStatusIcon();
             } else if (data.outcome === 'SHIELD_BLOCK_HALF') {
-                sfxShieldBlock(); playerEl.classList.add('player-hit'); setTimeout(() => playerEl.classList.remove('player-hit'), 650);
-                if (myRaidHp <= 0) { playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))'; playerEl.innerHTML = '👻'; statusIconEl.innerHTML = '💀'; } else { playerEl.innerHTML = myRaidAvatar; statusIconEl.innerHTML = `<span class="sweat-drop">💦</span>🛡️`; }
+                sfxShieldBlock(); playerEl.classList.add('pad-player-hit'); setTimeout(() => playerEl.classList.remove('pad-player-hit'), 650);
+                if (myRaidHp <= 0) { playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))'; playerEl.innerHTML = '👻'; updatePadPlayerStatusIcon(); } else { playerEl.innerHTML = myRaidAvatar; updatePadPlayerStatusIcon(); }
                 maskHint.innerHTML = `<span style="color:#fbbf24;">${formatTailoDisplay(data.correctReveal)}</span>`;
             } else if (data.outcome === 'SHIELD_BREAK_FULL') {
-                sfxShieldBreak(); playerEl.classList.add('player-hit'); setTimeout(() => playerEl.classList.remove('player-hit'), 650);
-                if (myRaidHp <= 0) { playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))'; playerEl.innerHTML = '👻'; statusIconEl.innerHTML = '💀'; maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`; } else { playerEl.innerHTML = myRaidAvatar; statusIconEl.innerHTML = `<span class="sweat-drop">💦</span>💥`; maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`; }
+                sfxShieldBreak(); playerEl.classList.add('pad-player-hit'); setTimeout(() => playerEl.classList.remove('pad-player-hit'), 650);
+                if (myRaidHp <= 0) { playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))'; playerEl.innerHTML = '👻'; updatePadPlayerStatusIcon(); maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`; } else { playerEl.innerHTML = myRaidAvatar; updatePadPlayerStatusIcon(); maskHint.innerHTML = `<span style="color:#ef4444;">${formatTailoDisplay(data.correctReveal)}</span>`; }
             } else if (data.outcome === 'GHOST_CORRECT') {
-                playerEl.classList.add('flash-gold'); setTimeout(() => playerEl.classList.remove('flash-gold'), 1500); playerEl.style.filter = 'grayscale(1) opacity(0.8) hue-rotate(var(--hue))'; playerEl.innerHTML = '👻'; statusIconEl.innerHTML = `<span style="color:#4ade80; text-shadow:0 1px 2px #000;">+${data.ghostCorrectCount}</span>`; maskHint.innerHTML = `<span style="color:#4ade80;">${formatTailoDisplay(data.correctReveal)}</span>`;
+                playerEl.classList.add('flash-gold'); setTimeout(() => playerEl.classList.remove('flash-gold'), 1500); playerEl.style.filter = 'grayscale(1) opacity(0.8) hue-rotate(var(--hue))'; playerEl.innerHTML = '👻'; updatePadPlayerStatusIcon(); maskHint.innerHTML = `<span style="color:#4ade80;">${formatTailoDisplay(data.correctReveal)}</span>`;
             } else {
                 playerEl.style.filter = 'grayscale(1) opacity(0.5) hue-rotate(var(--hue))'; playerEl.innerHTML = '👻';
-                if (data.ghostCorrectCount > 0) statusIconEl.innerHTML = `<span style="color:#4ade80; text-shadow:0 1px 2px #000;">+${data.ghostCorrectCount}</span>`; else statusIconEl.innerHTML = '💀';
+                updatePadPlayerStatusIcon();
                 maskHint.innerHTML = `<span style="color:#94a3b8;">${formatTailoDisplay(data.correctReveal)}</span>`;
             }
         } else if (data.type === 'GAME_OVER') {
