@@ -19,6 +19,7 @@
     #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .role-btn { padding: 12px 24px; font-size: 18px; margin: 10px; background: var(--primary); color: white; width: 80%;}
     input[type="text"] { padding: 15px; font-size: 18px; border: 2px solid #cbd5e1; border-radius: 6px; font-family: 'Tauhu Oo'; margin-bottom:15px; width:80%; text-align:center;}
+    input:disabled { background-color: #f1f5f9; cursor: not-allowed; color: #94a3b8; font-weight: bold;}
 
     #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
     .student-info-bar { position: absolute; top: 15px; right: 20px; color: #64748b; font-size: 13px; text-align: right; }
@@ -35,7 +36,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.0 (Student)</div>
+  <div class="version-tag">Ver 2.1 (Student)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary);">台語互動派題系統</h1>
@@ -76,6 +77,14 @@
   </div>
 
   <script type="module">
+    // 自動解析網址參數帶入 PIN 碼
+    const urlParams = new URLSearchParams(window.location.search);
+    const pinFromUrl = urlParams.get('pin');
+    if(pinFromUrl) {
+        document.getElementById('pinInput').value = pinFromUrl;
+        document.getElementById('pinInput').disabled = true; // 鎖定不可修改
+    }
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getDatabase, ref, set, onValue, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
@@ -92,7 +101,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     
-    // 學生端完全移除了題庫讀取能力，徹底防作弊
     let selectedQuestions = [];
     let myStudentId = null, roomMode = 'kahoot'; 
     let currentSettings = { pin: '', showQuestion: true, status: 'waiting', audioSource: 'teacher' };
@@ -110,7 +118,7 @@
       unlockAudio();
       const pin = document.getElementById('pinInput').value.trim();
       const realName = document.getElementById('realNameInput').value.trim();
-      if(!pin || !realName) return alert("請輸入編號與姓名！");
+      if(!pin || !realName) return alert("請確認編號與姓名皆已填寫！");
 
       const settingsSnap = await get(ref(db, 'room/settings'));
       if(!settingsSnap.exists() || settingsSnap.val().pin !== pin) return alert("試場編號錯誤或考試未建立！");
