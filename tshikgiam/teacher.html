@@ -6,6 +6,8 @@
   <title>教師控制台 - 台語互動派題系統</title>
   <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
   <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
+  <!-- 引入 QR Code 生成庫 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root { --primary: #475569; --teacher: #f8f9fa; --danger: #ef4444; --success: #22c55e; --accent: #3b82f6; }
     body { font-family: 'Tauhu Oo', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 100px;}
@@ -21,8 +23,12 @@
 
     #teacherView { max-width: 1400px; margin: 0 auto; }
     .teacher-header { background: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;}
-    .pin-display { font-size: 18px; font-weight: bold; color: var(--primary); background: #f1f5f9; padding: 5px 12px; border-radius: 6px; border: 1px solid #cbd5e1; }
     
+    /* QR Code 與 PIN 碼展示區塊 */
+    .pin-container { display: flex; align-items: center; gap: 15px; background: #f1f5f9; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1;}
+    .pin-display { font-size: 20px; font-weight: bold; color: var(--primary); }
+    #qrcode { width: 64px; height: 64px; background: white; padding: 4px; border-radius: 4px; border: 1px solid #e2e8f0;}
+
     .workspace { display: grid; grid-template-columns: 3fr 1fr; gap: 20px; }
     .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; border: 1px solid #e2e8f0;}
     
@@ -54,7 +60,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.0 (Teacher)</div>
+  <div class="version-tag">Ver 2.1 (Teacher)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary);">請選擇本次測驗模式</h1>
@@ -67,7 +73,10 @@
       <div style="display:flex; align-items:center; gap:15px;">
           <h2 style="margin:0; color:var(--primary);">控制台 (<span id="modeDisplay"></span>)</h2>
       </div>
-      <div class="pin-display">試場編號：<span id="tPinDisplay">----</span></div>
+      <div class="pin-container">
+          <div id="qrcode"></div>
+          <div class="pin-display">試場編號：<br><span id="tPinDisplay" style="font-size:28px;">----</span></div>
+      </div>
     </div>
     
     <div class="workspace">
@@ -169,6 +178,20 @@
         else { container.classList.add('hidden'); arrow.innerText = "▶"; }
     };
 
+    // 生成 QRCode 的函式
+    function generateQRCode(pin) {
+        document.getElementById('qrcode').innerHTML = ""; // 清空舊的
+        const studentUrl = `https://yyanjhang-web.github.io/hosngetaiagi/tshikgiam/index.html?pin=${pin}`;
+        new QRCode(document.getElementById("qrcode"), {
+            text: studentUrl,
+            width: 64,
+            height: 64,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.L
+        });
+    }
+
     window.joinAsTeacher = (mode) => {
       unlockAudio();
       roomMode = mode;
@@ -180,6 +203,8 @@
 
       const pin = Math.floor(1000 + Math.random() * 9000).toString();
       document.getElementById('tPinDisplay').innerText = pin;
+      generateQRCode(pin); // 呼叫產生 QR Code
+
       currentSettings = { mode: mode, pin: pin, showQuestion: true, showAnswer: false, status: 'waiting', audioSource: 'teacher', teacherOnline: true };
       
       set(ref(db, 'room/settings'), currentSettings);
