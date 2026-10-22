@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>除魔咒術 - 多人團戰版 (Ver 8.6)</title>
+    <title>除魔咒術 - 多人團戰版 (Ver 8.7)</title>
     
     <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
     <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
@@ -52,6 +52,7 @@
 
         .footer { margin-top: auto; padding-top: 8px; text-align: center; width: 100%; font-size: 11px; color: rgba(255, 255, 255, 0.42); line-height: 1.35; flex-shrink: 0; }
         .footer p { margin: 0; }
+        .counter-container { margin-top: 6px; }
 
         /* 2. 教師大屏：團戰大廳設定與等候室 */
         .raid-lobby-top { display: flex; gap: 18px; width: 100%; max-width: 1180px; align-items: stretch; flex-wrap: wrap; margin-bottom: 12px; }
@@ -73,6 +74,7 @@
         .raid-teams-box { width: 100%; max-width: 1180px; flex: 1; background: rgba(28, 37, 65, 0.65); border: 2px dashed #4a5c88; border-radius: 16px; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; }
         #raid-lobby-teams-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 8px; }
         .raid-team-badge { background: #16213e; border: 2px solid #4ade80; border-radius: 10px; padding: 10px 12px; font-size: 18px; font-weight: bold; color: #4ade80; text-align: center; cursor: pointer; transition: 0.15s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: popIn 0.2s ease-out; }
+        
         .raid-team-badge.bot-unit { background: #fde047 !important; border-color: #ca8a04 !important; color: #000 !important; }
         .raid-team-badge:hover, .raid-team-badge:active, .raid-team-badge.removing { background: rgba(220, 38, 38, 0.3) !important; border-color: #ef4444 !important; color: #fca5a5 !important; text-decoration: line-through; text-decoration-thickness: 3px; transform: scale(0.95); }
         @keyframes popIn { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -82,9 +84,7 @@
         .sound-toggle-btn.muted { opacity: 0.45; border-color: #555; background: rgba(0, 0, 0, 0.5); }
         .sound-toggle-btn.muted::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top right, transparent calc(50% - 1.5px), #ef4444 calc(50% - 1.5px), #ef4444 calc(50% + 1.5px), transparent calc(50% + 1.5px)); pointer-events: none; }
 
-        /* ========================================================= */
-        /* ★ 3. 教師大屏：全新 RPG 3D 對峙主舞台 */
-        /* ========================================================= */
+        /* 3. 教師大屏：團戰主舞台 */
         #raid-host-screen { justify-content: space-between; overflow: hidden; padding: 10px 18px; }
         .raid-hud-bar { width: 100%; max-width: 1400px; display: flex; justify-content: space-between; align-items: center; background: #1c2541; border: 1.5px solid #3a506b; border-radius: 12px; padding: 6px 16px; font-size: 17px; flex-shrink: 0; gap: 10px; }
         .raid-prompt-stage { width: 100%; max-width: 1400px; display: flex; align-items: center; justify-content: center; gap: 20px; background: linear-gradient(90deg, rgba(28,37,65,0.4), rgba(28,37,65,0.95), rgba(28,37,65,0.4)); border-top: 2px solid #00e5ff; border-bottom: 2px solid #00e5ff; padding: 8px 24px; margin: 6px 0; flex-shrink: 0; z-index: 20; }
@@ -104,34 +104,26 @@
             box-shadow: inset 0 20px 50px rgba(0,0,0,0.8);
         }
 
-        /* 遠景裝飾 (地平線上方) */
         .host-bg-scenery { position: absolute; font-size: 40px; filter: brightness(0.3) blur(2px); z-index: 1; pointer-events: none; }
 
         #raid-units-layer { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
         .army-zone-title { position: absolute; bottom: 8px; left: 16px; font-size: 14px; color: #84ffff; opacity: 0.6; z-index: 2; font-weight: bold; }
         
-        /* 學生陣線佈局：固定在畫面下半部，並帶有呼吸動畫 */
         .raid-unit {
             position: absolute; width: 88px; display: flex; flex-direction: column; align-items: center;
             transform: translate(-50%, -50%);
-            transition: left 1s ease-in-out, top 1s ease-in-out, filter 0.25s;
+            transition: left 1s ease-in-out, top 1s ease-in-out, filter 0.25s; /* 走動的平滑過渡 */
         }
         
-        /* 原地呼吸感 */
         .unit-avatar-box { position: relative; font-size: 42px; line-height: 1.05; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); animation: breathe 3s infinite ease-in-out alternate; }
-        /* 讓不同的學生有不同的呼吸節奏，才不會過於死板 */
         .raid-unit:nth-child(even) .unit-avatar-box { animation-duration: 3.5s; animation-delay: -1s; }
         .raid-unit:nth-child(3n) .unit-avatar-box { animation-duration: 4s; animation-delay: -2s; }
-        
         @keyframes breathe { 0% { transform: translateY(0); } 100% { transform: translateY(-6px); } }
 
-        /* 大屏腳下陰影 */
         .host-stage-shadow { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 45px; height: 12px; background: rgba(0, 0, 0, 0.7); border-radius: 50%; filter: blur(3px); z-index: -1; pointer-events: none; }
         
-        /* Z軸突進攻擊 (衝向遠方縮小) */
         .unit-chanting .unit-avatar-box { transform: scale(0.85) translateY(-30px) !important; animation: none !important; filter: drop-shadow(0 0 20px #00e5ff) brightness(1.3); transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
         
-        /* 陣亡狀態 */
         .raid-unit.unit-dead { opacity: 0.48; filter: none !important; }
         .raid-unit.unit-dead .unit-avatar-box { animation: none !important; }
         .raid-unit.unit-dead .unit-avatar-box > span:first-child { filter: hue-rotate(var(--hue)) grayscale(1) !important; }
@@ -142,28 +134,22 @@
         .unit-name-tag { font-size: 11.5px; font-weight: bold; color: #f8fafc; background: rgba(15, 23, 42, 0.82); padding: 1px 6px; border-radius: 6px; border: 1px solid #475569; white-space: nowrap; max-width: 86px; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
         .raid-unit.bot-unit .unit-name-tag { background: #fde047; color: #000; border-color: #ca8a04; }
 
-        /* 中央巨大妖魔 (移到畫面上半部) */
         #raid-boss-center-zone {
             position: absolute; left: 50%; top: 25%; transform: translate(-50%, -50%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 4; pointer-events: none; width: 350px;
         }
-        /* 妖魔的巨大陰影 */
         .boss-stage-shadow { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 140px; height: 30px; background: rgba(0, 0, 0, 0.8); border-radius: 50%; filter: blur(8px); z-index: -1; pointer-events: none; }
         
         .boss-stage-tag { font-size: 20px; font-weight: bold; color: #fde047; margin-bottom: 6px; text-shadow: 0 2px 6px #000; letter-spacing: 2px; }
         .boss-hp-bar-outer { width: 100%; max-width: 300px; height: 18px; background: #0f172a; border: 2px solid #f8fafc; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); margin-bottom: 12px; }
         #raid-boss-hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #dc2626, #f97316); transition: width 0.4s ease; }
         
-        /* 妖魔本體懸浮 */
         #raid-boss-sprite-wrap { position: relative; display: flex; align-items: center; justify-content: center; animation: bossHover 4s infinite ease-in-out alternate; }
         #raid-boss-sprite { font-size: 180px; line-height: 1; filter: drop-shadow(0 0 35px rgba(239, 68, 68, 0.8)); transition: all 0.3s; }
         @keyframes bossHover { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
 
-        /* 妖魔反擊 (朝向鏡頭放大撲擊) */
         .boss-attack-dive { transform: scale(1.4) translateY(60px) !important; filter: drop-shadow(0 0 50px red) brightness(1.5) !important; animation: none !important; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        
-        /* 妖魔受擊 (往後方縮小退縮) */
         .boss-hit-recoil { transform: scale(0.85) translate(30px, -30px) rotate(15deg) !important; filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 25px #00e5ff) !important; transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1); }
 
         #raid-boss-stun-stars { display: none; position: absolute; top: -30px; left: 50%; transform: translateX(-50%); font-size: 42px; white-space: nowrap; animation: dizzySpin 1.1s linear infinite; z-index: 8; }
@@ -175,7 +161,6 @@
         .ground-shockwave { position: absolute; left: 50%; top: 40%; width: 0; height: 0; border: 8px solid #e94560; border-radius: 50%; transform: translate(-50%, -50%); z-index: 3; box-shadow: 0 0 30px #e94560, inset 0 0 30px #e94560; animation: shockwaveAnim 0.6s ease-out forwards; }
         @keyframes shockwaveAnim { 0% { width: 0; height: 0; opacity: 1; border-width: 12px; } 100% { width: 600px; height: 600px; opacity: 0; border-width: 1px; } }
 
-        /* 大型爆炸特效 */
         .boss-explosion { position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%); border-radius: 50%; z-index: 15; pointer-events: none; mix-blend-mode: screen; }
         .boss-explosion.tier-ult { width: 500px; height: 500px; background: radial-gradient(circle, #fff 10%, #c084fc 40%, transparent 70%); animation: boom 1.2s ease-out forwards; }
         .boss-explosion.tier-100 { width: 450px; height: 450px; background: radial-gradient(circle, #fff 10%, #fde047 40%, transparent 70%); animation: boom 1s ease-out forwards; }
@@ -190,16 +175,14 @@
 
         #raid-center-banner { display: none; position: absolute; top: 35%; left: 50%; transform: translateX(-50%); background: linear-gradient(90deg, #b91c1c, #f59e0b, #b91c1c); border: 3px solid #fde047; color: #fff; padding: 12px 40px; border-radius: 40px; font-size: clamp(26px, 4vw, 42px); font-weight: bold; z-index: 50; box-shadow: 0 0 50px rgba(253, 224, 71, 0.9); text-shadow: 2px 2px 5px #000; white-space: nowrap; animation: popIn 0.3s ease-out; pointer-events: none; }
 
-        /* 玩家狀態特效 */
-        .flash-gold .unit-avatar-box { animation: flashGoldAnim 1s ease-out !important; }
-        .flash-ultimate .unit-avatar-box { animation: flashUltAnim 1.5s ease-out !important; }
+        /* 玩家狀態特效 (修復 ID 以相容平板端) */
+        .flash-gold .unit-avatar-box, .flash-gold { animation: flashGoldAnim 1s ease-out !important; }
+        .flash-ultimate .unit-avatar-box, .flash-ultimate { animation: flashUltAnim 1.5s ease-out !important; }
         @keyframes flashGoldAnim { 0% { filter: drop-shadow(0 0 25px #fde047) brightness(1.5); } 100% { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); } }
         @keyframes flashUltAnim { 0% { filter: drop-shadow(0 0 40px #c084fc) brightness(2.5); } 50% { filter: drop-shadow(0 0 35px #fde047) brightness(1.8); } 100% { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); } }
         
-        .player-dodge .unit-avatar-box { transform: scale(1.1) translateX(25px) rotate(15deg) !important; transition: all 0.2s; }
-        /* 擊退特效 (往下方退縮) */
-        .player-hit .unit-avatar-box { transform: scale(0.9) translateY(20px) rotate(-10deg) !important; filter: drop-shadow(0 0 25px red) sepia(1) hue-rotate(-50deg) saturate(5) !important; transition: all 0.15s; }
-        
+        .player-dodge .unit-avatar-box, .player-dodge { transform: scale(1.1) translateX(25px) rotate(15deg) !important; transition: all 0.2s; }
+        .player-hit .unit-avatar-box, .player-hit { transform: scale(0.9) translateY(20px) rotate(-10deg) !important; filter: drop-shadow(0 0 25px red) sepia(1) hue-rotate(-50deg) saturate(5) !important; transition: all 0.15s; }
         .enemy-dead { transform: scale(0.8) rotate(90deg) translate(50px, 50px) !important; filter: grayscale(1) opacity(0.5) drop-shadow(0 0 0 transparent) !important; animation: none !important; }
 
         .raid-side-board { flex: 0.65; min-width: 240px; max-width: 300px; background: #1c2541; border: 2px solid #3a506b; border-radius: 18px; padding: 10px 12px; display: flex; flex-direction: column; overflow: hidden; z-index: 10; }
@@ -222,7 +205,9 @@
         .raid-input-group input { width: 100%; padding: 8px 12px; font-size: 18px; font-weight: bold; background: #0b132b; border: 2px solid #4a5c88; border-radius: 8px; color: #fff; text-align: center; font-family: inherit; }
         .raid-input-group input::placeholder { font-size: 14px; font-weight: normal; color: #475569; }
 
-        /* 6. 學生平板：全新 2.5D 戰鬥 UI (地平線與魔法微塵) */
+        /* ========================================================= */
+        /* ★ 6. 學生平板：全新 2.5D 戰鬥 UI (地平線與魔法微塵) */
+        /* ========================================================= */
         #game-screen { display: none; flex-direction: column; height: 100%; width: 100%; padding: 10px 12px; justify-content: space-between; z-index: 20; }
         .header-info { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #00e5ff; margin-bottom: 6px; font-weight: bold; flex-shrink: 0; gap: 8px; }
         .header-left-group { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
@@ -234,8 +219,17 @@
         .pad-hp-track { width: 96px; height: 12px; background: #1e293b; border-radius: 6px; overflow: hidden; border: 1px solid #475569; }
         .pad-hp-fill { height: 100%; width: 100%; background: #22c55e; transition: width 0.3s ease, background 0.3s ease; }
 
-        #rpg-arena { position: relative; width: 100%; height: 135px; background: linear-gradient(to bottom, #090e17 0%, #16213e 55%, #3a506b 55%, #1e293b 100%); border-radius: 10px; border-bottom: 3px solid #4a5c88; margin-bottom: 6px; overflow: hidden; flex-shrink: 0; box-shadow: inset 0 20px 30px rgba(0,0,0,0.5); }
+        /* 帶有清晰地平線的漸層背景 */
+        #rpg-arena { 
+            position: relative; width: 100%; height: 135px;
+            background: linear-gradient(to bottom, #090e17 0%, #16213e 55%, #3a506b 55%, #1e293b 100%); 
+            border-radius: 10px; border-bottom: 3px solid #4a5c88; 
+            margin-bottom: 6px; overflow: hidden; flex-shrink: 0;
+            box-shadow: inset 0 20px 30px rgba(0,0,0,0.5); 
+        }
+        
         .bg-scenery { position: absolute; font-size: 24px; filter: brightness(0.35) blur(1px); z-index: 1; pointer-events: none; }
+        
         .dust { position: absolute; width: 4px; height: 4px; background: #fde047; border-radius: 50%; box-shadow: 0 0 8px #fde047; animation: floatUp 3s infinite ease-in; opacity: 0; z-index: 2; pointer-events: none; }
         .dust:nth-child(2) { animation-delay: 1s; left: 30%; background: #00e5ff; box-shadow: 0 0 8px #00e5ff; }
         .dust:nth-child(3) { animation-delay: 2s; left: 70%; background: #4ade80; box-shadow: 0 0 8px #4ade80; }
@@ -243,24 +237,23 @@
 
         .stage-shadow { position: absolute; bottom: -5px; width: 60px; height: 12px; background: rgba(0, 0, 0, 0.7); border-radius: 50%; filter: blur(3px); z-index: 1; pointer-events: none; }
 
-        #pad-player-wrapper { position: absolute; left: 12%; bottom: 10px; display: flex; align-items: flex-end; justify-content: center; z-index: 5; }
-        #pad-player-status-icon { position: absolute; top: -8px; right: -18px; font-size: 16px; pointer-events: none; z-index: 6; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); white-space: nowrap; line-height: 1; }
-        #pad-player-wrapper::before { content: ''; position: absolute; width: 70px; height: 70px; bottom: -5px; left: 50%; transform: translateX(-50%); border-radius: 50%; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 1; }
-        #pad-player-wrapper.chanting::before { opacity: 1; border: 3px dashed #00e5ff; box-shadow: 0 0 10px #00e5ff; animation: spinCircle 1.5s linear infinite; }
-        #pad-player-wrapper.submitted::before { opacity: 1; border: 4px solid #00e5ff; box-shadow: 0 0 15px #00e5ff; animation: none; }
+        /* 玩家 (左側前排) */
+        #player-wrapper { position: absolute; left: 12%; bottom: 10px; display: flex; align-items: flex-end; justify-content: center; z-index: 5; }
+        #player-status-icon { position: absolute; top: -8px; right: -18px; font-size: 16px; pointer-events: none; z-index: 6; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); white-space: nowrap; line-height: 1; }
+        #player-wrapper::before { content: ''; position: absolute; width: 70px; height: 70px; bottom: -5px; left: 50%; transform: translateX(-50%); border-radius: 50%; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 1; }
+        #player-wrapper.chanting::before { opacity: 1; border: 3px dashed #00e5ff; box-shadow: 0 0 10px #00e5ff; animation: spinCircle 1.5s linear infinite; }
+        #player-wrapper.submitted::before { opacity: 1; border: 4px solid #00e5ff; box-shadow: 0 0 15px #00e5ff; animation: none; }
 
-        #pad-enemy-wrapper { position: absolute; right: 12%; bottom: 40px; display: flex; flex-direction: column; align-items: center; z-index: 4; transform: scale(0.85); }
-        #pad-enemy-hp-ui { font-size: 14px; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; line-height: 1.2; text-shadow: 0 2px 4px #000; }
+        /* 妖魔 (右側後排) */
+        #enemy-wrapper { position: absolute; right: 12%; bottom: 40px; display: flex; flex-direction: column; align-items: center; z-index: 4; transform: scale(0.85); }
+        #enemy-hp-ui { font-size: 14px; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; color: #84ffff; line-height: 1.2; text-shadow: 0 2px 4px #000; }
         
-        .pad-rpg-sprite { font-size: 55px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; position: relative; z-index: 3; }
-        #pad-player-sprite { transform-origin: bottom center; }
-        #pad-enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
+        .rpg-sprite { font-size: 55px; line-height: 1; transition: transform 0.2s ease-in-out, filter 0.2s; position: relative; z-index: 3; }
+        #player-sprite { transform-origin: bottom center; }
+        #enemy-sprite { transform-origin: bottom center; filter: drop-shadow(0 0 10px red); }
 
-        .pad-player-dodge { transform: scale(1) translate(-20px, -10px) rotate(-15deg) !important; }
-        .pad-player-hit { transform: scale(1) translate(-10px, 0) rotate(-10deg) !important; filter: drop-shadow(0 0 20px red) sepia(1) hue-rotate(-50deg) saturate(5) !important; }
-        .pad-enemy-hit-flash { transform: scale(0.75) translate(20px, -20px) rotate(10deg) !important; filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 25px #00e5ff) !important; }
-        .pad-enemy-attack { transform: scale(0.95) translate(-20px, 20px) rotate(-10deg) !important; }
-        .pad-enemy-dead { transform: scale(0.85) rotate(90deg) translate(30px, 30px) !important; filter: grayscale(1) opacity(0.7) drop-shadow(0 0 0 transparent) !important; }
+        .enemy-hit-flash { transform: scale(0.75) translate(20px, -20px) rotate(10deg) !important; filter: brightness(2.5) contrast(1.5) drop-shadow(0 0 25px #00e5ff) !important; }
+        .enemy-attack { transform: scale(0.95) translate(-20px, 20px) rotate(-10deg) !important; }
 
         .question-row { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 8px; min-height: 46px; flex-wrap: wrap; }
         #gourd-btn { display: flex; align-items: center; gap: 5px; background: rgba(249, 168, 38, 0.15); border: 2px solid #f9a826; border-radius: 24px; padding: 4px 12px 4px 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 0 10px rgba(249, 168, 38, 0.35); }
@@ -328,9 +321,9 @@
             #game-screen { padding: 4px 10px; }
             .header-info { margin-bottom: 3px; font-size: 14px; }
             #rpg-arena { height: 95px; } 
-            .pad-rpg-sprite { font-size: 38px; }
-            #pad-player-wrapper::before { width: 50px; height: 50px; bottom: -2px; }
-            #pad-player-status-icon { top: -6px; right: -12px; font-size: 13px; }
+            .rpg-sprite { font-size: 38px; }
+            #player-wrapper::before { width: 50px; height: 50px; bottom: -2px; }
+            #player-status-icon { top: -6px; right: -12px; font-size: 13px; }
             .stage-shadow { width: 40px; height: 8px; }
             
             .question-row { gap: 10px; margin-bottom: 2px; min-height: 32px; }
@@ -348,7 +341,7 @@
     </style>
 </head>
 <body>
-    <div id="version-tag">Ver 8.6</div>
+ <div id="version-tag">Ver 8.7</div>
 
 <div id="app-container">
     <!-- 1. 團戰入口首頁 -->
@@ -374,6 +367,12 @@
             <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
             <p class="copyright-text">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.</p>
             <p style="margin-top: 2px;">BGM素材取自：甘茶の音楽工房</p>
+            <!-- 補回遺失的計數器 -->
+            <div class="counter-container">
+                <a href="https://www.hitwebcounter.com/" target="_blank">
+                    <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+                </a>
+            </div>
         </div>
     </div>
 
@@ -520,6 +519,7 @@
         <div class="raid-join-card">
             <h2 style="color:#4ade80; margin:0 0 14px 0;">📱 加入除魔團戰</h2>
             
+            <!-- 自動生成的專屬暱稱顯示區 -->
             <div id="auto-nickname-display" style="font-size:18px; color:#fde047; font-weight:bold; margin-bottom:16px; background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; border:1px dashed #4a5c88;"></div>
             
             <div class="raid-input-group">
@@ -542,7 +542,7 @@
         </div>
     </div>
 
-    <!-- 6. 學生平板：戰鬥 UI 與 虛擬鍵盤 -->
+    <!-- 6. 學生平板：全新 2.5D 戰鬥 UI 與 虛擬鍵盤 (修復了 HTML IDs 讓它能被 JS 找到) -->
     <div id="game-screen">
         <div class="header-info">
             <div class="header-left-group">
@@ -567,16 +567,16 @@
                 <div class="dust" style="left: 55%; bottom: 35px;"></div>
                 <div class="dust" style="left: 85%; bottom: 15px;"></div>
 
-                <div id="pad-player-wrapper">
+                <div id="player-wrapper">
                     <div class="stage-shadow"></div>
-                    <div class="pad-rpg-sprite" id="player-sprite">🧙‍♂️</div>
-                    <div id="pad-player-status-icon"></div>
+                    <div class="rpg-sprite" id="player-sprite">🧙‍♂️</div>
+                    <div id="player-status-icon"></div>
                 </div>
 
-                <div id="pad-enemy-wrapper">
+                <div id="enemy-wrapper">
                     <div class="stage-shadow" style="width: 45px;"></div>
-                    <div id="pad-enemy-hp-ui">🪞法力同步中</div>
-                    <div class="pad-rpg-sprite" id="enemy-sprite">🦇</div>
+                    <div id="enemy-hp-ui">🪞法力同步中</div>
+                    <div class="rpg-sprite" id="enemy-sprite">🦇</div>
                 </div>
             </div>
 
@@ -666,7 +666,225 @@
             </div>
         </div>
     </div>
-</div>
+</div>   
+    <script>
+    // =========================================================
+    // ★ Firebase 伺服器連線設定
+    // =========================================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyB5KFifSLLKSTvXBiz6ufHeyvVfWyhyZa0",
+        authDomain: "exorcist-a55db.firebaseapp.com",
+        databaseURL: "https://exorcist-a55db-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "exorcist-a55db",
+        storageBucket: "exorcist-a55db.firebasestorage.app",
+        messagingSenderId: "400132667587",
+        appId: "1:400132667587:web:9ad6fe161c45617d29ca76"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // =========================================================
+    // 📚 題庫設定與全域團戰變數
+    // =========================================================
+    const SPREADSHEET_ID = "1V-IiZVEaQVewTZa9iX-SBWfy_30X1fHhRkDNJVvV_Rc";
+    const lessons = ["B1L1", "B1L2", "B1L3", "B1L4", "B3L1", "B3L2", "B3L3", "防災素一", "拼音練習"];
+    const audioFolderMap = {
+        "B1L1": "育達B1L1音檔", "B1L2": "育達B1L2音檔", "B1L3": "育達B1L3音檔", "B1L4": "育達B1L4音檔",
+        "B3L1": "康軒B3L1音檔", "B3L2": "康軒B3L2音檔", "B3L3": "康軒B3L3音檔", "防災素一": "康軒防災素一音檔", "拼音練習": "拼音練習音檔"
+    };
+
+    const RAID_AVATARS = ['🐶','🐱','🐰','🦊','🐼','🐨','🐯','🦁','🐸','🐹','🐥','🦄','🐙','🦖','🐧','🐿️','🦔','🦦','🦚','🐏','🐮','🦉','🐋','🐴','🐵'];
+    const RAID_WEAPONS = ['☀️','🥚','🌸','🌼','🌷','🌱','☘️','🍇','🍉','🍓','🫐','🥝','🌪️','🌬️','🌀','❄️','🌊','⭐','🧡','🍬','🍭','🫛','🫜','⚾','🥎'];
+    
+    let currentAvatars = [...RAID_AVATARS];
+    let currentWeapons = [...RAID_WEAPONS];
+
+    let RAID_BOSS_LIST = [
+        { name: '暗夜密婆', sprite: '🦇', maxHp: 200, attack: '🎵' },
+        { name: '劇毒青蛇', sprite: '🐍', maxHp: 400, attack: '💧' },
+        { name: '魔窟妖蛛', sprite: '🕷️', maxHp: 500, attack: '🕸️' },
+        { name: '赤焰紅鬼', sprite: '👹', maxHp: 650, attack: '🔥' }
+    ];
+
+    const audioPlayer = new Audio();
+    let raidDifficulty = 'master'; 
+    let isRaidStudentMode = false;
+    let raidStudentCurrentQ = null;
+    let raidStudentLocked = false;
+
+    let parsedAnswer = []; let inputBoxes = []; let currentSyllableIndex = 0; let typedBase = "";
+    const validLetters = ['a','b','e','g','h','i','j','k','l','m','n','o','p','s','t','u'];
+    const toneDigits = ['1','2','3','4','5','7','8','9'];
+    
+    let gourdsLeft = 3; let usedGourdOnCurrentQ = false; let timer = null; let timeLeft = 0;
+    let studentHostConn = null; let raidRoomPin = ""; let raidSelectedLessons = ["B1L1"];
+    let raidTeams = []; let raidQuestionDeck = []; let raidTotalQuestions = 25; let raidCurrentQIdx = 0;
+    let raidCurrentMatch = null; let raidBossIdx = 0; let raidBossHp = 200; let raidAllBossesCleared = false;
+    let raidHostTimer = null; let raidWanderInterval = null; let raidMissedStats = [];
+
+    // =========================================================
+    // 🎵 音效與 BGM 引擎
+    // =========================================================
+    let sfxCtx = null; let sfxMuted = false;
+    const BGM_TRACKS = [
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-01.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-02.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-03.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-04.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-05.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-06.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-07.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-08.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-09.mp3",
+        "https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-10.mp3"
+    ];
+    let bgmPlayer = new Audio(); bgmPlayer.volume = 0.35; let isBgmMuted = false; let currentBgmIndex = Math.floor(Math.random() * BGM_TRACKS.length); let bgmFadeInterval = null;
+
+    function playCurrentBGM() {
+        if (isBgmMuted) return;
+        if (bgmPlayer.src !== BGM_TRACKS[currentBgmIndex]) bgmPlayer.src = BGM_TRACKS[currentBgmIndex];
+        bgmPlayer.play().catch(()=>{});
+    }
+    bgmPlayer.addEventListener('ended', () => { currentBgmIndex = (currentBgmIndex + 1) % BGM_TRACKS.length; bgmPlayer.src = BGM_TRACKS[currentBgmIndex]; playCurrentBGM(); });
+
+    function toggleBGM() {
+        const btn = document.getElementById('bgm-toggle-btn'); if (!btn) return;
+        isBgmMuted = !isBgmMuted;
+        if (isBgmMuted) { clearInterval(bgmFadeInterval); bgmPlayer.pause(); btn.classList.add('muted'); } 
+        else { bgmPlayer.volume = 0.35; playCurrentBGM(); btn.classList.remove('muted'); }
+    }
+
+    function fadeBGM(targetVol, duration) {
+        if (isBgmMuted || !bgmPlayer.src) return; clearInterval(bgmFadeInterval);
+        if (bgmPlayer.paused && targetVol > 0.05) bgmPlayer.play().catch(()=>{});
+        const steps = 20; const stepTime = duration / steps; const volChange = (targetVol - bgmPlayer.volume) / steps;
+        bgmFadeInterval = setInterval(() => {
+            let nextVol = bgmPlayer.volume + volChange;
+            if (nextVol > 1) nextVol = 1; if (nextVol < 0) nextVol = 0;
+            if ((volChange > 0 && nextVol >= targetVol) || (volChange < 0 && nextVol <= targetVol)) { bgmPlayer.volume = targetVol; clearInterval(bgmFadeInterval); } 
+            else bgmPlayer.volume = nextVol;
+        }, stepTime);
+    }
+
+    function duckBGM() { fadeBGM(0.05, 400); }
+    function unduckBGM() { fadeBGM(0.35, 800); }
+    audioPlayer.addEventListener('ended', unduckBGM); audioPlayer.addEventListener('pause', unduckBGM);
+
+    function getSfxCtx() {
+        if (!sfxCtx) { const AudioCtx = window.AudioContext || window.webkitAudioContext; if (AudioCtx) sfxCtx = new AudioCtx(); }
+        if (sfxCtx && sfxCtx.state === 'suspended') sfxCtx.resume(); return sfxCtx;
+    }
+
+    function toggleSfx() {
+        sfxMuted = !sfxMuted;
+        const btnHost = document.getElementById('sfx-toggle-btn-host'); if (btnHost) btnHost.classList.toggle('muted', sfxMuted);
+        const btnPad = document.getElementById('sfx-toggle-btn'); if (btnPad) btnPad.classList.toggle('muted', sfxMuted);
+        if (!sfxMuted) sfxSyllableChant();
+    }
+
+    function playToneNode(freqStart, freqEnd, duration, type = 'sine', maxGain = 0.2, delay = 0) {
+        if (sfxMuted) return;
+        const ctx = getSfxCtx(); if (!ctx) return;
+        const t0 = ctx.currentTime + delay; const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freqStart, t0);
+        if (freqEnd !== freqStart) osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 20), t0 + duration);
+        gain.gain.setValueAtTime(0.001, t0); gain.gain.linearRampToValueAtTime(maxGain, t0 + Math.min(0.015, duration * 0.2)); gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+        osc.connect(gain); gain.connect(ctx.destination); osc.start(t0); osc.stop(t0 + duration + 0.02);
+    }
+
+    function sfxEnemyDeath() { playToneNode(180, 42, 0.32, 'sawtooth', 0.24, 0); playToneNode(130, 35, 0.35, 'square', 0.16, 0.04); playToneNode(523.25, 523.25, 0.12, 'triangle', 0.22, 0.22); playToneNode(659.25, 783.99, 0.25, 'triangle', 0.25, 0.32); }
+    function sfxEnemyHit() { playToneNode(880, 260, 0.18, 'sine', 0.22, 0); playToneNode(587.33, 1174.66, 0.16, 'triangle', 0.2, 0.08); playToneNode(150, 55, 0.14, 'sawtooth', 0.22, 0.14); }
+    function sfxPlayerDodge() { playToneNode(240, 720, 0.14, 'sine', 0.14, 0.12); playToneNode(320, 880, 0.12, 'triangle', 0.1, 0.15); }
+    function sfxPlayerHit() { playToneNode(150, 38, 0.28, 'sawtooth', 0.32, 0); playToneNode(95, 30, 0.32, 'square', 0.25, 0.03); }
+    function sfxShieldBlock() { playToneNode(420, 280, 0.14, 'triangle', 0.25, 0); playToneNode(600, 350, 0.12, 'sine', 0.18, 0.05); }
+    function sfxShieldBreak() { playToneNode(280, 55, 0.32, 'sawtooth', 0.32, 0); playToneNode(190, 40, 0.35, 'square', 0.26, 0.06); }
+    function sfxFeatherRevive() { [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, idx) => playToneNode(f, f * 1.05, 0.18, 'triangle', 0.24, idx * 0.07)); }
+    function sfxUseGourd() { [523.25, 659.25, 783.99, 1046.5].forEach((n, idx) => playToneNode(n, n, 0.16, 'sine', 0.2, idx * 0.055)); }
+    function sfxCoin() { playToneNode(987.77, 987.77, 0.08, 'sine', 0.25, 0); playToneNode(1318.51, 1318.51, 0.28, 'sine', 0.28, 0.08); }
+    function sfxError() { playToneNode(175, 145, 0.08, 'sawtooth', 0.12, 0); playToneNode(145, 115, 0.11, 'sawtooth', 0.12, 0.09); }
+    function sfxSyllableChant() { playToneNode(659.25, 880, 0.12, 'sine', 0.14, 0); }
+    function sfxTimerTick() { playToneNode(880, 660, 0.045, 'triangle', 0.15, 0); }
+    function sfxVictory() { [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playToneNode(f, f, 0.16, 'triangle', 0.24, i * 0.12)); }
+    function sfxUltimateVictory() { [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => playToneNode(f, f, 0.2, 'square', 0.2, i * 0.1)); }
+
+    function toggleInfoModal(show) { document.getElementById('info-modal').style.display = show ? 'flex' : 'none'; }
+
+    // =========================================================
+    // ⌨️ 虛擬鍵盤與台羅音節拆解系統
+    // =========================================================
+    function getToneSvg(tone, isChecked = false) {
+        let markPath = '';
+        switch(tone) {
+            case 2: markPath = `<line x1="12.5" y1="3.5" x2="8" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
+            case 3: markPath = `<line x1="7.5" y1="3.5" x2="12" y2="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
+            case 5: markPath = `<path d="M 6.2 9 L 10 3.8 L 13.8 9" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />`; break;
+            case 6: markPath = `<path d="M 6.5 5 L 10 9 L 13.5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />`; break;
+            case 7: markPath = `<line x1="6.2" y1="6.8" x2="13.8" y2="6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />`; break;
+            case 8: markPath = `<line x1="10" y1="3" x2="10" y2="9.2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />`; break;
+            case 9: markPath = `<line x1="9.8" y1="3.5" x2="6.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" /><line x1="13.8" y1="3.5" x2="10.8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />`; break;
+        }
+        const vb = isChecked ? "3.5 0 13 26" : "0 0 20 26";
+        return `<svg class="tone-svg-unified" viewBox="${vb}">${markPath}<circle cx="10" cy="18" r="5.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.5,2" /></svg>`;
+    }
+    const ptkhGridHtml = `<div class="checked-tone-grid"><span>p</span><span>t</span><span>k</span><span>h</span></div>`;
+    const subTone4 = `<div class="checked-tone-group">${getToneSvg(4, true)}${ptkhGridHtml}</div>`;
+    const subTone8 = `<div class="checked-tone-group">${getToneSvg(8, true)}${ptkhGridHtml}</div>`;
+
+    function isCurrentSyllableToneChained() { return raidDifficulty === 'apprentice'; }
+
+    function formatTailoDisplay(str) {
+        if (!str) return '';
+        let nfd = str.normalize('NFD'); let res = nfd.replace(/i\u030D/g, '<span class="t8-i">\u0131</span>'); res = res.replace(/([aeoumn])\u030D/g, '<span class="t8">$1</span>');
+        return res.normalize('NFC');
+    }
+
+    function parseTaiLoAnswer(rawText) {
+        let text = rawText.split('(')[0].toLowerCase().trim(); let rawSyllables = text.split(/[\s\-–—]+/).filter(s => s.length > 0);
+        const toneMap = { '\u0301': '2', '\u0300': '3', '\u0302': '5', '\u0304': '7', '\u030D': '8', '\u030B': '9' };
+        let parsed = [];
+        for (let s of rawSyllables) {
+            let nfd = s.normalize("NFD"); let base = ""; let tone = null;
+            for (let char of nfd) { if (toneMap[char]) tone = toneMap[char]; else if (/[a-z]/.test(char)) base += char; }
+            if (!tone) tone = /[ptkh]$/.test(base) ? '4' : '1'; parsed.push({ base: base, tone: tone });
+        }
+        return parsed;
+    }
+
+    function applyToneToSyllable(syllable, toneDigit) {
+        if (toneDigit === '1' || toneDigit === '4') return syllable;
+        const marks = { '2': '\u0301', '3': '\u0300', '5': '\u0302', '7': '\u0304', '8': '\u030D', '9': '\u030B' }; const m = marks[toneDigit]; if (!m) return syllable;
+        let res = syllable;
+        if (res.includes('a')) res = res.replace('a', 'a' + m); else if (res.includes('oo')) res = res.replace('oo', 'o' + m + 'o'); else if (res.includes('o') && !res.includes('oa') && !res.includes('oe')) res = res.replace('o', 'o' + m); else if (res.includes('e')) res = res.replace('e', 'e' + m); else if (res.includes('iu')) res = res.replace('iu', 'i' + 'u' + m); else if (res.includes('ui')) res = res.replace('ui', 'u' + 'i' + m); else if (res.includes('i')) res = res.replace('i', 'i' + m); else if (res.includes('u')) res = res.replace('u', 'u' + m); else if (res.includes('ng')) res = res.replace('ng', 'n' + m + 'g'); else if (res.includes('m')) res = res.replace('m', 'm' + m);
+        return formatTailoDisplay(res);
+    }
+
+    function createKeyDiv(keyObj) {
+        let val = typeof keyObj === 'string' ? keyObj : keyObj.val; let display = typeof keyObj === 'string' ? keyObj.toUpperCase() : keyObj.display; let subText = typeof keyObj === 'object' ? keyObj.sub : null; let forceDisabled = typeof keyObj === 'object' && keyObj.disabled; let customClass = typeof keyObj === 'object' && keyObj.customClass ? keyObj.customClass : '';
+        const btn = document.createElement('div'); btn.className = `key ${customClass}`; btn.dataset.key = val; let html = '';
+        if (toneDigits.includes(val) || val === '6') { html += `<div class="tone-num">${display}</div><div class="tone-symbol">${subText}</div>`; } else { html = `<div>${display}</div>`; }
+        btn.innerHTML = html;
+        if (!forceDisabled && (validLetters.includes(val) || toneDigits.includes(val) || val === 'Backspace')) {
+            btn.classList.add('active-key'); btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(val); }); btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(val); }, {passive: false});
+        } else if (val === '6') {
+            btn.classList.add('disabled-key'); btn.addEventListener('mousedown', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); }); btn.addEventListener('touchstart', (e) => { e.preventDefault(); if (isCurrentSyllableToneChained()) handleInput('6'); }, {passive: false});
+        } else btn.classList.add('disabled-key');
+        return btn;
+    }
+
+    function buildKeyboard() {
+        const kbContainer = document.getElementById('keyboard'); kbContainer.innerHTML = '';
+        const row0 = document.createElement('div'); row0.className = 'kb-row'; const toneGroup = document.createElement('div'); toneGroup.className = 'tone-keys-group'; toneGroup.id = 'tone-keys-group';
+        const toneKeys = [ {val: '1', display: '1', sub: getToneSvg(1)}, {val: '2', display: '2', sub: getToneSvg(2)}, {val: '3', display: '3', sub: getToneSvg(3)}, {val: '4', display: '4', sub: subTone4}, {val: '5', display: '5', sub: getToneSvg(5)}, {val: '6', display: '6', sub: getToneSvg(6), disabled: true}, {val: '7', display: '7', sub: getToneSvg(7)}, {val: '8', display: '8', sub: subTone8}, {val: '9', display: '9', sub: getToneSvg(9)} ];
+        toneKeys.forEach(k => toneGroup.appendChild(createKeyDiv(k))); row0.appendChild(toneGroup); row0.appendChild(createKeyDiv({val: 'Backspace', display: '刪', sub: '', customClass: 'key-delete'})); kbContainer.appendChild(row0);
+        const row1 = document.createElement('div'); row1.className = 'kb-row'; ['q','w','e','r','t','y','u','i','o','p'].forEach(k => row1.appendChild(createKeyDiv(k))); kbContainer.appendChild(row1);
+        const row2 = document.createElement('div'); row2.className = 'kb-row kb-row-2'; ['a','s','d','f','g','h','j','k','l'].forEach(k => row2.appendChild(createKeyDiv(k))); kbContainer.appendChild(row2);
+        const row3 = document.createElement('div'); row3.className = 'kb-row kb-row-3'; ['z','x','c','v','b','n','m'].forEach(k => row3.appendChild(createKeyDiv(k))); kbContainer.appendChild(row3);
+    }
+
+    function shuffleBank(array) {
+        const arr = [...array]; for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr;
+    }
+</script>
 <script>
     // =========================================================
     // ★ Firebase 伺服器連線設定
@@ -949,15 +1167,11 @@
         return finalName;
     }
 
-    // ★ 初始化時分配學生的「固定排隊角度」與較大的固定半徑，將隊伍推到畫面下方
+    // ★ 創建時賦予每個學生一個 baseAngle，確保未來站位排序不會亂掉
     function createRaidTeamObj(name, seatNo, padNo, avatar, hueRotate, weapon, conn, isBot) {
         const teamCount = raidTeams.length;
-        // 分配一個 20 到 160 度的角度，確保散佈在下半部的扇形區
-        const angleDeg = 20 + (teamCount * 35) % 140; 
-        const angle = angleDeg * Math.PI / 180;
-        
         return {
-            id: (isBot ? 'bot_' : 'p_') + Date.now() + '_' + Math.random().toString(36).substr(2, 4), name: name, seatNo: seatNo || 'N/A', padNo: padNo || 'N/A', avatar: avatar, hueRotate: hueRotate, weapon: weapon, hp: 3.0, maxHp: 3.0, consecWrong: 0, ghostCorrectCount: 0, streak: 0, feathers: 0, score: 0, totalQ: 0, correctQ: 0, wrongList: [], reviveProtected: false, conn: conn, isBot: isBot, baseAngle: angle, baseRadius: 65, x: 50, y: 80, submitTime: 0 
+            id: (isBot ? 'bot_' : 'p_') + Date.now() + '_' + Math.random().toString(36).substr(2, 4), name: name, seatNo: seatNo || 'N/A', padNo: padNo || 'N/A', avatar: avatar, hueRotate: hueRotate, weapon: weapon, hp: 3.0, maxHp: 3.0, consecWrong: 0, ghostCorrectCount: 0, streak: 0, feathers: 0, score: 0, totalQ: 0, correctQ: 0, wrongList: [], reviveProtected: false, conn: conn, isBot: isBot, baseAngle: teamCount, x: 50, y: 80, submitTime: 0 
         };
     }
 
@@ -1021,27 +1235,51 @@
 
         if (rawCards.length === 0) return alert("題庫載入失敗！"); raidQuestionDeck = shuffleBank(rawCards);
         
-        // 開局為學生重新排列扇形陣
         raidTeams.forEach((t, idx) => {
             t.hp = 3.0; t.consecWrong = 0; t.ghostCorrectCount = 0; t.streak = 0; t.feathers = 0; t.score = 0; t.totalQ = 0; t.correctQ = 0; t.submitTime = 0; t.wrongList = []; t.reviveProtected = false; 
-            
-            const total = raidTeams.length;
-            // 計算每位學生的站位 X 軸，均勻分佈在 10% 到 90% 之間
-            let targetX = 50;
-            if (total > 1) targetX = 10 + (idx * (80 / (total - 1)));
-            
-            // 扇形錯位：越中間的人站得稍微偏上(遠)，兩邊的人偏下(近)
-            const distanceFromCenter = Math.abs(targetX - 50) / 40;
-            const targetY = 70 + (distanceFromCenter * 15);
-            
-            t.x = targetX;
-            t.y = targetY;
         });
 
         raidBossIdx = 0; raidBossHp = RAID_BOSS_LIST[0].maxHp; raidAllBossesCleared = false; raidCurrentQIdx = 0; raidMissedStats = [];
 
         document.getElementById('raid-lobby-screen').classList.remove('active'); document.getElementById('raid-host-screen').classList.add('active'); document.getElementById('raid-hud-diff-label').innerText = (raidDifficulty === 'apprentice') ? '咒術師仔' : '咒術師父';
-        initRaidArmyUnitsDOM(); updateRaidBossUI(); renderRaidLiveScoreboard(); runNextRaidQuestion();
+        
+        initRaidArmyUnitsDOM(); 
+        updateRaidArmyPositions(); // ★ 首次安排陣型
+        updateRaidBossUI(); 
+        renderRaidLiveScoreboard(); 
+        startRaidWanderingLoop(); // ★ 啟動自動走動與收攏引擎
+        runNextRaidQuestion();
+    }
+
+    // ★ 核心動態列陣引擎：只針對活著的玩家重新計算間距，並加上隨機位移
+    function updateRaidArmyPositions() {
+        const aliveTeams = raidTeams.filter(t => t.hp > 0);
+        const totalAlive = aliveTeams.length;
+        // 依據原始報數排序，確保左到右的相對位置不變
+        aliveTeams.sort((a, b) => a.baseAngle - b.baseAngle);
+        
+        aliveTeams.forEach((t, idx) => {
+            let targetX = 50;
+            // 根據存活人數動態將 15%~85% 的區域均分，有人陣亡自動向內靠攏
+            if (totalAlive > 1) {
+                targetX = 15 + (idx * (70 / (totalAlive - 1)));
+            }
+            // 每隔幾秒加入輕微的隨機腳步偏移 (-4% 到 +4%)
+            const wanderX = targetX + (Math.random() * 8 - 4);
+            
+            // 扇形透視計算：越往兩側走，距離鏡頭越近(Y 越小)
+            const distFromCenter = Math.abs(wanderX - 50) / 35; 
+            const targetY = 72 + (distFromCenter * 16) + (Math.random() * 4 - 2);
+            
+            t.x = wanderX;
+            t.y = targetY;
+            
+            const unit = document.getElementById(`raid-unit-${t.id}`);
+            if (unit) {
+                unit.style.left = `${t.x}%`;
+                unit.style.top = `${t.y}%`;
+            }
+        });
     }
 
     function initRaidArmyUnitsDOM() {
@@ -1049,11 +1287,9 @@
         raidTeams.forEach(t => {
             const unit = document.createElement('div'); unit.className = 'raid-unit' + (t.isBot ? ' bot-unit' : ''); unit.id = `raid-unit-${t.id}`; 
             
-            // 設定固定站位
-            unit.style.left = `${t.x}%`; 
-            unit.style.top = `${t.y}%`;
+            unit.style.left = `50%`; 
+            unit.style.top = `80%`;
             
-            // ★ 加入立體感關鍵：大屏學生的腳下陰影
             unit.innerHTML = `
                 <div class="unit-hp-track" style="position:relative; z-index:3;"><div class="unit-hp-fill" id="unit-hp-${t.id}"></div></div>
                 <div class="host-stage-shadow"></div>
@@ -1071,7 +1307,18 @@
             if (t.hp <= 0) { unit.classList.add('unit-dead'); avatarSpan.innerText = '👻'; if (t.ghostCorrectCount > 0) statusSpan.innerHTML = `<span style="color:#4ade80; font-weight:bold; font-size:14px; text-shadow:0 1px 2px #000;">+${t.ghostCorrectCount}</span>`; else statusSpan.innerText = '💀'; } 
             else { unit.classList.remove('unit-dead'); avatarSpan.innerText = t.avatar; statusSpan.innerText = (t.consecWrong === 1) ? '🛡️💦' : (t.consecWrong >= 2 ? '💥💦' : ''); }
         });
+        // 視覺更新後順便觸發一次重新列陣，讓剛死掉或復活的人位置能馬上校正
+        updateRaidArmyPositions();
         broadcastDeadCountToStudents();
+    }
+
+    // ★ 啟動每 3 秒自動走動一次的機制
+    function startRaidWanderingLoop() {
+        if (raidWanderInterval) clearInterval(raidWanderInterval);
+        raidWanderInterval = setInterval(() => {
+            if (!raidCurrentMatch || !raidCurrentMatch.accepting) return;
+            updateRaidArmyPositions();
+        }, 3000); 
     }
 
     function updateRaidBossUI() {
@@ -1171,14 +1418,11 @@
         const accuracyPct = aliveCount > 0 ? Math.round((correctActiveCount / aliveCount) * 100) : 0; let canTriggerPerfect = (aliveCount > (totalCount / 2)) && (totalCount > 0); let isPerfect = (accuracyPct === 100 && canTriggerPerfect); let isUltimate = (isPerfect && allAliveWithin10s);
         raidMissedStats.push({ h: raidCurrentMatch.card.h, r: raidCurrentMatch.card.r, a: raidCurrentMatch.card.a, fullRevealedHtml: raidCurrentMatch.fullRevealedHtml, wrongCount: wrongTotalThisQ });
 
-        // ★ 大屏 3D Z 軸發射武器效果 (從下方各陣地發射，縮小飛向中央妖魔)
         const refractLayer = document.getElementById('raid-refract-layer'); refractLayer.innerHTML = ''; let hasCorrect = false;
         raidTeams.forEach(t => {
             const sub = raidCurrentMatch.submissions[t.id];
             if (t.hp > 0 && sub && sub.isCorrect) { 
                 hasCorrect = true; const orb = document.createElement('div'); orb.className = 'raid-orb'; orb.innerText = t.weapon; refractLayer.appendChild(orb); 
-                
-                // 動態取得目標(妖魔)的中心點位置 (大約在 50%, 25%)
                 orb.animate([ 
                     { left: `${t.x}%`, top: `${t.y}%`, transform: 'translate(-50%,-50%) scale(1) rotate(0deg)', opacity: 1 }, 
                     { left: '50%', top: '25%', transform: 'translate(-50%,-50%) scale(0.3) rotate(360deg)', opacity: 0.8 } 
@@ -1192,10 +1436,8 @@
                 const explosion = document.createElement('div'); explosion.className = 'boss-explosion';
                 if (isUltimate) explosion.classList.add('tier-ult'); else if (accuracyPct === 100) explosion.classList.add('tier-100'); else if (accuracyPct >= 90) explosion.classList.add('tier-90'); else if (accuracyPct >= 70) explosion.classList.add('tier-70'); else if (accuracyPct >= 50) explosion.classList.add('tier-50'); else explosion.classList.add('tier-low');
                 
-                // 爆炸點對齊妖魔的新位置
                 explosion.style.top = '25%';
                 refractLayer.appendChild(explosion); setTimeout(() => explosion.remove(), 1200); 
-                
                 const dmgText = document.createElement('div'); dmgText.className = 'damage-popup'; dmgText.innerText = `💥 攻擊力 ${accuracyPct}%`; 
                 refractLayer.appendChild(dmgText); setTimeout(() => dmgText.remove(), 1500);
             }
@@ -1208,7 +1450,6 @@
             
             if (bossDamage > 0) { 
                 sfxEnemyHit(); 
-                // 妖魔受擊時，往右上方後退縮小
                 bossSpriteEl.classList.add('boss-hit-recoil'); 
                 setTimeout(() => bossSpriteEl.classList.remove('boss-hit-recoil'), 400); 
             } else sfxError();
@@ -1219,14 +1460,12 @@
             if (bossStunned) { document.getElementById('raid-boss-stun-stars').style.display = 'block'; document.getElementById('raid-hud-phase-msg').innerText = `💫 攻勢猛烈，妖魔袂振袂動！`; } 
             else {
                 document.getElementById('raid-hud-phase-msg').innerText = `⚠️ 攻勢傷弱，妖魔反擊！`; 
-                // 妖魔反擊動畫：朝鏡頭猛撲放大
                 bossSpriteEl.classList.add('boss-attack-dive'); 
                 setTimeout(() => bossSpriteEl.classList.remove('boss-attack-dive'), 450);
                 
                 const curBossAtkIcon = raidAllBossesCleared ? '🦴' : RAID_BOSS_LIST[raidBossIdx].attack;
                 const shockwave = document.createElement('div'); shockwave.className = 'ground-shockwave'; refractLayer.appendChild(shockwave); setTimeout(() => shockwave.remove(), 600);
                 
-                // 大屏妖魔反擊道具，朝畫面下半部隨機砸去並放大
                 const angles = [45, 60, 90, 120, 135];
                 angles.forEach(deg => { 
                     const eProj = document.createElement('div'); eProj.innerText = curBossAtkIcon; eProj.style.position = 'absolute'; eProj.style.fontSize = '35px'; eProj.style.left = '50%'; eProj.style.top = '25%'; eProj.style.zIndex = '9'; eProj.style.pointerEvents = 'none'; refractLayer.appendChild(eProj); 
@@ -1268,8 +1507,6 @@
                 const unitEl = document.getElementById(`raid-unit-${t.id}`);
                 if (unitEl) {
                     unitEl.classList.remove('unit-chanting', 'unit-submitted');
-                    const avatarBox = unitEl.querySelector('.unit-avatar-box');
-
                     if (isUltimate) { unitEl.classList.add('flash-ultimate'); setTimeout(() => unitEl.classList.remove('flash-ultimate'), 1500); } 
                     else if (isPerfect && wasAlive) { unitEl.classList.add('flash-gold'); setTimeout(() => unitEl.classList.remove('flash-gold'), 1000); } 
                     else if (!wasAlive && gotRight && outcome === 'GHOST_CORRECT') { unitEl.classList.add('flash-gold'); setTimeout(() => unitEl.classList.remove('flash-gold'), 1500); }
@@ -1328,7 +1565,6 @@
     let myRaidHue = 0;      
     let myRaidWeapon = '⭐'; 
 
-    // ★ 定義隨機暱稱詞庫
     const raidAdjectives = ['骨力的', '拍拚的', '有心的', '頂真的', '古錐的', '緣投的', '媠氣的', '飄撇的', '勇敢的', '歡喜的', '上巧的', '上𠢕的', '條直的', '實在的', '猛掠的', '樂觀的', '爽快的', '幼秀的', '標緻的', '有氣魄的', '貼心的', '活潑的'];
     const raidAnimals = ['石虎', '長鬃山羊', '臺灣黑熊', '臺灣獼猴', '帝雉', '臺灣藍鵲', '梅花鹿', '櫻花鉤吻鮭', '穿山甲', '黃頸蝠', '黑面琵鷺', '白海豚', '綠蠵龜', '臺灣水鹿', '寬尾鳳蝶', '諸羅樹蛙', '臺灣野兔', '臺灣山豬', '臺灣草鴞', '臺灣犬'];
     let autoGeneratedNickname = "";
@@ -1338,7 +1574,6 @@
         document.getElementById('entry-screen').classList.remove('active');
         document.getElementById('raid-student-join-screen').classList.add('active');
 
-        // ★ 彈出表單時，自動抽取並顯示專屬暱稱
         const randomAdj = raidAdjectives[Math.floor(Math.random() * raidAdjectives.length)];
         const randomAnimal = raidAnimals[Math.floor(Math.random() * raidAnimals.length)];
         autoGeneratedNickname = randomAdj + randomAnimal;
@@ -1353,7 +1588,6 @@
 
     function connectStudentToRaidHost() {
         const pin = document.getElementById('raid-join-pin').value.trim();
-        // ★ 直接使用系統生成的暱稱
         const name = autoGeneratedNickname;
         const seat = document.getElementById('raid-join-seat').value.trim();
         const pad = document.getElementById('raid-join-pad').value.trim();
@@ -1375,12 +1609,8 @@
             }
             
             const playerId = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-            
             roomRef.child('players').child(playerId).onDisconnect().remove();
-
-            roomRef.child('players').child(playerId).set({
-                info: { name: name, seatNo: seat, padNo: pad }
-            });
+            roomRef.child('players').child(playerId).set({ info: { name: name, seatNo: seat, padNo: pad } });
 
             studentHostConn = {
                 open: true,
@@ -1391,16 +1621,14 @@
                 }
             };
 
+            // ★ 此處已拿掉 initialLoad 防呆，完美接收大屏指令！
             roomRef.child('direct_messages').child(playerId).on('value', msgSnap => {
                 const data = msgSnap.val();
                 if (data) handleRaidStudentReceive(data);
             });
 
             roomRef.on('value', roomSnap => {
-                if (!roomSnap.exists()) {
-                    alert("與主辦方大屏的連線已結束！");
-                    location.reload();
-                }
+                if (!roomSnap.exists()) { alert("與主辦方大屏的連線已結束！"); location.reload(); }
             });
         });
     }
@@ -1522,7 +1750,6 @@
         tmEl.innerHTML = displayStr; tmEl.style.display = 'block';
     }
 
-    // ★ 玩家發射武器：拋物線縮放的 3D 視覺
     function submitRaidStudentSpell(isCorrect) {
         if (raidStudentLocked) return; raidStudentLocked = true; stopTimer();
         const enterBtn = document.getElementById('btn-enter'); enterBtn.classList.add('locked-in'); enterBtn.innerHTML = `<div>✅ 已傳送法力</div>`;
@@ -1587,7 +1814,6 @@
             const playerEl = document.getElementById('player-sprite'); const statusIconEl = document.getElementById('player-status-icon'); const maskHint = document.getElementById('raid-word-mask-hint');
             if (statusIconEl) statusIconEl.innerHTML = '';
             
-            // ★ 妖魔反擊：加入拋物線與放大的 3D 視覺
             if (!data.bossStunned) {
                 const arena = document.getElementById('rpg-arena'); 
                 if (arena) {
