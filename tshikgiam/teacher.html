@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>教師控制台 - 台語互動派題系統</title>
-  <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
-  <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- 引入 Google Fonts 保證罕見字與羅馬字顯示正常 -->
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+    
     :root { --primary: #475569; --teacher: #f8f9fa; --danger: #ef4444; --success: #22c55e; --accent: #3b82f6; }
-    body { font-family: 'Tauhu Oo', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 120px;}
+    body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 120px;}
     .hidden { display: none !important; }
-    button { cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Tauhu Oo', sans-serif;}
+    button { cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Noto Sans TC', sans-serif;}
     button:active { transform: scale(0.98); }
     
     .version-tag { position: absolute; top: 10px; right: 10px; background: #94a3b8; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
     .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.4; }
-    input[type="number"] { padding: 6px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tauhu Oo';}
+    input[type="number"] { padding: 6px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Noto Sans TC', sans-serif;}
 
     #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .role-btn { padding: 12px 24px; font-size: 18px; margin: 10px; background: var(--primary); color: white; }
@@ -61,9 +61,10 @@
     .student-item { display: block; padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 15px; transition: 0.2s; text-align: left; color: #475569;}
     .student-item:hover { text-decoration: line-through; color: var(--danger); cursor: pointer; background: #fef2f2; }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="version-tag">Ver 2.2 (Teacher)</div>
+  <div class="version-tag">Ver 2.3 (Teacher)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary);">請選擇本次測驗模式</h1>
@@ -106,15 +107,17 @@
             </div>
             <div id="testControls" class="hidden" style="width:100%;">
               <span style="font-weight:bold;">測驗模式：</span>總計 <input type="number" id="testMinutes" value="5" style="width:60px;"> 分
-              <!-- 改名：派題並開始考試 -->
               <button class="send-btn" onclick="startTestMode()">派題並開始考試</button>
               <button class="stop-btn" onclick="triggerTestStop('manual')">提前收卷</button>
             </div>
           </div>
           
-          <h3 style="font-size:16px;">勾選要派送的題目：</h3>
-          <!-- 動態生成工作表清單的容器 -->
-          <div id="questionList">正在從 Google 試算表載入多工作表題庫...</div>
+          <div class="accordion-header" onclick="toggleQList()">
+              <span id="accordionArrow">▶</span> 勾選要派送的題目
+          </div>
+          <div id="questionListContainer" class="hidden">
+              <div id="questionList">正在從 Google 試算表載入多工作表題庫...</div>
+          </div>
         </div>
 
         <div id="animationPanel" class="hidden">
@@ -130,7 +133,6 @@
             <div>
                 <h3 style="margin:0; font-size:16px;">考生名單 (<span id="studentCount">0</span>)</h3>
             </div>
-            <!-- 匯出成績按鈕 -->
             <button class="toggle-btn" style="background:var(--success); color:white; padding:4px 8px;" onclick="exportCSV()">匯出成績</button>
         </div>
         <div id="studentList" class="student-list"></div>
@@ -178,17 +180,20 @@
         if(bgm) { bgm.play().then(() => bgm.pause()).catch(e=>{}); }
     }
 
-    // 展開/收起個別工作表內容
-    window.toggleSheetContent = (idx) => {
+    // 展開/收起個別工作表內容 (點擊不自動展開)
+    window.toggleSheetContent = (e, idx) => {
+        // 防止點擊 checkbox 觸發展開
+        if(e.target.tagName.toLowerCase() === 'input') return; 
+        
         const content = document.getElementById(`sheet-content-${idx}`);
         const arrow = document.getElementById(`sheet-arrow-${idx}`);
         if(content.classList.contains('hidden')) { content.classList.remove('hidden'); arrow.innerText = "▼"; } 
         else { content.classList.add('hidden'); arrow.innerText = "▶"; }
     };
 
-    // 工作表全選聯動
+    // 工作表全選聯動邏輯修改
     window.toggleSheetAll = (e, idx) => {
-        e.stopPropagation(); // 阻止展開收起事件
+        e.stopPropagation(); 
         const isChecked = e.target.checked;
         document.querySelectorAll(`.q-checkbox-${idx}`).forEach(cb => {
             cb.checked = isChecked;
@@ -228,7 +233,6 @@
         if (snap.val() === true) { const tRef = ref(db, 'room/settings/teacherOnline'); onDisconnect(tRef).set(false); set(tRef, true); }
       });
       
-      // 非同步讀取多工作表邏輯
       await loadGoogleSheets();
 
       onValue(ref(db, 'room/students'), snap => {
@@ -247,7 +251,7 @@
       });
     };
 
-    // 抓取第一頁作為目錄，並依序抓取所有工作表
+    // 抓取多工作表 (預設不勾選、不展開)
     async function loadGoogleSheets() {
         const listDiv = document.getElementById('questionList');
         listDiv.innerHTML = "正在讀取目錄頁...";
@@ -256,12 +260,10 @@
         let finalHtml = "";
 
         try {
-            // 抓取預設第一頁 (目錄)
             const dirRes = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`);
             const dirText = await dirRes.text();
             const dirData = JSON.parse(dirText.substring(47).slice(0, -2));
             
-            // 取出 A 欄的所有工作表名稱
             const sheetNames = dirData.table.rows.map(row => row.c[0]?.v).filter(Boolean);
             if(sheetNames.length === 0) { listDiv.innerHTML = "目錄頁是空的！請在 A 欄填寫工作表名稱。"; return; }
 
@@ -269,7 +271,6 @@
                 const sName = sheetNames[sIdx];
                 listDiv.innerHTML = `正在讀取工作表：${sName} (${sIdx+1}/${sheetNames.length})...`;
                 try {
-                    // 根據名稱抓取特定工作表
                     const sRes = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sName)}`);
                     const sText = await sRes.text();
                     const sData = JSON.parse(sText.substring(47).slice(0, -2));
@@ -279,14 +280,14 @@
                       opts: [row.c[1]?.v, row.c[2]?.v, row.c[3]?.v, row.c[4]?.v].filter(Boolean), audio: row.c[5]?.v || null
                     })).filter(item => item.q);
 
-                    if (qRows.length === 0) continue; // 空工作表跳過
+                    if (qRows.length === 0) continue; 
 
-                    // 建立該工作表的 HTML
+                    // 預設 input 不帶 checked
                     finalHtml += `
                     <div class="sheet-group">
-                        <div class="sheet-header" onclick="toggleSheetContent(${sIdx})">
+                        <div class="sheet-header" onclick="toggleSheetContent(event, ${sIdx})">
                             <div class="sheet-title">
-                                <input type="checkbox" checked onchange="toggleSheetAll(event, ${sIdx})" style="width:20px; height:20px; margin-right:15px; cursor:pointer;">
+                                <input type="checkbox" onchange="toggleSheetAll(event, ${sIdx})" style="width:20px; height:20px; margin-right:15px; cursor:pointer;">
                                 ${sName} <span style="font-size:14px; font-weight:normal; margin-left:10px; color:#64748b;">(${qRows.length}題)</span>
                             </div>
                             <span id="sheet-arrow-${sIdx}">▶</span>
@@ -296,13 +297,13 @@
                     qRows.forEach((item) => {
                         const currentGlobalIdx = globalQIndex++;
                         item.questionId = currentGlobalIdx;
-                        item.sheetName = sName; // 紀錄來源
+                        item.sheetName = sName; 
                         allQuestions.push(item);
                         
                         finalHtml += `
                         <div class="question-item">
                             <label style="cursor:pointer; display:flex; align-items:center;">
-                                <input type="checkbox" class="q-checkbox q-checkbox-${sIdx}" value="${currentGlobalIdx}" checked style="margin-right:10px;">
+                                <input type="checkbox" class="q-checkbox q-checkbox-${sIdx}" value="${currentGlobalIdx}" style="margin-right:10px;">
                                 <span><b>${item.q}</b> ${item.audio ? '🎵' : ''}</span>
                             </label>
                         </div>`;
@@ -460,7 +461,6 @@
         return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
-    // 匯出包含完整欄位的 CSV
     window.exportCSV = async () => {
       const stuSnap = await get(ref(db, 'room/students')), tAnsSnap = await get(ref(db, 'room/testAnswers'));
       if(!stuSnap.exists()) return alert("無資料");
