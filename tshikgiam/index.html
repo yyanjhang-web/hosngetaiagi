@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台語互動派題系統 - 學生端</title>
-  <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
-  <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
   <style>
+    /* 引入 Google Fonts 保證罕見字與羅馬字顯示正常 */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+    
     :root { --primary: #475569; --student: #f1f5f9; --danger: #ef4444; --success: #22c55e; --accent: #3b82f6; }
-    body { font-family: 'Tauhu Oo', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 120px;}
+    body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 120px;}
     .hidden { display: none !important; }
-    button { cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Tauhu Oo', sans-serif;}
+    button { cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Noto Sans TC', sans-serif;}
     button:active { transform: scale(0.98); }
     
     .version-tag { position: absolute; top: 10px; right: 10px; background: #94a3b8; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
@@ -22,7 +23,7 @@
     /* 學生輸入欄位樣式 */
     .input-group { margin-bottom: 15px; text-align: left; width: 80%; margin-left: auto; margin-right: auto; }
     .input-group label { display: block; font-size: 14px; color: #64748b; margin-bottom: 5px; font-weight: bold;}
-    input[type="text"] { padding: 12px; font-size: 16px; border: 2px solid #cbd5e1; border-radius: 6px; font-family: 'Tauhu Oo'; width: 100%; box-sizing: border-box; text-align:center;}
+    input[type="text"] { padding: 12px; font-size: 16px; border: 2px solid #cbd5e1; border-radius: 6px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center;}
     input:disabled { background-color: #f1f5f9; cursor: not-allowed; color: #94a3b8; font-weight: bold;}
 
     #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
@@ -32,15 +33,15 @@
     .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-bottom: 20px;}
     .option-btn { padding: 15px; font-size: 20px; background: white; color: var(--primary); border: 2px solid #cbd5e1; box-shadow: 0 3px 0 #cbd5e1; }
     .option-btn:disabled { background: #f8f9fa; border-color: #e2e8f0; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
-    .option-btn.correct { background: var(--success); border-color: var(--success); color: white; box-shadow: 0 3px 0 #16a34a; }
-    .option-btn.wrong { background: var(--danger); border-color: var(--danger); color: white; box-shadow: 0 3px 0 #dc2626; }
+    .option-btn.correct { background: var(--success) !important; border-color: var(--success) !important; color: white !important; box-shadow: 0 3px 0 #16a34a !important; }
+    .option-btn.wrong { background: var(--danger) !important; border-color: var(--danger) !important; color: white !important; box-shadow: 0 3px 0 #dc2626 !important; }
     .nav-btn { padding: 8px 16px; font-size: 16px; background: #94a3b8; color: white; }
     
     #offlineOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.95); color: var(--primary); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align:center;}
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.2</div>
+  <div class="version-tag">Ver 2.3</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary);">台語互動派題系統</h1>
@@ -156,12 +157,8 @@
       const nickname = adjs[Math.floor(Math.random()*adjs.length)] + animals[Math.floor(Math.random()*animals.length)];
       myStudentId = 'student_' + Date.now();
       
-      // 寫入完整學生資料
       const myRef = ref(db, `room/students/${myStudentId}`);
-      set(myRef, { 
-          realName, nickname, score: 0,
-          class: stuClass, seat: seat, device: device
-      });
+      set(myRef, { realName, nickname, score: 0, class: stuClass, seat: seat, device: device });
       onDisconnect(myRef).remove();
 
       document.getElementById('lobby').classList.add('hidden');
@@ -189,6 +186,7 @@
             document.getElementById('optionsContainer').classList.add('hidden');
             document.getElementById('myAnswerDisplay').innerText = "";
             document.getElementById('testNav').classList.add('hidden');
+            document.getElementById('studentMainContent').classList.remove('hidden');
             hasSubmittedTest = false; myTestAnswers = {};
           }
           if(currentSettings.status === 'ended') {
@@ -207,6 +205,7 @@
       onValue(ref(db, 'room/testPaper'), snap => {
         if(roomMode === 'test' && snap.exists() && currentSettings.status === 'testing' && !hasSubmittedTest) {
           selectedQuestions = snap.val(); myTestIndex = 0;
+          document.getElementById('studentMainContent').classList.remove('hidden');
           document.getElementById('testNav').classList.remove('hidden');
           renderTestQuestion();
         }
@@ -245,7 +244,7 @@
 
     window.navTest = (dir) => {
       if(hasSubmittedTest && !currentSettings.showAnswer) return;
-      if(dir === 1 && myTestIndex === selectedQuestions.length - 1) {
+      if(dir === 1 && myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest) {
           if(confirm("交卷後不得修改答案，確定交卷？")) {
             hasSubmittedTest = true;
             set(ref(db, `room/testAnswers/${myStudentId}/isSubmitted`), true);
@@ -271,26 +270,44 @@
       else { nBtn.innerText = "下一題"; nBtn.style.background = "#94a3b8"; }
 
       renderStudentQuestion(qData);
+      
+      // 標記已選答案
       if(myTestAnswers[myTestIndex]) {
         document.getElementById('myAnswerDisplay').innerText = `已選擇：${myTestAnswers[myTestIndex]}`;
         document.querySelectorAll('.option-btn').forEach(b => {
-          b.style.backgroundColor = (b.innerText === myTestAnswers[myTestIndex]) ? '#e2e8f0' : 'white';
+          if(b.innerText === myTestAnswers[myTestIndex]) {
+              b.style.backgroundColor = '#e2e8f0';
+          }
         });
       }
+
+      // 如果老師開啟檢討模式，強制顯示正確與錯誤顏色
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
           const cAns = qData.correctAnswer;
+          let isCorrect = false;
           document.querySelectorAll('.option-btn').forEach(b => {
-             b.disabled = true; 
-             if(b.innerText === cAns) b.classList.add('correct');
-             else if (b.innerText === myTestAnswers[myTestIndex]) b.classList.add('wrong');
+             b.disabled = true; // 檢討模式下所有按鈕鎖定
+             if(b.innerText === cAns) {
+                 b.classList.add('correct');
+                 if(myTestAnswers[myTestIndex] === cAns) isCorrect = true;
+             }
+             else if (b.innerText === myTestAnswers[myTestIndex]) {
+                 b.classList.add('wrong');
+             }
           });
+          const ansText = myTestAnswers[myTestIndex] ? myTestAnswers[myTestIndex] : "未作答";
+          document.getElementById('myAnswerDisplay').innerText = isCorrect ? `🟢 答對了！您的答案：${ansText}` : `🔴 答錯了！您的答案：${ansText}`;
       }
     }
 
     function updateStudentUI() {
+      // 修復：當老師開啟檢討模式時，強制解鎖畫面並重新渲染當前題目
       if (currentSettings.status === 'reviewing' && roomMode === 'test' && hasSubmittedTest) {
-          document.getElementById('testNav').classList.remove('hidden'); renderTestQuestion();
+          document.getElementById('studentMainContent').classList.remove('hidden');
+          document.getElementById('testNav').classList.remove('hidden'); 
+          renderTestQuestion();
       }
+      
       if(currentSettings.status === 'kahoot_result' && roomMode === 'kahoot') {
           document.getElementById('myAnswerDisplay').innerText = "";
           document.querySelectorAll('.option-btn').forEach(b => {
