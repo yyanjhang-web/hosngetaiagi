@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台語互動派題系統 - 學生端</title>
   <style>
-    /* 引入 Google Fonts 保證罕見字與羅馬字顯示正常 */
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
     
     :root { --primary: #475569; --student: #f1f5f9; --danger: #ef4444; --success: #22c55e; --accent: #3b82f6; }
@@ -20,7 +19,6 @@
     #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .role-btn { padding: 12px 24px; font-size: 18px; margin: 10px; background: var(--primary); color: white; width: 80%;}
     
-    /* 學生輸入欄位樣式 */
     .input-group { margin-bottom: 15px; text-align: left; width: 80%; margin-left: auto; margin-right: auto; }
     .input-group label { display: block; font-size: 14px; color: #64748b; margin-bottom: 5px; font-weight: bold;}
     input[type="text"] { padding: 12px; font-size: 16px; border: 2px solid #cbd5e1; border-radius: 6px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center;}
@@ -41,7 +39,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.3</div>
+  <div class="version-tag">Ver 2.4</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary);">台語互動派題系統</h1>
@@ -179,8 +177,10 @@
 
       onValue(ref(db, 'room/settings'), snap => {
         if(snap.exists()) {
+          const oldStatus = currentSettings.status;
           currentSettings = snap.val();
           roomMode = currentSettings.mode || 'kahoot';
+          
           if(currentSettings.status === 'waiting') {
             document.getElementById('studentQuestion').innerText = "等待老師開始...";
             document.getElementById('optionsContainer').classList.add('hidden');
@@ -194,6 +194,15 @@
              document.getElementById('optionsContainer').classList.add('hidden');
              document.getElementById('testNav').classList.add('hidden');
           }
+          
+          // Bug 修復：當老師開啟檢討模式時，強制重新解鎖畫面
+          if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
+              document.getElementById('studentMainContent').classList.remove('hidden');
+              document.getElementById('optionsContainer').classList.remove('hidden');
+              document.getElementById('testNav').classList.remove('hidden');
+              renderTestQuestion(); // 重繪帶有顏色的按鈕
+          }
+
           updateStudentUI();
         }
       });
@@ -243,8 +252,10 @@
     }
 
     window.navTest = (dir) => {
-      if(hasSubmittedTest && !currentSettings.showAnswer) return;
-      if(dir === 1 && myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest) {
+      // 檢討模式下，允許學生自由翻閱上一題下一題
+      if(hasSubmittedTest && !currentSettings.showAnswer) return; 
+      
+      if(dir === 1 && myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') {
           if(confirm("交卷後不得修改答案，確定交卷？")) {
             hasSubmittedTest = true;
             set(ref(db, `room/testAnswers/${myStudentId}/isSubmitted`), true);
@@ -266,22 +277,25 @@
       const qData = selectedQuestions[myTestIndex];
       document.getElementById('testProgress').innerText = `${myTestIndex + 1} / ${selectedQuestions.length}`;
       const nBtn = document.getElementById('nextOrSubmitBtn');
-      if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest) { nBtn.innerText = "交卷"; nBtn.style.background = "var(--danger)"; } 
-      else { nBtn.innerText = "下一題"; nBtn.style.background = "#94a3b8"; }
+      
+      // 檢討模式時，最後一題不顯示交卷，只鎖住按鈕
+      if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') { 
+          nBtn.innerText = "交卷"; nBtn.style.background = "var(--danger)"; 
+      } else { 
+          nBtn.innerText = "下一題"; nBtn.style.background = "#94a3b8"; 
+      }
 
       renderStudentQuestion(qData);
       
       // 標記已選答案
-      if(myTestAnswers[myTestIndex]) {
+      if(myTestAnswers[myTestIndex] && currentSettings.status !== 'reviewing') {
         document.getElementById('myAnswerDisplay').innerText = `已選擇：${myTestAnswers[myTestIndex]}`;
         document.querySelectorAll('.option-btn').forEach(b => {
-          if(b.innerText === myTestAnswers[myTestIndex]) {
-              b.style.backgroundColor = '#e2e8f0';
-          }
+          b.style.backgroundColor = (b.innerText === myTestAnswers[myTestIndex]) ? '#e2e8f0' : 'white';
         });
       }
 
-      // 如果老師開啟檢討模式，強制顯示正確與錯誤顏色
+      // 檢討模式：強制顯示正確與錯誤顏色
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
           const cAns = qData.correctAnswer;
           let isCorrect = false;
@@ -301,13 +315,6 @@
     }
 
     function updateStudentUI() {
-      // 修復：當老師開啟檢討模式時，強制解鎖畫面並重新渲染當前題目
-      if (currentSettings.status === 'reviewing' && roomMode === 'test' && hasSubmittedTest) {
-          document.getElementById('studentMainContent').classList.remove('hidden');
-          document.getElementById('testNav').classList.remove('hidden'); 
-          renderTestQuestion();
-      }
-      
       if(currentSettings.status === 'kahoot_result' && roomMode === 'kahoot') {
           document.getElementById('myAnswerDisplay').innerText = "";
           document.querySelectorAll('.option-btn').forEach(b => {
