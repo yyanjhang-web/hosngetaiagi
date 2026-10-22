@@ -8,17 +8,21 @@
   <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
   <style>
     :root { --primary: #475569; --student: #f1f5f9; --danger: #ef4444; --success: #22c55e; --accent: #3b82f6; }
-    body { font-family: 'Tauhu Oo', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 100px;}
+    body { font-family: 'Tauhu Oo', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 120px;}
     .hidden { display: none !important; }
     button { cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Tauhu Oo', sans-serif;}
     button:active { transform: scale(0.98); }
     
     .version-tag { position: absolute; top: 10px; right: 10px; background: #94a3b8; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: #64748b; font-size: 12px; line-height: 1.2; }
+    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.4; }
     
     #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .role-btn { padding: 12px 24px; font-size: 18px; margin: 10px; background: var(--primary); color: white; width: 80%;}
-    input[type="text"] { padding: 15px; font-size: 18px; border: 2px solid #cbd5e1; border-radius: 6px; font-family: 'Tauhu Oo'; margin-bottom:15px; width:80%; text-align:center;}
+    
+    /* 學生輸入欄位樣式 */
+    .input-group { margin-bottom: 15px; text-align: left; width: 80%; margin-left: auto; margin-right: auto; }
+    .input-group label { display: block; font-size: 14px; color: #64748b; margin-bottom: 5px; font-weight: bold;}
+    input[type="text"] { padding: 12px; font-size: 16px; border: 2px solid #cbd5e1; border-radius: 6px; font-family: 'Tauhu Oo'; width: 100%; box-sizing: border-box; text-align:center;}
     input:disabled { background-color: #f1f5f9; cursor: not-allowed; color: #94a3b8; font-weight: bold;}
 
     #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
@@ -36,14 +40,36 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.1 (Student)</div>
+  <div class="version-tag">Ver 2.2</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary);">台語互動派題系統</h1>
-    <h3 style="color:#64748b;">考生報到</h3>
-    <input type="text" id="pinInput" placeholder="輸入 4 碼試場編號">
-    <input type="text" id="realNameInput" placeholder="輸入真實姓名">
-    <button class="role-btn" onclick="joinAsStudent()">進入教室</button>
+    <h3 style="color:#64748b; margin-bottom: 25px;">考生報到</h3>
+    
+    <div class="input-group">
+        <label>試場編號</label>
+        <input type="text" id="pinInput" placeholder="輸入 4 碼編號">
+    </div>
+    <div class="input-group" style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>班級</label>
+            <input type="text" id="classInput" placeholder="例如：701">
+        </div>
+        <div style="flex: 1;">
+            <label>座號 <span style="font-size:11px; font-weight:normal;">(個人或小組)</span></label>
+            <input type="text" id="seatInput" placeholder="例如：12">
+        </div>
+    </div>
+    <div class="input-group">
+        <label>真實姓名</label>
+        <input type="text" id="realNameInput" placeholder="輸入姓名 (必填)">
+    </div>
+    <div class="input-group">
+        <label>平板編號</label>
+        <input type="text" id="deviceInput" placeholder="例如：A15">
+    </div>
+
+    <button class="role-btn" onclick="joinAsStudent()" style="margin-top:20px;">進入教室</button>
   </div>
 
   <div id="studentView" class="hidden">
@@ -73,16 +99,16 @@
 
   <div class="footer">
     <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
-    <p style="font-size: 10px;">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>未經授權，嚴禁重製、改作或商用。</p>
+    <p style="margin-top: 2px;">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>未經授權，嚴禁重製、改作或商用。</p>
+    <div class="counter-container"><a href="https://www.hitwebcounter.com/" target="_blank"><img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" border="0" /></a></div>
   </div>
 
   <script type="module">
-    // 自動解析網址參數帶入 PIN 碼
     const urlParams = new URLSearchParams(window.location.search);
     const pinFromUrl = urlParams.get('pin');
     if(pinFromUrl) {
         document.getElementById('pinInput').value = pinFromUrl;
-        document.getElementById('pinInput').disabled = true; // 鎖定不可修改
+        document.getElementById('pinInput').disabled = true; 
     }
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
@@ -118,15 +144,24 @@
       unlockAudio();
       const pin = document.getElementById('pinInput').value.trim();
       const realName = document.getElementById('realNameInput').value.trim();
-      if(!pin || !realName) return alert("請確認編號與姓名皆已填寫！");
+      const stuClass = document.getElementById('classInput').value.trim() || "";
+      const seat = document.getElementById('seatInput').value.trim() || "";
+      const device = document.getElementById('deviceInput').value.trim() || "";
+      
+      if(!pin || !realName) return alert("請確認「編號」與「姓名」皆已填寫！");
 
       const settingsSnap = await get(ref(db, 'room/settings'));
       if(!settingsSnap.exists() || settingsSnap.val().pin !== pin) return alert("試場編號錯誤或考試未建立！");
 
       const nickname = adjs[Math.floor(Math.random()*adjs.length)] + animals[Math.floor(Math.random()*animals.length)];
       myStudentId = 'student_' + Date.now();
+      
+      // 寫入完整學生資料
       const myRef = ref(db, `room/students/${myStudentId}`);
-      set(myRef, { realName, nickname, score: 0 });
+      set(myRef, { 
+          realName, nickname, score: 0,
+          class: stuClass, seat: seat, device: device
+      });
       onDisconnect(myRef).remove();
 
       document.getElementById('lobby').classList.add('hidden');
