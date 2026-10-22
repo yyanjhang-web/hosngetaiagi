@@ -6,16 +6,16 @@
   <title>教師控制台 - 台語互動派題系統</title>
   <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
   <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
-  <!-- 引入 QR Code 生成庫 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root { --primary: #475569; --teacher: #f8f9fa; --danger: #ef4444; --success: #22c55e; --accent: #3b82f6; }
-    body { font-family: 'Tauhu Oo', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 100px;}
+    body { font-family: 'Tauhu Oo', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 120px;}
     .hidden { display: none !important; }
     button { cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Tauhu Oo', sans-serif;}
     button:active { transform: scale(0.98); }
     
     .version-tag { position: absolute; top: 10px; right: 10px; background: #94a3b8; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.4; }
     input[type="number"] { padding: 6px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Tauhu Oo';}
 
     #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
@@ -24,7 +24,6 @@
     #teacherView { max-width: 1400px; margin: 0 auto; }
     .teacher-header { background: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;}
     
-    /* QR Code 與 PIN 碼展示區塊 */
     .pin-container { display: flex; align-items: center; gap: 15px; background: #f1f5f9; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1;}
     .pin-display { font-size: 20px; font-weight: bold; color: var(--primary); }
     #qrcode { width: 64px; height: 64px; background: white; padding: 4px; border-radius: 4px; border: 1px solid #e2e8f0;}
@@ -38,9 +37,13 @@
     .stop-btn { background: var(--danger); color: white; padding: 6px 12px; font-size: 14px; }
     .hide-panel-btn { position: absolute; top: 15px; right: 15px; background: #94a3b8; color: white; padding: 4px 8px; font-size: 12px; }
 
-    .accordion-header { cursor: pointer; padding: 10px; background: #f1f5f9; border-radius: 6px; font-weight: bold; font-size: 16px; color: var(--primary); border: 1px solid #cbd5e1; margin-bottom: 10px; transition: 0.2s;}
-    .accordion-header:hover { background: #e2e8f0; }
-    .question-item { border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background: #fff;}
+    /* 工作表群組與題庫折疊樣式 */
+    .sheet-group { border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px; overflow: hidden;}
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #f1f5f9; cursor: pointer; transition: 0.2s;}
+    .sheet-header:hover { background: #e2e8f0; }
+    .sheet-title { font-weight: bold; font-size: 18px; color: var(--primary); display: flex; align-items: center;}
+    .sheet-content { padding: 10px; background: white;}
+    .question-item { border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;}
     
     .send-btn { background: var(--accent); color: white; padding: 8px 16px; font-size: 16px; }
     #animationPanel { text-align: left; padding: 30px; background: #f8f9fa; border-radius: 8px; min-height: 400px; border: 1px solid #e2e8f0;}
@@ -60,7 +63,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.1 (Teacher)</div>
+  <div class="version-tag">Ver 2.2 (Teacher)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary);">請選擇本次測驗模式</h1>
@@ -103,17 +106,15 @@
             </div>
             <div id="testControls" class="hidden" style="width:100%;">
               <span style="font-weight:bold;">測驗模式：</span>總計 <input type="number" id="testMinutes" value="5" style="width:60px;"> 分
-              <button class="send-btn" onclick="startTestMode()">發派全卷並開始</button>
+              <!-- 改名：派題並開始考試 -->
+              <button class="send-btn" onclick="startTestMode()">派題並開始考試</button>
               <button class="stop-btn" onclick="triggerTestStop('manual')">提前收卷</button>
             </div>
           </div>
           
-          <div class="accordion-header" onclick="toggleQList()">
-              <span id="accordionArrow">▶</span> 勾選要派送的題目
-          </div>
-          <div id="questionListContainer" class="hidden">
-              <div id="questionList">正在從 Google 試算表載入題庫...</div>
-          </div>
+          <h3 style="font-size:16px;">勾選要派送的題目：</h3>
+          <!-- 動態生成工作表清單的容器 -->
+          <div id="questionList">正在從 Google 試算表載入多工作表題庫...</div>
         </div>
 
         <div id="animationPanel" class="hidden">
@@ -129,15 +130,21 @@
             <div>
                 <h3 style="margin:0; font-size:16px;">考生名單 (<span id="studentCount">0</span>)</h3>
             </div>
-            <button class="toggle-btn" style="background:var(--success); color:white; padding:4px 8px;" onclick="exportCSV()">匯出 CSV</button>
+            <!-- 匯出成績按鈕 -->
+            <button class="toggle-btn" style="background:var(--success); color:white; padding:4px 8px;" onclick="exportCSV()">匯出成績</button>
         </div>
         <div id="studentList" class="student-list"></div>
       </div>
     </div>
   </div>
 
+  <div class="footer">
+    <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+    <p style="margin-top: 2px;">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>未經授權，嚴禁重製、改作或商用。</p>
+    <div class="counter-container"><a href="https://www.hitwebcounter.com/" target="_blank"><img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" border="0" /></a></div>
+  </div>
+
   <script type="module">
-    // 教師端專屬密碼鎖 (預設密碼 taigi)
     const pwd = prompt("這是否為教師控制台？請輸入通關密碼：");
     if(pwd !== "taigi") {
         document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px; color:red;'>密碼錯誤，拒絕存取。</h1>";
@@ -159,7 +166,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const sheetUrl = `https://docs.google.com/spreadsheets/d/1qe2gPJA_feyOCjUNz5iMHkeCWDHxTefQZ5d8QCBsrZA/gviz/tq?tqx=out:json`;
+    const sheetId = `1qe2gPJA_feyOCjUNz5iMHkeCWDHxTefQZ5d8QCBsrZA`;
     
     let allQuestions = [], selectedQuestions = [];
     let roomMode = 'kahoot'; 
@@ -171,28 +178,34 @@
         if(bgm) { bgm.play().then(() => bgm.pause()).catch(e=>{}); }
     }
 
-    window.toggleQList = () => {
-        const container = document.getElementById('questionListContainer');
-        const arrow = document.getElementById('accordionArrow');
-        if(container.classList.contains('hidden')) { container.classList.remove('hidden'); arrow.innerText = "▼"; } 
-        else { container.classList.add('hidden'); arrow.innerText = "▶"; }
+    // 展開/收起個別工作表內容
+    window.toggleSheetContent = (idx) => {
+        const content = document.getElementById(`sheet-content-${idx}`);
+        const arrow = document.getElementById(`sheet-arrow-${idx}`);
+        if(content.classList.contains('hidden')) { content.classList.remove('hidden'); arrow.innerText = "▼"; } 
+        else { content.classList.add('hidden'); arrow.innerText = "▶"; }
     };
 
-    // 生成 QRCode 的函式
+    // 工作表全選聯動
+    window.toggleSheetAll = (e, idx) => {
+        e.stopPropagation(); // 阻止展開收起事件
+        const isChecked = e.target.checked;
+        document.querySelectorAll(`.q-checkbox-${idx}`).forEach(cb => {
+            cb.checked = isChecked;
+        });
+    };
+
     function generateQRCode(pin) {
-        document.getElementById('qrcode').innerHTML = ""; // 清空舊的
+        document.getElementById('qrcode').innerHTML = "";
         const studentUrl = `https://yyanjhang-web.github.io/hosngetaiagi/tshikgiam/index.html?pin=${pin}`;
         new QRCode(document.getElementById("qrcode"), {
-            text: studentUrl,
-            width: 64,
-            height: 64,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
+            text: studentUrl, width: 64, height: 64,
+            colorDark : "#000000", colorLight : "#ffffff",
             correctLevel : QRCode.CorrectLevel.L
         });
     }
 
-    window.joinAsTeacher = (mode) => {
+    window.joinAsTeacher = async (mode) => {
       unlockAudio();
       roomMode = mode;
       document.getElementById('lobby').classList.add('hidden');
@@ -203,7 +216,7 @@
 
       const pin = Math.floor(1000 + Math.random() * 9000).toString();
       document.getElementById('tPinDisplay').innerText = pin;
-      generateQRCode(pin); // 呼叫產生 QR Code
+      generateQRCode(pin); 
 
       currentSettings = { mode: mode, pin: pin, showQuestion: true, showAnswer: false, status: 'waiting', audioSource: 'teacher', teacherOnline: true };
       
@@ -215,17 +228,8 @@
         if (snap.val() === true) { const tRef = ref(db, 'room/settings/teacherOnline'); onDisconnect(tRef).set(false); set(tRef, true); }
       });
       
-      fetch(sheetUrl).then(res => res.text()).then(text => {
-        const data = JSON.parse(text.substring(47).slice(0, -2));
-        const list = document.getElementById('questionList'); list.innerHTML = '';
-        allQuestions = data.table.rows.map((row, index) => ({
-          questionId: index, q: row.c[0]?.v || '', ans: row.c[1]?.v || '',
-          opts: [row.c[1]?.v, row.c[2]?.v, row.c[3]?.v, row.c[4]?.v].filter(Boolean), audio: row.c[5]?.v || null
-        })).filter(item => item.q);
-        allQuestions.forEach((item, idx) => {
-          list.innerHTML += `<div class="question-item"><label style="cursor:pointer; display:flex; align-items:center;"><input type="checkbox" class="q-checkbox" value="${idx}" checked style="margin-right:10px;"><span><b>Q${idx+1}:</b> ${item.q}</span></label></div>`;
-        });
-      });
+      // 非同步讀取多工作表邏輯
+      await loadGoogleSheets();
 
       onValue(ref(db, 'room/students'), snap => {
         const sList = document.getElementById('studentList'); sList.innerHTML = ''; let count = 0;
@@ -243,9 +247,80 @@
       });
     };
 
+    // 抓取第一頁作為目錄，並依序抓取所有工作表
+    async function loadGoogleSheets() {
+        const listDiv = document.getElementById('questionList');
+        listDiv.innerHTML = "正在讀取目錄頁...";
+        allQuestions = []; 
+        let globalQIndex = 0;
+        let finalHtml = "";
+
+        try {
+            // 抓取預設第一頁 (目錄)
+            const dirRes = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`);
+            const dirText = await dirRes.text();
+            const dirData = JSON.parse(dirText.substring(47).slice(0, -2));
+            
+            // 取出 A 欄的所有工作表名稱
+            const sheetNames = dirData.table.rows.map(row => row.c[0]?.v).filter(Boolean);
+            if(sheetNames.length === 0) { listDiv.innerHTML = "目錄頁是空的！請在 A 欄填寫工作表名稱。"; return; }
+
+            for (let sIdx = 0; sIdx < sheetNames.length; sIdx++) {
+                const sName = sheetNames[sIdx];
+                listDiv.innerHTML = `正在讀取工作表：${sName} (${sIdx+1}/${sheetNames.length})...`;
+                try {
+                    // 根據名稱抓取特定工作表
+                    const sRes = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sName)}`);
+                    const sText = await sRes.text();
+                    const sData = JSON.parse(sText.substring(47).slice(0, -2));
+                    
+                    const qRows = sData.table.rows.map(row => ({
+                      q: row.c[0]?.v || '', ans: row.c[1]?.v || '',
+                      opts: [row.c[1]?.v, row.c[2]?.v, row.c[3]?.v, row.c[4]?.v].filter(Boolean), audio: row.c[5]?.v || null
+                    })).filter(item => item.q);
+
+                    if (qRows.length === 0) continue; // 空工作表跳過
+
+                    // 建立該工作表的 HTML
+                    finalHtml += `
+                    <div class="sheet-group">
+                        <div class="sheet-header" onclick="toggleSheetContent(${sIdx})">
+                            <div class="sheet-title">
+                                <input type="checkbox" checked onchange="toggleSheetAll(event, ${sIdx})" style="width:20px; height:20px; margin-right:15px; cursor:pointer;">
+                                ${sName} <span style="font-size:14px; font-weight:normal; margin-left:10px; color:#64748b;">(${qRows.length}題)</span>
+                            </div>
+                            <span id="sheet-arrow-${sIdx}">▶</span>
+                        </div>
+                        <div id="sheet-content-${sIdx}" class="sheet-content hidden">`;
+                    
+                    qRows.forEach((item) => {
+                        const currentGlobalIdx = globalQIndex++;
+                        item.questionId = currentGlobalIdx;
+                        item.sheetName = sName; // 紀錄來源
+                        allQuestions.push(item);
+                        
+                        finalHtml += `
+                        <div class="question-item">
+                            <label style="cursor:pointer; display:flex; align-items:center;">
+                                <input type="checkbox" class="q-checkbox q-checkbox-${sIdx}" value="${currentGlobalIdx}" checked style="margin-right:10px;">
+                                <span><b>${item.q}</b> ${item.audio ? '🎵' : ''}</span>
+                            </label>
+                        </div>`;
+                    });
+                    finalHtml += `</div></div>`;
+
+                } catch (e) { console.error(`讀取工作表 ${sName} 失敗:`, e); }
+            }
+            listDiv.innerHTML = finalHtml || "所有工作表都沒有題目資料。";
+        } catch(err) {
+            console.error(err);
+            listDiv.innerHTML = "讀取試算表失敗，請確定網址正確且設為「知道連結的人皆可查看」。";
+        }
+    }
+
     function getSelectedQs() {
        const cb = document.querySelectorAll('.q-checkbox:checked');
-       if(cb.length === 0) { alert("請勾選至少一題！"); return []; }
+       if(cb.length === 0) { alert("請至少勾選一題！"); return []; }
        return Array.from(cb).map(c => allQuestions[c.value]);
     }
 
@@ -319,7 +394,7 @@
        document.getElementById('animContent').innerHTML = `<div class="timer-display" style="color:var(--danger);">00:00</div><h3 style="text-align:center;">${msg}</h3>`;
        
        setTimeout(async () => {
-           await renderTestStatistics(); // 強制繪製大屏檢討圖表
+           await renderTestStatistics(); 
            if(confirm(`測驗結束！\n\n大屏已顯示全班作答統計供您講解。\n是否要讓「學生平板」也同步顯示正確答案與個人成績？`)) {
                currentSettings.status = 'reviewing'; currentSettings.showAnswer = true;
            } else {
@@ -352,7 +427,7 @@
             }
             
             let accuracy = totalAnswers > 0 ? Math.round((correctAnswers/totalAnswers)*100) : 0;
-            html += `<div class="stat-container"><div class="stat-q-title">Q${qIdx+1}: ${q.q} <span style="color:#64748b; font-size:14px; font-weight:normal;">(答對率: ${accuracy}%)</span></div>`;
+            html += `<div class="stat-container"><div class="stat-q-title">Q${qIdx+1} <span style="font-size:14px;color:#94a3b8;">[${q.sheetName}]</span> : ${q.q} <span style="color:#64748b; font-size:14px; font-weight:normal;">(答對率: ${accuracy}%)</span></div>`;
             
             q.opts.forEach(opt => {
                 let count = optCounts[opt], pct = totalAnswers > 0 ? Math.round((count/totalAnswers)*100) : 0, isCorrect = (opt === q.ans);
@@ -385,18 +460,23 @@
         return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
+    // 匯出包含完整欄位的 CSV
     window.exportCSV = async () => {
       const stuSnap = await get(ref(db, 'room/students')), tAnsSnap = await get(ref(db, 'room/testAnswers'));
       if(!stuSnap.exists()) return alert("無資料");
-      let csv = "\uFEFF姓名,暱稱,總分"; selectedQuestions.forEach((_,i) => csv += `,Q${i+1}`); csv += "\n";
+      let csv = "\uFEFF班級,座號,真實姓名,暱稱,平板編號,總分"; 
+      selectedQuestions.forEach((q,i) => csv += `,Q${i+1} [${q.sheetName}]`); 
+      csv += "\n";
+      
       stuSnap.forEach(c => {
         let sc = 0, row = "";
+        const sData = c.val();
         selectedQuestions.forEach((_,i) => {
            let isC = false, aTxt = "未答";
            if(tAnsSnap.exists() && tAnsSnap.val()[c.key] && tAnsSnap.val()[c.key][i]) { aTxt = tAnsSnap.val()[c.key][i].answer; isC = (aTxt === selectedQuestions[i].ans); }
            if(isC) sc += 100/selectedQuestions.length; row += `,${aTxt}`;
         });
-        csv += `${c.val().realName},${c.val().nickname},${Math.round(sc)}${row}\n`;
+        csv += `${sData.class || ''},${sData.seat || ''},${sData.realName},${sData.nickname},${sData.device || ''},${Math.round(sc)}${row}\n`;
       });
       const a = document.createElement("a"); a.href = encodeURI("data:text/csv;charset=utf-8," + csv); a.download = `成績_${getFormattedTime()}.csv`; document.body.appendChild(a); a.click();
     };
