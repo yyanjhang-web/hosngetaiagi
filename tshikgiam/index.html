@@ -8,15 +8,16 @@
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
     
     :root { 
-        --primary: #5c7c99; --student: #f8fafc; --danger: #fca5a5; --success: #86efac; --accent: #93c5fd; 
+        --primary: #5c7c99; --student: #f8fafc; --danger: #ef4444; --success: #22c55e; --accent: #93c5fd; 
         --text-dark: #334155; --text-light: #94a3b8;
+        /* Kahoot 經典四色 */
+        --c-red: #e21b3c; --c-blue: #1368ce; --c-yellow: #d89e00; --c-green: #26890c;
     }
     
     body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 20px; background: #f1f5f9; color: var(--text-dark); min-height: 100vh; position: relative; padding-bottom: 120px;}
     .hidden { display: none !important; }
-    button { cursor: pointer; border-radius: 20px; border: none; font-weight: bold; transition: all 0.3s ease; font-family: 'Noto Sans TC', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
-    button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
-    button:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    button { cursor: pointer; border-radius: 12px; border: none; font-weight: bold; transition: all 0.2s ease; font-family: 'Noto Sans TC', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+    button:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     
     .version-tag { position: absolute; top: 10px; right: 10px; background: var(--text-light); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; }
     .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: var(--text-light); font-size: 12px; line-height: 1.4; }
@@ -26,22 +27,33 @@
     
     .input-group { margin-bottom: 20px; text-align: left; width: 85%; margin-left: auto; margin-right: auto; }
     .input-group label { display: block; font-size: 14px; color: var(--text-dark); margin-bottom: 8px; font-weight: bold;}
-    input[type="text"] { padding: 12px 15px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center; transition: border-color 0.3s ease;}
+    input[type="text"] { padding: 12px 15px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center;}
     input[type="text"]:focus { outline: none; border-color: var(--accent); }
-    input:disabled { background-color: #f8fafc; cursor: not-allowed; color: var(--text-light); font-weight: bold; border-color: #f1f5f9;}
+    input:disabled { background-color: #f8fafc; cursor: not-allowed; color: var(--text-light); font-weight: bold;}
 
     #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
     .student-info-bar { position: absolute; top: 20px; right: 25px; color: var(--text-light); font-size: 14px; text-align: right; }
     #studentQuestion { font-size: 26px; font-weight: bold; margin-bottom: 25px; color: var(--primary); line-height: 1.5; }
     #myAnswerDisplay { margin-bottom: 25px; font-size: 18px; font-weight: bold; color: var(--primary); min-height: 30px; padding: 10px; border-radius: 8px; background: #f8fafc;}
     
-    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-bottom: 25px;}
-    .option-btn { padding: 20px; font-size: 20px; background: white; color: var(--primary); border: 2px solid #e2e8f0; box-shadow: 0 4px 0 #e2e8f0; border-radius: 16px; }
-    .option-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
-    .option-btn:disabled { background: #f8fafc; border-color: #f1f5f9; color: var(--text-light); box-shadow: none; cursor: not-allowed; transform: none;}
-    .option-btn.correct { background: var(--success) !important; border-color: #4ade80 !important; color: #064e3b !important; box-shadow: 0 4px 0 #22c55e !important; }
-    .option-btn.wrong { background: var(--danger) !important; border-color: #f87171 !important; color: #7f1d1d !important; box-shadow: 0 4px 0 #ef4444 !important; }
+    /* 遊戲化選項按鈕設計 */
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-bottom: 25px;}
+    .option-btn { padding: 25px 15px; font-size: 22px; color: white; display: flex; align-items: center; justify-content: flex-start; text-align: left; }
+    .option-btn span.shape { font-size: 28px; margin-right: 15px; width: 35px; text-align: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);}
+    .option-btn span.text { flex-grow: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);}
     
+    .opt-0 { background-color: var(--c-red); border-bottom: 5px solid #a7142c; }
+    .opt-1 { background-color: var(--c-blue); border-bottom: 5px solid #0e4c96; }
+    .opt-2 { background-color: var(--c-yellow); border-bottom: 5px solid #a37700; }
+    .opt-3 { background-color: var(--c-green); border-bottom: 5px solid #1a5c08; }
+    
+    .option-btn.selected { opacity: 1 !important; transform: scale(1.02); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-bottom-width: 2px; margin-top: 3px;}
+    .option-btn.dimmed { opacity: 0.4 !important; filter: grayscale(50%); cursor: not-allowed; }
+    
+    /* 檢討模式正確/錯誤特效 */
+    .option-btn.reveal-correct { opacity: 1 !important; outline: 6px solid #4ade80; outline-offset: 2px;}
+    .option-btn.reveal-wrong { opacity: 0.3 !important; filter: grayscale(100%); }
+
     .nav-btn { padding: 10px 20px; font-size: 16px; background: var(--text-light); color: white; }
     .nav-btn:hover { background: #64748b; }
     
@@ -49,7 +61,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.7</div>
+  <div class="version-tag">Ver 2.8 (Student)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 5px;">台語互動派題系統</h1>
@@ -109,7 +121,6 @@
   <div class="footer">
     <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
     <p style="margin-top: 2px;">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>未經授權，嚴禁重製、改作或商用。</p>
-    <div class="counter-container" style="margin-top: 5px; opacity: 0.8;"><a href="https://www.hitwebcounter.com/" target="_blank"><img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" border="0" /></a></div>
   </div>
 
   <script type="module">
@@ -123,31 +134,18 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getDatabase, ref, set, onValue, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCXiyLVZfkGbKlBcFamVTjP3CfhSQfqy9c",
-      authDomain: "tigitshikgiam.firebaseapp.com",
-      databaseURL: "https://tigitshikgiam-default-rtdb.firebaseio.com",
-      projectId: "tigitshikgiam",
-      storageBucket: "tigitshikgiam.firebasestorage.app",
-      messagingSenderId: "159559991455",
-      appId: "1:159559991455:web:454559a0458d9ca461e2aa"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const firebaseConfig = { apiKey: "AIzaSyCXiyLVZfkGbKlBcFamVTjP3CfhSQfqy9c", authDomain: "tigitshikgiam.firebaseapp.com", databaseURL: "https://tigitshikgiam-default-rtdb.firebaseio.com", projectId: "tigitshikgiam", storageBucket: "tigitshikgiam.firebasestorage.app", messagingSenderId: "159559991455", appId: "1:159559991455:web:454559a0458d9ca461e2aa" };
+    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
     
     let selectedQuestions = [];
     let myStudentId = null, roomMode = 'kahoot'; 
     let currentSettings = { pin: '', showQuestion: true, status: 'waiting', audioSource: 'teacher', acceptAnswers: false };
     let myTestAnswers = {}, hasSubmittedTest = false, myTestIndex = 0;
 
-    function unlockAudio() {
-        const stuAud = document.getElementById('studentAudio');
-        if(stuAud) { stuAud.play().then(() => stuAud.pause()).catch(e=>{}); }
-    }
+    const shapes = ["🔺", "🔷", "🟡", "🟩"];
+    const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
 
-    const adjs = ["古錐的", "緣投的", "𠢕早的", "打拚的", "快樂的", "勇敢的"];
-    const animals = ["黑熊", "石虎", "水鹿", "藍鵲", "水豚", "獼猴"];
+    function unlockAudio() { const stuAud = document.getElementById('studentAudio'); if(stuAud) { stuAud.play().then(() => stuAud.pause()).catch(e=>{}); } }
 
     window.joinAsStudent = async () => {
       unlockAudio();
@@ -162,17 +160,18 @@
       const settingsSnap = await get(ref(db, 'room/settings'));
       if(!settingsSnap.exists() || settingsSnap.val().pin !== pin) return alert("試場編號錯誤或考試未建立！");
 
-      const nickname = adjs[Math.floor(Math.random()*adjs.length)] + animals[Math.floor(Math.random()*animals.length)];
+      const avatar = avatars[Math.floor(Math.random() * avatars.length)];
+      const nickname = realName + " 的平板"; // 可以自訂
       myStudentId = 'student_' + Date.now();
       
       const myRef = ref(db, `room/students/${myStudentId}`);
-      set(myRef, { realName, nickname, score: 0, class: stuClass, seat: seat, device: device, isAI: false });
+      set(myRef, { realName, nickname, avatar, score: 0, class: stuClass, seat: seat, device: device, isAI: false });
       onDisconnect(myRef).remove();
 
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('studentView').classList.remove('hidden');
-      document.getElementById('sNickname').innerText = `${nickname}`;
-      document.getElementById('sRealName').innerText = `(${realName})`;
+      document.getElementById('sNickname').innerText = `${avatar} ${realName}`;
+      document.getElementById('sRealName').innerText = `(座號: ${seat})`;
       document.getElementById('sPinDisplay').innerText = pin;
 
       onValue(myRef, snap => { if (!snap.exists()) { alert("已被移出！"); window.location.reload(); }});
@@ -187,7 +186,6 @@
 
       onValue(ref(db, 'room/settings'), snap => {
         if(snap.exists()) {
-          const oldStatus = currentSettings.status;
           currentSettings = snap.val();
           roomMode = currentSettings.mode || 'kahoot';
           
@@ -205,6 +203,7 @@
              document.getElementById('testNav').classList.add('hidden');
           }
           
+          // 檢討模式：強制解鎖畫面，供學生翻閱
           if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
               document.getElementById('studentMainContent').classList.remove('hidden');
               document.getElementById('optionsContainer').classList.remove('hidden');
@@ -240,10 +239,20 @@
       
       const optC = document.getElementById('optionsContainer');
       optC.innerHTML = ''; optC.classList.remove('hidden');
-      qData.options.forEach(opt => {
+      
+      qData.options.forEach((opt, idx) => {
         const btn = document.createElement('button');
-        btn.className = 'option-btn'; btn.innerText = opt;
-        btn.onclick = () => submitAnswer(opt, btn, qData.questionId);
+        btn.className = `option-btn opt-${idx % 4}`;
+        btn.innerHTML = `<span class="shape">${shapes[idx % 4]}</span><span class="text">${opt}</span>`;
+        
+        btn.onclick = () => {
+            if(!currentSettings.acceptAnswers) return;
+            // 視覺回饋：自己被點亮，其他人變暗
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.add('dimmed'));
+            btn.classList.remove('dimmed');
+            btn.classList.add('selected');
+            submitAnswer(opt, btn, qData.questionId);
+        };
         optC.appendChild(btn);
       });
       if(qData.audio && currentSettings.audioSource === 'student') { document.getElementById('studentAudio').src = qData.audio; document.getElementById('studentAudio').play().catch(e=>{}); }
@@ -251,17 +260,17 @@
     }
 
     function submitAnswer(selectedOpt, btnElement, qId) {
-      // 修復：檢查 acceptAnswers 是否為 true，否則不允許作答
       if(!currentSettings.acceptAnswers) return;
-      
       if(roomMode === 'kahoot') {
+        // 修復：送出答案
         set(ref(db, `room/kahootAnswers/${myStudentId}`), { answer: selectedOpt, time: Date.now() - currentSettings.qStartTime });
+        
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
-        document.getElementById('myAnswerDisplay').innerHTML = `<span style="color:var(--text-light);">已送出，等待計時結束...</span>`;
+        const praises = ["手腳誠猛喔！", "水啦！", "讚喔！", "繼續保持！", "等待結算中...", "好勢好勢！", "真有氣勢！"];
+        document.getElementById('myAnswerDisplay').innerHTML = `<span style="color:var(--text-light);">${praises[Math.floor(Math.random()*praises.length)]}</span>`;
       } else {
         myTestAnswers[myTestIndex] = selectedOpt;
         set(ref(db, `room/testAnswers/${myStudentId}/${myTestIndex}`), {answer: selectedOpt});
-        renderTestQuestion();
       }
     }
 
@@ -291,32 +300,41 @@
       document.getElementById('testProgress').innerText = `${myTestIndex + 1} / ${selectedQuestions.length}`;
       const nBtn = document.getElementById('nextOrSubmitBtn');
       
-      if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') { 
-          nBtn.innerText = "交卷"; nBtn.style.background = "var(--danger)"; nBtn.style.color = "white";
+      if(currentSettings.status === 'reviewing') {
+          if(myTestIndex === selectedQuestions.length - 1) { nBtn.innerText = "已到最後一題"; nBtn.style.background = "#e2e8f0"; nBtn.disabled = true; } 
+          else { nBtn.innerText = "下一題"; nBtn.style.background = "var(--text-light)"; nBtn.disabled = false; }
+      } else if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') { 
+          nBtn.innerText = "交卷"; nBtn.style.background = "var(--danger)"; nBtn.style.color = "white"; nBtn.disabled = false;
       } else { 
-          nBtn.innerText = "下一題"; nBtn.style.background = "var(--text-light)"; nBtn.style.color = "white";
+          nBtn.innerText = "下一題"; nBtn.style.background = "var(--text-light)"; nBtn.style.color = "white"; nBtn.disabled = false;
       }
 
       renderStudentQuestion(qData);
       
+      // 回填已選答案
       if(myTestAnswers[myTestIndex] && currentSettings.status !== 'reviewing') {
         document.getElementById('myAnswerDisplay').innerHTML = `已選擇：<span style="color:var(--primary);">${myTestAnswers[myTestIndex]}</span>`;
         document.querySelectorAll('.option-btn').forEach(b => {
-          b.style.backgroundColor = (b.innerText === myTestAnswers[myTestIndex]) ? '#e2e8f0' : 'white';
+          const optText = b.querySelector('.text').innerText;
+          if(optText !== myTestAnswers[myTestIndex]) { b.classList.add('dimmed'); }
+          else { b.classList.add('selected'); }
         });
       }
 
+      // 檢討模式顏色
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
           const cAns = qData.correctAnswer;
           let isCorrect = false;
           document.querySelectorAll('.option-btn').forEach(b => {
              b.disabled = true; 
-             if(b.innerText === cAns) {
-                 b.classList.add('correct');
+             const optText = b.querySelector('.text').innerText;
+             if(optText === cAns) {
+                 b.classList.add('reveal-correct');
                  if(myTestAnswers[myTestIndex] === cAns) isCorrect = true;
-             }
-             else if (b.innerText === myTestAnswers[myTestIndex]) {
-                 b.classList.add('wrong');
+             } else if (optText === myTestAnswers[myTestIndex]) {
+                 b.classList.add('reveal-wrong');
+             } else {
+                 b.classList.add('dimmed');
              }
           });
           const ansText = myTestAnswers[myTestIndex] ? myTestAnswers[myTestIndex] : "未作答";
@@ -325,11 +343,6 @@
     }
 
     function updateStudentUI() {
-      // 根據 acceptAnswers 開關鎖定按鈕
-      if (!currentSettings.acceptAnswers && currentSettings.status === 'kahoot_active') {
-        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
-      }
-      
       if (currentSettings.status === 'reviewing' && roomMode === 'test' && hasSubmittedTest) {
           document.getElementById('studentMainContent').classList.remove('hidden');
           document.getElementById('testNav').classList.remove('hidden'); 
@@ -340,8 +353,9 @@
           document.getElementById('myAnswerDisplay').innerText = "";
           document.querySelectorAll('.option-btn').forEach(b => {
              b.disabled = true;
-             if(b.innerText === currentSettings.currentCorrect) b.classList.add('correct');
-             else b.classList.add('wrong'); 
+             const optText = b.querySelector('.text').innerText;
+             if(optText === currentSettings.currentCorrect) b.classList.add('reveal-correct');
+             else b.classList.add('reveal-wrong'); 
           });
       }
     }
