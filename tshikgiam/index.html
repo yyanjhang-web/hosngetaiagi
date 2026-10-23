@@ -7,55 +7,73 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
     
-    :root { --primary: #475569; --student: #f1f5f9; --danger: #ef4444; --success: #22c55e; --accent: #3b82f6; }
-    body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 120px;}
+    /* 柔和清新色系 */
+    :root { 
+        --primary: #5c7c99;      /* 莫蘭迪藍 */
+        --student: #f8fafc;      /* 淡淡的灰白 */
+        --danger: #fca5a5;       /* 柔和紅 */
+        --success: #86efac;      /* 柔和綠 */
+        --accent: #93c5fd;       /* 清新粉藍 */
+        --btn-hover: #3b82f6; 
+        --text-dark: #334155;
+        --text-light: #94a3b8;
+    }
+    
+    body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 20px; background: #f1f5f9; color: var(--text-dark); min-height: 100vh; position: relative; padding-bottom: 120px;}
     .hidden { display: none !important; }
-    button { cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Noto Sans TC', sans-serif;}
-    button:active { transform: scale(0.98); }
+    button { cursor: pointer; border-radius: 20px; border: none; font-weight: bold; transition: all 0.3s ease; font-family: 'Noto Sans TC', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+    button:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     
-    .version-tag { position: absolute; top: 10px; right: 10px; background: #94a3b8; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.4; }
+    .version-tag { position: absolute; top: 10px; right: 10px; background: var(--text-light); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; }
+    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: var(--text-light); font-size: 12px; line-height: 1.4; }
     
-    #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .role-btn { padding: 12px 24px; font-size: 18px; margin: 10px; background: var(--primary); color: white; width: 80%;}
+    #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .role-btn { padding: 14px 28px; font-size: 18px; margin: 10px auto; background: var(--primary); color: white; width: 85%; display: block;}
     
-    .input-group { margin-bottom: 15px; text-align: left; width: 80%; margin-left: auto; margin-right: auto; }
-    .input-group label { display: block; font-size: 14px; color: #64748b; margin-bottom: 5px; font-weight: bold;}
-    input[type="text"] { padding: 12px; font-size: 16px; border: 2px solid #cbd5e1; border-radius: 6px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center;}
-    input:disabled { background-color: #f1f5f9; cursor: not-allowed; color: #94a3b8; font-weight: bold;}
+    /* 學生輸入欄位樣式 */
+    .input-group { margin-bottom: 20px; text-align: left; width: 85%; margin-left: auto; margin-right: auto; }
+    .input-group label { display: block; font-size: 14px; color: var(--text-dark); margin-bottom: 8px; font-weight: bold;}
+    input[type="text"] { padding: 12px 15px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center; transition: border-color 0.3s ease;}
+    input[type="text"]:focus { outline: none; border-color: var(--accent); }
+    input:disabled { background-color: #f8fafc; cursor: not-allowed; color: var(--text-light); font-weight: bold; border-color: #f1f5f9;}
 
-    #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
-    .student-info-bar { position: absolute; top: 15px; right: 20px; color: #64748b; font-size: 13px; text-align: right; }
-    #studentQuestion { font-size: 28px; font-weight: bold; margin-bottom: 20px; color: var(--primary); line-height: 1.4; }
-    #myAnswerDisplay { margin-bottom: 20px; font-size: 18px; font-weight: bold; color: var(--accent); min-height: 30px; }
-    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-bottom: 20px;}
-    .option-btn { padding: 15px; font-size: 20px; background: white; color: var(--primary); border: 2px solid #cbd5e1; box-shadow: 0 3px 0 #cbd5e1; }
-    .option-btn:disabled { background: #f8f9fa; border-color: #e2e8f0; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
-    .option-btn.correct { background: var(--success) !important; border-color: var(--success) !important; color: white !important; box-shadow: 0 3px 0 #16a34a !important; }
-    .option-btn.wrong { background: var(--danger) !important; border-color: var(--danger) !important; color: white !important; box-shadow: 0 3px 0 #dc2626 !important; }
-    .nav-btn { padding: 8px 16px; font-size: 16px; background: #94a3b8; color: white; }
+    #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
+    .student-info-bar { position: absolute; top: 20px; right: 25px; color: var(--text-light); font-size: 14px; text-align: right; }
+    #studentQuestion { font-size: 26px; font-weight: bold; margin-bottom: 25px; color: var(--primary); line-height: 1.5; }
+    #myAnswerDisplay { margin-bottom: 25px; font-size: 18px; font-weight: bold; color: var(--primary); min-height: 30px; padding: 10px; border-radius: 8px; background: #f8fafc;}
+    
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-bottom: 25px;}
+    .option-btn { padding: 20px; font-size: 20px; background: white; color: var(--primary); border: 2px solid #e2e8f0; box-shadow: 0 4px 0 #e2e8f0; border-radius: 16px; }
+    .option-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .option-btn:disabled { background: #f8fafc; border-color: #f1f5f9; color: var(--text-light); box-shadow: none; cursor: not-allowed; transform: none;}
+    .option-btn.correct { background: var(--success) !important; border-color: #4ade80 !important; color: #064e3b !important; box-shadow: 0 4px 0 #22c55e !important; }
+    .option-btn.wrong { background: var(--danger) !important; border-color: #f87171 !important; color: #7f1d1d !important; box-shadow: 0 4px 0 #ef4444 !important; }
+    
+    .nav-btn { padding: 10px 20px; font-size: 16px; background: var(--text-light); color: white; }
+    .nav-btn:hover { background: #64748b; }
     
     #offlineOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.95); color: var(--primary); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align:center;}
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.4</div>
+  <div class="version-tag">Ver 2.5</div>
   
   <div id="lobby">
-    <h1 style="color:var(--primary);">台語互動派題系統</h1>
-    <h3 style="color:#64748b; margin-bottom: 25px;">考生報到</h3>
+    <h1 style="color:var(--primary); margin-bottom: 5px;">台語互動派題系統</h1>
+    <h3 style="color:var(--text-light); margin-top: 0; margin-bottom: 30px;">考生報到</h3>
     
     <div class="input-group">
         <label>試場編號</label>
         <input type="text" id="pinInput" placeholder="輸入 4 碼編號">
     </div>
-    <div class="input-group" style="display: flex; gap: 10px;">
+    <div class="input-group" style="display: flex; gap: 15px;">
         <div style="flex: 1;">
             <label>班級</label>
             <input type="text" id="classInput" placeholder="例如：701">
         </div>
         <div style="flex: 1;">
-            <label>座號 <span style="font-size:11px; font-weight:normal;">(個人或小組)</span></label>
+            <label>座號 <span style="font-size:11px; font-weight:normal; color:var(--text-light);">(個人或小組)</span></label>
             <input type="text" id="seatInput" placeholder="例如：12">
         </div>
     </div>
@@ -68,13 +86,13 @@
         <input type="text" id="deviceInput" placeholder="例如：A15">
     </div>
 
-    <button class="role-btn" onclick="joinAsStudent()" style="margin-top:20px;">進入教室</button>
+    <button class="role-btn" onclick="joinAsStudent()" style="margin-top:30px; background:var(--accent); color:#0f172a;">進入教室</button>
   </div>
 
   <div id="studentView" class="hidden">
     <div class="student-info-bar">
       <div style="color:var(--primary);">編號：<span id="sPinDisplay" style="font-weight:bold;"></span></div>
-      <div id="sNickname" style="font-weight:bold; font-size:15px; margin-top:2px;"></div>
+      <div id="sNickname" style="font-weight:bold; font-size:16px; margin-top:4px; color:var(--text-dark);"></div>
       <div id="sRealName" style="font-size:12px;"></div>
     </div>
     
@@ -82,9 +100,9 @@
         <div id="studentQuestion">等待老師開始...</div>
         <div id="myAnswerDisplay"></div>
         <div id="optionsContainer" class="options-grid hidden"></div>
-        <div id="testNav" class="hidden" style="display: flex; justify-content: space-between; margin-top: 20px;">
+        <div id="testNav" class="hidden" style="display: flex; justify-content: space-between; margin-top: 20px; align-items: center;">
           <button class="nav-btn" onclick="navTest(-1)">上一題</button>
-          <span id="testProgress" style="font-size: 16px; line-height: 35px; color:var(--primary);"></span>
+          <span id="testProgress" style="font-size: 16px; font-weight: bold; color:var(--primary);"></span>
           <button id="nextOrSubmitBtn" class="nav-btn" onclick="navTest(1)">下一題</button>
         </div>
     </div>
@@ -92,14 +110,14 @@
   </div>
 
   <div id="offlineOverlay" class="hidden">
-    <h1 style="font-size:36px; color:var(--danger);">臨時中止</h1>
-    <p>老師大屏已離線，請等待重新連線...</p>
+    <h1 style="font-size:40px; color:var(--danger); margin-bottom:10px;">臨時中止</h1>
+    <p style="font-size:18px;">老師大屏已離線，請等待重新連線...</p>
   </div>
 
   <div class="footer">
     <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
     <p style="margin-top: 2px;">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>未經授權，嚴禁重製、改作或商用。</p>
-    <div class="counter-container"><a href="https://www.hitwebcounter.com/" target="_blank"><img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" border="0" /></a></div>
+    <div class="counter-container" style="margin-top: 5px; opacity: 0.8;"><a href="https://www.hitwebcounter.com/" target="_blank"><img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" border="0" /></a></div>
   </div>
 
   <script type="module">
@@ -177,7 +195,6 @@
 
       onValue(ref(db, 'room/settings'), snap => {
         if(snap.exists()) {
-          const oldStatus = currentSettings.status;
           currentSettings = snap.val();
           roomMode = currentSettings.mode || 'kahoot';
           
@@ -195,12 +212,11 @@
              document.getElementById('testNav').classList.add('hidden');
           }
           
-          // Bug 修復：當老師開啟檢討模式時，強制重新解鎖畫面
           if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
               document.getElementById('studentMainContent').classList.remove('hidden');
               document.getElementById('optionsContainer').classList.remove('hidden');
               document.getElementById('testNav').classList.remove('hidden');
-              renderTestQuestion(); // 重繪帶有顏色的按鈕
+              renderTestQuestion(); 
           }
 
           updateStudentUI();
@@ -243,7 +259,7 @@
       if(roomMode === 'kahoot') {
         set(ref(db, `room/kahootAnswers/${myStudentId}`), { answer: selectedOpt, time: Date.now() - currentSettings.qStartTime });
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
-        document.getElementById('myAnswerDisplay').innerText = `已送出，等待計時結束...`;
+        document.getElementById('myAnswerDisplay').innerHTML = `<span style="color:var(--text-light);">已送出，等待計時結束...</span>`;
       } else {
         myTestAnswers[myTestIndex] = selectedOpt;
         set(ref(db, `room/testAnswers/${myStudentId}/${myTestIndex}`), {answer: selectedOpt});
@@ -252,7 +268,6 @@
     }
 
     window.navTest = (dir) => {
-      // 檢討模式下，允許學生自由翻閱上一題下一題
       if(hasSubmittedTest && !currentSettings.showAnswer) return; 
       
       if(dir === 1 && myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') {
@@ -278,29 +293,26 @@
       document.getElementById('testProgress').innerText = `${myTestIndex + 1} / ${selectedQuestions.length}`;
       const nBtn = document.getElementById('nextOrSubmitBtn');
       
-      // 檢討模式時，最後一題不顯示交卷，只鎖住按鈕
       if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') { 
-          nBtn.innerText = "交卷"; nBtn.style.background = "var(--danger)"; 
+          nBtn.innerText = "交卷"; nBtn.style.background = "var(--danger)"; nBtn.style.color = "white";
       } else { 
-          nBtn.innerText = "下一題"; nBtn.style.background = "#94a3b8"; 
+          nBtn.innerText = "下一題"; nBtn.style.background = "var(--text-light)"; nBtn.style.color = "white";
       }
 
       renderStudentQuestion(qData);
       
-      // 標記已選答案
       if(myTestAnswers[myTestIndex] && currentSettings.status !== 'reviewing') {
-        document.getElementById('myAnswerDisplay').innerText = `已選擇：${myTestAnswers[myTestIndex]}`;
+        document.getElementById('myAnswerDisplay').innerHTML = `已選擇：<span style="color:var(--primary);">${myTestAnswers[myTestIndex]}</span>`;
         document.querySelectorAll('.option-btn').forEach(b => {
-          b.style.backgroundColor = (b.innerText === myTestAnswers[myTestIndex]) ? '#e2e8f0' : 'white';
+          b.style.backgroundColor = (b.innerText === myTestAnswers[myTestIndex]) ? '#f1f5f9' : 'white';
         });
       }
 
-      // 檢討模式：強制顯示正確與錯誤顏色
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
           const cAns = qData.correctAnswer;
           let isCorrect = false;
           document.querySelectorAll('.option-btn').forEach(b => {
-             b.disabled = true; // 檢討模式下所有按鈕鎖定
+             b.disabled = true; 
              if(b.innerText === cAns) {
                  b.classList.add('correct');
                  if(myTestAnswers[myTestIndex] === cAns) isCorrect = true;
@@ -310,11 +322,17 @@
              }
           });
           const ansText = myTestAnswers[myTestIndex] ? myTestAnswers[myTestIndex] : "未作答";
-          document.getElementById('myAnswerDisplay').innerText = isCorrect ? `🟢 答對了！您的答案：${ansText}` : `🔴 答錯了！您的答案：${ansText}`;
+          document.getElementById('myAnswerDisplay').innerHTML = isCorrect ? `<span style="color:var(--success);">🟢 答對了！</span> 您的答案：${ansText}` : `<span style="color:var(--danger);">🔴 答錯了！</span> 您的答案：${ansText}`;
       }
     }
 
     function updateStudentUI() {
+      if (currentSettings.status === 'reviewing' && roomMode === 'test' && hasSubmittedTest) {
+          document.getElementById('studentMainContent').classList.remove('hidden');
+          document.getElementById('testNav').classList.remove('hidden'); 
+          renderTestQuestion();
+      }
+      
       if(currentSettings.status === 'kahoot_result' && roomMode === 'kahoot') {
           document.getElementById('myAnswerDisplay').innerText = "";
           document.querySelectorAll('.option-btn').forEach(b => {
