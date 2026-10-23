@@ -7,89 +7,130 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
     
-    :root { --primary: #475569; --teacher: #f8f9fa; --danger: #ef4444; --success: #22c55e; --accent: #3b82f6; }
-    body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 20px; background: #e2e8f0; color: #334155; min-height: 100vh; position: relative; padding-bottom: 120px;}
-    .hidden { display: none !important; }
-    button { cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: 0.2s; font-family: 'Noto Sans TC', sans-serif;}
-    button:active { transform: scale(0.98); }
+    /* 柔和清新色系 */
+    :root { 
+        --primary: #5c7c99;      /* 莫蘭迪藍 */
+        --teacher: #ffffff;      /* 純白底色 */
+        --danger: #fca5a5;       /* 柔和紅 */
+        --success: #86efac;      /* 柔和綠 */
+        --accent: #93c5fd;       /* 清新粉藍 */
+        --bg-color: #f1f5f9;     /* 淡淡的灰白 */
+        --text-dark: #334155;
+        --text-light: #94a3b8;
+    }
     
-    .version-tag { position: absolute; top: 10px; right: 10px; background: #94a3b8; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.4; }
-    input[type="number"] { padding: 6px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Noto Sans TC', sans-serif;}
+    body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 20px; background: var(--bg-color); color: var(--text-dark); min-height: 100vh; position: relative; padding-bottom: 120px;}
+    .hidden { display: none !important; }
+    button { cursor: pointer; border-radius: 20px; border: none; font-weight: bold; transition: all 0.3s ease; font-family: 'Noto Sans TC', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+    button:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    
+    .version-tag { position: absolute; top: 10px; right: 10px; background: var(--text-light); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; }
+    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: var(--text-light); font-size: 12px; line-height: 1.4; }
+    input[type="number"] { padding: 8px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-family: 'Noto Sans TC', sans-serif; width: 60px; text-align: center;}
+    input[type="number"]:focus { outline: none; border-color: var(--accent); }
 
-    #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .role-btn { padding: 12px 24px; font-size: 18px; margin: 10px; background: var(--primary); color: white; }
+    #lobby { max-width: 700px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .role-btn { padding: 14px 28px; font-size: 18px; margin: 10px; background: var(--primary); color: white; min-width: 150px;}
 
     #teacherView { max-width: 1400px; margin: 0 auto; }
-    .teacher-header { background: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;}
+    .teacher-header { background: white; padding: 20px 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;}
     
-    .pin-container { display: flex; align-items: center; gap: 15px; background: #f1f5f9; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1;}
-    .pin-display { font-size: 20px; font-weight: bold; color: var(--primary); }
-    #qrcode { width: 64px; height: 64px; background: white; padding: 4px; border-radius: 4px; border: 1px solid #e2e8f0;}
+    .pin-container { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 10px 15px; border-radius: 12px; border: 1px solid #e2e8f0;}
+    .pin-display { font-size: 18px; font-weight: bold; color: var(--primary); }
+    #qrcode { width: 64px; height: 64px; background: white; padding: 4px; border-radius: 8px; border: 1px solid #e2e8f0;}
 
-    .workspace { display: grid; grid-template-columns: 3fr 1fr; gap: 20px; }
-    .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; border: 1px solid #e2e8f0;}
+    .workspace { display: grid; grid-template-columns: 3fr 1fr; gap: 25px; }
+    .panel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; border: 1px solid #f1f5f9;}
     
-    .control-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px; align-items: center; border: 1px solid #e2e8f0;}
-    .toggle-btn { padding: 6px 12px; background: #e2e8f0; color: #475569; font-size: 14px; }
-    .toggle-btn.active { background: var(--primary); color: white; }
-    .stop-btn { background: var(--danger); color: white; padding: 6px 12px; font-size: 14px; }
-    .hide-panel-btn { position: absolute; top: 15px; right: 15px; background: #94a3b8; color: white; padding: 4px 8px; font-size: 12px; }
+    .control-group { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; padding: 15px; background: #f8fafc; border-radius: 12px; align-items: center; border: 1px solid #e2e8f0;}
+    .toggle-btn { padding: 8px 16px; background: white; color: var(--primary); font-size: 14px; border: 1px solid #cbd5e1; box-shadow: none;}
+    .toggle-btn:hover { background: #f1f5f9; transform: none;}
+    .toggle-btn.active { background: var(--primary); color: white; border-color: var(--primary);}
+    .stop-btn { background: var(--danger); color: #7f1d1d; padding: 8px 16px; font-size: 14px; }
+    .hide-panel-btn { position: absolute; top: 20px; right: 20px; background: var(--text-light); color: white; padding: 6px 12px; font-size: 12px; }
 
     /* 工作表群組與題庫折疊樣式 */
-    .sheet-group { border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px; overflow: hidden;}
-    .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #f1f5f9; cursor: pointer; transition: 0.2s;}
-    .sheet-header:hover { background: #e2e8f0; }
+    .sheet-group { border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 15px; overflow: hidden; background: white;}
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #f8fafc; cursor: pointer; transition: background 0.3s;}
+    .sheet-header:hover { background: #f1f5f9; }
     .sheet-title { font-weight: bold; font-size: 18px; color: var(--primary); display: flex; align-items: center;}
-    .sheet-content { padding: 10px; background: white;}
-    .question-item { border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;}
+    .sheet-content { padding: 15px; background: white;}
+    .question-item { border: 1px solid #f1f5f9; padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; background: #ffffff;}
     
     /* 大手風琴按鈕 */
-    .accordion-main { cursor: pointer; padding: 12px; background: #f1f5f9; border-radius: 6px; font-weight: bold; font-size: 16px; color: var(--primary); border: 1px solid #cbd5e1; margin-bottom: 15px; display: flex; align-items: center; justify-content: flex-start;}
-    .accordion-main:hover { background: #e2e8f0; }
+    .accordion-main { cursor: pointer; padding: 15px 20px; background: #f8fafc; border-radius: 12px; font-weight: bold; font-size: 18px; color: var(--primary); border: 1px solid #e2e8f0; margin-bottom: 20px; display: flex; align-items: center; justify-content: flex-start; transition: background 0.3s;}
+    .accordion-main:hover { background: #f1f5f9; }
 
-    .send-btn { background: var(--accent); color: white; padding: 8px 16px; font-size: 16px; }
-    #animationPanel { text-align: left; padding: 30px; background: #f8f9fa; border-radius: 8px; min-height: 400px; border: 1px solid #e2e8f0;}
-    .timer-display { font-size: 60px; font-weight: bold; color: var(--primary); font-family: monospace; text-align:center; margin: 20px 0;}
+    .send-btn { background: var(--accent); color: #0f172a; padding: 10px 20px; font-size: 16px; }
+    .send-btn:disabled { background: #e2e8f0; color: var(--text-light); cursor: not-allowed; opacity: 0.8; box-shadow: none; transform: none;}
     
-    .stat-container { margin-bottom: 20px; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e2e8f0;}
-    .stat-q-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: var(--primary);}
-    .stat-bar-wrapper { display: flex; align-items: center; margin-bottom: 8px; font-size: 14px;}
-    .stat-label { width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; text-align: right;}
-    .stat-bar-bg { flex-grow: 1; background: #e2e8f0; height: 20px; border-radius: 4px; position: relative; overflow: hidden;}
-    .stat-bar-fill { height: 100%; background: #94a3b8; transition: width 0.5s; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; color: white; font-size: 12px;}
-    .stat-bar-fill.correct { background: var(--success); }
+    #animationPanel { text-align: left; padding: 40px; background: #f8fafc; border-radius: 12px; min-height: 400px; border: 1px solid #e2e8f0;}
+    .timer-display { font-size: 80px; font-weight: bold; color: var(--primary); font-family: monospace; text-align:center; margin: 10px 0;}
+    
+    /* 計時器控制按鈕 */
+    .timer-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+    .timer-btn { padding: 8px 16px; font-size: 14px; background: white; color: var(--primary); border: 1px solid #cbd5e1; }
+    
+    .stat-container { margin-bottom: 25px; padding: 20px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+    .stat-q-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; color: var(--primary);}
+    .stat-bar-wrapper { display: flex; align-items: center; margin-bottom: 12px; font-size: 16px;}
+    .stat-label { width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px; text-align: right; color: var(--text-dark);}
+    .stat-bar-bg { flex-grow: 1; background: #f1f5f9; height: 24px; border-radius: 12px; position: relative; overflow: hidden;}
+    .stat-bar-fill { height: 100%; background: var(--text-light); transition: width 0.5s ease-out; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-size: 14px; font-weight: bold;}
+    .stat-bar-fill.correct { background: var(--success); color: #064e3b;}
 
-    .student-list { max-height: 500px; overflow-y: auto; }
-    .student-item { display: block; padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 15px; transition: 0.2s; text-align: left; color: #475569;}
-    .student-item:hover { text-decoration: line-through; color: var(--danger); cursor: pointer; background: #fef2f2; }
+    .student-list { max-height: 500px; overflow-y: auto; padding-right: 5px;}
+    .student-item { display: block; padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 16px; transition: all 0.2s; text-align: left; color: var(--text-dark); border-radius: 8px;}
+    .student-item:hover { text-decoration: line-through; color: #7f1d1d; cursor: pointer; background: #fef2f2; }
+
+    /* 模式選擇子選單 */
+    .sub-mode-container { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;}
+    .sub-mode-btn { padding: 10px 20px; font-size: 16px; background: #e2e8f0; color: var(--text-dark); border: 2px solid transparent;}
+    .sub-mode-btn:hover { background: #cbd5e1; }
+    .sub-mode-btn.active { background: white; border-color: var(--accent); color: var(--primary); box-shadow: 0 0 0 2px var(--accent) inset;}
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="version-tag">Ver 2.4 (Teacher)</div>
+  <div class="version-tag">Ver 2.5 (Teacher)</div>
   
   <div id="lobby">
-    <h1 style="color:var(--primary);">請選擇本次測驗模式</h1>
-    <button class="role-btn" style="background:var(--accent);" onclick="joinAsTeacher('kahoot')">即時回饋模式</button>
-    <button class="role-btn" style="background:var(--primary);" onclick="joinAsTeacher('test')">嚴謹測驗模式</button>
+    <h1 style="color:var(--primary); margin-bottom: 10px;">請選擇本次測驗模式</h1>
+    <p style="color:var(--text-light); margin-bottom: 30px;">選擇後將建立專屬考場</p>
+    
+    <div>
+        <button class="role-btn" style="background:var(--accent); color:#0f172a;" onclick="showSubModes('feedback')">即時回饋</button>
+        <button class="role-btn" style="background:var(--primary);" onclick="joinAsTeacher('test')">線上測驗</button>
+    </div>
+    
+    <!-- 即時回饋子模式 -->
+    <div id="feedbackSubModes" class="sub-mode-container hidden">
+        <button class="sub-mode-btn" onclick="joinAsTeacher('kahoot')">⚡ 經典</button>
+        <button class="sub-mode-btn" onclick="alert('划船模式開發中，敬請期待！')">🚣 划船</button>
+        <button class="sub-mode-btn" onclick="alert('除魔模式開發中，敬請期待！')">⚔️ 除魔</button>
+    </div>
   </div>
 
   <div id="teacherView" class="hidden">
     <div class="teacher-header">
-      <div style="display:flex; align-items:center; gap:15px;">
+      <div style="display:flex; align-items:center; gap:20px;">
           <h2 style="margin:0; color:var(--primary);">控制台 (<span id="modeDisplay"></span>)</h2>
       </div>
       <div class="pin-container">
           <div id="qrcode"></div>
-          <div class="pin-display">試場編號：<br><span id="tPinDisplay" style="font-size:28px;">----</span></div>
+          <div class="pin-display">
+              <span style="font-size:14px; font-weight:normal; color:var(--text-light);">試場編號</span><br>
+              <span id="tPinDisplay" style="font-size:32px; line-height:1;">----</span>
+          </div>
       </div>
     </div>
     
     <div class="workspace">
       <!-- 左欄 -->
       <div class="panel" id="leftPanel">
-        <button class="hide-panel-btn" onclick="toggleLeftPanel()">👁️ 切換檢視區</button>
+        <!-- 切換按鈕，預設顯示「切換為考場畫面」 -->
+        <button id="viewToggleBtn" class="hide-panel-btn" onclick="toggleLeftPanel()">👁️ 切換為考場畫面</button>
         
         <div id="questionListWrapper">
           <div class="control-group">
@@ -98,34 +139,43 @@
               <option value="teacher">聽力大屏播放</option>
               <option value="student">聽力平板播放</option>
             </select>
-            <span style="margin-left:10px; color:#64748b; font-size:14px;">🎵 BGM：</span>
-            <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">開啟 BGM</button>
+            <span style="margin-left:15px; color:var(--text-light); font-size:14px; font-weight:bold;">🎵 BGM：</span>
+            <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">開啟</button>
             <audio id="bgmAudio" loop src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3"></audio>
           </div>
           
           <div class="control-group" id="testModeControls">
-            <div id="kahootControls" class="hidden" style="width:100%;">
-              <span style="font-weight:bold;">Kahoot 模式：</span>每題 <input type="number" id="kahootTime" value="15" style="width:60px;"> 秒
-              <button class="send-btn" onclick="startKahoot()">開始 Kahoot！</button>
+            <div id="kahootControls" class="hidden" style="width:100%; display:flex; align-items:center; gap:10px;">
+              <span style="font-weight:bold; color:var(--primary);">經典模式：</span>
+              <span>每題 <input type="number" id="kahootTime" value="15"> 秒</span>
+              <button class="send-btn" onclick="startKahoot()">開始派題！</button>
             </div>
-            <div id="testControls" class="hidden" style="width:100%;">
-              <span style="font-weight:bold;">測驗模式：</span>總計 <input type="number" id="testMinutes" value="5" style="width:60px;"> 分
+            <div id="testControls" class="hidden" style="width:100%; display:flex; align-items:center; gap:10px;">
+              <span style="font-weight:bold; color:var(--primary);">測驗模式：</span>
+              <span>總計 <input type="number" id="testMinutes" value="5"> 分</span>
               <button class="send-btn" onclick="startTestMode()">派題並開始考試</button>
               <button class="stop-btn" onclick="triggerTestStop('manual')">提前收卷</button>
             </div>
           </div>
           
-          <!-- 修復手風琴按鈕 -->
           <div class="accordion-main" onclick="toggleMainQList()">
-              <span id="mainAccordionArrow" style="margin-right:10px;">▶</span> 勾選要派送的題目
+              <span id="mainAccordionArrow" style="margin-right:10px; color:var(--accent);">▶</span> 勾選要派送的題目
           </div>
           <div id="questionListContainer" class="hidden">
-              <div id="questionList">正在從 Google 試算表載入多工作表題庫...</div>
+              <div id="questionList" style="color:var(--text-light);">正在從 Google 試算表載入多工作表題庫...</div>
           </div>
         </div>
 
         <div id="animationPanel" class="hidden">
-          <h2 id="animTitle" style="font-size:24px; color:var(--primary); text-align:center;">測驗動態</h2>
+          <h2 id="animTitle" style="font-size:28px; color:var(--primary); text-align:center; margin-bottom:5px;">測驗狀態</h2>
+          
+          <!-- 倒數計時器專屬控制區 -->
+          <div id="timerControlsDiv" class="timer-controls hidden">
+              <button class="timer-btn" onclick="adjustTimer(60)">+1 分鐘</button>
+              <button class="timer-btn" onclick="adjustTimer(-60)">-1 分鐘</button>
+              <button id="pauseTimerBtn" class="timer-btn" onclick="togglePauseTimer()">暫停倒數</button>
+          </div>
+          
           <div id="animContent">等待中...</div>
           <div style="text-align:center;"><button id="kahootNextBtn" class="send-btn hidden" style="margin-top:20px;" onclick="nextKahootQuestion()">下一題</button></div>
         </div>
@@ -133,11 +183,11 @@
 
       <!-- 右欄 -->
       <div class="panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
             <div>
-                <h3 style="margin:0; font-size:16px;">考生名單 (<span id="studentCount">0</span>)</h3>
+                <h3 style="margin:0; font-size:18px; color:var(--primary);">考生名單 (<span id="studentCount">0</span>)</h3>
             </div>
-            <button class="toggle-btn" style="background:var(--success); color:white; padding:4px 8px;" onclick="exportCSV()">匯出成績</button>
+            <button class="toggle-btn" style="background:var(--success); color:#064e3b; padding:6px 10px; border:none;" onclick="exportCSV()">匯出成績</button>
         </div>
         <div id="studentList" class="student-list"></div>
       </div>
@@ -147,13 +197,13 @@
   <div class="footer">
     <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
     <p style="margin-top: 2px;">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>未經授權，嚴禁重製、改作或商用。</p>
-    <div class="counter-container"><a href="https://www.hitwebcounter.com/" target="_blank"><img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" border="0" /></a></div>
+    <div class="counter-container" style="margin-top: 5px; opacity: 0.8;"><a href="https://www.hitwebcounter.com/" target="_blank"><img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" border="0" /></a></div>
   </div>
 
   <script type="module">
     const pwd = prompt("這是否為教師控制台？請輸入通關密碼：");
     if(pwd !== "taigi") {
-        document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px; color:red;'>密碼錯誤，拒絕存取。</h1>";
+        document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px; color:#ef4444;'>密碼錯誤，拒絕存取。</h1>";
         throw new Error("Unauthorized");
     }
 
@@ -176,15 +226,27 @@
     
     let allQuestions = [], selectedQuestions = [];
     let roomMode = 'kahoot'; 
-    let currentSettings = { pin: '', showQuestion: true, status: 'waiting', audioSource: 'teacher' };
-    let testCountdownTimer = null, kahootIndex = 0, kahootTimer = null;
+    let currentSettings = { pin: '', showQuestion: true, showAnswer: false, status: 'waiting', audioSource: 'teacher' };
+    
+    // 計時器相關變數
+    let testCountdownTimer = null, kahootTimer = null;
+    let kahootIndex = 0;
+    let globalTimeLeft = 0; 
+    let isTimerPaused = false;
 
     function unlockAudio() {
         const bgm = document.getElementById('bgmAudio');
         if(bgm) { bgm.play().then(() => bgm.pause()).catch(e=>{}); }
     }
 
-    // 主題庫區塊的展開與收合 (修復)
+    // 顯示子模式選單
+    window.showSubModes = (type) => {
+        if(type === 'feedback') {
+            document.getElementById('feedbackSubModes').classList.remove('hidden');
+        }
+    };
+
+    // 主題庫區塊的展開與收合 
     window.toggleMainQList = () => {
         const container = document.getElementById('questionListContainer');
         const arrow = document.getElementById('mainAccordionArrow');
@@ -206,13 +268,10 @@
         else { content.classList.add('hidden'); arrow.innerText = "▶"; }
     };
 
-    // 勾選工作表：全選底下的題目 (但不自動展開)
     window.toggleSheetAll = (e, idx) => {
         e.stopPropagation(); 
         const isChecked = e.target.checked;
-        document.querySelectorAll(`.q-checkbox-${idx}`).forEach(cb => {
-            cb.checked = isChecked;
-        });
+        document.querySelectorAll(`.q-checkbox-${idx}`).forEach(cb => { cb.checked = isChecked; });
     };
 
     function generateQRCode(pin) {
@@ -220,7 +279,7 @@
         const studentUrl = `https://yyanjhang-web.github.io/hosngetaiagi/tshikgiam/index.html?pin=${pin}`;
         new QRCode(document.getElementById("qrcode"), {
             text: studentUrl, width: 64, height: 64,
-            colorDark : "#000000", colorLight : "#ffffff",
+            colorDark : "#0f172a", colorLight : "#ffffff",
             correctLevel : QRCode.CorrectLevel.L
         });
     }
@@ -230,9 +289,15 @@
       roomMode = mode;
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('teacherView').classList.remove('hidden');
-      document.getElementById('modeDisplay').innerText = mode === 'kahoot' ? '即時回饋' : '測驗';
-      if(mode === 'kahoot') document.getElementById('kahootControls').classList.remove('hidden');
-      if(mode === 'test') document.getElementById('testControls').classList.remove('hidden');
+      document.getElementById('modeDisplay').innerText = mode === 'kahoot' ? '經典即時回饋' : '線上測驗';
+      if(mode === 'kahoot') {
+          document.getElementById('kahootControls').classList.remove('hidden');
+          document.getElementById('kahootControls').style.display = 'flex';
+      }
+      if(mode === 'test') {
+          document.getElementById('testControls').classList.remove('hidden');
+          document.getElementById('testControls').style.display = 'flex';
+      }
 
       const pin = Math.floor(1000 + Math.random() * 9000).toString();
       document.getElementById('tPinDisplay').innerText = pin;
@@ -266,7 +331,6 @@
       });
     };
 
-    // 抓取多工作表 (預設全不勾選、不展開)
     async function loadGoogleSheets() {
         const listDiv = document.getElementById('questionList');
         listDiv.innerHTML = "正在讀取目錄頁...";
@@ -297,15 +361,14 @@
 
                     if (qRows.length === 0) continue; 
 
-                    // 預設全不勾選，內容預設 hidden
                     finalHtml += `
                     <div class="sheet-group">
-                        <div class="sheet-header" onclick="toggleSheetContent(event, ${sIdx})">
+                        <div class="sheet-header" id="sheet-header-${sIdx}" onclick="toggleSheetContent(event, ${sIdx})">
                             <div class="sheet-title">
                                 <input type="checkbox" onchange="toggleSheetAll(event, ${sIdx})" style="width:20px; height:20px; margin-right:15px; cursor:pointer;">
-                                ${sName} <span style="font-size:14px; font-weight:normal; margin-left:10px; color:#64748b;">(${qRows.length}題)</span>
+                                ${sName} <span style="font-size:14px; font-weight:normal; margin-left:10px; color:var(--text-light);">(${qRows.length}題)</span>
                             </div>
-                            <span id="sheet-arrow-${sIdx}">▶</span>
+                            <span id="sheet-arrow-${sIdx}" style="color:var(--text-light);">▶</span>
                         </div>
                         <div id="sheet-content-${sIdx}" class="sheet-content hidden">`;
                     
@@ -317,9 +380,9 @@
                         
                         finalHtml += `
                         <div class="question-item">
-                            <label style="cursor:pointer; display:flex; align-items:center;">
-                                <input type="checkbox" class="q-checkbox q-checkbox-${sIdx}" value="${currentGlobalIdx}" style="margin-right:10px;">
-                                <span><b>${item.q}</b> ${item.audio ? '🎵' : ''}</span>
+                            <label style="cursor:pointer; display:flex; align-items:center; width:100%;">
+                                <input type="checkbox" class="q-checkbox q-checkbox-${sIdx}" value="${currentGlobalIdx}" style="margin-right:15px; width:18px; height:18px;">
+                                <span style="font-size:16px;"><b>${item.q}</b> ${item.audio ? '🎵' : ''}</span>
                             </label>
                         </div>`;
                     });
@@ -340,6 +403,25 @@
        return Array.from(cb).map(c => allQuestions[c.value]);
     }
 
+    // 切換左側面板檢視邏輯修改
+    window.toggleLeftPanel = () => { 
+        const qw = document.getElementById('questionListWrapper');
+        const ap = document.getElementById('animationPanel');
+        const btn = document.getElementById('viewToggleBtn');
+        
+        if(qw.classList.contains('hidden')) { 
+            // 切換為題庫設定
+            qw.classList.remove('hidden'); 
+            ap.classList.add('hidden'); 
+            btn.innerText = "👁️ 切換為考場畫面";
+        } else { 
+            // 切換為考場畫面
+            qw.classList.add('hidden'); 
+            ap.classList.remove('hidden'); 
+            btn.innerText = "👁️ 切換為考題設定";
+        }
+    };
+
     // === Kahoot ===
     window.startKahoot = () => { selectedQuestions = getSelectedQs(); if(selectedQuestions.length>0){ kahootIndex = 0; toggleLeftPanel(); playKahootQuestion(); }};
     function playKahootQuestion() {
@@ -349,10 +431,12 @@
       set(ref(db, 'room/currentKahootQ'), { questionId: qData.questionId, question: qData.q, options: [...qData.opts].sort(() => Math.random() - 0.5), audio: qData.audio });
 
       document.getElementById('animTitle').innerText = `第 ${kahootIndex + 1} 題作答中`; document.getElementById('kahootNextBtn').classList.add('hidden');
-      let timeLeft = t; clearInterval(kahootTimer);
+      
+      globalTimeLeft = t; 
+      clearInterval(kahootTimer);
       kahootTimer = setInterval(() => {
-         document.getElementById('animContent').innerHTML = `<div class="timer-display">${timeLeft}</div>`; timeLeft--;
-         if(timeLeft < 0) { clearInterval(kahootTimer); endKahootQuestion(); }
+         document.getElementById('animContent').innerHTML = `<div class="timer-display">${globalTimeLeft}</div>`; globalTimeLeft--;
+         if(globalTimeLeft < 0) { clearInterval(kahootTimer); endKahootQuestion(); }
       }, 1000);
     }
 
@@ -369,7 +453,7 @@
        }
        set(ref(db, 'room/students'), students); 
        document.getElementById('animTitle').innerText = "結算";
-       document.getElementById('animContent').innerHTML = `<h3>正確答案：<span style="color:var(--success);">${currentSettings.currentCorrect}</span></h3><p>答對人數：${cc} 人</p>` + (cc>0 ? `<p>最快答對：${fS} (${(fT/1000).toFixed(1)}秒)</p>` : "");
+       document.getElementById('animContent').innerHTML = `<h3 style="font-size:24px;">正確答案：<span style="color:var(--success);">${currentSettings.currentCorrect}</span></h3><p style="font-size:20px;">答對人數：${cc} 人</p>` + (cc>0 ? `<p style="font-size:20px; color:var(--accent);">最快答對：${fS} (${(fT/1000).toFixed(1)}秒)</p>` : "");
        document.getElementById('kahootNextBtn').classList.remove('hidden');
     }
 
@@ -380,7 +464,7 @@
            document.getElementById('kahootNextBtn').classList.add('hidden'); document.getElementById('animTitle').innerText = "🏆 排行榜";
            const sSnap = await get(ref(db, 'room/students')); const st = sSnap.val() || {};
            const sorted = Object.values(st).sort((a,b) => b.score - a.score).slice(0, 5);
-           let html = ""; sorted.forEach((s, i) => { html += `<div style="font-size:20px; padding:10px;">#${i+1} ${s.nickname} (${s.score}分)</div>`; });
+           let html = ""; sorted.forEach((s, i) => { html += `<div style="font-size:22px; padding:15px; background:white; margin-bottom:10px; border-radius:8px; border:1px solid #e2e8f0;">#${i+1} ${s.nickname} <span style="color:var(--danger); font-weight:bold;">(${s.score}分)</span></div>`; });
            document.getElementById('animContent').innerHTML = html; currentSettings.status = 'ended'; update(ref(db, 'room/settings'), currentSettings);
        }
     };
@@ -393,19 +477,66 @@
       const paper = selectedQuestions.map((q, idx) => ({ questionId: q.questionId, question: q.q, options: [...q.opts].sort(() => Math.random() - 0.5), correctAnswer: q.ans, audio: q.audio }));
       set(ref(db, 'room/testPaper'), paper);
       
-      if(document.getElementById('animationPanel').classList.contains('hidden')) toggleLeftPanel();
-      document.getElementById('animTitle').innerText = "測驗倒數中"; document.getElementById('animTitle').style.textAlign = "center";
+      // 切換面板並顯示計時器控制項
+      const qw = document.getElementById('questionListWrapper');
+      if(!qw.classList.contains('hidden')) toggleLeftPanel();
+      document.getElementById('timerControlsDiv').classList.remove('hidden');
       
-      let timeLeft = mins * 60; clearInterval(testCountdownTimer);
-      testCountdownTimer = setInterval(() => {
-          timeLeft--; const m = Math.floor(timeLeft / 60).toString().padStart(2, '0'), s = (timeLeft % 60).toString().padStart(2, '0');
-          document.getElementById('animContent').innerHTML = `<div class="timer-display">${m}:${s}</div>`;
-          if(timeLeft <= 0) triggerTestStop('timeup');
-      }, 1000);
+      document.getElementById('animTitle').innerText = "測驗倒數中"; 
+      
+      globalTimeLeft = mins * 60; 
+      isTimerPaused = false;
+      document.getElementById('pauseTimerBtn').innerText = "暫停倒數";
+      
+      runTestTimer();
+    };
+
+    function runTestTimer() {
+        clearInterval(testCountdownTimer);
+        testCountdownTimer = setInterval(() => {
+            if(isTimerPaused) return; // 暫停時不倒數
+            
+            globalTimeLeft--; 
+            updateTimerDisplay();
+            
+            if(globalTimeLeft <= 0) {
+                triggerTestStop('timeup');
+            }
+        }, 1000);
+    }
+    
+    function updateTimerDisplay() {
+        if(globalTimeLeft < 0) globalTimeLeft = 0;
+        const m = Math.floor(globalTimeLeft / 60).toString().padStart(2, '0');
+        const s = (globalTimeLeft % 60).toString().padStart(2, '0');
+        document.getElementById('animContent').innerHTML = `<div class="timer-display">${m}:${s}</div>`;
+    }
+
+    // 計時器調整控制
+    window.adjustTimer = (seconds) => {
+        globalTimeLeft += seconds;
+        if(globalTimeLeft < 0) globalTimeLeft = 0;
+        updateTimerDisplay();
+    };
+    
+    window.togglePauseTimer = () => {
+        isTimerPaused = !isTimerPaused;
+        const btn = document.getElementById('pauseTimerBtn');
+        if(isTimerPaused) {
+            btn.innerText = "繼續倒數";
+            btn.style.background = "var(--danger)";
+            btn.style.color = "white";
+        } else {
+            btn.innerText = "暫停倒數";
+            btn.style.background = "white";
+            btn.style.color = "var(--primary)";
+        }
     };
 
     window.triggerTestStop = async (reason) => {
        clearInterval(testCountdownTimer);
+       document.getElementById('timerControlsDiv').classList.add('hidden'); // 隱藏時間控制
+       
        let msg = reason === 'auto' ? "已全數交卷" : (reason === 'timeup' ? "時間到" : "已手動收卷");
        document.getElementById('animContent').innerHTML = `<div class="timer-display" style="color:var(--danger);">00:00</div><h3 style="text-align:center;">${msg}</h3>`;
        
@@ -422,13 +553,12 @@
 
     async function renderTestStatistics() {
         document.getElementById('animTitle').innerText = "📈 全班作答統計與檢討";
-        document.getElementById('animTitle').style.textAlign = "left";
         const aSnap = await get(ref(db, 'room/testAnswers')), sSnap = await get(ref(db, 'room/students'));
         const answers = aSnap.val() || {}, students = sSnap.val() || {};
         
         let html = "", unsubmitted = [];
         for(let sid in students) { if(!answers[sid] || !answers[sid].isSubmitted) unsubmitted.push(students[sid].nickname); }
-        if(unsubmitted.length > 0) html += `<div style="color:var(--danger); margin-bottom:20px;">未交卷：${unsubmitted.join(', ')}</div>`;
+        if(unsubmitted.length > 0) html += `<div style="color:var(--danger); margin-bottom:20px; font-weight:bold; font-size:16px;">未交卷：${unsubmitted.join(', ')}</div>`;
 
         selectedQuestions.forEach((q, qIdx) => {
             let totalAnswers = 0, correctAnswers = 0;
@@ -443,7 +573,7 @@
             }
             
             let accuracy = totalAnswers > 0 ? Math.round((correctAnswers/totalAnswers)*100) : 0;
-            html += `<div class="stat-container"><div class="stat-q-title">Q${qIdx+1} <span style="font-size:14px;color:#94a3b8;">[${q.sheetName}]</span> : ${q.q} <span style="color:#64748b; font-size:14px; font-weight:normal;">(答對率: ${accuracy}%)</span></div>`;
+            html += `<div class="stat-container"><div class="stat-q-title">Q${qIdx+1} <span style="font-size:14px;color:var(--text-light);">[${q.sheetName}]</span> : ${q.q} <span style="color:var(--primary); font-size:14px; font-weight:normal; float:right;">答對率: ${accuracy}%</span></div>`;
             
             q.opts.forEach(opt => {
                 let count = optCounts[opt], pct = totalAnswers > 0 ? Math.round((count/totalAnswers)*100) : 0, isCorrect = (opt === q.ans);
@@ -459,15 +589,14 @@
 
     window.toggleSetting = (key, btn) => { currentSettings[key] = !currentSettings[key]; btn.innerText = (key === 'showQuestion' ? '平板題目：' : '公布解答：') + (currentSettings[key] ? '開' : '關'); btn.classList.toggle('active', currentSettings[key]); update(ref(db, 'room/settings'), currentSettings); };
     window.kickStudent = (id) => { remove(ref(db, `room/students/${id}`)); };
-    window.toggleLeftPanel = () => { document.getElementById('questionListWrapper').classList.toggle('hidden'); document.getElementById('animationPanel').classList.toggle('hidden'); };
     window.updateSettings = (k, v) => { currentSettings[k] = v; update(ref(db, 'room/settings'), currentSettings); };
     
     window.toggleBGM = () => { 
         const audio = document.getElementById('bgmAudio'), btn = document.getElementById('bgmBtn'); 
         if(audio.paused) {
-            audio.play().then(() => { btn.innerText = "暫停 BGM"; btn.classList.add('active'); }).catch(e => { alert("請先點擊網頁任意空白處後再試一次。"); });
+            audio.play().then(() => { btn.innerText = "暫停"; btn.classList.add('active'); }).catch(e => { alert("請先點擊網頁任意空白處後再試一次。"); });
         } else {
-            audio.pause(); btn.innerText = "開啟 BGM"; btn.classList.remove('active');
+            audio.pause(); btn.innerText = "開啟"; btn.classList.remove('active');
         }
     };
 
