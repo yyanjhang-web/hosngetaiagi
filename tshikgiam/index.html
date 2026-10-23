@@ -7,16 +7,9 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
     
-    /* 柔和清新色系 */
     :root { 
-        --primary: #5c7c99;      /* 莫蘭迪藍 */
-        --student: #f8fafc;      /* 淡淡的灰白 */
-        --danger: #fca5a5;       /* 柔和紅 */
-        --success: #86efac;      /* 柔和綠 */
-        --accent: #93c5fd;       /* 清新粉藍 */
-        --btn-hover: #3b82f6; 
-        --text-dark: #334155;
-        --text-light: #94a3b8;
+        --primary: #5c7c99; --student: #f8fafc; --danger: #fca5a5; --success: #86efac; --accent: #93c5fd; 
+        --text-dark: #334155; --text-light: #94a3b8;
     }
     
     body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 20px; background: #f1f5f9; color: var(--text-dark); min-height: 100vh; position: relative; padding-bottom: 120px;}
@@ -31,7 +24,6 @@
     #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
     .role-btn { padding: 14px 28px; font-size: 18px; margin: 10px auto; background: var(--primary); color: white; width: 85%; display: block;}
     
-    /* 學生輸入欄位樣式 */
     .input-group { margin-bottom: 20px; text-align: left; width: 85%; margin-left: auto; margin-right: auto; }
     .input-group label { display: block; font-size: 14px; color: var(--text-dark); margin-bottom: 8px; font-weight: bold;}
     input[type="text"] { padding: 12px 15px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center; transition: border-color 0.3s ease;}
@@ -57,7 +49,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.5</div>
+  <div class="version-tag">Ver 2.6</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 5px;">台語互動派題系統</h1>
@@ -212,6 +204,7 @@
              document.getElementById('testNav').classList.add('hidden');
           }
           
+          // 若老師允許檢討，不論模式皆解鎖畫面，供學生翻閱
           if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
               document.getElementById('studentMainContent').classList.remove('hidden');
               document.getElementById('optionsContainer').classList.remove('hidden');
@@ -228,13 +221,20 @@
       });
 
       onValue(ref(db, 'room/testPaper'), snap => {
-        if(roomMode === 'test' && snap.exists() && currentSettings.status === 'testing' && !hasSubmittedTest) {
-          selectedQuestions = snap.val(); myTestIndex = 0;
-          document.getElementById('studentMainContent').classList.remove('hidden');
-          document.getElementById('testNav').classList.remove('hidden');
-          renderTestQuestion();
+        if(snap.exists() && currentSettings.status !== 'waiting') {
+          selectedQuestions = snap.val();
+          // 如果是剛進入測驗狀態且尚未交卷
+          if(currentSettings.status === 'testing' && !hasSubmittedTest) {
+              myTestIndex = 0;
+              document.getElementById('studentMainContent').classList.remove('hidden');
+              document.getElementById('testNav').classList.remove('hidden');
+              renderTestQuestion();
+          }
         }
       });
+      
+      // Kahoot 模式：為了檢討，我們也需要從 Firebase 拉取整份卷子 (因為 Kahoot 預設是一題一題發)
+      // 修改：在經典模式結束時，大屏會把 selectedQuestions 存到 room/testPaper 供檢討用
     }
 
     function renderStudentQuestion(qData) {
@@ -257,7 +257,13 @@
     function submitAnswer(selectedOpt, btnElement, qId) {
       if(currentSettings.status !== 'testing' && currentSettings.status !== 'kahoot_active') return;
       if(roomMode === 'kahoot') {
+        // Kahoot 模式下，也同時把答案存進 myTestAnswers 供事後檢討翻閱
+        myTestAnswers[kahootIndex] = selectedOpt; 
+        
         set(ref(db, `room/kahootAnswers/${myStudentId}`), { answer: selectedOpt, time: Date.now() - currentSettings.qStartTime });
+        // 為了讓大屏最後能統整長條圖，Kahoot 模式的答案也平行寫入 testAnswers 結構
+        set(ref(db, `room/testAnswers/${myStudentId}/${kahootIndex}`), {answer: selectedOpt});
+        
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
         document.getElementById('myAnswerDisplay').innerHTML = `<span style="color:var(--text-light);">已送出，等待計時結束...</span>`;
       } else {
@@ -270,6 +276,7 @@
     window.navTest = (dir) => {
       if(hasSubmittedTest && !currentSettings.showAnswer) return; 
       
+      // 測驗模式下，防呆交卷確認
       if(dir === 1 && myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') {
           if(confirm("交卷後不得修改答案，確定交卷？")) {
             hasSubmittedTest = true;
@@ -284,7 +291,7 @@
       myTestIndex += dir;
       if(myTestIndex < 0) myTestIndex = 0;
       if(myTestIndex > selectedQuestions.length - 1) myTestIndex = selectedQuestions.length - 1;
-      renderTestQuestion();
+      renderTestQuestion(); // 重新繪製該題
     };
 
     function renderTestQuestion() {
@@ -293,14 +300,24 @@
       document.getElementById('testProgress').innerText = `${myTestIndex + 1} / ${selectedQuestions.length}`;
       const nBtn = document.getElementById('nextOrSubmitBtn');
       
-      if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') { 
-          nBtn.innerText = "交卷"; nBtn.style.background = "var(--danger)"; nBtn.style.color = "white";
+      // 若為檢討狀態，不要顯示紅色的「交卷」按鈕，只顯示灰色或隱藏
+      if(currentSettings.status === 'reviewing') {
+          if(myTestIndex === selectedQuestions.length - 1) {
+              nBtn.innerText = "已到最後一題"; nBtn.style.background = "#e2e8f0"; nBtn.disabled = true;
+          } else {
+              nBtn.innerText = "下一題"; nBtn.style.background = "var(--text-light)"; nBtn.disabled = false;
+          }
+      } 
+      // 測驗進行中
+      else if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') { 
+          nBtn.innerText = "交卷"; nBtn.style.background = "var(--danger)"; nBtn.style.color = "white"; nBtn.disabled = false;
       } else { 
-          nBtn.innerText = "下一題"; nBtn.style.background = "var(--text-light)"; nBtn.style.color = "white";
+          nBtn.innerText = "下一題"; nBtn.style.background = "var(--text-light)"; nBtn.style.color = "white"; nBtn.disabled = false;
       }
 
       renderStudentQuestion(qData);
       
+      // 標記已選答案 (不論對錯)
       if(myTestAnswers[myTestIndex] && currentSettings.status !== 'reviewing') {
         document.getElementById('myAnswerDisplay').innerHTML = `已選擇：<span style="color:var(--primary);">${myTestAnswers[myTestIndex]}</span>`;
         document.querySelectorAll('.option-btn').forEach(b => {
@@ -308,11 +325,12 @@
         });
       }
 
+      // 如果老師開啟檢討模式，強制顯示正確與錯誤顏色
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
           const cAns = qData.correctAnswer;
           let isCorrect = false;
           document.querySelectorAll('.option-btn').forEach(b => {
-             b.disabled = true; 
+             b.disabled = true; // 檢討模式下所有按鈕鎖定
              if(b.innerText === cAns) {
                  b.classList.add('correct');
                  if(myTestAnswers[myTestIndex] === cAns) isCorrect = true;
@@ -327,13 +345,10 @@
     }
 
     function updateStudentUI() {
-      if (currentSettings.status === 'reviewing' && roomMode === 'test' && hasSubmittedTest) {
-          document.getElementById('studentMainContent').classList.remove('hidden');
-          document.getElementById('testNav').classList.remove('hidden'); 
-          renderTestQuestion();
-      }
-      
+      // 即時回饋模式的單題結算：只變顏色
       if(currentSettings.status === 'kahoot_result' && roomMode === 'kahoot') {
+          // 同步 kahootIndex 供後續切換檢視使用
+          kahootIndex = currentSettings.kahootIndex || 0;
           document.getElementById('myAnswerDisplay').innerText = "";
           document.querySelectorAll('.option-btn').forEach(b => {
              b.disabled = true;
