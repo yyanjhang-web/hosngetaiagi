@@ -8,7 +8,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
     
     :root { 
-        --primary: #5c7c99; --student: #f8fafc; --danger: #ef4444; --success: #22c55e; --accent: #93c5fd; 
+        --primary: #5c7c99; --student: #f8fafc; --danger: #fca5a5; --success: #86efac; --accent: #93c5fd; 
         --text-dark: #334155; --text-light: #94a3b8;
         /* Kahoot 經典四色 */
         --c-red: #e21b3c; --c-blue: #1368ce; --c-yellow: #d89e00; --c-green: #26890c;
@@ -27,9 +27,9 @@
     
     .input-group { margin-bottom: 20px; text-align: left; width: 85%; margin-left: auto; margin-right: auto; }
     .input-group label { display: block; font-size: 14px; color: var(--text-dark); margin-bottom: 8px; font-weight: bold;}
-    input[type="text"] { padding: 12px 15px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center;}
+    input[type="text"] { padding: 12px 15px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center; transition: border-color 0.3s ease;}
     input[type="text"]:focus { outline: none; border-color: var(--accent); }
-    input:disabled { background-color: #f8fafc; cursor: not-allowed; color: var(--text-light); font-weight: bold;}
+    input:disabled { background-color: #f8fafc; cursor: not-allowed; color: var(--text-light); font-weight: bold; border-color: #f1f5f9;}
 
     #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
     .student-info-bar { position: absolute; top: 20px; right: 25px; color: var(--text-light); font-size: 14px; text-align: right; }
@@ -37,10 +37,12 @@
     #myAnswerDisplay { margin-bottom: 25px; font-size: 18px; font-weight: bold; color: var(--primary); min-height: 30px; padding: 10px; border-radius: 8px; background: #f8fafc;}
     
     /* 遊戲化選項按鈕設計 */
-    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-bottom: 25px;}
-    .option-btn { padding: 25px 15px; font-size: 22px; color: white; display: flex; align-items: center; justify-content: flex-start; text-align: left; }
-    .option-btn span.shape { font-size: 28px; margin-right: 15px; width: 35px; text-align: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);}
-    .option-btn span.text { flex-grow: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);}
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-bottom: 25px;}
+    .option-btn { padding: 25px 15px; font-size: 22px; color: white; display: flex; align-items: center; justify-content: center; text-align: center; }
+    
+    /* 花色圖形改為純白 */
+    .option-btn span.shape { font-size: 32px; margin-right: 15px; width: 35px; text-align: center; color: white;}
+    .option-btn span.text { text-shadow: 1px 1px 2px rgba(0,0,0,0.3);}
     
     .opt-0 { background-color: var(--c-red); border-bottom: 5px solid #a7142c; }
     .opt-1 { background-color: var(--c-blue); border-bottom: 5px solid #0e4c96; }
@@ -61,7 +63,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.8 (Student)</div>
+  <div class="version-tag">Ver 2.9 (Student)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 5px;">台語互動派題系統</h1>
@@ -142,7 +144,8 @@
     let currentSettings = { pin: '', showQuestion: true, status: 'waiting', audioSource: 'teacher', acceptAnswers: false };
     let myTestAnswers = {}, hasSubmittedTest = false, myTestIndex = 0;
 
-    const shapes = ["🔺", "🔷", "🟡", "🟩"];
+    // 改用撲克花色
+    const shapes = ["♣", "♦", "♥", "♠"];
     const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
 
     function unlockAudio() { const stuAud = document.getElementById('studentAudio'); if(stuAud) { stuAud.play().then(() => stuAud.pause()).catch(e=>{}); } }
@@ -161,7 +164,8 @@
       if(!settingsSnap.exists() || settingsSnap.val().pin !== pin) return alert("試場編號錯誤或考試未建立！");
 
       const avatar = avatars[Math.floor(Math.random() * avatars.length)];
-      const nickname = realName + " 的平板"; // 可以自訂
+      // 平板上保留暱稱加上本名 (大屏只顯示暱稱)
+      const nickname = realName + " 的平板"; 
       myStudentId = 'student_' + Date.now();
       
       const myRef = ref(db, `room/students/${myStudentId}`);
@@ -170,8 +174,8 @@
 
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('studentView').classList.remove('hidden');
-      document.getElementById('sNickname').innerText = `${avatar} ${realName}`;
-      document.getElementById('sRealName').innerText = `(座號: ${seat})`;
+      document.getElementById('sNickname').innerText = `${avatar} ${nickname}`;
+      document.getElementById('sRealName').innerText = `(${realName} - 座號: ${seat})`;
       document.getElementById('sPinDisplay').innerText = pin;
 
       onValue(myRef, snap => { if (!snap.exists()) { alert("已被移出！"); window.location.reload(); }});
@@ -203,7 +207,6 @@
              document.getElementById('testNav').classList.add('hidden');
           }
           
-          // 檢討模式：強制解鎖畫面，供學生翻閱
           if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
               document.getElementById('studentMainContent').classList.remove('hidden');
               document.getElementById('optionsContainer').classList.remove('hidden');
@@ -247,7 +250,6 @@
         
         btn.onclick = () => {
             if(!currentSettings.acceptAnswers) return;
-            // 視覺回饋：自己被點亮，其他人變暗
             document.querySelectorAll('.option-btn').forEach(b => b.classList.add('dimmed'));
             btn.classList.remove('dimmed');
             btn.classList.add('selected');
@@ -262,7 +264,6 @@
     function submitAnswer(selectedOpt, btnElement, qId) {
       if(!currentSettings.acceptAnswers) return;
       if(roomMode === 'kahoot') {
-        // 修復：送出答案
         set(ref(db, `room/kahootAnswers/${myStudentId}`), { answer: selectedOpt, time: Date.now() - currentSettings.qStartTime });
         
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
@@ -271,6 +272,7 @@
       } else {
         myTestAnswers[myTestIndex] = selectedOpt;
         set(ref(db, `room/testAnswers/${myStudentId}/${myTestIndex}`), {answer: selectedOpt});
+        renderTestQuestion();
       }
     }
 
@@ -311,17 +313,13 @@
 
       renderStudentQuestion(qData);
       
-      // 回填已選答案
       if(myTestAnswers[myTestIndex] && currentSettings.status !== 'reviewing') {
         document.getElementById('myAnswerDisplay').innerHTML = `已選擇：<span style="color:var(--primary);">${myTestAnswers[myTestIndex]}</span>`;
         document.querySelectorAll('.option-btn').forEach(b => {
-          const optText = b.querySelector('.text').innerText;
-          if(optText !== myTestAnswers[myTestIndex]) { b.classList.add('dimmed'); }
-          else { b.classList.add('selected'); }
+          b.style.backgroundColor = (b.innerText === myTestAnswers[myTestIndex]) ? '#f1f5f9' : 'white';
         });
       }
 
-      // 檢討模式顏色
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
           const cAns = qData.correctAnswer;
           let isCorrect = false;
@@ -343,6 +341,11 @@
     }
 
     function updateStudentUI() {
+      // 依據 acceptAnswers 鎖定未送出者的畫面
+      if (!currentSettings.acceptAnswers && currentSettings.status === 'kahoot_active') {
+        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+      }
+      
       if (currentSettings.status === 'reviewing' && roomMode === 'test' && hasSubmittedTest) {
           document.getElementById('studentMainContent').classList.remove('hidden');
           document.getElementById('testNav').classList.remove('hidden'); 
