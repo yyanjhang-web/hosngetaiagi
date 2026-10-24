@@ -115,7 +115,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="version-tag">Ver 2.14 (Teacher)</div>
+  <div class="version-tag">Ver 2.15 (Teacher)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 10px;">請選擇本次測驗模式</h1>
@@ -245,7 +245,6 @@
     let testCountdownTimer = null, kahootTimer = null, aiTimer = null;
     let kahootIndex = 0, globalTimeLeft = 0, isTimerPaused = false;
     
-    // 將變數拉到外層供 AI 作答引擎讀取
     window.activeAIStudents = [];
     
     const shapes = ["♣", "♦", "♥", "♠"];
@@ -302,7 +301,6 @@
       
       await loadGoogleSheets();
 
-      // 監聽名單並排序，大屏只顯示 Emoji + 暱稱
       onValue(ref(db, 'room/students'), snap => {
         const sList = document.getElementById('studentList'); sList.innerHTML = ''; let count = 0;
         window.activeAIStudents = []; 
@@ -333,7 +331,6 @@
          }
       });
       
-      // 監聽 Kahoot 答題狀況 (即時在大屏選項色塊上飛出頭像)
       onValue(ref(db, 'room/kahootAnswers'), async snap => {
          if(roomMode === 'kahoot' && currentSettings.status === 'kahoot_active') {
              const answers = snap.val() || {};
@@ -356,7 +353,6 @@
                  }
              }
              
-             // 如果所有人都答完了，提早結束倒數
              if(currentAnswerCount > 0 && currentAnswerCount >= totalStudents) {
                  clearInterval(kahootTimer);
                  endKahootQuestion();
@@ -443,6 +439,15 @@
         selectedQuestions = getSelectedQs(); 
         if(selectedQuestions.length > 0){ 
             kahootIndex = 0; 
+            
+            // 修復：在一開始派題時，就把整份考卷寫入 testPaper，確保學生端能收到選項資料
+            const paper = selectedQuestions.map((q, idx) => ({ 
+                questionId: q.questionId, question: q.q, 
+                options: [...q.opts].sort(() => Math.random() - 0.5), 
+                correctAnswer: q.ans, audio: q.audio 
+            }));
+            set(ref(db, 'room/testPaper'), paper);
+
             document.getElementById('statisticsContainer').classList.add('hidden');
             toggleLeftPanel(); 
             playKahootQuestion(); 
@@ -508,7 +513,6 @@
            if(optCounts[ans] !== undefined) optCounts[ans]++;
            if(ans === currentSettings.currentCorrect) {
                cc++;
-               // 計算積分 (剩餘時間越多，加分越多，滿分1000)
                students[sid].score = (students[sid].score || 0) + Math.max(10, 1000 - Math.floor(answers[sid].time / 20)); 
            }
        }
@@ -540,18 +544,10 @@
        } else {
            document.getElementById('kahootNextBtn').classList.add('hidden'); 
            
-           // 修復任務 1：當允許學生檢討時，將完整的考卷陣列重新寫入 room/testPaper，讓平板可以抓取並翻閱
+           // 統一詢問邏輯並確實將 reviewing 狀態寫入 Firebase
            if(confirm(`所有題目已完成！\n是否要讓「學生平板」同步顯示解答並允許他們自由翻閱考題？`)) {
                currentSettings.status = 'reviewing'; 
                currentSettings.showAnswer = true;
-               
-               const paper = selectedQuestions.map((q, idx) => ({ 
-                   questionId: q.questionId, question: q.q, 
-                   options: [...q.opts].sort(() => Math.random() - 0.5), 
-                   correctAnswer: q.ans, audio: q.audio 
-               }));
-               set(ref(db, 'room/testPaper'), paper);
-
            } else {
                currentSettings.status = 'ended'; 
                currentSettings.showAnswer = false;
@@ -656,6 +652,7 @@
        
        setTimeout(async () => {
            await renderTestStatistics(); 
+           // 統一詢問邏輯並確實將 reviewing 狀態寫入 Firebase
            if(confirm(`測驗結束！\n\n大屏已顯示全班作答統計供您講解。\n是否要讓「學生平板」也同步顯示正確答案與個人成績？`)) {
                currentSettings.status = 'reviewing'; currentSettings.showAnswer = true;
            } else {
