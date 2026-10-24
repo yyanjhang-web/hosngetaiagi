@@ -8,7 +8,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
     
     :root { 
-        --primary: #5c7c99; --student: #f8fafc; --danger: #fca5a5; --success: #86efac; --accent: #93c5fd; 
+        --primary: #5c7c99; --student: #f8fafc; --danger: #ef4444; --success: #22c55e; --accent: #93c5fd; 
         --text-dark: #334155; --text-light: #94a3b8;
         /* Kahoot 經典四色 */
         --c-red: #e21b3c; --c-blue: #1368ce; --c-yellow: #d89e00; --c-green: #26890c;
@@ -59,12 +59,13 @@
 
     .nav-btn { padding: 10px 20px; font-size: 16px; background: var(--text-light); color: white; }
     .nav-btn:hover { background: #64748b; }
+    .nav-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
     
     #offlineOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.95); color: var(--primary); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align:center;}
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.11 (Student)</div>
+  <div class="version-tag">Ver 2.12 (Student)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 5px;">台語互動派題系統</h1>
@@ -185,11 +186,11 @@
       document.getElementById('sPinDisplay').innerText = `編號：${pin}`;
       document.getElementById('sNickname').innerText = `${avatar} ${nickname}`;
       
-      // 組合班級、座號、姓名
+      // 修復：純粹以空白分隔班級、座號、姓名
       let realNameDisplay = "";
-      if(stuClass) realNameDisplay += `[${stuClass}] `;
-      if(seat) realNameDisplay += `[${seat}] `;
-      realNameDisplay += `[${realName}]`;
+      if(stuClass) realNameDisplay += `${stuClass} `;
+      if(seat) realNameDisplay += `${seat} `;
+      realNameDisplay += `${realName}`;
       document.getElementById('sRealName').innerText = realNameDisplay;
 
       onValue(myRef, snap => { if (!snap.exists()) { alert("已被移出！"); window.location.reload(); }});
@@ -221,6 +222,7 @@
              document.getElementById('testNav').classList.add('hidden');
           }
           
+          // 修復：只要是在檢討模式，就無條件解鎖畫面讓學生翻閱 (不論是否按下過交卷按鈕)
           if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
               document.getElementById('studentMainContent').classList.remove('hidden');
               document.getElementById('optionsContainer').classList.remove('hidden');
@@ -264,6 +266,7 @@
         
         btn.onclick = () => {
             if(!currentSettings.acceptAnswers) return;
+            // 視覺回饋：自己被點亮，其他人變暗
             document.querySelectorAll('.option-btn').forEach(b => b.classList.add('dimmed'));
             btn.classList.remove('dimmed');
             btn.classList.add('selected');
@@ -290,6 +293,7 @@
     }
 
     window.navTest = (dir) => {
+      // 修復：如果正在檢討模式，就允許自由翻頁，不受 hasSubmittedTest 限制
       if(hasSubmittedTest && !currentSettings.showAnswer) return; 
       
       if(dir === 1 && myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') {
@@ -316,8 +320,8 @@
       const nBtn = document.getElementById('nextOrSubmitBtn');
       
       if(currentSettings.status === 'reviewing') {
-          if(myTestIndex === selectedQuestions.length - 1) { nBtn.innerText = "已到最後一題"; nBtn.style.background = "#e2e8f0"; nBtn.disabled = true; } 
-          else { nBtn.innerText = "下一題"; nBtn.style.background = "var(--text-light)"; nBtn.disabled = false; }
+          if(myTestIndex === selectedQuestions.length - 1) { nBtn.innerText = "已到最後一題"; nBtn.style.background = "#e2e8f0"; nBtn.style.color = "#94a3b8"; nBtn.disabled = true; } 
+          else { nBtn.innerText = "下一題"; nBtn.style.background = "var(--text-light)"; nBtn.style.color = "white"; nBtn.disabled = false; }
       } else if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') { 
           nBtn.innerText = "交卷"; nBtn.style.background = "var(--danger)"; nBtn.style.color = "white"; nBtn.disabled = false;
       } else { 
@@ -326,6 +330,7 @@
 
       renderStudentQuestion(qData);
       
+      // 回填已選答案
       if(myTestAnswers[myTestIndex] && currentSettings.status !== 'reviewing') {
         document.getElementById('myAnswerDisplay').innerHTML = `已選擇：<span style="color:var(--primary);">${myTestAnswers[myTestIndex]}</span>`;
         document.querySelectorAll('.option-btn').forEach(b => {
@@ -335,6 +340,7 @@
         });
       }
 
+      // 檢討模式顏色
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
           const cAns = qData.correctAnswer;
           let isCorrect = false;
@@ -356,11 +362,12 @@
     }
 
     function updateStudentUI() {
+      // 依據 acceptAnswers 鎖定未送出者的畫面
       if (!currentSettings.acceptAnswers && currentSettings.status === 'kahoot_active') {
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
       }
       
-      if (currentSettings.status === 'reviewing' && roomMode === 'test' && hasSubmittedTest) {
+      if (currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
           document.getElementById('studentMainContent').classList.remove('hidden');
           document.getElementById('testNav').classList.remove('hidden'); 
           renderTestQuestion();
