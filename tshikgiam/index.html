@@ -65,7 +65,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.13 (Student)</div>
+  <div class="version-tag">Ver 2.14 (Student)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 5px;">台語互動派題系統</h1>
@@ -182,7 +182,7 @@
       document.getElementById('sPinDisplay').innerText = `編號：${pin}`;
       document.getElementById('sNickname').innerText = `${avatar} ${nickname}`;
       
-      // 修復 2：移除方括號，改用空白分隔
+      // 修復：以空白分隔班級、座號、姓名，不再出現方括號
       let realNameDisplay = "";
       if(stuClass) realNameDisplay += `${stuClass} `;
       if(seat) realNameDisplay += `${seat} `;
@@ -215,7 +215,7 @@
           
           // 如果老師開啟檢討模式，強制解鎖畫面供學生翻閱
           if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
-              document.getElementById('studentQuestion').innerText = "檢討模式";
+              // 在經典模式下，可能沒有設定 hasSubmittedTest = true，但檢討模式必須無條件解鎖
               document.getElementById('studentMainContent').classList.remove('hidden');
               document.getElementById('optionsContainer').classList.remove('hidden');
               document.getElementById('testNav').classList.remove('hidden');
@@ -239,10 +239,16 @@
       onValue(ref(db, 'room/testPaper'), snap => {
         if(snap.exists() && currentSettings.status !== 'waiting') {
           selectedQuestions = snap.val();
+          // 如果是剛進入測驗狀態且尚未交卷
           if(currentSettings.status === 'testing' && !hasSubmittedTest) {
               myTestIndex = 0;
               document.getElementById('studentMainContent').classList.remove('hidden');
               document.getElementById('testNav').classList.remove('hidden');
+              renderTestQuestion();
+          }
+          // 針對經典模式的檢討啟動邏輯，當狀態切換為 reviewing 時重置 index
+          if(currentSettings.status === 'reviewing' && roomMode === 'kahoot') {
+              myTestIndex = 0;
               renderTestQuestion();
           }
         }
@@ -292,7 +298,7 @@
     }
 
     window.navTest = (dir) => {
-      // 修復 1：在檢討模式下 (reviewing)，無視 hasSubmittedTest 直接允許翻頁
+      // 只要是檢討狀態 (reviewing)，就可以自由翻頁，無視 hasSubmittedTest
       if(currentSettings.status !== 'reviewing') {
           if(hasSubmittedTest && !currentSettings.showAnswer) return; 
       }
@@ -367,6 +373,13 @@
       // 依據 acceptAnswers 鎖定未送出者的畫面
       if (!currentSettings.acceptAnswers && currentSettings.status === 'kahoot_active') {
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+      }
+      
+      // 檢討模式解鎖
+      if (currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
+          document.getElementById('studentMainContent').classList.remove('hidden');
+          document.getElementById('testNav').classList.remove('hidden'); 
+          renderTestQuestion();
       }
       
       if(currentSettings.status === 'kahoot_result' && roomMode === 'kahoot') {
