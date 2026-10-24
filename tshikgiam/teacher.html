@@ -245,6 +245,7 @@
     let testCountdownTimer = null, kahootTimer = null, aiTimer = null;
     let kahootIndex = 0, globalTimeLeft = 0, isTimerPaused = false;
     
+    // 將變數拉到外層供 AI 作答引擎讀取
     window.activeAIStudents = [];
     
     const shapes = ["♣", "♦", "♥", "♠"];
@@ -301,6 +302,7 @@
       
       await loadGoogleSheets();
 
+      // 監聽名單並排序，大屏只顯示 Emoji + 暱稱
       onValue(ref(db, 'room/students'), snap => {
         const sList = document.getElementById('studentList'); sList.innerHTML = ''; let count = 0;
         window.activeAIStudents = []; 
@@ -331,6 +333,7 @@
          }
       });
       
+      // 監聽 Kahoot 答題狀況 (即時在大屏選項色塊上飛出頭像)
       onValue(ref(db, 'room/kahootAnswers'), async snap => {
          if(roomMode === 'kahoot' && currentSettings.status === 'kahoot_active') {
              const answers = snap.val() || {};
@@ -353,6 +356,7 @@
                  }
              }
              
+             // 如果所有人都答完了，提早結束倒數
              if(currentAnswerCount > 0 && currentAnswerCount >= totalStudents) {
                  clearInterval(kahootTimer);
                  endKahootQuestion();
@@ -439,8 +443,6 @@
         selectedQuestions = getSelectedQs(); 
         if(selectedQuestions.length > 0){ 
             kahootIndex = 0; 
-            const paper = selectedQuestions.map((q, idx) => ({ questionId: q.questionId, question: q.q, options: [...q.opts].sort(() => Math.random() - 0.5), correctAnswer: q.ans, audio: q.audio }));
-            set(ref(db, 'room/testPaper'), paper);
             document.getElementById('statisticsContainer').classList.add('hidden');
             toggleLeftPanel(); 
             playKahootQuestion(); 
