@@ -33,7 +33,7 @@
 
     #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
     
-    /* 學生平板右上角資訊列：精準三行排版 */
+    /* 學生平板右上角資訊列：純空白分隔 */
     .student-info-bar { position: absolute; top: 15px; right: 20px; text-align: right; line-height: 1.4; display: flex; flex-direction: column; align-items: flex-end;}
     .info-line-1 { font-size: 13px; color: var(--text-light); font-weight: bold; }
     .info-line-2 { font-size: 16px; font-weight: bold; color: var(--primary); margin: 2px 0;}
@@ -147,7 +147,6 @@
     let myTestAnswers = {}, hasSubmittedTest = false, myTestIndex = 0;
 
     const shapes = ["♣", "♦", "♥", "♠"];
-    
     const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
     const names = ["巴克禮", "馬偕", "甘為霖", "鄧雨賢", "蔡培火", "賴和", "蔣渭水", "林獻堂", "陳澄波", "李臨秋", "連橫", "伊能嘉矩", "王育德", "黃石輝", "郭秋生", "鄭兒玉", "林茂生", "楊逵", "吳濁流", "鍾理和"];
     const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
@@ -182,7 +181,7 @@
       document.getElementById('sPinDisplay').innerText = `編號：${pin}`;
       document.getElementById('sNickname').innerText = `${avatar} ${nickname}`;
       
-      // 修復：以空白分隔班級、座號、姓名，不再出現方括號
+      // 修正 2: 徹底移除方括號，純以空白分隔
       let realNameDisplay = "";
       if(stuClass) realNameDisplay += `${stuClass} `;
       if(seat) realNameDisplay += `${seat} `;
@@ -213,16 +212,8 @@
             hasSubmittedTest = false; myTestAnswers = {};
           }
           
-          // 如果老師開啟檢討模式，強制解鎖畫面供學生翻閱
-          if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
-              // 在經典模式下，可能沒有設定 hasSubmittedTest = true，但檢討模式必須無條件解鎖
-              document.getElementById('studentMainContent').classList.remove('hidden');
-              document.getElementById('optionsContainer').classList.remove('hidden');
-              document.getElementById('testNav').classList.remove('hidden');
-              renderTestQuestion(); 
-          }
           // 若老師未開啟檢討，才顯示測驗結束
-          else if(currentSettings.status === 'ended') {
+          if(currentSettings.status === 'ended' && !currentSettings.showAnswer) {
              document.getElementById('studentQuestion').innerText = "測驗已結束，請看大屏聽老師講解。";
              document.getElementById('optionsContainer').classList.add('hidden');
              document.getElementById('testNav').classList.add('hidden');
@@ -236,30 +227,42 @@
         if(roomMode === 'kahoot' && snap.exists() && currentSettings.status === 'kahoot_active') renderStudentQuestion(snap.val());
       });
 
+      // 修正 1: 統一測試與經典模式的考卷載入與檢討觸發
       onValue(ref(db, 'room/testPaper'), snap => {
         if(snap.exists() && currentSettings.status !== 'waiting') {
           selectedQuestions = snap.val();
-          // 如果是剛進入測驗狀態且尚未交卷
+          
+          // 如果是剛進入測驗狀態且尚未交卷 (線上測驗用)
           if(currentSettings.status === 'testing' && !hasSubmittedTest) {
               myTestIndex = 0;
               document.getElementById('studentMainContent').classList.remove('hidden');
               document.getElementById('testNav').classList.remove('hidden');
               renderTestQuestion();
           }
-          // 針對經典模式的檢討啟動邏輯，當狀態切換為 reviewing 時重置 index
-          if(currentSettings.status === 'reviewing' && roomMode === 'kahoot') {
-              myTestIndex = 0;
-              renderTestQuestion();
+          
+          // 如果是進入檢討模式 (測驗與經典模式共用)
+          if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
+              myTestIndex = 0; // 重置到第一題
+              document.getElementById('studentMainContent').classList.remove('hidden');
+              document.getElementById('optionsContainer').classList.remove('hidden');
+              document.getElementById('testNav').classList.remove('hidden');
+              renderTestQuestion(); 
           }
         }
       });
     }
 
     function renderStudentQuestion(qData) {
-      // 正在檢討時，不受交卷狀態影響
-      if(hasSubmittedTest && !currentSettings.showAnswer && currentSettings.status !== 'reviewing') return;
+      // 正在檢討時，不再受 hasSubmittedTest 影響，直接跳過此防呆
+      if(currentSettings.status !== 'reviewing' && hasSubmittedTest && !currentSettings.showAnswer) return;
       
-      document.getElementById('studentQuestion').innerText = currentSettings.showQuestion ? qData.question : "請看大屏題目作答";
+      // 檢討模式下，永遠印出真實題目文字；作答模式下，根據老師設定印出
+      if(currentSettings.status === 'reviewing') {
+          document.getElementById('studentQuestion').innerText = qData.question || qData.q; // 相容 testPaper 的屬性命名
+      } else {
+          document.getElementById('studentQuestion').innerText = currentSettings.showQuestion ? (qData.question || qData.q) : "請看大屏題目作答";
+      }
+      
       document.getElementById('myAnswerDisplay').innerText = ""; 
       
       const optC = document.getElementById('optionsContainer');
@@ -272,6 +275,7 @@
         
         btn.onclick = () => {
             if(!currentSettings.acceptAnswers) return;
+            // 視覺回饋：自己被點亮，其他人變暗
             document.querySelectorAll('.option-btn').forEach(b => b.classList.add('dimmed'));
             btn.classList.remove('dimmed');
             btn.classList.add('selected');
@@ -285,25 +289,30 @@
 
     function submitAnswer(selectedOpt, btnElement, qId) {
       if(!currentSettings.acceptAnswers) return;
+      
       if(roomMode === 'kahoot') {
+        // 經典模式：同時寫入 kahootAnswers (供即時顯示) 與 myTestAnswers (供事後檢討)
+        myTestAnswers[kahootIndex] = selectedOpt;
         set(ref(db, `room/kahootAnswers/${myStudentId}`), { answer: selectedOpt, time: Date.now() - currentSettings.qStartTime });
+        set(ref(db, `room/testAnswers/${myStudentId}/${kahootIndex}`), {answer: selectedOpt});
         
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
         const praises = ["手腳誠猛喔！", "水啦！", "讚喔！", "繼續保持！", "等待結算中...", "好勢好勢！", "真有氣勢！"];
         document.getElementById('myAnswerDisplay').innerHTML = `<span style="color:var(--text-light);">${praises[Math.floor(Math.random()*praises.length)]}</span>`;
       } else {
+        // 測驗模式
         myTestAnswers[myTestIndex] = selectedOpt;
         set(ref(db, `room/testAnswers/${myStudentId}/${myTestIndex}`), {answer: selectedOpt});
       }
     }
 
     window.navTest = (dir) => {
-      // 只要是檢討狀態 (reviewing)，就可以自由翻頁，無視 hasSubmittedTest
+      // 檢討狀態下 (reviewing)，無視 hasSubmittedTest 直接允許翻頁
       if(currentSettings.status !== 'reviewing') {
           if(hasSubmittedTest && !currentSettings.showAnswer) return; 
       }
       
-      // 交卷防呆
+      // 交卷防呆 (只有在 testing 狀態下才生效)
       if(dir === 1 && myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') {
           if(confirm("交卷後不得修改答案，確定交卷？")) {
             hasSubmittedTest = true;
@@ -315,9 +324,11 @@
           }
           return;
       }
+      
       myTestIndex += dir;
       if(myTestIndex < 0) myTestIndex = 0;
       if(myTestIndex > selectedQuestions.length - 1) myTestIndex = selectedQuestions.length - 1;
+      
       renderTestQuestion();
     };
 
@@ -348,13 +359,15 @@
         });
       }
 
-      // 檢討模式顏色
+      // 檢討模式顏色標示
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
           const cAns = qData.correctAnswer;
           let isCorrect = false;
+          
           document.querySelectorAll('.option-btn').forEach(b => {
              b.disabled = true; 
              const optText = b.querySelector('.text').innerText;
+             
              if(optText === cAns) {
                  b.classList.add('reveal-correct');
                  if(myTestAnswers[myTestIndex] === cAns) isCorrect = true;
@@ -364,6 +377,7 @@
                  b.classList.add('dimmed');
              }
           });
+          
           const ansText = myTestAnswers[myTestIndex] ? myTestAnswers[myTestIndex] : "未作答";
           document.getElementById('myAnswerDisplay').innerHTML = isCorrect ? `<span style="color:var(--success);">🟢 答對了！</span> 您的答案：${ansText}` : `<span style="color:var(--danger);">🔴 答錯了！</span> 您的答案：${ansText}`;
       }
@@ -373,13 +387,6 @@
       // 依據 acceptAnswers 鎖定未送出者的畫面
       if (!currentSettings.acceptAnswers && currentSettings.status === 'kahoot_active') {
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
-      }
-      
-      // 檢討模式解鎖
-      if (currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
-          document.getElementById('studentMainContent').classList.remove('hidden');
-          document.getElementById('testNav').classList.remove('hidden'); 
-          renderTestQuestion();
       }
       
       if(currentSettings.status === 'kahoot_result' && roomMode === 'kahoot') {
