@@ -10,7 +10,6 @@
     :root { 
         --primary: #5c7c99; --teacher: #ffffff; --danger: #fca5a5; --success: #86efac; --accent: #93c5fd; 
         --bg-color: #f1f5f9; --text-dark: #334155; --text-light: #94a3b8;
-        /* Kahoot 經典四色 */
         --c-red: #e21b3c; --c-blue: #1368ce; --c-yellow: #d89e00; --c-green: #26890c;
     }
     
@@ -60,7 +59,7 @@
     .timer-display { font-size: 100px; font-weight: bold; color: var(--primary); font-family: monospace; margin: 10px 0; line-height:1;}
     .timer-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
     
-    /* Kahoot 大屏作答區塊 */
+    /* 大屏選項網格 */
     .k-question-text { font-size: 32px; font-weight: bold; color: var(--text-dark); margin-bottom: 20px; }
     .k-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: 20px;}
     .k-option-box { padding: 15px; font-size: 24px; color: white; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; border-radius: 12px; position: relative; min-height:150px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);}
@@ -78,7 +77,7 @@
     .opt-3 { background-color: var(--c-green); border-bottom: 6px solid #1a5c08; }
     .dimmed-box { opacity: 0.3 !important; filter: grayscale(80%); }
 
-    /* 頒獎台設計 */
+    /* 頒獎台 */
     .podium-container { display: flex; justify-content: center; align-items: flex-end; height: 350px; margin-top: 30px; gap:10px; position: relative;}
     .podium-step { display: flex; flex-direction: column; align-items: center; width: 140px; border-radius: 8px 8px 0 0; box-shadow: inset 0 -10px 20px rgba(0,0,0,0.1); position: relative;}
     .step-1 { height: 220px; background: #fbbf24; z-index: 3;}
@@ -93,8 +92,7 @@
     .runner-up-container { display: flex; justify-content: space-around; margin-top: 20px; border-top: 2px dashed #cbd5e1; padding-top: 20px;}
     .runner-up { font-size: 18px; font-weight: bold; color: var(--text-dark); background: white; padding: 10px 20px; border-radius: 8px; border: 1px solid #e2e8f0;}
 
-    /* 測驗統計長條圖 */
-    #statisticsContainer { margin-top: 40px; border-top: 3px solid #cbd5e1; padding-top: 30px; text-align: left;}
+    #statisticsContainer { margin-top: 30px; border-top: 2px dashed #cbd5e1; padding-top: 20px; text-align: left; }
     .stat-container { margin-bottom: 25px; padding: 20px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
     .stat-q-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; color: var(--primary);}
     .stat-bar-wrapper { display: flex; align-items: center; margin-bottom: 12px; font-size: 16px;}
@@ -103,7 +101,6 @@
     .stat-bar-fill { height: 100%; background: var(--text-light); transition: width 0.5s ease-out; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-size: 14px; font-weight: bold;}
     .stat-bar-fill.correct { background: var(--success); color: #064e3b;}
 
-    /* 右欄名單樣式 */
     .student-list { max-height: 600px; overflow-y: auto; padding-right: 5px;}
     .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 16px; transition: all 0.2s; color: var(--text-dark); border-radius: 8px;}
     .student-item:hover { text-decoration: line-through; color: #7f1d1d; cursor: pointer; background: #fef2f2; }
@@ -118,7 +115,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="version-tag">Ver 2.10 (Teacher)</div>
+  <div class="version-tag">Ver 2.11 (Teacher)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 10px;">請選擇本次測驗模式</h1>
@@ -189,7 +186,6 @@
           </div>
         </div>
 
-        <!-- 動畫與展示區 -->
         <div id="animationPanel" class="hidden">
           <h2 id="animTitle" style="font-size:28px; color:var(--primary); text-align:center; margin-bottom:5px; margin-top:0;">測驗狀態</h2>
           
@@ -201,7 +197,6 @@
           
           <div id="animContent" style="width:100%;">等待中...</div>
           
-          <!-- 大屏長條圖渲染容器 -->
           <div id="statisticsContainer" class="hidden"></div>
 
           <div style="text-align:center;"><button id="kahootNextBtn" class="send-btn hidden" style="margin-top:20px; font-size:24px; padding: 15px 40px;" onclick="nextKahootQuestion()">下一題 ➡️</button></div>
@@ -215,6 +210,7 @@
                 <h3 style="margin:0; font-size:18px; color:var(--primary);">暱稱 (<span id="studentCount">0</span>)</h3>
             </div>
             <div style="display:flex; gap:8px;">
+                <!-- AI 按鈕修正，綁定在 window 上 -->
                 <button class="toggle-btn" style="background:#fde68a; color:#92400e; padding:6px 10px; border:none;" onclick="window.addAIStudent()">🤖 加入AI考生</button>
                 <button class="toggle-btn" style="background:var(--success); color:#064e3b; padding:6px 10px; border:none;" onclick="exportCSV()">匯出成績</button>
             </div>
@@ -249,14 +245,16 @@
     
     let testCountdownTimer = null, kahootTimer = null, aiTimer = null;
     let kahootIndex = 0, globalTimeLeft = 0, isTimerPaused = false;
-    let activeAIStudents = [];
+    
+    // 將變數拉到外層供 AI 作答引擎讀取
+    window.activeAIStudents = [];
     
     const shapes = ["♣", "♦", "♥", "♠"];
     const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
     const names = ["巴克禮", "馬偕", "甘為霖", "鄧雨賢", "蔡培火", "賴和", "蔣渭水", "林獻堂", "陳澄波", "李臨秋", "連橫", "伊能嘉矩", "王育德", "黃石輝", "郭秋生", "鄭兒玉", "林茂生", "楊逵", "吳濁流", "鍾理和"];
     const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
 
-    // 將 addAIStudent 綁定在 window 上，確保 onclick 能呼叫到
+    // 加入 AI 考生功能
     window.addAIStudent = () => {
         const nickname = adjs[Math.floor(Math.random()*adjs.length)] + names[Math.floor(Math.random()*names.length)];
         const aiId = 'ai_' + Date.now();
@@ -306,18 +304,19 @@
       
       await loadGoogleSheets();
 
-      // 監聽學生名單並動態排序、顯示積分 (只顯示暱稱)
+      // 監聽名單並排序，大屏只顯示 Emoji + 暱稱
       onValue(ref(db, 'room/students'), snap => {
         const sList = document.getElementById('studentList'); sList.innerHTML = ''; let count = 0;
-        activeAIStudents = [];
+        window.activeAIStudents = []; // 清空重建
         if(snap.exists()) { 
             const studentsObj = snap.val();
             const sortedStudents = Object.entries(studentsObj).sort((a,b) => b[1].score - a[1].score);
             
             sortedStudents.forEach(([key, sData]) => {
                 count++; 
-                if(sData.isAI) activeAIStudents.push(key);
+                if(sData.isAI) window.activeAIStudents.push(key);
                 const scoreText = `<span class="score-display">${sData.score} 分</span>`;
+                // 大屏完全隱藏真實姓名
                 sList.innerHTML += `
                     <div class="student-item" onclick="kickStudent('${key}')" title="點擊剔除">
                         <div>${sData.avatar || '👤'} ${sData.nickname} ${sData.isAI ? '<span class="ai-badge">AI</span>' : ''}</div>
@@ -413,8 +412,8 @@
     };
 
     function triggerAIAnswers(qData) {
-        if(activeAIStudents.length === 0) return;
-        activeAIStudents.forEach(aiId => {
+        if(window.activeAIStudents.length === 0) return;
+        window.activeAIStudents.forEach(aiId => {
             const randomDelay = Math.floor(Math.random() * 5000) + 500; 
             setTimeout(() => {
                 if(currentSettings.status !== 'kahoot_active' && currentSettings.status !== 'testing') return;
@@ -428,7 +427,7 @@
         });
 
         if(roomMode === 'test') {
-           activeAIStudents.forEach(aiId => {
+           window.activeAIStudents.forEach(aiId => {
                let qIdx = 0;
                let aiTestInterval = setInterval(() => {
                    if(currentSettings.status !== 'testing') { clearInterval(aiTestInterval); return; }
