@@ -115,7 +115,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="version-tag">Ver 2.11 (Teacher)</div>
+  <div class="version-tag">Ver 2.14 (Teacher)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 10px;">請選擇本次測驗模式</h1>
@@ -161,7 +161,7 @@
             </select>
             <span style="margin-left:15px; color:var(--text-light); font-size:14px; font-weight:bold;">🎵 BGM：</span>
             <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">開啟</button>
-            <audio id="bgmAudio" loop src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3"></audio>
+            <audio id="bgmAudio" src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3"></audio>
           </div>
           
           <div class="control-group" id="testModeControls">
@@ -210,7 +210,6 @@
                 <h3 style="margin:0; font-size:18px; color:var(--primary);">暱稱 (<span id="studentCount">0</span>)</h3>
             </div>
             <div style="display:flex; gap:8px;">
-                <!-- AI 按鈕修正，綁定在 window 上 -->
                 <button class="toggle-btn" style="background:#fde68a; color:#92400e; padding:6px 10px; border:none;" onclick="window.addAIStudent()">🤖 加入AI考生</button>
                 <button class="toggle-btn" style="background:var(--success); color:#064e3b; padding:6px 10px; border:none;" onclick="exportCSV()">匯出成績</button>
             </div>
@@ -246,7 +245,6 @@
     let testCountdownTimer = null, kahootTimer = null, aiTimer = null;
     let kahootIndex = 0, globalTimeLeft = 0, isTimerPaused = false;
     
-    // 將變數拉到外層供 AI 作答引擎讀取
     window.activeAIStudents = [];
     
     const shapes = ["♣", "♦", "♥", "♠"];
@@ -254,7 +252,6 @@
     const names = ["巴克禮", "馬偕", "甘為霖", "鄧雨賢", "蔡培火", "賴和", "蔣渭水", "林獻堂", "陳澄波", "李臨秋", "連橫", "伊能嘉矩", "王育德", "黃石輝", "郭秋生", "鄭兒玉", "林茂生", "楊逵", "吳濁流", "鍾理和"];
     const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
 
-    // 加入 AI 考生功能
     window.addAIStudent = () => {
         const nickname = adjs[Math.floor(Math.random()*adjs.length)] + names[Math.floor(Math.random()*names.length)];
         const aiId = 'ai_' + Date.now();
@@ -304,10 +301,9 @@
       
       await loadGoogleSheets();
 
-      // 監聽名單並排序，大屏只顯示 Emoji + 暱稱
       onValue(ref(db, 'room/students'), snap => {
         const sList = document.getElementById('studentList'); sList.innerHTML = ''; let count = 0;
-        window.activeAIStudents = []; // 清空重建
+        window.activeAIStudents = []; 
         if(snap.exists()) { 
             const studentsObj = snap.val();
             const sortedStudents = Object.entries(studentsObj).sort((a,b) => b[1].score - a[1].score);
@@ -316,7 +312,6 @@
                 count++; 
                 if(sData.isAI) window.activeAIStudents.push(key);
                 const scoreText = `<span class="score-display">${sData.score} 分</span>`;
-                // 大屏完全隱藏真實姓名
                 sList.innerHTML += `
                     <div class="student-item" onclick="kickStudent('${key}')" title="點擊剔除">
                         <div>${sData.avatar || '👤'} ${sData.nickname} ${sData.isAI ? '<span class="ai-badge">AI</span>' : ''}</div>
@@ -336,7 +331,6 @@
          }
       });
       
-      // 監聽 Kahoot 答題狀況 (即時在大屏選項色塊上飛出頭像)
       onValue(ref(db, 'room/kahootAnswers'), async snap => {
          if(roomMode === 'kahoot' && currentSettings.status === 'kahoot_active') {
              const answers = snap.val() || {};
@@ -359,7 +353,6 @@
                  }
              }
              
-             // 如果所有人都答完了，提早結束倒數
              if(currentAnswerCount > 0 && currentAnswerCount >= totalStudents) {
                  clearInterval(kahootTimer);
                  endKahootQuestion();
@@ -545,10 +538,21 @@
        } else {
            document.getElementById('kahootNextBtn').classList.add('hidden'); 
            
+           // 修復任務 1：當允許學生檢討時，將完整的考卷陣列重新寫入 room/testPaper，讓平板可以抓取並翻閱
            if(confirm(`所有題目已完成！\n是否要讓「學生平板」同步顯示解答並允許他們自由翻閱考題？`)) {
-               currentSettings.status = 'reviewing'; currentSettings.showAnswer = true;
+               currentSettings.status = 'reviewing'; 
+               currentSettings.showAnswer = true;
+               
+               const paper = selectedQuestions.map((q, idx) => ({ 
+                   questionId: q.questionId, question: q.q, 
+                   options: [...q.opts].sort(() => Math.random() - 0.5), 
+                   correctAnswer: q.ans, audio: q.audio 
+               }));
+               set(ref(db, 'room/testPaper'), paper);
+
            } else {
-               currentSettings.status = 'ended'; currentSettings.showAnswer = false;
+               currentSettings.status = 'ended'; 
+               currentSettings.showAnswer = false;
            }
            update(ref(db, 'room/settings'), currentSettings);
 
