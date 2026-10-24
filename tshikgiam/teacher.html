@@ -245,7 +245,7 @@
     let testCountdownTimer = null, kahootTimer = null, aiTimer = null;
     let kahootIndex = 0, globalTimeLeft = 0, isTimerPaused = false;
     
-    window.activeAIStudents = [];
+    let aiStudentsCache = [];
     
     const shapes = ["♣", "♦", "♥", "♠"];
     const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
@@ -303,14 +303,14 @@
 
       onValue(ref(db, 'room/students'), snap => {
         const sList = document.getElementById('studentList'); sList.innerHTML = ''; let count = 0;
-        window.activeAIStudents = []; 
+        aiStudentsCache = []; 
         if(snap.exists()) { 
             const studentsObj = snap.val();
             const sortedStudents = Object.entries(studentsObj).sort((a,b) => b[1].score - a[1].score);
             
             sortedStudents.forEach(([key, sData]) => {
                 count++; 
-                if(sData.isAI) window.activeAIStudents.push(key);
+                if(sData.isAI) aiStudentsCache.push(key);
                 const scoreText = `<span class="score-display">${sData.score} 分</span>`;
                 sList.innerHTML += `
                     <div class="student-item" onclick="kickStudent('${key}')" title="點擊剔除">
@@ -405,8 +405,8 @@
     };
 
     function triggerAIAnswers(qData) {
-        if(window.activeAIStudents.length === 0) return;
-        window.activeAIStudents.forEach(aiId => {
+        if(aiStudentsCache.length === 0) return;
+        aiStudentsCache.forEach(aiId => {
             const randomDelay = Math.floor(Math.random() * 5000) + 500; 
             setTimeout(() => {
                 if(currentSettings.status !== 'kahoot_active' && currentSettings.status !== 'testing') return;
@@ -420,7 +420,7 @@
         });
 
         if(roomMode === 'test') {
-           window.activeAIStudents.forEach(aiId => {
+           aiStudentsCache.forEach(aiId => {
                let qIdx = 0;
                let aiTestInterval = setInterval(() => {
                    if(currentSettings.status !== 'testing') { clearInterval(aiTestInterval); return; }
@@ -440,14 +440,6 @@
         if(selectedQuestions.length > 0){ 
             kahootIndex = 0; 
             
-            // 修復：在一開始派題時，就把整份考卷寫入 testPaper，確保學生端能收到選項資料
-            const paper = selectedQuestions.map((q, idx) => ({ 
-                questionId: q.questionId, question: q.q, 
-                options: [...q.opts].sort(() => Math.random() - 0.5), 
-                correctAnswer: q.ans, audio: q.audio 
-            }));
-            set(ref(db, 'room/testPaper'), paper);
-
             document.getElementById('statisticsContainer').classList.add('hidden');
             toggleLeftPanel(); 
             playKahootQuestion(); 
@@ -544,10 +536,19 @@
        } else {
            document.getElementById('kahootNextBtn').classList.add('hidden'); 
            
-           // 統一詢問邏輯並確實將 reviewing 狀態寫入 Firebase
+           // 統一詢問邏輯，並確實寫入 testPaper
            if(confirm(`所有題目已完成！\n是否要讓「學生平板」同步顯示解答並允許他們自由翻閱考題？`)) {
                currentSettings.status = 'reviewing'; 
                currentSettings.showAnswer = true;
+               
+               // 把整份考卷重新寫入，讓平板端可以抓取並渲染選項
+               const paper = selectedQuestions.map((q, idx) => ({ 
+                   questionId: q.questionId, question: q.q, 
+                   options: [...q.opts].sort(() => Math.random() - 0.5), 
+                   correctAnswer: q.ans, audio: q.audio 
+               }));
+               set(ref(db, 'room/testPaper'), paper);
+
            } else {
                currentSettings.status = 'ended'; 
                currentSettings.showAnswer = false;
@@ -652,7 +653,7 @@
        
        setTimeout(async () => {
            await renderTestStatistics(); 
-           // 統一詢問邏輯並確實將 reviewing 狀態寫入 Firebase
+           // 統一詢問邏輯
            if(confirm(`測驗結束！\n\n大屏已顯示全班作答統計供您講解。\n是否要讓「學生平板」也同步顯示正確答案與個人成績？`)) {
                currentSettings.status = 'reviewing'; currentSettings.showAnswer = true;
            } else {
