@@ -32,13 +32,18 @@
     input:disabled { background-color: #f8fafc; cursor: not-allowed; color: var(--text-light); font-weight: bold; border-color: #f1f5f9;}
 
     #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
-    .student-info-bar { position: absolute; top: 20px; right: 25px; color: var(--text-light); font-size: 14px; text-align: right; }
-    #studentQuestion { font-size: 26px; font-weight: bold; margin-bottom: 25px; color: var(--primary); line-height: 1.5; }
+    
+    /* 學生平板右上角資訊列：精準三行排版 */
+    .student-info-bar { position: absolute; top: 15px; right: 20px; text-align: right; line-height: 1.4; display: flex; flex-direction: column; align-items: flex-end;}
+    .info-line-1 { font-size: 13px; color: var(--text-light); font-weight: bold; }
+    .info-line-2 { font-size: 16px; font-weight: bold; color: var(--primary); margin: 2px 0;}
+    .info-line-3 { font-size: 13px; color: var(--text-dark); font-weight: bold;}
+
+    #studentQuestion { font-size: 26px; font-weight: bold; margin-bottom: 25px; color: var(--primary); line-height: 1.5; margin-top: 40px;}
     #myAnswerDisplay { margin-bottom: 25px; font-size: 18px; font-weight: bold; color: var(--primary); min-height: 30px; padding: 10px; border-radius: 8px; background: #f8fafc;}
     
     .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-bottom: 25px;}
     .option-btn { padding: 25px 15px; font-size: 22px; color: white; display: flex; align-items: center; justify-content: center; text-align: center; }
-    
     .option-btn span.shape { font-size: 32px; margin-right: 15px; width: 35px; text-align: center; color: white;}
     .option-btn span.text { text-shadow: 1px 1px 2px rgba(0,0,0,0.3);}
     
@@ -49,7 +54,6 @@
     
     .option-btn.selected { opacity: 1 !important; transform: scale(1.02); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-bottom-width: 2px; margin-top: 3px;}
     .option-btn.dimmed { opacity: 0.4 !important; filter: grayscale(50%); cursor: not-allowed; }
-    
     .option-btn.reveal-correct { opacity: 1 !important; outline: 6px solid #4ade80; outline-offset: 2px;}
     .option-btn.reveal-wrong { opacity: 0.3 !important; filter: grayscale(100%); }
 
@@ -60,7 +64,7 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.10 (Student)</div>
+  <div class="version-tag">Ver 2.11 (Student)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 5px;">台語互動派題系統</h1>
@@ -93,10 +97,11 @@
   </div>
 
   <div id="studentView" class="hidden">
+    <!-- 右上角精準三行排版 -->
     <div class="student-info-bar">
-      <div style="color:var(--primary);">編號：<span id="sPinDisplay" style="font-weight:bold;"></span></div>
-      <div id="sNickname" style="font-weight:bold; font-size:16px; margin-top:4px; color:var(--text-dark);"></div>
-      <div id="sRealName" style="font-size:12px;"></div>
+      <div class="info-line-1" id="sPinDisplay">編號：----</div>
+      <div class="info-line-2" id="sNickname"></div>
+      <div class="info-line-3" id="sRealName"></div>
     </div>
     
     <div id="studentMainContent">
@@ -143,7 +148,7 @@
 
     const shapes = ["♣", "♦", "♥", "♠"];
     
-    // 恢復並擴充台語推廣與台灣民族意識先驅名單
+    // 嚴格鎖定暱稱詞庫
     const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
     const names = ["巴克禮", "馬偕", "甘為霖", "鄧雨賢", "蔡培火", "賴和", "蔣渭水", "林獻堂", "陳澄波", "李臨秋", "連橫", "伊能嘉矩", "王育德", "黃石輝", "郭秋生", "鄭兒玉", "林茂生", "楊逵", "吳濁流", "鍾理和"];
     const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
@@ -164,7 +169,7 @@
       if(!settingsSnap.exists() || settingsSnap.val().pin !== pin) return alert("試場編號錯誤或考試未建立！");
 
       const avatar = avatars[Math.floor(Math.random() * avatars.length)];
-      // 隨機組合暱稱
+      // 正確組合台語暱稱，不加後綴
       const nickname = adjs[Math.floor(Math.random() * adjs.length)] + names[Math.floor(Math.random() * names.length)]; 
       
       myStudentId = 'student_' + Date.now();
@@ -176,10 +181,16 @@
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('studentView').classList.remove('hidden');
       
-      // 平板上方顯示：頭像 + 暱稱，下方顯示本名
+      // 平板狀態列寫入
+      document.getElementById('sPinDisplay').innerText = `編號：${pin}`;
       document.getElementById('sNickname').innerText = `${avatar} ${nickname}`;
-      document.getElementById('sRealName').innerText = `(${realName} - 座號: ${seat})`;
-      document.getElementById('sPinDisplay').innerText = pin;
+      
+      // 組合班級、座號、姓名
+      let realNameDisplay = "";
+      if(stuClass) realNameDisplay += `[${stuClass}] `;
+      if(seat) realNameDisplay += `[${seat}] `;
+      realNameDisplay += `[${realName}]`;
+      document.getElementById('sRealName').innerText = realNameDisplay;
 
       onValue(myRef, snap => { if (!snap.exists()) { alert("已被移出！"); window.location.reload(); }});
       listenToRoom();
@@ -210,7 +221,6 @@
              document.getElementById('testNav').classList.add('hidden');
           }
           
-          // 檢討模式：強制解鎖畫面，供學生翻閱
           if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
               document.getElementById('studentMainContent').classList.remove('hidden');
               document.getElementById('optionsContainer').classList.remove('hidden');
@@ -254,7 +264,6 @@
         
         btn.onclick = () => {
             if(!currentSettings.acceptAnswers) return;
-            // 視覺回饋：自己被點亮，其他人變暗
             document.querySelectorAll('.option-btn').forEach(b => b.classList.add('dimmed'));
             btn.classList.remove('dimmed');
             btn.classList.add('selected');
@@ -317,7 +326,6 @@
 
       renderStudentQuestion(qData);
       
-      // 回填已選答案
       if(myTestAnswers[myTestIndex] && currentSettings.status !== 'reviewing') {
         document.getElementById('myAnswerDisplay').innerHTML = `已選擇：<span style="color:var(--primary);">${myTestAnswers[myTestIndex]}</span>`;
         document.querySelectorAll('.option-btn').forEach(b => {
@@ -327,7 +335,6 @@
         });
       }
 
-      // 檢討模式顏色
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
           const cAns = qData.correctAnswer;
           let isCorrect = false;
@@ -349,7 +356,6 @@
     }
 
     function updateStudentUI() {
-      // 依據 acceptAnswers 鎖定未送出者的畫面
       if (!currentSettings.acceptAnswers && currentSettings.status === 'kahoot_active') {
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
       }
