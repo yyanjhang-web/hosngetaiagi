@@ -153,6 +153,34 @@
     let myStudentId = null, roomMode = 'kahoot'; 
     let currentSettings = { pin: '', showQuestion: true, status: 'waiting', audioSource: 'teacher', acceptAnswers: false };
     let myTestAnswers = {}, hasSubmittedTest = false, myTestIndex = 0;
+    let testReviewStarted = false;   // 【線上測驗】是否已進入檢討畫面
+
+    // === 【線上測驗專用】依教師端狀態處理：時間到自動交卷、進入檢討 ===
+    // 選過的答案在點選當下就已存入資料庫，所以這裡只需要把畫面鎖住，不需要再補送答案。
+    function handleTestModeSettings() {
+      const s = currentSettings;
+      if(s.status === 'waiting') { testReviewStarted = false; return; }
+
+      // 收卷（時間到／老師提前收卷）但學生沒按交卷 → 視為已交卷
+      if(s.status === 'testing' && s.acceptAnswers === false && !hasSubmittedTest) {
+        hasSubmittedTest = true;
+        document.getElementById('studentQuestion').innerText = "作答時間結束，系統已自動為你交卷，請看大屏聽老師講解。";
+        document.getElementById('optionsContainer').classList.add('hidden');
+        document.getElementById('myAnswerDisplay').innerText = "";
+        document.getElementById('testNav').classList.add('hidden');
+      }
+
+      // 老師開放檢討：從第 1 題開始顯示解答（只執行一次）
+      if(s.status === 'reviewing' && s.showAnswer && !testReviewStarted && selectedQuestions.length > 0) {
+        testReviewStarted = true;
+        hasSubmittedTest = true;
+        myTestIndex = 0;
+        document.getElementById('studentMainContent').classList.remove('hidden');
+        document.getElementById('optionsContainer').classList.remove('hidden');
+        document.getElementById('testNav').classList.remove('hidden');
+        renderTestQuestion();
+      }
+    }
 
     const shapes = ["♣", "♦", "♥", "♠"];
     
@@ -226,6 +254,7 @@
              document.getElementById('testNav').classList.add('hidden');
           }
 
+          if(roomMode === 'test') handleTestModeSettings();
           updateStudentUI();
         }
       });
