@@ -10,6 +10,7 @@
     :root { 
         --primary: #5c7c99; --teacher: #ffffff; --danger: #fca5a5; --success: #86efac; --accent: #93c5fd; 
         --bg-color: #f1f5f9; --text-dark: #334155; --text-light: #94a3b8;
+        /* Kahoot 經典四色 */
         --c-red: #e21b3c; --c-blue: #1368ce; --c-yellow: #d89e00; --c-green: #26890c;
     }
     
@@ -59,7 +60,7 @@
     .timer-display { font-size: 100px; font-weight: bold; color: var(--primary); font-family: monospace; margin: 10px 0; line-height:1;}
     .timer-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
     
-    /* 大屏選項網格與飛入動畫 */
+    /* Kahoot 大屏作答區塊 */
     .k-question-text { font-size: 32px; font-weight: bold; color: var(--text-dark); margin-bottom: 20px; }
     .k-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: 20px;}
     .k-option-box { padding: 15px; font-size: 24px; color: white; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; border-radius: 12px; position: relative; min-height:150px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);}
@@ -92,7 +93,8 @@
     .runner-up-container { display: flex; justify-content: space-around; margin-top: 20px; border-top: 2px dashed #cbd5e1; padding-top: 20px;}
     .runner-up { font-size: 18px; font-weight: bold; color: var(--text-dark); background: white; padding: 10px 20px; border-radius: 8px; border: 1px solid #e2e8f0;}
 
-    #statisticsContainer { margin-top: 30px; border-top: 2px dashed #cbd5e1; padding-top: 20px; text-align: left; }
+    /* 測驗統計長條圖 */
+    #statisticsContainer { margin-top: 40px; border-top: 3px solid #cbd5e1; padding-top: 30px; text-align: left;}
     .stat-container { margin-bottom: 25px; padding: 20px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
     .stat-q-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; color: var(--primary);}
     .stat-bar-wrapper { display: flex; align-items: center; margin-bottom: 12px; font-size: 16px;}
@@ -116,7 +118,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="version-tag">Ver 2.9 (Teacher)</div>
+  <div class="version-tag">Ver 2.10 (Teacher)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 10px;">請選擇本次測驗模式</h1>
@@ -187,6 +189,7 @@
           </div>
         </div>
 
+        <!-- 動畫與展示區 -->
         <div id="animationPanel" class="hidden">
           <h2 id="animTitle" style="font-size:28px; color:var(--primary); text-align:center; margin-bottom:5px; margin-top:0;">測驗狀態</h2>
           
@@ -212,7 +215,7 @@
                 <h3 style="margin:0; font-size:18px; color:var(--primary);">暱稱 (<span id="studentCount">0</span>)</h3>
             </div>
             <div style="display:flex; gap:8px;">
-                <button class="toggle-btn" style="background:#fde68a; color:#92400e; padding:6px 10px; border:none;" onclick="addAIStudent()">🤖 加入AI考生</button>
+                <button class="toggle-btn" style="background:#fde68a; color:#92400e; padding:6px 10px; border:none;" onclick="window.addAIStudent()">🤖 加入AI考生</button>
                 <button class="toggle-btn" style="background:var(--success); color:#064e3b; padding:6px 10px; border:none;" onclick="exportCSV()">匯出成績</button>
             </div>
         </div>
@@ -249,7 +252,22 @@
     let activeAIStudents = [];
     
     const shapes = ["♣", "♦", "♥", "♠"];
+    const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
+    const names = ["巴克禮", "馬偕", "甘為霖", "鄧雨賢", "蔡培火", "賴和", "蔣渭水", "林獻堂", "陳澄波", "李臨秋", "連橫", "伊能嘉矩", "王育德", "黃石輝", "郭秋生", "鄭兒玉", "林茂生", "楊逵", "吳濁流", "鍾理和"];
     const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
+
+    // 將 addAIStudent 綁定在 window 上，確保 onclick 能呼叫到
+    window.addAIStudent = () => {
+        const nickname = adjs[Math.floor(Math.random()*adjs.length)] + names[Math.floor(Math.random()*names.length)];
+        const aiId = 'ai_' + Date.now();
+        set(ref(db, `room/students/${aiId}`), { 
+            realName: 'AI Robot', 
+            nickname: nickname, 
+            avatar: avatars[Math.floor(Math.random()*avatars.length)], 
+            score: 0, 
+            isAI: true 
+        });
+    };
 
     function unlockAudio() { const bgm = document.getElementById('bgmAudio'); if(bgm) { bgm.play().then(() => bgm.pause()).catch(e=>{}); } }
     window.showSubModes = (type) => { if(type === 'feedback') document.getElementById('feedbackSubModes').classList.remove('hidden'); };
@@ -288,7 +306,7 @@
       
       await loadGoogleSheets();
 
-      // 監聽學生名單並動態排序、顯示積分
+      // 監聽學生名單並動態排序、顯示積分 (只顯示暱稱)
       onValue(ref(db, 'room/students'), snap => {
         const sList = document.getElementById('studentList'); sList.innerHTML = ''; let count = 0;
         activeAIStudents = [];
@@ -299,7 +317,7 @@
             sortedStudents.forEach(([key, sData]) => {
                 count++; 
                 if(sData.isAI) activeAIStudents.push(key);
-                const scoreText = roomMode === 'kahoot' ? `<span class="score-display">${sData.score} 分</span>` : '';
+                const scoreText = `<span class="score-display">${sData.score} 分</span>`;
                 sList.innerHTML += `
                     <div class="student-item" onclick="kickStudent('${key}')" title="點擊剔除">
                         <div>${sData.avatar || '👤'} ${sData.nickname} ${sData.isAI ? '<span class="ai-badge">AI</span>' : ''}</div>
@@ -343,7 +361,7 @@
              }
              
              // 如果所有人都答完了，提早結束倒數
-             if(currentAnswerCount > 0 && currentAnswerCount === totalStudents) {
+             if(currentAnswerCount > 0 && currentAnswerCount >= totalStudents) {
                  clearInterval(kahootTimer);
                  endKahootQuestion();
              }
@@ -392,14 +410,6 @@
         const qw = document.getElementById('questionListWrapper'); const ap = document.getElementById('animationPanel'); const btn = document.getElementById('viewToggleBtn');
         if(qw.classList.contains('hidden')) { qw.classList.remove('hidden'); ap.classList.add('hidden'); btn.innerText = "👁️ 切換為考場畫面"; } 
         else { qw.classList.add('hidden'); ap.classList.remove('hidden'); btn.innerText = "👁️ 切換為考題設定"; }
-    };
-
-    // AI 考生
-    window.addAIStudent = () => {
-        const adjs = ["測試的", "模擬的", "虛擬的", "機器的", "自動的", "無情的", "聰明的"];
-        const nickname = adjs[Math.floor(Math.random()*adjs.length)] + animals[Math.floor(Math.random()*animals.length)];
-        const aiId = 'ai_' + Date.now();
-        set(ref(db, `room/students/${aiId}`), { realName: 'AI Robot', nickname: nickname, avatar: avatars[Math.floor(Math.random()*avatars.length)], score: 0, isAI: true });
     };
 
     function triggerAIAnswers(qData) {
@@ -494,6 +504,7 @@
        
        const aSnap = await get(ref(db, 'room/kahootAnswers')), sSnap = await get(ref(db, 'room/students'));
        const answers = aSnap.val() || {}, students = sSnap.val() || {};
+       let cc = 0;
        
        let optCounts = {};
        currentSettings.shuffledOpts.forEach(o => optCounts[o] = 0);
@@ -502,7 +513,9 @@
            const ans = answers[sid].answer;
            if(optCounts[ans] !== undefined) optCounts[ans]++;
            if(ans === currentSettings.currentCorrect) {
-               students[sid].score = (students[sid].score || 0) + Math.max(10, 1000 - Math.floor(answers[sid].time / 50)); 
+               cc++;
+               // 計算積分 (剩餘時間越多，加分越多，滿分1000)
+               students[sid].score = (students[sid].score || 0) + Math.max(10, 1000 - Math.floor(answers[sid].time / 20)); 
            }
        }
        set(ref(db, 'room/students'), students); 
