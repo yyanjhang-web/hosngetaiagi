@@ -98,6 +98,7 @@
   </div>
 
   <div id="studentView" class="hidden">
+    <!-- 右上角精準三行排版 -->
     <div class="student-info-bar">
       <div class="info-line-1" id="sPinDisplay">編號：----</div>
       <div class="info-line-2" id="sNickname"></div>
@@ -148,6 +149,7 @@
 
     const shapes = ["♣", "♦", "♥", "♠"];
     
+    // 嚴格鎖定暱稱詞庫
     const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
     const names = ["巴克禮", "馬偕", "甘為霖", "鄧雨賢", "蔡培火", "賴和", "蔣渭水", "林獻堂", "陳澄波", "李臨秋", "連橫", "伊能嘉矩", "王育德", "黃石輝", "郭秋生", "鄭兒玉", "林茂生", "楊逵", "吳濁流", "鍾理和"];
     const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
@@ -168,6 +170,7 @@
       if(!settingsSnap.exists() || settingsSnap.val().pin !== pin) return alert("試場編號錯誤或考試未建立！");
 
       const avatar = avatars[Math.floor(Math.random() * avatars.length)];
+      // 正確組合台語暱稱，不加後綴
       const nickname = adjs[Math.floor(Math.random() * adjs.length)] + names[Math.floor(Math.random() * names.length)]; 
       
       myStudentId = 'student_' + Date.now();
@@ -179,10 +182,11 @@
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('studentView').classList.remove('hidden');
       
+      // 平板狀態列寫入
       document.getElementById('sPinDisplay').innerText = `編號：${pin}`;
       document.getElementById('sNickname').innerText = `${avatar} ${nickname}`;
       
-      // 修復 2：移除方括號，以純空白分隔
+      // 修復：純粹以空白分隔班級、座號、姓名
       let realNameDisplay = "";
       if(stuClass) realNameDisplay += `${stuClass} `;
       if(seat) realNameDisplay += `${seat} `;
@@ -218,7 +222,7 @@
              document.getElementById('testNav').classList.add('hidden');
           }
           
-          // 修復 1：檢討模式下，強制解鎖學生翻閱功能
+          // 檢討模式下，強制解鎖畫面，供學生翻閱
           if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
               document.getElementById('studentMainContent').classList.remove('hidden');
               document.getElementById('optionsContainer').classList.remove('hidden');
@@ -262,6 +266,7 @@
         
         btn.onclick = () => {
             if(!currentSettings.acceptAnswers) return;
+            // 視覺回饋：自己被點亮，其他人變暗
             document.querySelectorAll('.option-btn').forEach(b => b.classList.add('dimmed'));
             btn.classList.remove('dimmed');
             btn.classList.add('selected');
@@ -288,7 +293,7 @@
     }
 
     window.navTest = (dir) => {
-      // 修復 1：如果是檢討狀態，允許自由翻頁
+      // 修復 1：如果是檢討狀態，允許自由翻頁，無條件跳過 hasSubmittedTest 的限制
       if(currentSettings.status !== 'reviewing') {
           if(hasSubmittedTest && !currentSettings.showAnswer) return; 
       }
@@ -327,6 +332,7 @@
 
       renderStudentQuestion(qData);
       
+      // 回填已選答案
       if(myTestAnswers[myTestIndex] && currentSettings.status !== 'reviewing') {
         document.getElementById('myAnswerDisplay').innerHTML = `已選擇：<span style="color:var(--primary);">${myTestAnswers[myTestIndex]}</span>`;
         document.querySelectorAll('.option-btn').forEach(b => {
@@ -336,6 +342,7 @@
         });
       }
 
+      // 檢討模式顏色
       if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
           const cAns = qData.correctAnswer;
           let isCorrect = false;
@@ -357,6 +364,7 @@
     }
 
     function updateStudentUI() {
+      // 依據 acceptAnswers 鎖定未送出者的畫面
       if (!currentSettings.acceptAnswers && currentSettings.status === 'kahoot_active') {
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
       }
