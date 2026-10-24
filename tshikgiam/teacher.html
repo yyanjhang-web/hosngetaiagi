@@ -112,6 +112,11 @@
     .student-item:hover { text-decoration: line-through; color: #7f1d1d; cursor: pointer; background: #fef2f2; }
     .score-display { font-weight: bold; color: var(--primary); background: #e2e8f0; padding: 2px 8px; border-radius: 10px; font-size: 14px;}
     .ai-badge { background: #93c5fd; color: #0f172a; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; vertical-align: middle;}
+    /* 線上測驗：考生狀態標籤 */
+    .status-badge { font-weight: bold; padding: 2px 10px; border-radius: 10px; font-size: 14px; white-space: nowrap;}
+    .status-wait { background: #e2e8f0; color: var(--text-light); }
+    .status-doing { background: #fef3c7; color: #92400e; }
+    .status-done { background: #dcfce7; color: #166534; }
 
     .sub-mode-container { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;}
     .sub-mode-btn { padding: 10px 20px; font-size: 16px; background: #e2e8f0; color: var(--text-dark); border: 2px solid transparent;}
@@ -254,6 +259,41 @@
     let kahootIndex = 0, globalTimeLeft = 0, isTimerPaused = false;
     
     window.activeAIStudents = [];
+    let studentsCache = {}, answersCache = {};
+    let autoSubmittedNames = [];       // 【線上測驗】被系統代為交卷的考生暱稱
+    let testStopping = false;          // 【線上測驗】避免重複收卷／重複彈窗
+    let aiTestTimers = [];             // 【線上測驗】AI 考生專用計時器
+    const AI_NO_SUBMIT_RATE = 0.25;    // 【線上測驗】AI 考生「不會交卷」的比例，用來模擬學生沒按交卷（設 0 則全部會交卷）
+
+    // 右側考生名單：經典模式顯示分數、線上測驗顯示作答狀態
+    function renderStudentList() {
+        const sList = document.getElementById('studentList');
+        let entries = Object.entries(studentsCache);
+        window.activeAIStudents = entries.filter(([k, s]) => s.isAI).map(([k]) => k);
+        document.getElementById('studentCount').innerText = entries.length;
+
+        if (roomMode === 'test') {
+            const joinTime = k => parseInt(k.split('_')[1]) || 0;
+            entries.sort((a, b) => joinTime(a[0]) - joinTime(b[0]));
+        } else {
+            entries.sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+        }
+
+        sList.innerHTML = entries.map(([key, s]) => {
+            let right;
+            if (roomMode === 'test') {
+                if (currentSettings.status === 'waiting') right = `<span class="status-badge status-wait">等待開始</span>`;
+                else if (answersCache[key] && answersCache[key].isSubmitted) right = `<span class="status-badge status-done">已交卷</span>`;
+                else right = `<span class="status-badge status-doing">作答中</span>`;
+            } else {
+                right = `<span class="score-display">${s.score} 分</span>`;
+            }
+            return `<div class="student-item" onclick="kickStudent('${key}')" title="點擊剔除">
+                        <div>${s.avatar || '👤'} ${s.nickname} ${s.isAI ? '<span class="ai-badge">AI</span>' : ''}</div>
+                        ${right}
+                    </div>`;
+        }).join('');
+    }
     
     const shapes = ["♣", "♦", "♥", "♠"];
     const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
@@ -310,32 +350,18 @@
       await loadGoogleSheets();
 
       onValue(ref(db, 'room/students'), snap => {
-        const sList = document.getElementById('studentList'); sList.innerHTML = ''; let count = 0;
-        window.activeAIStudents = []; 
-        if(snap.exists()) { 
-            const studentsObj = snap.val();
-            const sortedStudents = Object.entries(studentsObj).sort((a,b) => b[1].score - a[1].score);
-            
-            sortedStudents.forEach(([key, sData]) => {
-                count++; 
-                if(sData.isAI) window.activeAIStudents.push(key);
-                const scoreText = `<span class="score-display">${sData.score} 分</span>`;
-                sList.innerHTML += `
-                    <div class="student-item" onclick="kickStudent('${key}')" title="點擊剔除">
-                        <div>${sData.avatar || '👤'} ${sData.nickname} ${sData.isAI ? '<span class="ai-badge">AI</span>' : ''}</div>
-                        ${scoreText}
-                    </div>`; 
-            });
-        }
-        document.getElementById('studentCount').innerText = count;
+        studentsCache = snap.val() || {};
+        renderStudentList();
       });
 
+      // 【線上測驗專用】監聽作答資料：更新名單狀態、判斷是否全數交卷
       onValue(ref(db, 'room/testAnswers'), snap => {
-         if(roomMode === 'test' && currentSettings.status === 'testing') {
-             const ans = snap.val() || {};
-             const stuCount = parseInt(document.getElementById('studentCount').innerText);
-             const submitCount = Object.values(ans).filter(a => a.isSubmitted).length;
-             // 修正 1: 全數交卷時直接呼叫 stop，由 stop 統一彈窗
+         if(roomMode !== 'test') return;
+         answersCache = snap.val() || {};
+         renderStudentList();
+         if(currentSettings.status === 'testing' && currentSettings.acceptAnswers) {
+             const stuCount = Object.keys(studentsCache).length;
+             const submitCount = Object.keys(studentsCache).filter(id => answersCache[id] && answersCache[id].isSubmitted).length;
              if(stuCount > 0 && submitCount >= stuCount) triggerTestStop('auto');
          }
       });
@@ -427,20 +453,30 @@
                 }
             }, randomDelay);
         });
+    }
 
-        if(roomMode === 'test') {
-           window.activeAIStudents.forEach(aiId => {
-               let qIdx = 0;
-               let aiTestInterval = setInterval(() => {
-                   if(currentSettings.status !== 'testing') { clearInterval(aiTestInterval); return; }
-                   if(qIdx >= selectedQuestions.length) { set(ref(db, `room/testAnswers/${aiId}/isSubmitted`), true); clearInterval(aiTestInterval); return; }
-                   const q = selectedQuestions[qIdx];
-                   const randomOpt = q.options[Math.floor(Math.random() * q.options.length)];
-                   set(ref(db, `room/testAnswers/${aiId}/${qIdx}`), {answer: randomOpt});
-                   qIdx++;
-               }, 2000); 
-           });
-        }
+    // === 【線上測驗專用】AI 考生：逐題作答，作答完畢後交卷 ===
+    // 部分 AI（比例見 AI_NO_SUBMIT_RATE）會在中途停下且不交卷，用來模擬「時間到學生沒按交卷」。
+    function stopAITestTimers() { aiTestTimers.forEach(t => clearTimeout(t)); aiTestTimers = []; }
+    function runAITestStudents(paper) {
+        stopAITestTimers();
+        window.activeAIStudents.forEach(aiId => {
+            let qIdx = 0;
+            const willFinish = Math.random() >= AI_NO_SUBMIT_RATE;
+            const stopAt = willFinish ? paper.length : Math.max(1, Math.floor(Math.random() * paper.length));
+            const step = () => {
+                if(currentSettings.status !== 'testing' || !currentSettings.acceptAnswers) return;
+                if(qIdx >= stopAt) {
+                    if(willFinish) set(ref(db, `room/testAnswers/${aiId}/isSubmitted`), true);
+                    return;
+                }
+                const opts = paper[qIdx].options;
+                set(ref(db, `room/testAnswers/${aiId}/${qIdx}`), { answer: opts[Math.floor(Math.random() * opts.length)] });
+                qIdx++;
+                aiTestTimers.push(setTimeout(step, 1500 + Math.random() * 3500));
+            };
+            aiTestTimers.push(setTimeout(step, 1000 + Math.random() * 3000));
+        });
     }
 
     // === Kahoot 經典模式 ===
@@ -609,11 +645,16 @@
       selectedQuestions = getSelectedQs(); if(selectedQuestions.length === 0) return;
       const mins = parseInt(document.getElementById('testMinutes').value) || 5;
       
+      testStopping = false; autoSubmittedNames = [];
+      answersCache = {};
+      remove(ref(db, 'room/testAnswers'));   // 清掉舊作答資料，避免殘留的「已交卷」造成誤判
+      
       currentSettings.status = 'testing'; currentSettings.acceptAnswers = true;
       update(ref(db, 'room/settings'), currentSettings);
       
       const paper = selectedQuestions.map((q, idx) => ({ questionId: q.questionId, question: q.q, options: [...q.opts].sort(() => Math.random() - 0.5), correctAnswer: q.ans, audio: q.audio }));
       set(ref(db, 'room/testPaper'), paper);
+      renderStudentList();
       
       if(document.getElementById('animationPanel').classList.contains('hidden')) toggleLeftPanel();
       document.getElementById('timerControlsDiv').classList.remove('hidden');
@@ -624,7 +665,7 @@
       document.getElementById('pauseTimerBtn').innerText = "暫停倒數";
       document.getElementById('statisticsContainer').classList.add('hidden'); 
       
-      triggerAIAnswers(null);
+      runAITestStudents(paper);
       runTestTimer();
     };
 
@@ -654,13 +695,29 @@
 
     // 修正 1：統一的測驗停止與彈窗邏輯
     window.triggerTestStop = async (reason) => {
+       if(testStopping) return;   // 避免重複收卷、重複彈窗
+       testStopping = true;
        clearInterval(testCountdownTimer);
+       stopAITestTimers();
        document.getElementById('timerControlsDiv').classList.add('hidden'); 
        let msg = reason === 'auto' ? "已全數交卷" : (reason === 'timeup' ? "時間到" : "已手動收卷");
        document.getElementById('animContent').innerHTML = `<div class="timer-display" style="color:var(--danger);">00:00</div><h3 style="text-align:center;">${msg}</h3>`;
        
        currentSettings.acceptAnswers = false;
-       update(ref(db, 'room/settings'), currentSettings);
+       await update(ref(db, 'room/settings'), currentSettings);
+
+       // 未按交卷的考生：已選的答案本來就已即時存入資料庫，這裡直接幫他們交卷
+       const stuSnap = await get(ref(db, 'room/students')), ansSnap = await get(ref(db, 'room/testAnswers'));
+       const stuNow = stuSnap.val() || {}, ansNow = ansSnap.val() || {};
+       const autoUpdates = {};
+       autoSubmittedNames = [];
+       for(const sid in stuNow) {
+           if(!(ansNow[sid] && ansNow[sid].isSubmitted)) {
+               autoUpdates[`room/testAnswers/${sid}/isSubmitted`] = true;
+               autoSubmittedNames.push(stuNow[sid].nickname);
+           }
+       }
+       if(Object.keys(autoUpdates).length > 0) await update(ref(db), autoUpdates);
        
        // 等待圖表渲染完成後再彈窗
        await renderTestStatistics(); 
@@ -685,10 +742,8 @@
         
         let html = `<h2 style="color:var(--primary); font-size:24px; margin-bottom:15px; border-top: 2px solid #cbd5e1; padding-top:30px;">📈 題目作答統計與分析</h2>`;
         
-        if (roomMode === 'test') {
-            let unsubmitted = [];
-            for(let sid in students) { if(!answers[sid] || !answers[sid].isSubmitted) unsubmitted.push(students[sid].nickname); }
-            if(unsubmitted.length > 0) html += `<div style="color:var(--danger); margin-bottom:20px; font-weight:bold; font-size:16px;">未交卷：${unsubmitted.join(', ')}</div>`;
+        if (roomMode === 'test' && autoSubmittedNames.length > 0) {
+            html += `<div style="color:var(--text-light); margin-bottom:20px; font-weight:bold; font-size:16px;">系統代為交卷（未按交卷，已選答案照常計算）：${autoSubmittedNames.join('、')}</div>`;
         }
 
         selectedQuestions.forEach((q, qIdx) => {
