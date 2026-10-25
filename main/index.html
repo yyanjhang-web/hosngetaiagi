@@ -63,6 +63,74 @@
   }
   @media (max-width: 480px) {
     .button-grid {
+      grid-template-columns這是在 `index (1).html` 中加入「線上賓果」按鈕後的完整程式碼。我將新按鈕加在最下方的「即時回饋按鈕」區塊之後：
+
+```html
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的遊戲與工具啟動器</title>
+<style>
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f3f3f3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+  .container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 900px;
+    width: 90%;
+  }
+  h1 {
+    margin-top: 0;
+    margin-bottom: 30px;
+    color: #333;
+  }
+  .button-grid {
+    display: grid;
+    /* 調整為 3 欄式排版 */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  a.btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-color: #0078d4;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.1s;
+    text-align: center;
+  }
+  a.btn:hover {
+    background-color: #005a9e;
+  }
+  a.btn:active {
+    transform: scale(0.98);
+  }
+  
+  /* 在小螢幕時自動調整為 2 欄或 1 欄 */
+  @media (max-width: 768px) {
+    .button-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 480px) {
+    .button-grid {
       grid-template-columns: 1fr;
     }
   }
@@ -73,30 +141,33 @@
     <h1>我的遊戲與工具</h1>
     <div class="button-grid">
       <!-- 舊按鈕 -->
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/202608parkour/" class="btn" target="_blank">跑酷遊戲</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/2026springtshiunn2tap/" class="btn" target="_blank">Tshiunn 2 Tap</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/2026springbingo/" class="btn" target="_blank">Spring Bingo</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/toolbox/" class="btn" target="_blank">網頁工具箱</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/202608parkour/](https://yyanjhang-web.github.io/hosngetaiagi/202608parkour/)" class="btn" target="_blank">跑酷遊戲</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/2026springtshiunn2tap/](https://yyanjhang-web.github.io/hosngetaiagi/2026springtshiunn2tap/)" class="btn" target="_blank">Tshiunn 2 Tap</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/2026springbingo/](https://yyanjhang-web.github.io/hosngetaiagi/2026springbingo/)" class="btn" target="_blank">Spring Bingo</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/toolbox/](https://yyanjhang-web.github.io/hosngetaiagi/toolbox/)" class="btn" target="_blank">網頁工具箱</a>
       
       <!-- 新增按鈕 -->
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/siannkongpehtshat/" class="btn" target="_blank">啥講白賊</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/2026springpunkekui/" class="btn" target="_blank">歕雞胿</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/2026springdobble/" class="btn" target="_blank">羅馬字全班拄寶</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/lomajitshiunn2/" class="btn" target="_blank">雙人羅馬字搶答</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/taigikua/" class="btn" target="_blank">歌曲_白翎鷥</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/sia7tsinn3/index.html" class="btn" target="_blank">台語狙擊手</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/woxihuanni/index.html" class="btn" target="_blank">歌曲_我喜歡你</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/taigilomajikanggi/%E5%8F%B0%E8%AA%9E%E7%BE%85%E9%A6%AC%E5%AD%97%E8%AC%9B%E7%BE%A9.pdf" class="btn" target="_blank">台羅講義</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/spelling/index.html" class="btn" target="_blank">除魔咒術</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/siannkongpehtshat/](https://yyanjhang-web.github.io/hosngetaiagi/siannkongpehtshat/)" class="btn" target="_blank">啥講白賊</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/2026springpunkekui/](https://yyanjhang-web.github.io/hosngetaiagi/2026springpunkekui/)" class="btn" target="_blank">歕雞胿</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/2026springdobble/](https://yyanjhang-web.github.io/hosngetaiagi/2026springdobble/)" class="btn" target="_blank">羅馬字全班拄寶</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/lomajitshiunn2/](https://yyanjhang-web.github.io/hosngetaiagi/lomajitshiunn2/)" class="btn" target="_blank">雙人羅馬字搶答</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/taigikua/](https://yyanjhang-web.github.io/hosngetaiagi/taigikua/)" class="btn" target="_blank">歌曲_白翎鷥</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/sia7tsinn3/index.html](https://yyanjhang-web.github.io/hosngetaiagi/sia7tsinn3/index.html)" class="btn" target="_blank">台語狙擊手</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/woxihuanni/index.html](https://yyanjhang-web.github.io/hosngetaiagi/woxihuanni/index.html)" class="btn" target="_blank">歌曲_我喜歡你</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/taigilomajikanggi/%E5%8F%B0%E8%AA%9E%E7%BE%85%E9%A6%AC%E5%AD%97%E8%AC%9B%E7%BE%A9.pdf](https://yyanjhang-web.github.io/hosngetaiagi/taigilomajikanggi/%E5%8F%B0%E8%AA%9E%E7%BE%85%E9%A6%AC%E5%AD%97%E8%AC%9B%E7%BE%A9.pdf)" class="btn" target="_blank">台羅講義</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/spelling/index.html](https://yyanjhang-web.github.io/hosngetaiagi/spelling/index.html)" class="btn" target="_blank">除魔咒術</a>
       
       <!-- 最新加入的按鈕 -->
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/textbook/index.html" class="btn" target="_blank">線上課本</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/partygame/index.html" class="btn" target="_blank">台語party game</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/index.html" class="btn" target="_blank">除魔團戰</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/textbook/index.html](https://yyanjhang-web.github.io/hosngetaiagi/textbook/index.html)" class="btn" target="_blank">線上課本</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/partygame/index.html](https://yyanjhang-web.github.io/hosngetaiagi/partygame/index.html)" class="btn" target="_blank">台語party game</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/index.html](https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/index.html)" class="btn" target="_blank">除魔團戰</a>
       
       <!-- 即時回饋按鈕 -->
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/khotshi/index.html" class="btn" target="_blank">學生_即時回饋</a>
-      <a href="https://yyanjhang-web.github.io/hosngetaiagi/khotshi/teacher.html" class="btn" target="_blank">教師_即時回饋</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/khotshi/index.html](https://yyanjhang-web.github.io/hosngetaiagi/khotshi/index.html)" class="btn" target="_blank">學生_即時回饋</a>
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/khotshi/teacher.html](https://yyanjhang-web.github.io/hosngetaiagi/khotshi/teacher.html)" class="btn" target="_blank">教師_即時回饋</a>
+
+      <!-- 2026 最新新增 -->
+      <a href="[https://yyanjhang-web.github.io/hosngetaiagi/online_bingo/](https://yyanjhang-web.github.io/hosngetaiagi/online_bingo/)" class="btn" target="_blank">線上賓果</a>
     </div>
   </div>
 </body>
