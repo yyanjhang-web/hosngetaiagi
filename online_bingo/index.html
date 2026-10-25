@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台語賓果遊戲 - 教室大屏</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+
+        * { box-sizing: border-box; font-family: 'Noto Sans TC', sans-serif; }
+        body { margin: 0; padding: 20px 20px 10px 20px; background: #1e293b; color: #f8fafc; text-align: center; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+        .main-wrapper { width: 100%; max-width: 1100px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        h1 { font-size: 2.4rem; margin: 10px 0; color: #38bdf8; }
+        .btn { padding: 15px 35px; font-size: 1.5rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; background: #10b981; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.1s; }
+        .btn:active { transform: scale(0.96); }
+        .btn-small { padding: 6px 14px; font-size: 0.95rem; font-weight: bold; border: 1px solid #94a3b8; border-radius: 8px; cursor: pointer; background: #f1f5f9; color: #334155; margin-bottom: 8px; transition: all 0.2s; }
+        .btn-small:hover { background: #e2e8f0; }
+        .btn-ai { padding: 6px 14px; font-size: 1rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; background: #8b5cf6; color: white; box-shadow: 0 2px 8px rgba(139, 92, 246, 0.5); transition: transform 0.1s, background 0.2s; }
+        .btn-ai:hover { background: #7c3aed; }
+        .btn-ai:active { transform: scale(0.95); }
+
+        .screen { display: none; width: 100%; }
+        .active { display: block; }
+
+        /* 大廳等待畫面 */
+        .lobby-box { display: flex; gap: 30px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin-top: 15px; }
+        .qr-card { background: white; color: #1e293b; padding: 20px; border-radius: 16px; width: 320px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+        .pin-code { font-size: 3rem; font-weight: 900; color: #ef4444; letter-spacing: 5px; margin: 5px 0; }
+        .teacher-qr-wrap { background: #fef3c7; border: 2px dashed #f59e0b; border-radius: 12px; padding: 10px; margin-bottom: 10px; display: none; }
+        .players-card { background: #334155; padding: 25px; border-radius: 16px; flex: 1; min-width: 350px; min-height: 380px; }
+        .players-header { display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 5px; }
+        .player-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 15px; }
+        .player-tag { background: #475569; padding: 10px 18px; border-radius: 30px; font-size: 1.25rem; font-weight: bold; display: flex; align-items: center; gap: 8px; animation: popIn 0.3s ease; cursor: pointer; transition: all 0.2s; user-select: none; }
+        .player-tag:hover { text-decoration: line-through; background: #ef4444; color: #fff; transform: scale(0.97); }
+
+        /* 遊戲進行：往上跑馬燈與抽籤區 */
+        .carousel-box { background: #334155; padding: 30px; border-radius: 20px; margin: 15px auto; max-width: 650px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        .marquee-viewport { height: 220px; overflow: hidden; position: relative; background: #1e293b; border-radius: 12px; padding: 10px; border: 2px solid #475569; }
+        .marquee-track { display: flex; flex-direction: column; gap: 12px; animation: scrollUp 10s linear infinite; }
+        .marquee-item { font-size: 1.6rem; font-weight: bold; color: #fde047; padding: 8px; background: #334155; border-radius: 8px; }
+        @keyframes scrollUp {
+            0% { transform: translateY(220px); }
+            100% { transform: translateY(-100%); }
+        }
+
+        .avatar-huge { font-size: 5rem; margin-bottom: 10px; }
+        .name-huge { font-size: 2.8rem; font-weight: bold; color: #fde047; }
+
+        /* 賓果表共用樣式與 4 種主題配色 */
+        .board-container { margin: 8px auto; max-width: 470px; }
+        .board-owner-badge { display: inline-block; padding: 5px 16px; border-radius: 20px; font-size: 1.25rem; font-weight: bold; margin-bottom: 8px; background: #334155; color: #fde047; border: 2px solid #64748b; transition: all 0.2s; }
+        .board-owner-badge.matched-mode { background: #065f46; color: #34d399; border-color: #10b981; animation: popIn 0.25s ease; }
+
+        .bingo-grid { display: grid; gap: 10px; padding: 15px; border-radius: 16px; transition: background 0.3s; }
+        .cell { aspect-ratio: 1; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; font-weight: bold; color: transparent; user-select: none; border: 3px solid transparent; transition: transform 0.25s; }
+        .cell.locked { animation: popIn 0.3s ease; }
+
+        /* 配色 0：經典深灰 (灰底 -> 藍底 -> 橘底白字) */
+        .bingo-grid.theme-0 { background: #0f172a; }
+        .bingo-grid.theme-0 .cell { background: #475569; border-color: #64748b; }
+        .bingo-grid.theme-0 .cell.locked { background: #f59e0b; color: #ffffff; border-color: #fde047; box-shadow: 0 0 15px rgba(245, 158, 11, 0.6); }
+
+        /* 配色 1：翠綠森林 (深綠底 -> 紫底 -> 桃紅底白字) */
+        .bingo-grid.theme-1 { background: #022c22; }
+        .bingo-grid.theme-1 .cell { background: #065f46; border-color: #10b981; }
+        .bingo-grid.theme-1 .cell.locked { background: #e11d48; color: #ffffff; border-color: #fda4af; box-shadow: 0 0 15px rgba(225, 29, 72, 0.6); }
+
+        /* 配色 2：星空紫藍 (深紫藍底 -> 青藍底 -> 亮綠底白字) */
+        .bingo-grid.theme-2 { background: #1e1b4b; }
+        .bingo-grid.theme-2 .cell { background: #3730a3; border-color: #818cf8; }
+        .bingo-grid.theme-2 .cell.locked { background: #16a34a; color: #ffffff; border-color: #86efac; box-shadow: 0 0 15px rgba(22, 163, 74, 0.6); }
+
+        /* 配色 3：暖陽可可 (深褐底 -> 靛藍底 -> 湖水藍底白字) */
+        .bingo-grid.theme-3 { background: #271206; }
+        .bingo-grid.theme-3 .cell { background: #7c2d12; border-color: #fb923c; }
+        .bingo-grid.theme-3 .cell.locked { background: #0284c7; color: #ffffff; border-color: #7dd3fc; box-shadow: 0 0 15px rgba(2, 132, 199, 0.6); }
+
+        /* 倒數時間條與提示 */
+        .timer-section { margin: 8px auto; max-width: 700px; display: none; }
+        .prompt-text { font-size: 1.75rem; font-weight: bold; color: #4ade80; margin-bottom: 6px; }
+        .progress-bg { width: 100%; height: 22px; background: #334155; border-radius: 12px; overflow: hidden; }
+        .progress-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); transition: width 0.1s linear; }
+        .matched-list { font-size: 1.5rem; color: #38bdf8; margin-top: 8px; min-height: 2.2rem; font-weight: bold; }
+
+        /* 狀態與 BINGO 高光時刻畫面 */
+        .status-banner { font-size: 2.5rem; font-weight: 900; color: #f87171; margin: 10px 0; }
+        .winner-box { background: #065f46; padding: 25px; border-radius: 24px; border: 4px solid #34d399; max-width: 850px; margin: 0 auto; }
+        .winner-names { font-size: 2.2rem; color: #fde047; font-weight: 900; margin: 10px 0; }
+        .spotlight-card { background: #0f172a; padding: 18px; border-radius: 16px; border: 2px solid #fbbf24; max-width: 460px; margin: 15px auto; }
+        .spotlight-title { font-size: 1.6rem; font-weight: bold; color: #38bdf8; margin-bottom: 10px; }
+
+        /* 頁尾版權與計數器 */
+        .footer { margin-top: 25px; padding-top: 10px; border-top: 1px solid #334155; width: 100%; max-width: 800px; text-align: center; color: #64748b; font-size: 11px; line-height: 1.4; }
+        .footer p { margin: 2px 0; }
+        .counter-container { margin-top: 4px; opacity: 0.75; }
+        .counter-container img { height: 16px; }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <!-- 畫面 1：初始解鎖音效與建立房間 -->
+        <div id="screen-init" class="screen active">
+            <h1>🎲 台語互動賓果教學遊戲</h1>
+            <p style="font-size: 1.3rem; color: #cbd5e1; margin-bottom: 30px;">請點擊下方按鈕以啟用大屏音效並建立房間</p>
+            <button id="btn-create-room" class="btn">建立遊戲房間</button>
+        </div>
+
+        <!-- 畫面 2：等待大廳 -->
+        <div id="screen-lobby" class="screen">
+            <h1>📺 請掃描 QR Code 或輸入 PIN 碼加入</h1>
+            <div class="lobby-box">
+                <div class="qr-card">
+                    <div style="font-weight: bold; color: #475569;">房間 PIN 碼</div>
+                    <div id="display-pin" class="pin-code">----</div>
+                    
+                    <button id="btn-toggle-teacher-qr" class="btn-small">👩‍🏫 教師QRcode</button>
+                    <div id="teacher-qr-box" class="teacher-qr-wrap">
+                        <div style="font-size: 0.9rem; font-weight: bold; color: #b45309; margin-bottom: 5px;">教師裁判端入口</div>
+                        <img id="teacher-qr-image" src="" alt="Teacher QR" style="width: 150px; height: 150px; display: block; margin: 0 auto;">
+                    </div>
+
+                    <div style="font-size: 0.9rem; font-weight: bold; color: #0f172a; margin-top: 5px;">學生加入 QR Code</div>
+                    <img id="qr-image" src="" alt="Student QR Code" style="width: 210px; height: 210px; margin: 6px auto; display: block;">
+                    <div id="student-url-text" style="font-size: 0.8rem; color: #64748b; word-break: break-all;"></div>
+                </div>
+
+                <div class="players-card">
+                    <div class="players-header">
+                        <h2 style="margin: 0;">已加入學生 (<span id="player-count">0</span> 人)</h2>
+                        <button id="btn-add-ai" class="btn-ai">🤖 加入AI隊友</button>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #94a3b8;">💡 提示：點擊學生名字即可將該生剔除</div>
+                    <div id="lobby-players" class="player-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 畫面 3：遊戲進行中 -->
+        <div id="screen-game" class="screen">
+            <!-- 待機跑馬燈與抽籤動畫區 -->
+            <div id="carousel-area" class="carousel-box">
+                <div id="idle-marquee-box">
+                    <div style="font-size: 1.5rem; color: #38bdf8; font-weight: bold; margin-bottom: 12px;">
+                        ⏳ 等待老師按下抽籤鈕...（在場學生名單）
+                    </div>
+                    <div class="marquee-viewport">
+                        <div id="marquee-track" class="marquee-track"></div>
+                    </div>
+                </div>
+
+                <div id="drawing-shuffle-box" style="display: none;">
+                    <div style="font-size: 1.5rem; color: #f59e0b; font-weight: bold; margin-bottom: 10px;">🎲 抽籤中...</div>
+                    <div id="carousel-avatar" class="avatar-huge">🎲</div>
+                    <div id="carousel-name" class="name-huge">準備抽出</div>
+                </div>
+            </div>
+
+            <!-- 被抽中學生與 8 秒搶答者的賓果盤展示區 -->
+            <div id="drawer-area" style="display: none;">
+                <h2 style="margin: 4px 0; font-size: 1.9rem;">
+                    🎯 被抽中學生：<span id="drawer-name" style="color: #fde047;"></span>
+                </h2>
+                <div id="wrong-msg" class="status-banner" style="display: none;">😢 真可惜！</div>
+
+                <!-- 8秒搶答時間條 -->
+                <div id="timer-area" class="timer-section">
+                    <div class="prompt-text">⏳ 有仝款語詞的人請佇8秒鐘以內點選！</div>
+                    <div class="progress-bg"><div id="timer-bar" class="progress-bar"></div></div>
+                </div>
+
+                <!-- 依系統接收順序即時累加的名單 -->
+                <div id="matched-display" class="matched-list"></div>
+
+                <div class="board-container">
+                    <div id="board-owner-label" class="board-owner-badge">賓果表格</div>
+                    <div id="drawer-board" class="bingo-grid theme-0"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 畫面 4：BINGO 結算與高光時刻輪播 -->
+        <div id="screen-ended" class="screen">
+            <div class="winner-box">
+                <h1 style="font-size: 2.8rem; color: #fff; margin: 0;">🎉 BINGO！連線成功 🎉</h1>
+                <div id="winner-text" class="winner-names">恭喜 獲勝者 BINGO</div>
+
+                <div class="spotlight-card">
+                    <div id="spotlight-title" class="spotlight-title">🌟 獲勝者高光時刻</div>
+                    <div id="spotlight-board" class="bingo-grid theme-0"></div>
+                </div>
+
+                <button id="btn-export-csv" class="btn" style="background: #3b82f6; margin-top: 10px; font-size: 1.3rem; padding: 12px 28px;">📥 匯出成績 (CSV)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 版權聲明與計數器 -->
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
+            Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
+            未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
+        </p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, update, remove, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6GwHly2Rwvu-NiJMgR7IWZXhXnfFMb8g",
+            authDomain: "bingo-79a84.firebaseapp.com",
+            projectId: "bingo-79a84",
+            databaseURL: "https://bingo-79a84-default-rtdb.asia-southeast1.firebasedatabase.app",
+            storageBucket: "bingo-79a84.firebasestorage.app",
+            messagingSenderId: "298491471622",
+            appId: "1:298491471622:web:7e30bd2e6c326c46e92087"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Web Audio API 音效合成器
+        let audioCtx = null;
+        function playTone(freq, type = 'sine', duration = 0.15) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+        function playCorrectSound() {
+            [523.25, 659.25, 783.99].forEach((f, i) => {
+                setTimeout(() => playTone(f, 'triangle', 0.22), i * 110);
+            });
+        }
+        function playMatchChime() {
+            playTone(783.99, 'sine', 0.12);
+            setTimeout(() => playTone(1046.50, 'triangle', 0.25), 90);
+        }
+        function playBingoSound() {
+            [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
+                setTimeout(() => playTone(f, 'triangle', 0.35), i * 140);
+            });
+        }
+        function playWrongSound() {
+            playTone(220, 'sawtooth', 0.3);
+            setTimeout(() => playTone(160, 'sawtooth', 0.5), 250);
+        }
+
+        const AI_NAMES = ['AI-阿明', 'AI-春嬌', 'AI-志明', 'AI-雅婷', 'AI-家豪', 'AI-淑芬', 'AI-宗憲', 'AI-美玲', 'AI-冠宇', 'AI-怡君'];
+
+        let currentRoomData = null;
+        let drawAnimationTimer = null;
+        let countdownInterval = null;
+        let winnerCarouselInterval = null;
+        let lastStatus = '';
+
+        // 8秒搶答者的賓果圖 1 秒播放佇列控制變數
+        let knownMatchedSeats = new Set();
+        let boardQueue = [];
+        let isBoardQueueRunning = false;
+        let boardQueueTimer = null;
+        let activeBoardSeatNo = null;
+
+        // AI 機器人計時器控制
+        let aiTimers = [];
+        function clearAiTimers() {
+            aiTimers.forEach(t => clearTimeout(t));
+            aiTimers = [];
+        }
+
+        function resetBoardQueue() {
+            clearTimeout(boardQueueTimer);
+            boardQueue = [];
+            isBoardQueueRunning = false;
+            activeBoardSeatNo = null;
+            knownMatchedSeats.clear();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        document.getElementById('btn-toggle-teacher-qr').addEventListener('click', () => {
+            const box = document.getElementById('teacher-qr-box');
+            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // 加入 AI 隊友按鈕
+        document.getElementById('btn-add-ai').addEventListener('click', async () => {
+            if (!currentRoomData) return;
+            const players = currentRoomData.players || {};
+            let aiSeat = 81;
+            while (players[String(aiSeat)]) {
+                aiSeat++;
+            }
+            const aiIndex = (aiSeat - 81) % AI_NAMES.length;
+            const aiName = AI_NAMES[aiIndex];
+            const aiTheme = aiSeat % 4;
+
+            await update(ref(db, `gameRoom/players/${aiSeat}`), {
+                classNo: 'AI測試',
+                seatNo: String(aiSeat),
+                name: aiName,
+                tabletNo: 'BOT',
+                avatar: '🤖',
+                isAI: true,
+                theme: aiTheme,
+                board: []
+            });
+            playTone(700, 'sine', 0.08);
+        });
+
+        // 建立房間按鈕
+        document.getElementById('btn-create-room').addEventListener('click', async () => {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            playTone(600, 'sine', 0.1);
+
+            const pin = Math.floor(1000 + Math.random() * 9000).toString();
+            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+            const studentUrl = `${baseUrl}student.html?pin=${pin}`;
+            const teacherUrl = `${baseUrl}teacher.html?pin=${pin}`;
+
+            document.getElementById('display-pin').textContent = pin;
+            document.getElementById('student-url-text').textContent = studentUrl;
+            document.getElementById('qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(studentUrl)}`;
+            document.getElementById('teacher-qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(teacherUrl)}`;
+
+            await set(ref(db, 'gameRoom'), {
+                pin: pin,
+                status: 'waiting',
+                gridSize: 3,
+                players: {},
+                createdAt: Date.now()
+            });
+
+            showScreen('screen-lobby');
+            listenToRoom();
+        });
+
+        function listenToRoom() {
+            onValue(ref(db, 'gameRoom'), (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+                currentRoomData = data;
+                const playersObj = data.players || {};
+                const playerList = Object.values(playersObj).sort((a, b) => Number(a.seatNo) - Number(b.seatNo));
+
+                // 更新大廳名單
+                document.getElementById('player-count').textContent = playerList.length;
+                const lobbyGrid = document.getElementById('lobby-players');
+                lobbyGrid.innerHTML = '';
+                playerList.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'player-tag';
+                    div.title = '點擊剔除此學生';
+                    div.textContent = `${p.avatar || '🙂'} ${p.seatNo}號 ${p.name}`;
+                    div.addEventListener('click', async () => {
+                        await remove(ref(db, `gameRoom/players/${p.seatNo}`));
+                    });
+                    lobbyGrid.appendChild(div);
+                });
+
+                // 狀態切換處理
+                if (data.status === 'waiting') {
+                    clearAllTimersAndQueues();
+                    showScreen('screen-lobby');
+                } 
+                else if (data.status === 'idle') {
+                    clearAllTimersAndQueues();
+                    showScreen('screen-game');
+                    document.getElementById('carousel-area').style.display = 'block';
+                    document.getElementById('idle-marquee-box').style.display = 'block';
+                    document.getElementById('drawing-shuffle-box').style.display = 'none';
+                    document.getElementById('drawer-area').style.display = 'none';
+                    renderIdleMarquee(playerList);
+                } 
+                else if (data.status === 'drawing') {
+                    if (lastStatus !== 'drawing') {
+                        // 老師按下抽籤選學生：立刻停止尚未播完的賓果圖佇列並切換到抽籤畫面
+                        clearAllTimersAndQueues();
+                        showScreen('screen-game');
+                        document.getElementById('carousel-area').style.display = 'block';
+                        document.getElementById('idle-marquee-box').style.display = 'none';
+                        document.getElementById('drawing-shuffle-box').style.display = 'block';
+                        document.getElementById('drawer-area').style.display = 'none';
+                        runFastDrawAnimation(playerList);
+                    }
+                } 
+                else if (['selecting', 'judging', 'wrong', 'matching', 'round_done'].includes(data.status)) {
+                    showScreen('screen-game');
+                    document.getElementById('carousel-area').style.display = 'none';
+                    document.getElementById('drawer-area').style.display = 'block';
+                    handleGamePhase(data);
+                } 
+                else if (data.status === 'ended') {
+                    if (lastStatus !== 'ended') {
+                        clearAllTimersAndQueues();
+                        showScreen('screen-ended');
+                        const winners = data.winners || [];
+                        document.getElementById('winner-text').textContent = `恭喜 ${winners.join('、')} BINGO！`;
+                        playBingoSound();
+                        confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
+                        startWinnerSpotlightCarousel(data);
+                    }
+                }
+
+                lastStatus = data.status;
+            });
+        }
+
+        function clearAllTimersAndQueues() {
+            clearInterval(drawAnimationTimer);
+            clearInterval(countdownInterval);
+            clearInterval(winnerCarouselInterval);
+            clearAiTimers();
+            resetBoardQueue();
+        }
+
+        // 待機時：垂直向上跑馬燈
+        function renderIdleMarquee(playerList) {
+            const track = document.getElementById('marquee-track');
+            track.innerHTML = '';
+            if (playerList.length === 0) return;
+
+            const duration = Math.max(6, playerList.length * 1.8);
+            track.style.animationDuration = `${duration}s`;
+
+            playerList.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'marquee-item';
+                item.textContent = `${p.avatar || '🙂'} ${p.seatNo}號 ${p.name}`;
+                track.appendChild(item);
+            });
+        }
+
+        // 抽籤 1.5 秒快速亂跑動畫
+        function runFastDrawAnimation(playerList) {
+            if (playerList.length === 0) return;
+            let elapsed = 0;
+            drawAnimationTimer = setInterval(() => {
+                const randP = playerList[Math.floor(Math.random() * playerList.length)];
+                document.getElementById('carousel-avatar').textContent = randP.avatar || '🙂';
+                document.getElementById('carousel-name').textContent = `${randP.seatNo}號 ${randP.name}`;
+                playTone(400 + Math.random() * 300, 'sine', 0.05);
+                elapsed += 80;
+                if (elapsed >= 1500) {
+                    clearInterval(drawAnimationTimer);
+                    playTone(880, 'triangle', 0.25);
+                    update(ref(db, 'gameRoom'), { status: 'selecting' });
+                }
+            }, 80);
+        }
+
+        // 處理抽中、評判、8秒搶答與排隊播放賓果圖
+        function handleGamePhase(data) {
+            const drawer = data.players?.[data.currentDrawer];
+            if (!drawer) return;
+
+            document.getElementById('drawer-name').textContent = `${drawer.avatar} ${drawer.seatNo}號 ${drawer.name}`;
+
+            // 在 selecting / judging / wrong 階段，顯示的永遠是被抽中學生的賓果盤
+            if (['selecting', 'judging', 'wrong'].includes(data.status)) {
+                resetBoardQueue();
+                activeBoardSeatNo = data.currentDrawer;
+            }
+
+            // 若剛進入 selecting 且被抽中的是 AI 隊友，模擬 AI 在 1.8 秒後自動挑選一格
+            if (data.status === 'selecting' && lastStatus !== 'selecting') {
+                clearAiTimers();
+                if (drawer.isAI) {
+                    const unlockedIndices = (drawer.board || [])
+                        .map((c, i) => (!c.locked ? i : -1))
+                        .filter(i => i !== -1);
+                    if (unlockedIndices.length > 0) {
+                        const pickIdx = unlockedIndices[Math.floor(Math.random() * unlockedIndices.length)];
+                        const pickCell = drawer.board[pickIdx];
+                        const t = setTimeout(() => {
+                            update(ref(db, 'gameRoom'), {
+                                selectedCell: { index: pickIdx, hanzi: pickCell.hanzi, lomaji: pickCell.lomaji },
+                                status: 'judging'
+                            });
+                        }, 1800);
+                        aiTimers.push(t);
+                    }
+                }
+            }
+
+            // 處理「真可惜」顯示
+            const wrongEl = document.getElementById('wrong-msg');
+            if (data.status === 'wrong') {
+                wrongEl.style.display = 'block';
+                if (lastStatus !== 'wrong') playWrongSound();
+            } else {
+                wrongEl.style.display = 'none';
+            }
+
+            // 處理老師按下 ○ 正確時的慶祝特效、啟動 8 秒倒數與觸發 AI 隊友搶答
+            const timerArea = document.getElementById('timer-area');
+            if (data.status === 'matching') {
+                timerArea.style.display = 'block';
+                if (lastStatus !== 'matching') {
+                    resetBoardQueue();
+                    activeBoardSeatNo = data.currentDrawer;
+                    playCorrectSound();
+                    confetti({ particleCount: 90, spread: 70, origin: { y: 0.55 } });
+                    startEightSecondTimer(data.matchEndTime);
+                    scheduleAiMatching(data);
+                }
+            } else {
+                timerArea.style.display = 'none';
+                clearInterval(countdownInterval);
+            }
+
+            // 處理搶答名單依系統接收時間累加，並將新搶答者排入 1 秒賓果圖佇列
+            const matchedList = Object.values(data.matchedPlayers || {}).map((item, idx) => {
+                if (typeof item === 'string') return { seatNo: idx, name: item, matchedAt: 0 };
+                return item;
+            }).sort((a, b) => (a.matchedAt || 0) - (b.matchedAt || 0));
+
+            matchedList.forEach(item => {
+                const seatKey = String(item.seatNo);
+                if (!knownMatchedSeats.has(seatKey)) {
+                    knownMatchedSeats.add(seatKey);
+                    playMatchChime();
+                    confetti({
+                        particleCount: 55,
+                        angle: 60 + Math.random() * 60,
+                        spread: 55,
+                        origin: { x: 0.2 + Math.random() * 0.6, y: 0.65 }
+                    });
+                    enqueueMatchedStudentBoard(seatKey);
+                }
+            });
+
+            const matchedEl = document.getElementById('matched-display');
+            if (matchedList.length > 0) {
+                const namesStr = matchedList.map(m => m.name).join('、');
+                matchedEl.textContent = `👏 ${namesStr} 嘛揣著仝款的語詞！`;
+            } else {
+                matchedEl.textContent = '';
+            }
+
+            // 渲染目前應顯示的賓果圖（若佇列未啟動則更新當前顯示者的圖）
+            renderActiveBoard();
+        }
+
+        // 將搶答成功的學生排入 1 秒輪播佇列
+        function enqueueMatchedStudentBoard(seatNo) {
+            boardQueue.push(seatNo);
+            processBoardQueue();
+        }
+
+        function processBoardQueue() {
+            if (isBoardQueueRunning) return;
+            if (boardQueue.length === 0) return;
+
+            isBoardQueueRunning = true;
+            activeBoardSeatNo = boardQueue.shift();
+            renderActiveBoard();
+
+            boardQueueTimer = setTimeout(() => {
+                isBoardQueueRunning = false;
+                if (boardQueue.length > 0) {
+                    processBoardQueue();
+                }
+            }, 1000);
+        }
+
+        // 依據 activeBoardSeatNo 繪製對應學生的賓果圖與其專屬配色
+        function renderActiveBoard() {
+            if (!currentRoomData || ! currentRoomData.players) return;
+            const targetSeat = activeBoardSeatNo || currentRoomData.currentDrawer;
+            const targetPlayer = currentRoomData.players[targetSeat];
+            if (!targetPlayer) return;
+
+            const labelEl = document.getElementById('board-owner-label');
+            const isDrawer = String(targetSeat) === String(currentRoomData.currentDrawer);
+            if (isDrawer) {
+                labelEl.className = 'board-owner-badge';
+                labelEl.textContent = `📋 被抽中者賓果圖：${targetPlayer.avatar || '🙂'} ${targetPlayer.seatNo}號 ${targetPlayer.name}`;
+            } else {
+                labelEl.className = 'board-owner-badge matched-mode';
+                labelEl.textContent = `🌟 搶答成功賓果圖：${targetPlayer.avatar || '🙂'} ${targetPlayer.seatNo}號 ${targetPlayer.name}`;
+            }
+
+            const themeIndex = targetPlayer.theme !== undefined ? targetPlayer.theme : (Number(targetPlayer.seatNo) % 4);
+            renderBoardToElement(
+                document.getElementById('drawer-board'),
+                targetPlayer.board || [],
+                currentRoomData.gridSize || 3,
+                themeIndex
+            );
+        }
+
+        function renderBoardToElement(boardEl, boardData, size, themeIndex = 0) {
+            boardEl.className = `bingo-grid theme-${themeIndex}`;
+            boardEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            boardEl.innerHTML = '';
+            boardData.forEach(cell => {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'cell' + (cell.locked ? ' locked' : '');
+                cellDiv.textContent = cell.locked ? cell.hanzi : '？';
+                boardEl.appendChild(cellDiv);
+            });
+        }
+
+        // 模擬 AI 隊友在 8 秒內隨機時間點選相同語詞
+        function scheduleAiMatching(data) {
+            clearAiTimers();
+            const targetLomaji = data.selectedCell?.lomaji;
+            if (!targetLomaji) return;
+
+            Object.values(data.players || {}).forEach(p => {
+                if (!p.isAI || String(p.seatNo) === String(data.currentDrawer)) return;
+                const matchIdx = (p.board || []).findIndex(c => !c.locked && c.lomaji === targetLomaji);
+                if (matchIdx !== -1) {
+                    // 隨機在 0.8 秒 ~ 7.5 秒之間按下（可測試同時按與第8秒壓線按）
+                    const delay = 800 + Math.floor(Math.random() * 6700);
+                    const t = setTimeout(async () => {
+                        if (!currentRoomData || currentRoomData.status !== 'matching') return;
+                        await update(ref(db, `gameRoom/players/${p.seatNo}/board/${matchIdx}`), { locked: true });
+                        await update(ref(db, `gameRoom/matchedPlayers/${p.seatNo}`), {
+                            seatNo: p.seatNo,
+                            name: p.name,
+                            matchedAt: Date.now()
+                        });
+                    }, delay);
+                    aiTimers.push(t);
+                }
+            });
+        }
+
+        // BINGO 獲勝者高光時刻：每 2 秒輪播一位獲勝者的姓名與專屬配色賓果表格
+        function startWinnerSpotlightCarousel(data) {
+            const size = data.gridSize || 3;
+            const allPlayers = Object.values(data.players || {});
+            const winnerPlayers = allPlayers.filter(p => checkPlayerBingo(p.board || [], size));
+            if (winnerPlayers.length === 0) return;
+
+            let idx = 0;
+            const showWinner = () => {
+                const w = winnerPlayers[idx % winnerPlayers.length];
+                const themeIdx = w.theme !== undefined ? w.theme : (Number(w.seatNo) % 4);
+                document.getElementById('spotlight-title').textContent = `🌟 高光時刻：${w.avatar || '🙂'} ${w.seatNo}號 ${w.name}`;
+                renderBoardToElement(document.getElementById('spotlight-board'), w.board || [], size, themeIdx);
+                idx++;
+            };
+            showWinner();
+            if (winnerPlayers.length > 1) {
+                winnerCarouselInterval = setInterval(showWinner, 2000);
+            }
+        }
+
+        // 8秒時間條倒數與自動結算連線
+        function startEightSecondTimer(endTime) {
+            clearInterval(countdownInterval);
+            const bar = document.getElementById('timer-bar');
+            countdownInterval = setInterval(async () => {
+                const remaining = Math.max(0, endTime - Date.now());
+                const pct = (remaining / 8000) * 100;
+                bar.style.width = `${pct}%`;
+
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    await evaluateBingoAfterCountdown();
+                }
+            }, 50);
+        }
+
+        async function evaluateBingoAfterCountdown() {
+            const snap = await get(ref(db, 'gameRoom'));
+            const data = snap.val();
+            if (!data || data.status !== 'matching') return;
+
+            const size = data.gridSize || 3;
+            const winners = [];
+
+            Object.values(data.players || {}).forEach(player => {
+                if (checkPlayerBingo(player.board || [], size)) {
+                    winners.push(`${player.seatNo}號 ${player.name}`);
+                }
+            });
+
+            if (winners.length > 0) {
+                await update(ref(db, 'gameRoom'), {
+                    status: 'ended',
+                    winners: winners
+                });
+            } else {
+                // 進入 round_done：學生不可再按、教師手機跳出「抽籤選學生」，但大屏佇列可繼續播完
+                await update(ref(db, 'gameRoom'), {
+                    status: 'round_done'
+                });
+            }
+        }
+
+        function checkPlayerBingo(board, size) {
+            if (board.length < size * size) return false;
+            for (let r = 0; r < size; r++) {
+                let rowOk = true;
+                for (let c = 0; c < size; c++) if (!board[r * size + c].locked) rowOk = false;
+                if (rowOk) return true;
+            }
+            for (let c = 0; c < size; c++) {
+                let colOk = true;
+                for (let r = 0; r < size; r++) if (!board[r * size + c].locked) colOk = false;
+                if (colOk) return true;
+            }
+            let d1 = true, d2 = true;
+            for (let i = 0; i < size; i++) {
+                if (!board[i * size + i].locked) d1 = false;
+                if (!board[i * size + (size - 1 - i)].locked) d2 = false;
+            }
+            return d1 || d2;
+        }
+
+        // 匯出成績 CSV
+        document.getElementById('btn-export-csv').addEventListener('click', () => {
+            if (!currentRoomData || !currentRoomData.players) return;
+            const size = currentRoomData.gridSize || 3;
+            const rows = [['班級', '座號', '姓名', '平板編號', '是否BINGO', '成功翻牌數', '已翻牌詞語(漢字)']];
+
+            const sortedPlayers = Object.values(currentRoomData.players).sort((a, b) => Number(a.seatNo) - Number(b.seatNo));
+            sortedPlayers.forEach(p => {
+                const board = p.board || [];
+                const lockedWords = board.filter(c => c.locked).map(c => c.hanzi);
+                const isBingo = checkPlayerBingo(board, size) ? '是' : '否';
+                rows.push([
+                    p.classNo || '',
+                    p.seatNo || '',
+                    p.name || '',
+                    p.tabletNo || '',
+                    isBingo,
+                    lockedWords.length,
+                    lockedWords.join('、')
+                ]);
+            });
+
+            const csvContent = '\uFEFF' + rows.map(r => r.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const fileName = `賓果${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.csv`;
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>台語賓果 - 學生平板</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+
+        * { box-sizing: border-box; font-family: 'Noto Sans TC', sans-serif; }
+        body { margin: 0; padding: 15px; background: #0f172a; color: white; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
+        .card { background: #1e293b; padding: 25px; border-radius: 16px; max-width: 480px; width: 100%; margin: 10px auto; box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
+        input { width: 100%; padding: 12px; margin: 6px 0 12px 0; border-radius: 10px; border: 2px solid #475569; background: #0f172a; color: white; font-size: 1.05rem; text-align: center; }
+        input::placeholder { color: #94a3b8; font-size: 0.95rem; }
+        .btn { width: 100%; padding: 15px; font-size: 1.3rem; font-weight: bold; border: none; border-radius: 12px; background: #3b82f6; color: white; cursor: pointer; margin-top: 6px; }
+        
+        .header-bar { display: flex; justify-content: space-between; align-items: center; max-width: 550px; margin: 0 auto 10px auto; background: #1e293b; padding: 10px 15px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; gap: 8px; flex-wrap: wrap; }
+        .btn-theme { padding: 6px 12px; font-size: 0.9rem; font-weight: bold; border-radius: 8px; border: 1px solid #64748b; background: #334155; color: #f8fafc; cursor: pointer; }
+        .status-banner { max-width: 550px; margin: 0 auto 12px auto; padding: 12px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; background: #334155; }
+        .status-banner.my-turn { background: #16a34a; color: white; animation: pulse 1s infinite alternate; }
+        .status-banner.matching { background: #d97706; color: white; }
+        .status-banner.penalty { background: #dc2626; color: white; }
+
+        /* 賓果表共用與 4 種高對比配色 */
+        .bingo-grid { display: grid; gap: 8px; max-width: 550px; margin: 0 auto; padding: 12px; border-radius: 16px; transition: background 0.3s; }
+        .cell { aspect-ratio: 1; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 4px; font-size: 1.15rem; font-weight: bold; cursor: pointer; word-break: break-word; user-select: none; border: 2px solid transparent; transition: all 0.15s; }
+        .cell.locked { font-size: 1.6rem; cursor: default; }
+
+        /* 配色 0：經典深灰 (灰底白字 -> 按下藍底 -> 翻牌橘底白字) */
+        .bingo-grid.theme-0 { background: #1e293b; }
+        .bingo-grid.theme-0 .cell { background: #334155; color: #f8fafc; border-color: #64748b; }
+        .bingo-grid.theme-0 .cell.selected-pending { background: #3b82f6; color: #ffffff; border-color: #93c5fd; }
+        .bingo-grid.theme-0 .cell.locked { background: #f59e0b; color: #ffffff; border-color: #fde047; }
+
+        /* 配色 1：翠綠森林 (深綠底白字 -> 按下紫底 -> 翻牌桃紅底白字) */
+        .bingo-grid.theme-1 { background: #022c22; }
+        .bingo-grid.theme-1 .cell { background: #065f46; color: #ecfdf5; border-color: #10b981; }
+        .bingo-grid.theme-1 .cell.selected-pending { background: #8b5cf6; color: #ffffff; border-color: #ddd6fe; }
+        .bingo-grid.theme-1 .cell.locked { background: #e11d48; color: #ffffff; border-color: #fda4af; }
+
+        /* 配色 2：星空紫藍 (深紫藍底白字 -> 按下青藍底 -> 翻牌亮綠底白字) */
+        .bingo-grid.theme-2 { background: #1e1b4b; }
+        .bingo-grid.theme-2 .cell { background: #3730a3; color: #eef2ff; border-color: #818cf8; }
+        .bingo-grid.theme-2 .cell.selected-pending { background: #0891b2; color: #ffffff; border-color: #a5f3fc; }
+        .bingo-grid.theme-2 .cell.locked { background: #16a34a; color: #ffffff; border-color: #86efac; }
+
+        /* 配色 3：暖陽可可 (深褐底米白字 -> 按下靛藍底 -> 翻牌湖水藍底白字) */
+        .bingo-grid.theme-3 { background: #271206; }
+        .bingo-grid.theme-3 .cell { background: #7c2d12; color: #fff7ed; border-color: #fb923c; }
+        .bingo-grid.theme-3 .cell.selected-pending { background: #4f46e5; color: #ffffff; border-color: #c7d2fe; }
+        .bingo-grid.theme-3 .cell.locked { background: #0284c7; color: #ffffff; border-color: #7dd3fc; }
+
+        /* 頁尾版權與計數器 */
+        .footer { margin-top: 25px; padding-top: 10px; border-top: 1px solid #1e293b; text-align: center; color: #64748b; font-size: 11px; line-height: 1.4; }
+        .footer p { margin: 2px 0; }
+        .counter-container { margin-top: 4px; opacity: 0.7; }
+        .counter-container img { height: 16px; }
+
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.03); } }
+    </style>
+</head>
+<body>
+
+    <div>
+        <!-- 畫面 1：學生登入 (共5行欄位) -->
+        <div id="view-login" class="card">
+            <h2>📝 進入台語賓果房間</h2>
+            <input type="number" id="input-pin" placeholder="房間 PIN 碼 (4位數)">
+            <input type="text" id="input-class" placeholder="班級(例如701)">
+            <input type="number" id="input-seat" placeholder="座號 (請確實輸入，以免影響成績)">
+            <input type="text" id="input-name" placeholder="姓名(請正確輸入，以免影響成績)">
+            <input type="text" id="input-tablet" placeholder="平板編號(請正確輸入，以免影響權益)">
+            <button id="btn-join" class="btn">加入遊戲</button>
+        </div>
+
+        <!-- 畫面 2：等待老師開始 -->
+        <div id="view-waiting" class="card" style="display: none;">
+            <div id="my-avatar" style="font-size: 4rem;">🙂</div>
+            <h2 id="welcome-text"></h2>
+            <p id="sub-info-text" style="color: #94a3b8; margin-top: -10px;"></p>
+            <p style="font-size: 1.3rem; color: #38bdf8; font-weight: bold;">⏳ 等待老師開始遊戲...</p>
+        </div>
+
+        <!-- 畫面 3：學生平板賓果卡 -->
+        <div id="view-game" style="display: none;">
+            <div class="header-bar">
+                <span id="game-player-info"></span>
+                <div>
+                    <button id="btn-switch-theme" class="btn-theme">🎨 換配色</button>
+                    <span id="game-pin-info" style="color: #94a3b8; font-size: 0.9rem; margin-left: 6px;"></span>
+                </div>
+            </div>
+            <div id="student-banner" class="status-banner">等待老師抽籤...</div>
+            <div id="student-board" class="bingo-grid theme-0"></div>
+        </div>
+
+        <!-- 畫面 4：BINGO 結算鎖定畫面 -->
+        <div id="view-ended" class="card" style="display: none; background: #065f46; border: 3px solid #34d399;">
+            <h1 style="font-size: 2.5rem; margin: 10px 0;">🎉 BINGO 🎉</h1>
+            <p id="student-winner-text" style="font-size: 1.8rem; font-weight: bold; color: #fde047;"></p>
+            <p style="color: #d1fae5;">平板已鎖定，請看教室大屏！</p>
+        </div>
+    </div>
+
+    <!-- 版權聲明與計數器 -->
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
+            Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
+            未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
+        </p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, update, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6GwHly2Rwvu-NiJMgR7IWZXhXnfFMb8g",
+            authDomain: "bingo-79a84.firebaseapp.com",
+            projectId: "bingo-79a84",
+            databaseURL: "https://bingo-79a84-default-rtdb.asia-southeast1.firebasedatabase.app",
+            storageBucket: "bingo-79a84.firebasestorage.app",
+            messagingSenderId: "298491471622",
+            appId: "1:298491471622:web:7e30bd2e6c326c46e92087"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const AVATARS = ['🐶','🐱','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐧','🐤','🦄','🐝','🐢','🐙','🐬'];
+        let myClassNo = localStorage.getItem('bingo_classNo') || '';
+        let mySeatNo = localStorage.getItem('bingo_seatNo') || '';
+        let myName = localStorage.getItem('bingo_name') || '';
+        let myTabletNo = localStorage.getItem('bingo_tabletNo') || '';
+        let currentRoom = null;
+        let lastRoundId = null;
+        let hasAttemptedThisRound = false;
+        let penaltyThisRound = false;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('pin')) document.getElementById('input-pin').value = urlParams.get('pin');
+        if (myClassNo) document.getElementById('input-class').value = myClassNo;
+        if (mySeatNo) document.getElementById('input-seat').value = mySeatNo;
+        if (myName) document.getElementById('input-name').value = myName;
+        if (myTabletNo) document.getElementById('input-tablet').value = myTabletNo;
+
+        // 切換表格配色並同步至 Firebase（讓大屏也同步顯示該生的配色）
+        document.getElementById('btn-switch-theme').addEventListener('click', async () => {
+            if (!currentRoom || !mySeatNo) return;
+            const me = currentRoom.players?.[mySeatNo];
+            if (!me) return;
+            const currentTheme = me.theme !== undefined ? me.theme : (Number(mySeatNo) % 4);
+            const nextTheme = (currentTheme + 1) % 4;
+            await update(ref(db, `gameRoom/players/${mySeatNo}`), { theme: nextTheme });
+        });
+
+        document.getElementById('btn-join').addEventListener('click', async () => {
+            const pin = document.getElementById('input-pin').value.trim();
+            const classNo = document.getElementById('input-class').value.trim();
+            const seat = document.getElementById('input-seat').value.trim();
+            const name = document.getElementById('input-name').value.trim();
+            const tabletNo = document.getElementById('input-tablet').value.trim();
+
+            if (!pin || !classNo || !seat || !name || !tabletNo) {
+                alert('請完整填寫所有欄位（PIN碼、班級、座號、姓名、平板編號）！');
+                return;
+            }
+
+            const snap = await get(ref(db, 'gameRoom'));
+            const room = snap.val();
+            if (!room || room.pin !== pin) {
+                alert('找不到該 PIN 碼的房間，請確認大屏上的號碼！');
+                return;
+            }
+
+            myClassNo = classNo;
+            mySeatNo = seat;
+            myName = name;
+            myTabletNo = tabletNo;
+            localStorage.setItem('bingo_classNo', classNo);
+            localStorage.setItem('bingo_seatNo', seat);
+            localStorage.setItem('bingo_name', name);
+            localStorage.setItem('bingo_tabletNo', tabletNo);
+
+            const existingPlayer = room.players?.[seat];
+            const avatar = existingPlayer?.avatar || AVATARS[Number(seat) % AVATARS.length];
+            const theme = existingPlayer?.theme !== undefined ? existingPlayer.theme : (Number(seat) % 4);
+            let board = existingPlayer?.board || [];
+
+            if (!existingPlayer && room.status !== 'waiting' && room.vocabPool) {
+                const needed = (room.gridSize || 3) * (room.gridSize || 3);
+                board = [...room.vocabPool].sort(() => Math.random() - 0.5).slice(0, needed).map(w => ({
+                    hanzi: w.hanzi, lomaji: w.lomaji, locked: false
+                }));
+            }
+
+            await update(ref(db, `gameRoom/players/${seat}`), {
+                classNo: classNo,
+                seatNo: seat,
+                name: name,
+                tabletNo: tabletNo,
+                avatar: avatar,
+                theme: theme,
+                board: board
+            });
+
+            document.getElementById('view-login').style.display = 'none';
+            listenToGame();
+        });
+
+        function listenToGame() {
+            onValue(ref(db, 'gameRoom'), (snap) => {
+                const data = snap.val();
+                if (!data) return;
+                currentRoom = data;
+
+                const me = data.players?.[mySeatNo];
+                if (!me) {
+                    document.getElementById('view-login').style.display = 'block';
+                    document.getElementById('view-waiting').style.display = 'none';
+                    document.getElementById('view-game').style.display = 'none';
+                    document.getElementById('view-ended').style.display = 'none';
+                    return;
+                }
+
+                if (data.roundId !== lastRoundId) {
+                    lastRoundId = data.roundId;
+                    hasAttemptedThisRound = false;
+                    penaltyThisRound = false;
+                }
+
+                const vWaiting = document.getElementById('view-waiting');
+                const vGame = document.getElementById('view-game');
+                const vEnded = document.getElementById('view-ended');
+
+                if (data.status === 'waiting') {
+                    vWaiting.style.display = 'block';
+                    vGame.style.display = 'none';
+                    vEnded.style.display = 'none';
+                    document.getElementById('my-avatar').textContent = me.avatar;
+                    document.getElementById('welcome-text').textContent = `${me.seatNo}號 ${me.name}`;
+                    document.getElementById('sub-info-text').textContent = `班級：${me.classNo} ｜ 平板：${me.tabletNo}`;
+                } else if (data.status === 'ended') {
+                    vWaiting.style.display = 'none';
+                    vGame.style.display = 'none';
+                    vEnded.style.display = 'block';
+                    const winners = (data.winners || []).join('、');
+                    document.getElementById('student-winner-text').textContent = `恭喜 ${winners} BINGO！`;
+                } else {
+                    vWaiting.style.display = 'none';
+                    vGame.style.display = 'block';
+                    vEnded.style.display = 'none';
+                    renderStudentGame(data, me);
+                }
+            });
+        }
+
+        function renderStudentGame(data, me) {
+            document.getElementById('game-player-info').textContent = `${me.avatar} ${me.seatNo}號 ${me.name}`;
+            document.getElementById('game-pin-info').textContent = `平板:${me.tabletNo}`;
+
+            const banner = document.getElementById('student-banner');
+            banner.className = 'status-banner';
+            const isMyTurn = String(data.currentDrawer) === String(mySeatNo);
+
+            if (data.status === 'selecting') {
+                if (isMyTurn) {
+                    banner.textContent = '🎯 抽到你了！請大聲唸出一個詞並點選該格';
+                    banner.classList.add('my-turn');
+                } else {
+                    const drawer = data.players?.[data.currentDrawer];
+                    banner.textContent = `請聽 ${drawer ? drawer.name : '同學'} 唸語詞...`;
+                }
+            } else if (data.status === 'judging') {
+                banner.textContent = isMyTurn ? '⏳ 等待老師評判你的發音...' : '⏳ 老師正在評判發音...';
+            } else if (data.status === 'matching') {
+                if (isMyTurn) {
+                    banner.textContent = '✅ 答對了！等待其他同學搶答...';
+                } else if (penaltyThisRound) {
+                    banner.textContent = '❌ 點選錯誤！本回合已取消搶答資格';
+                    banner.classList.add('penalty');
+                } else if (hasAttemptedThisRound) {
+                    banner.textContent = '🎉 成功找到相同語詞！';
+                    banner.classList.add('my-turn');
+                } else {
+                    banner.textContent = '⚡ 快！8秒內點選仝款語詞（限點一次）';
+                    banner.classList.add('matching');
+                }
+            } else if (data.status === 'wrong') {
+                banner.textContent = '😢 真可惜，等待老師抽下一位...';
+            } else {
+                banner.textContent = '🎲 等待老師抽籤...';
+            }
+
+            const boardEl = document.getElementById('student-board');
+            const size = data.gridSize || 3;
+            const themeIndex = me.theme !== undefined ? me.theme : (Number(mySeatNo) % 4);
+            boardEl.className = `bingo-grid theme-${themeIndex}`;
+            boardEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            boardEl.innerHTML = '';
+
+            (me.board || []).forEach((cell, idx) => {
+                const div = document.createElement('div');
+                div.className = 'cell' + (cell.locked ? ' locked' : '');
+                if (isMyTurn && data.status === 'judging' && data.selectedCell?.index === idx) {
+                    div.classList.add('selected-pending');
+                }
+                div.textContent = cell.locked ? cell.hanzi : cell.lomaji;
+
+                div.addEventListener('click', () => handleCellClick(idx, cell, isMyTurn));
+                boardEl.appendChild(div);
+            });
+        }
+
+        async function handleCellClick(idx, cell, isMyTurn) {
+            if (!currentRoom || cell.locked) return;
+
+            if (isMyTurn && currentRoom.status === 'selecting') {
+                await update(ref(db, 'gameRoom'), {
+                    selectedCell: { index: idx, hanzi: cell.hanzi, lomaji: cell.lomaji },
+                    status: 'judging'
+                });
+            }
+            else if (!isMyTurn && currentRoom.status === 'matching') {
+                if (hasAttemptedThisRound) return;
+                hasAttemptedThisRound = true;
+
+                const targetLomaji = currentRoom.selectedCell?.lomaji;
+                if (cell.lomaji === targetLomaji) {
+                    await update(ref(db, `gameRoom/players/${mySeatNo}/board/${idx}`), { locked: true });
+                    await update(ref(db, `gameRoom/matchedPlayers/${mySeatNo}`), {
+                        seatNo: mySeatNo,
+                        name: myName,
+                        matchedAt: Date.now()
+                    });
+                } else {
+                    penaltyThisRound = true;
+                    renderStudentGame(currentRoom, currentRoom.players[mySeatNo]);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

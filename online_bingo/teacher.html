@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台語賓果 - 教師裁判端</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+
+        * { box-sizing: border-box; font-family: 'Noto Sans TC', sans-serif; }
+        body { margin: 0; padding: 15px; background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); max-width: 500px; width: 100%; margin: 0 auto 15px auto; }
+        h2 { margin-top: 0; color: #0f172a; }
+        input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; border: 2px solid #cbd5e1; font-size: 1.2rem; text-align: center; }
+        .lesson-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .lesson-item { background: #e2e8f0; padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-weight: bold; cursor: pointer; }
+        .size-group { display: flex; gap: 10px; margin: 15px 0; }
+        .size-btn { flex: 1; padding: 12px; border: 2px solid #cbd5e1; border-radius: 10px; background: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        .size-btn.selected { border-color: #2563eb; background: #dbeafe; color: #1d4ed8; }
+        .btn { width: 100%; padding: 15px; font-size: 1.25rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; margin-top: 10px; }
+        .btn-primary { background: #2563eb; }
+        .btn-success { background: #10b981; }
+        .btn-danger { background: #ef4444; }
+        .btn-warning { background: #f59e0b; }
+        .btn-secondary { background: #64748b; }
+        .judge-row { display: flex; gap: 12px; margin-top: 15px; }
+        .word-box { background: #fef3c7; border: 2px solid #f59e0b; padding: 20px; border-radius: 12px; text-align: center; margin: 15px 0; }
+        .lomaji-text { font-size: 2.2rem; font-weight: 900; color: #b45309; }
+        .hanzi-hint { font-size: 1.2rem; color: #78350f; margin-top: 5px; }
+
+        /* 頁尾版權與計數器 */
+        .footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #cbd5e1; text-align: center; color: #64748b; font-size: 11px; line-height: 1.4; }
+        .footer p { margin: 2px 0; }
+        .counter-container { margin-top: 4px; opacity: 0.8; }
+        .counter-container img { height: 16px; }
+    </style>
+</head>
+<body>
+
+    <div>
+        <!-- 畫面 0：教師密碼驗證鎖 -->
+        <div id="view-auth" class="card" style="text-align: center; margin-top: 40px;">
+            <h2>🔒 教師身分驗證</h2>
+            <p style="color: #475569;">請輸入教師專屬密碼以進入裁判畫面</p>
+            <input type="password" id="input-teacher-pwd" placeholder="請輸入密碼">
+            <button id="btn-auth-submit" class="btn btn-primary">驗證並進入</button>
+        </div>
+
+        <!-- 通過驗證後的主程式區 -->
+        <div id="teacher-main-app" style="display: none;">
+            <!-- 畫面 1：課文與圖表大小設定 -->
+            <div id="view-setup" class="card">
+                <h2>📋 遊戲設定（教師專用）</h2>
+                <p>目前房間 PIN 碼：<strong id="room-pin">讀取中...</strong>（在場學生：<span id="student-count">0</span> 人）</p>
+                
+                <h3>1. 選擇課別詞庫（可複選）</h3>
+                <div id="lesson-container" class="lesson-list">正在從 Google 試算表讀取目錄...</div>
+
+                <h3>2. 選擇賓果圖大小</h3>
+                <div class="size-group">
+                    <button class="size-btn selected" data-size="3">3 x 3 (9格)</button>
+                    <button class="size-btn" data-size="4">4 x 4 (16格)</button>
+                    <button class="size-btn" data-size="5">5 x 5 (25格)</button>
+                </div>
+
+                <button id="btn-start-game" class="btn btn-primary">🚀 派發賓果卡並開始遊戲</button>
+            </div>
+
+            <!-- 畫面 2：裁判控制面板 -->
+            <div id="view-control" class="card" style="display: none;">
+                <h2>⚖️ 教師裁判控制台</h2>
+                <div id="control-status" style="font-size: 1.1rem; color: #475569; margin-bottom: 10px;"></div>
+
+                <!-- 抽籤按鈕區 -->
+                <div id="area-draw">
+                    <button id="btn-draw" class="btn btn-primary" style="font-size: 1.5rem; padding: 25px;">🎲 抽籤選學生</button>
+                </div>
+
+                <!-- 等待該生按鈕或評判區 -->
+                <div id="area-judge" style="display: none;">
+                    <div style="font-size: 1.3rem; font-weight: bold;">
+                        目前學生：<span id="current-student-name" style="color: #2563eb;"></span>
+                    </div>
+
+                    <!-- 學生已按下詞語時顯示 -->
+                    <div id="word-display" class="word-box" style="display: none;">
+                        <div id="judge-lomaji" class="lomaji-text"></div>
+                        <div id="judge-hanzi" class="hanzi-hint"></div>
+                        <div class="judge-row">
+                            <button id="btn-correct" class="btn btn-success" style="font-size: 2rem;">○ 正確</button>
+                            <button id="btn-wrong" class="btn btn-danger" style="font-size: 2rem;">✕ 錯誤</button>
+                        </div>
+                        <button id="btn-retry" class="btn btn-warning">↩️ 恢復重按（學生按錯格）</button>
+                    </div>
+
+                    <button id="btn-skip" class="btn btn-secondary">⏭️ 跳過該生（不在場/重抽）</button>
+                </div>
+            </div>
+
+            <!-- 畫面 3：BINGO 結算確認 -->
+            <div id="view-ended" class="card" style="display: none; text-align: center;">
+                <h2>🎉 遊戲結束！</h2>
+                <p id="teacher-winner-msg" style="font-size: 1.3rem; font-weight: bold; color: #059669;"></p>
+                <div id="step-confirm">
+                    <button id="btn-confirm-end" class="btn btn-primary">確認</button>
+                </div>
+                <div id="step-next-game" style="display: none; margin-top: 15px;">
+                    <p style="font-size: 1.2rem; font-weight: bold;">是否進行下一局？</p>
+                    <div class="judge-row">
+                        <button id="btn-next-yes" class="btn btn-success">是</button>
+                        <button id="btn-next-no" class="btn btn-secondary">否</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 版權聲明與計數器 -->
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
+            Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
+            未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
+        </p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const SHEET_ID = "1pIB6s4APHncaES1E_fkymAohd855-cTBK3gGAAFzlEE";
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6GwHly2Rwvu-NiJMgR7IWZXhXnfFMb8g",
+            authDomain: "bingo-79a84.firebaseapp.com",
+            projectId: "bingo-79a84",
+            databaseURL: "https://bingo-79a84-default-rtdb.asia-southeast1.firebasedatabase.app",
+            storageBucket: "bingo-79a84.firebasestorage.app",
+            messagingSenderId: "298491471622",
+            appId: "1:298491471622:web:7e30bd2e6c326c46e92087"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let selectedSize = 3;
+        let roomData = null;
+
+        // 教師密碼驗證邏輯 (密碼：taigi)
+        function verifyTeacherPassword() {
+            const pwd = document.getElementById('input-teacher-pwd').value.trim();
+            if (pwd === 'taigi') {
+                document.getElementById('view-auth').style.display = 'none';
+                document.getElementById('teacher-main-app').style.display = 'block';
+                loadCatalog();
+            } else {
+                alert('密碼錯誤，請重新輸入！');
+            }
+        }
+        document.getElementById('btn-auth-submit').addEventListener('click', verifyTeacherPassword);
+        document.getElementById('input-teacher-pwd').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') verifyTeacherPassword();
+        });
+
+        function parseCSV(text) {
+            return text.trim().split('\n').map(line => {
+                return line.split(',').map(cell => cell.replace(/^"|"$/g, '').trim());
+            });
+        }
+
+        // 讀取 Google 試算表「目錄」工作表
+        async function loadCatalog() {
+            const container = document.getElementById('lesson-container');
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('目錄')}`;
+                const res = await fetch(url);
+                const text = await res.text();
+                const rows = parseCSV(text);
+                container.innerHTML = '';
+                rows.forEach(r => {
+                    const sheetName = r[0];
+                    if (sheetName) {
+                        const label = document.createElement('label');
+                        label.className = 'lesson-item';
+                        label.innerHTML = `<input type="checkbox" value="${sheetName}" style="transform: scale(1.3);"> ${sheetName}`;
+                        container.appendChild(label);
+                    }
+                });
+            } catch (e) {
+                container.textContent = '目錄讀取失敗，請確認試算表共用權限。';
+            }
+        }
+
+        // 選擇賓果大小
+        document.querySelectorAll('.size-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedSize = Number(btn.dataset.size);
+            });
+        });
+
+        // 監聽房間狀態
+        onValue(ref(db, 'gameRoom'), (snap) => {
+            roomData = snap.val();
+            if (!roomData) return;
+
+            document.getElementById('room-pin').textContent = roomData.pin || '----';
+            const players = Object.values(roomData.players || {});
+            document.getElementById('student-count').textContent = players.length;
+
+            const vSetup = document.getElementById('view-setup');
+            const vControl = document.getElementById('view-control');
+            const vEnded = document.getElementById('view-ended');
+
+            if (roomData.status === 'waiting') {
+                vSetup.style.display = 'block';
+                vControl.style.display = 'none';
+                vEnded.style.display = 'none';
+            } else if (roomData.status === 'ended') {
+                vSetup.style.display = 'none';
+                vControl.style.display = 'none';
+                vEnded.style.display = 'block';
+                const winners = (roomData.winners || []).join('、');
+                document.getElementById('teacher-winner-msg').textContent = `${winners} BINGO，請至大屏儲存成績`;
+            } else {
+                vSetup.style.display = 'none';
+                vControl.style.display = 'block';
+                vEnded.style.display = 'none';
+                updateControlPanel(roomData);
+            }
+        });
+
+        // 開始遊戲並派發隨機賓果盤
+        document.getElementById('btn-start-game').addEventListener('click', async () => {
+            const checked = Array.from(document.querySelectorAll('#lesson-container input:checked')).map(el => el.value);
+            if (checked.length === 0) {
+                alert('請至少勾選一個課別！');
+                return;
+            }
+            if (!roomData || !roomData.players || Object.keys(roomData.players).length === 0) {
+                alert('目前還沒有學生加入房間喔！');
+                return;
+            }
+
+            let vocabPool = [];
+            for (const sheet of checked) {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
+                const res = await fetch(url);
+                const rows = parseCSV(await res.text());
+                rows.forEach(r => {
+                    if (r[0] && r[1] && r[0] !== '漢字' && r[0] !== '台語漢字') {
+                        vocabPool.push({ hanzi: r[0], lomaji: r[1] });
+                    }
+                });
+            }
+
+            const neededCells = selectedSize * selectedSize;
+            if (vocabPool.length < neededCells) {
+                alert('所選詞彙數量不足以填滿賓果表格');
+                return;
+            }
+
+            const updatedPlayers = { ...roomData.players };
+            Object.keys(updatedPlayers).forEach(seatNo => {
+                const shuffled = [...vocabPool].sort(() => Math.random() - 0.5).slice(0, neededCells);
+                updatedPlayers[seatNo].board = shuffled.map(w => ({
+                    hanzi: w.hanzi,
+                    lomaji: w.lomaji,
+                    locked: false
+                }));
+            });
+
+            await update(ref(db, 'gameRoom'), {
+                gridSize: selectedSize,
+                vocabPool: vocabPool,
+                players: updatedPlayers,
+                status: 'idle',
+                currentDrawer: null,
+                selectedCell: null,
+                matchedPlayers: null,
+                winners: null
+            });
+        });
+
+        function updateControlPanel(data) {
+            const areaDraw = document.getElementById('area-draw');
+            const areaJudge = document.getElementById('area-judge');
+            const wordDisplay = document.getElementById('word-display');
+            const statusText = document.getElementById('control-status');
+
+            if (['idle', 'wrong', 'round_done'].includes(data.status)) {
+                areaDraw.style.display = 'block';
+                areaJudge.style.display = 'none';
+                statusText.textContent = data.status === 'idle' ? '請點擊下方按鈕抽出第一位學生' : '本回合結束，請抽下一位學生';
+            } else if (data.status === 'drawing') {
+                areaDraw.style.display = 'none';
+                areaJudge.style.display = 'none';
+                statusText.textContent = '🎲 大屏正在執行抽籤動畫...';
+            } else if (data.status === 'selecting') {
+                areaDraw.style.display = 'none';
+                areaJudge.style.display = 'block';
+                wordDisplay.style.display = 'none';
+                const p = data.players?.[data.currentDrawer];
+                document.getElementById('current-student-name').textContent = p ? `${p.seatNo}號 ${p.name}` : '';
+                statusText.textContent = '等待該名學生在平板點選並唸出語詞...';
+            } else if (data.status === 'judging') {
+                areaDraw.style.display = 'none';
+                areaJudge.style.display = 'block';
+                wordDisplay.style.display = 'block';
+                const p = data.players?.[data.currentDrawer];
+                document.getElementById('current-student-name').textContent = p ? `${p.seatNo}號 ${p.name}` : '';
+                document.getElementById('judge-lomaji').textContent = data.selectedCell?.lomaji || '';
+                document.getElementById('judge-hanzi').textContent = `（漢字參考：${data.selectedCell?.hanzi || ''}）`;
+                statusText.textContent = '請聽學生發音並評判：';
+            } else if (data.status === 'matching') {
+                areaDraw.style.display = 'none';
+                areaJudge.style.display = 'none';
+                statusText.textContent = '⏳ 大屏正在倒數 8 秒讓全班搶答相同語詞...';
+            }
+        }
+
+        document.getElementById('btn-draw').addEventListener('click', async () => {
+            const players = Object.keys(roomData.players || {});
+            if (players.length === 0) return;
+            const randomSeat = players[Math.floor(Math.random() * players.length)];
+            await update(ref(db, 'gameRoom'), {
+                currentDrawer: randomSeat,
+                selectedCell: null,
+                matchedPlayers: null,
+                roundId: Date.now(),
+                status: 'drawing'
+            });
+        });
+
+        document.getElementById('btn-correct').addEventListener('click', async () => {
+            const seatNo = roomData.currentDrawer;
+            const cellIndex = roomData.selectedCell.index;
+            await update(ref(db, `gameRoom/players/${seatNo}/board/${cellIndex}`), { locked: true });
+            await update(ref(db, 'gameRoom'), {
+                status: 'matching',
+                matchEndTime: Date.now() + 8000,
+                matchedPlayers: {}
+            });
+        });
+
+        document.getElementById('btn-wrong').addEventListener('click', async () => {
+            await update(ref(db, 'gameRoom'), {
+                status: 'wrong',
+                selectedCell: null
+            });
+        });
+
+        document.getElementById('btn-retry').addEventListener('click', async () => {
+            await update(ref(db, 'gameRoom'), {
+                status: 'selecting',
+                selectedCell: null
+            });
+        });
+
+        document.getElementById('btn-skip').addEventListener('click', async () => {
+            await update(ref(db, 'gameRoom'), {
+                status: 'idle',
+                currentDrawer: null,
+                selectedCell: null
+            });
+        });
+
+        document.getElementById('btn-confirm-end').addEventListener('click', () => {
+            document.getElementById('step-confirm').style.display = 'none';
+            document.getElementById('step-next-game').style.display = 'block';
+        });
+
+        document.getElementById('btn-next-yes').addEventListener('click', async () => {
+            document.getElementById('step-confirm').style.display = 'block';
+            document.getElementById('step-next-game').style.display = 'none';
+            
+            const keptPlayers = { ...(roomData.players || {}) };
+            Object.keys(keptPlayers).forEach(seat => {
+                keptPlayers[seat].board = [];
+            });
+
+            await update(ref(db, 'gameRoom'), {
+                status: 'waiting',
+                players: keptPlayers,
+                currentDrawer: null,
+                selectedCell: null,
+                matchedPlayers: null,
+                winners: null
+            });
+        });
+
+        document.getElementById('btn-next-no').addEventListener('click', () => {
+            alert('感謝遊玩！您可以直接關閉此頁面。');
+        });
+    </script>
+</body>
+</html>
