@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>台語賓果 - 學生平板</title>
+    <!-- 引入豆腐黑體 (Tauhu-Oo) 官方字型 -->
+    <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
+    <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'tauhu-oo', 'tauhu-oo-bold', 'Noto Sans TC', sans-serif; }
+        body { margin: 0; padding: 15px; background: #0f172a; color: white; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
+        .card { background: #1e293b; padding: 22px; border-radius: 16px; max-width: 540px; width: 100%; margin: 10px auto; box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
+        input { width: 100%; padding: 12px 10px; margin: 6px 0; border-radius: 10px; border: 2px solid #475569; background: #0f172a; color: white; font-size: 1rem; text-align: center; }
+        input::placeholder { color: #94a3b8; font-size: 0.85rem; }
+        .dual-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+        .btn { width: 100%; padding: 15px; font-size: 1.3rem; font-weight: bold; border: none; border-radius: 12px; background: #3b82f6; color: white; cursor: pointer; margin-top: 10px; }
+        
+        .header-bar { display: flex; justify-content: space-between; align-items: center; max-width: 550px; margin: 0 auto 10px auto; background: #1e293b; padding: 10px 15px; border-radius: 12px; font-size: 1.05rem; font-weight: bold; gap: 8px; flex-wrap: wrap; }
+        .btn-theme { padding: 6px 12px; font-size: 0.9rem; font-weight: bold; border-radius: 8px; border: 1px solid #64748b; background: #334155; color: #f8fafc; cursor: pointer; }
+        .status-banner { max-width: 550px; margin: 0 auto 12px auto; padding: 12px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; background: #334155; }
+        .status-banner.my-turn { background: #16a34a; color: white; animation: pulse 1s infinite alternate; }
+        .status-banner.matching { background: #d97706; color: white; }
+        .status-banner.penalty { background: #dc2626; color: white; }
+
+        /* 學生自主複習生詞列表設計 */
+        .review-container { max-width: 550px; margin: 0 auto; }
+        .review-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+        .review-row { background: #1e293b; transition: all 0.2s; box-shadow: 0 3px 8px rgba(0,0,0,0.25); }
+        .review-row td { padding: 16px 14px; border-top: 2px solid #334155; border-bottom: 2px solid #334155; cursor: pointer; user-select: none; }
+        .review-row td:first-child { border-left: 2px solid #334155; border-right: 1px solid #334155; border-radius: 12px 0 0 12px; font-size: 1.45rem; font-weight: 900; color: #f8fafc; width: 42%; text-align: center; }
+        .review-row td:last-child { border-right: 2px solid #334155; border-radius: 0 12px 12px 0; font-size: 1.25rem; font-weight: bold; color: #38bdf8; width: 58%; text-align: left; padding-left: 20px; }
+        .review-row:active { transform: scale(0.98); }
+        .review-row.playing td { background: #451a03; border-color: #f59e0b; }
+        .review-row.playing td:first-child { color: #fde047; }
+        .review-row.playing td:last-child { color: #fcd34d; }
+
+        /* 賓果表共用與 4 種高對比配色 */
+        .bingo-grid { display: grid; gap: 8px; max-width: 550px; margin: 0 auto; padding: 12px; border-radius: 16px; transition: background 0.3s; }
+        .cell { aspect-ratio: 1; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding: 4px; font-size: 1.15rem; font-weight: bold; cursor: pointer; word-break: break-word; user-select: none; border: 2px solid transparent; transition: all 0.15s; }
+        .cell.locked { font-size: 1.6rem; cursor: default; }
+
+        /* 配色 0：經典深灰 */
+        .bingo-grid.theme-0 { background: #1e293b; }
+        .bingo-grid.theme-0 .cell { background: #334155; color: #f8fafc; border-color: #64748b; }
+        .bingo-grid.theme-0 .cell.selected-pending { background: #3b82f6; color: #ffffff; border-color: #93c5fd; }
+        .bingo-grid.theme-0 .cell.locked { background: #f59e0b; color: #ffffff; border-color: #fde047; }
+
+        /* 配色 1：翠綠森林 */
+        .bingo-grid.theme-1 { background: #022c22; }
+        .bingo-grid.theme-1 .cell { background: #065f46; color: #ecfdf5; border-color: #10b981; }
+        .bingo-grid.theme-1 .cell.selected-pending { background: #8b5cf6; color: #ffffff; border-color: #ddd6fe; }
+        .bingo-grid.theme-1 .cell.locked { background: #e11d48; color: #ffffff; border-color: #fda4af; }
+
+        /* 配色 2：星空紫藍 */
+        .bingo-grid.theme-2 { background: #1e1b4b; }
+        .bingo-grid.theme-2 .cell { background: #3730a3; color: #eef2ff; border-color: #818cf8; }
+        .bingo-grid.theme-2 .cell.selected-pending { background: #0891b2; color: #ffffff; border-color: #a5f3fc; }
+        .bingo-grid.theme-2 .cell.locked { background: #16a34a; color: #ffffff; border-color: #86efac; }
+
+        /* 配色 3：暖陽可可 */
+        .bingo-grid.theme-3 { background: #271206; }
+        .bingo-grid.theme-3 .cell { background: #7c2d12; color: #fff7ed; border-color: #fb923c; }
+        .bingo-grid.theme-3 .cell.selected-pending { background: #4f46e5; color: #ffffff; border-color: #c7d2fe; }
+        .bingo-grid.theme-3 .cell.locked { background: #0284c7; color: #ffffff; border-color: #7dd3fc; }
+
+        /* 頁尾版權、計數器與右下角版本號 */
+        .footer { position: relative; margin-top: 25px; padding-top: 10px; border-top: 1px solid #1e293b; text-align: center; color: #64748b; font-size: 11px; line-height: 1.4; max-width: 550px; width: 100%; margin-left: auto; margin-right: auto; }
+        .footer p { margin: 2px 0; }
+        .counter-container { margin-top: 4px; opacity: 0.7; }
+        .counter-container img { height: 16px; }
+        .version-tag { position: absolute; right: 4px; bottom: 4px; font-size: 11px; color: #64748b; font-weight: bold; }
+
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.03); } }
+    </style>
+</head>
+<body>
+
+    <div>
+        <div id="view-login" class="card">
+            <h2>📝 進入台語賓果房間</h2>
+            <input type="number" id="input-pin" placeholder="房間 PIN 碼 (4位數)" autocomplete="off">
+            <input type="text" id="input-class" placeholder="班級(例如701)" autocomplete="off">
+            <div class="dual-row">
+                <input type="number" id="input-seat1" placeholder="座號1(確實填寫以維護權益)" autocomplete="off">
+                <input type="number" id="input-seat2" placeholder="座號2(無則免填)" autocomplete="off">
+            </div>
+            <div class="dual-row">
+                <input type="text" id="input-name1" placeholder="姓名1(確實填寫以維護權益)" autocomplete="off">
+                <input type="text" id="input-name2" placeholder="姓名2(無則免填)" autocomplete="off">
+            </div>
+            <input type="text" id="input-tablet" placeholder="平板編號(請正確輸入，以免影響權益)" autocomplete="off">
+            <button id="btn-join" class="btn">加入遊戲</button>
+        </div>
+
+        <div id="view-pending-approval" class="card" style="display: none;">
+            <div style="font-size: 3.5rem;">🙋‍♂️</div>
+            <h2>正在等待老師確認...</h2>
+            <p style="font-size: 1.2rem; color: #fde047; font-weight: bold;">⏳ 請稍候，正在等待老師在手機上按「允許」</p>
+        </div>
+
+        <div id="view-waiting" class="card" style="display: none;">
+            <div id="my-avatar" style="font-size: 4rem;">🙂</div>
+            <h2 id="welcome-text"></h2>
+            <p id="sub-info-text" style="color: #94a3b8; margin-top: -10px;"></p>
+            <p style="font-size: 1.3rem; color: #38bdf8; font-weight: bold;">⏳ 等待老師開始遊戲...</p>
+        </div>
+
+        <div id="view-review" style="display: none;">
+            <div class="header-bar">
+                <span id="review-player-info"></span>
+                <span id="review-pin-info" style="color: #94a3b8; font-size: 0.9rem;"></span>
+            </div>
+            <div class="status-banner" style="background: #4f46e5; color: white;">
+                🎧 自主複習：點選「漢字」或「羅馬字」聽發音
+            </div>
+            <div class="review-container">
+                <table class="review-table">
+                    <tbody id="student-review-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-game" style="display: none;">
+            <div class="header-bar">
+                <span id="game-player-info"></span>
+                <div>
+                    <button id="btn-switch-theme" class="btn-theme">🎨 換配色</button>
+                    <span id="game-pin-info" style="color: #94a3b8; font-size: 0.9rem; margin-left: 6px;"></span>
+                </div>
+            </div>
+            <div id="student-banner" class="status-banner">等待老師抽籤...</div>
+            <div id="student-board" class="bingo-grid theme-0"></div>
+        </div>
+
+        <div id="view-ended" class="card" style="display: none; background: #065f46; border: 3px solid #34d399;">
+            <h1 style="font-size: 2.5rem; margin: 10px 0;">🎉 BINGO 🎉</h1>
+            <p id="student-winner-text" style="font-size: 1.8rem; font-weight: bold; color: #fde047;"></p>
+            <p style="color: #d1fae5;">平板已鎖定，請看教室大屏！</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
+            Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
+            未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
+        </p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+        <div class="version-tag">Ver. 2.3</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, update, remove, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6GwHly2Rwvu-NiJMgR7IWZXhXnfFMb8g",
+            authDomain: "bingo-79a84.firebaseapp.com",
+            projectId: "bingo-79a84",
+            databaseURL: "https://bingo-79a84-default-rtdb.asia-southeast1.firebasedatabase.app",
+            storageBucket: "bingo-79a84.firebasestorage.app",
+            messagingSenderId: "298491471622",
+            appId: "1:298491471622:web:7e30bd2e6c326c46e92087"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const AVATARS = ['🐶','🐱','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐧','🐤','🦄','🐝','🐢','🐙','🐬'];
+        let mySeatNo = '';
+        let currentRoom = null;
+        let lastRoundId = null;
+        let hasAttemptedThisRound = false;
+        let penaltyThisRound = false;
+        let isListening = false;
+
+        function formatPlayerTitle(p) {
+            if (!p) return '';
+            if (p.seatNo2 && p.name2) {
+                return `${p.seatNo}號 ${p.name} & ${p.seatNo2}號 ${p.name2}`;
+            }
+            return `${p.seatNo}號 ${p.name}`;
+        }
+
+        function formatPlayerNamesOnly(p) {
+            if (!p) return '';
+            if (p.seatNo2 && p.name2) {
+                return `${p.name}&${p.name2}`;
+            }
+            return p.name;
+        }
+
+        let currentAudio = null;
+        function playVocabAudio(audioUrl, rowEl) {
+            document.querySelectorAll('.review-row').forEach(r => r.classList.remove('playing'));
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            if (!audioUrl) return;
+            rowEl.classList.add('playing');
+            currentAudio = new Audio(audioUrl);
+            currentAudio.play().catch(err => console.warn('音檔播放失敗：', err));
+            currentAudio.onended = () => {
+                rowEl.classList.remove('playing');
+            };
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('pin')) {
+            document.getElementById('input-pin').value = urlParams.get('pin');
+        }
+
+        document.getElementById('btn-switch-theme').addEventListener('click', async () => {
+            if (!currentRoom || !mySeatNo) return;
+            const me = currentRoom.players?.[mySeatNo];
+            if (!me) return;
+            const currentTheme = me.theme !== undefined ? me.theme : (Number(mySeatNo) % 4);
+            const nextTheme = (currentTheme + 1) % 4;
+            await update(ref(db, `gameRoom/players/${mySeatNo}`), { theme: nextTheme });
+        });
+
+        function hideAllViews() {
+            ['view-login', 'view-pending-approval', 'view-waiting', 'view-review', 'view-game', 'view-ended'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+        }
+
+        document.getElementById('btn-join').addEventListener('click', async () => {
+            const pin = document.getElementById('input-pin').value.trim();
+            const classNo = document.getElementById('input-class').value.trim();
+            const seat1 = document.getElementById('input-seat1').value.trim();
+            const seat2 = document.getElementById('input-seat2').value.trim();
+            const name1 = document.getElementById('input-name1').value.trim();
+            const name2 = document.getElementById('input-name2').value.trim();
+            const tabletNo = document.getElementById('input-tablet').value.trim();
+
+            if (!pin || !classNo || !seat1 || !name1 || !tabletNo) {
+                alert('請完整填寫必填欄位（PIN碼、班級、座號1、姓名1、平板編號）！');
+                return;
+            }
+
+            if ((seat2 && !name2) || (!seat2 && name2)) {
+                alert('若為雙人同組，請同時填寫「座號2」與「姓名2」；若為單人遊玩，請將右欄保持空白！');
+                return;
+            }
+
+            if (seat2 && seat1 === seat2) {
+                alert('座號1 與 座號2 不能相同！');
+                return;
+            }
+
+            const snap = await get(ref(db, 'gameRoom'));
+            const room = snap.val();
+            if (!room || room.pin !== pin) {
+                alert('找不到該 PIN 碼的房間，請確認大屏上的號碼！');
+                return;
+            }
+
+            mySeatNo = seat1;
+            const existingPlayer = room.players?.[seat1];
+
+            const isExactFourFieldMatch = existingPlayer &&
+                String(existingPlayer.seatNo) === seat1 &&
+                String(existingPlayer.name) === name1 &&
+                String(existingPlayer.seatNo2 || '') === seat2 &&
+                String(existingPlayer.name2 || '') === name2;
+
+            if (room.status === 'waiting' || isExactFourFieldMatch) {
+                const avatar = existingPlayer?.avatar || AVATARS[Number(seat1) % AVATARS.length];
+                const theme = existingPlayer?.theme !== undefined ? existingPlayer.theme : (Number(seat1) % 4);
+                const board = existingPlayer?.board || [];
+
+                await update(ref(db, `gameRoom/players/${seat1}`), {
+                    classNo: classNo,
+                    seatNo: seat1,
+                    name: (name1 || '').normalize('NFC'),
+                    seatNo2: seat2,
+                    name2: (name2 || '').normalize('NFC'),
+                    tabletNo: tabletNo,
+                    avatar: avatar,
+                    theme: theme,
+                    board: board
+                });
+
+                hideAllViews();
+                startListeningIfNeeded();
+            } 
+            else {
+                await update(ref(db, `gameRoom/joinRequests/${seat1}`), {
+                    classNo: classNo,
+                    seatNo: seat1,
+                    name: (name1 || '').normalize('NFC'),
+                    seatNo2: seat2,
+                    name2: (name2 || '').normalize('NFC'),
+                    tabletNo: tabletNo,
+                    status: 'pending',
+                    requestedAt: Date.now()
+                });
+                hideAllViews();
+                document.getElementById('view-pending-approval').style.display = 'block';
+                startListeningIfNeeded();
+            }
+        });
+
+        function startListeningIfNeeded() {
+            if (isListening) return;
+            isListening = true;
+
+            onValue(ref(db, 'gameRoom'), async (snap) => {
+                const data = snap.val();
+                if (!data) return;
+                currentRoom = data;
+
+                const myReq = data.joinRequests?.[mySeatNo];
+                if (myReq && myReq.status === 'rejected') {
+                    await remove(ref(db, `gameRoom/joinRequests/${mySeatNo}`));
+                    alert('❌ 老師未允許此次加入或異動申請');
+                    hideAllViews();
+                    document.getElementById('view-login').style.display = 'block';
+                    return;
+                }
+                if (myReq && myReq.status === 'pending') {
+                    hideAllViews();
+                    document.getElementById('view-pending-approval').style.display = 'block';
+                    return;
+                }
+
+                const me = data.players?.[mySeatNo];
+                if (!me) {
+                    hideAllViews();
+                    document.getElementById('view-login').style.display = 'block';
+                    return;
+                }
+
+                if (data.roundId !== lastRoundId) {
+                    lastRoundId = data.roundId;
+                    hasAttemptedThisRound = false;
+                    penaltyThisRound = false;
+                }
+
+                hideAllViews();
+
+                if (data.status === 'waiting') {
+                    document.getElementById('view-waiting').style.display = 'block';
+                    document.getElementById('my-avatar').textContent = me.avatar;
+                    document.getElementById('welcome-text').textContent = formatPlayerTitle(me);
+                    document.getElementById('sub-info-text').textContent = `班級：${me.classNo} ｜ 平板：${me.tabletNo}`;
+                } else if (data.status === 'reviewing') {
+                    document.getElementById('view-review').style.display = 'block';
+                    renderStudentReviewList(data, me);
+                } else if (data.status === 'ended') {
+                    document.getElementById('view-ended').style.display = 'block';
+                    const winners = (data.winners || []).join('、');
+                    document.getElementById('student-winner-text').textContent = `恭喜 ${winners} BINGO！`;
+                } else {
+                    document.getElementById('view-game').style.display = 'block';
+                    renderStudentGame(data, me);
+                }
+            });
+        }
+
+        function renderStudentReviewList(data, me) {
+            document.getElementById('review-player-info').textContent = `${me.avatar} ${formatPlayerTitle(me)}`;
+            document.getElementById('review-pin-info').textContent = `平板:${me.tabletNo}`;
+
+            const tbody = document.getElementById('student-review-tbody');
+            tbody.innerHTML = '';
+
+            (data.vocabPool || []).forEach(word => {
+                const tr = document.createElement('tr');
+                tr.className = 'review-row';
+
+                const tdHanzi = document.createElement('td');
+                tdHanzi.textContent = (word.hanzi || '').normalize('NFC');
+
+                const tdLomaji = document.createElement('td');
+                tdLomaji.textContent = `🔊 ${(word.lomaji || '').normalize('NFC')}`;
+
+                const triggerPlay = () => playVocabAudio(word.audio, tr);
+                tdHanzi.addEventListener('click', triggerPlay);
+                tdLomaji.addEventListener('click', triggerPlay);
+
+                tr.appendChild(tdHanzi);
+                tr.appendChild(tdLomaji);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderStudentGame(data, me) {
+            document.getElementById('game-player-info').textContent = `${me.avatar} ${formatPlayerTitle(me)}`;
+            document.getElementById('game-pin-info').textContent = `平板:${me.tabletNo}`;
+
+            const banner = document.getElementById('student-banner');
+            banner.className = 'status-banner';
+            const isMyTurn = String(data.currentDrawer) === String(mySeatNo);
+
+            if (data.status === 'selecting') {
+                if (isMyTurn) {
+                    banner.textContent = '🎯 抽到你們了！請大聲唸出一個詞並點選該格';
+                    banner.classList.add('my-turn');
+                } else {
+                    const drawer = data.players?.[data.currentDrawer];
+                    banner.textContent = `請聽 ${drawer ? formatPlayerNamesOnly(drawer) : '同學'} 唸語詞...`;
+                }
+            } else if (data.status === 'judging') {
+                banner.textContent = isMyTurn ? '⏳ 等待老師評判發音...' : '⏳ 老師正在評判發音...';
+            } else if (data.status === 'matching') {
+                if (isMyTurn) {
+                    banner.textContent = '✅ 答對了！等待其他同學搶答...';
+                } else if (penaltyThisRound) {
+                    banner.textContent = '❌ 點選錯誤！本回合已取消搶答資格';
+                    banner.classList.add('penalty');
+                } else if (hasAttemptedThisRound) {
+                    banner.textContent = '🎉 成功找到相同語詞！';
+                    banner.classList.add('my-turn');
+                } else {
+                    banner.textContent = '⚡ 快！8秒內點選仝款語詞（限點一次）';
+                    banner.classList.add('matching');
+                }
+            } else if (data.status === 'wrong') {
+                banner.textContent = '😢 真可惜，等待老師抽下一位...';
+            } else {
+                banner.textContent = '🎲 等待老師抽籤...';
+            }
+
+            const boardEl = document.getElementById('student-board');
+            const size = data.gridSize || 3;
+            const themeIndex = me.theme !== undefined ? me.theme : (Number(mySeatNo) % 4);
+            boardEl.className = `bingo-grid theme-${themeIndex}`;
+            boardEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            boardEl.innerHTML = '';
+
+            (me.board || []).forEach((cell, idx) => {
+                const div = document.createElement('div');
+                div.className = 'cell' + (cell.locked ? ' locked' : '');
+                if (isMyTurn && data.status === 'judging' && data.selectedCell?.index === idx) {
+                    div.classList.add('selected-pending');
+                }
+                div.textContent = cell.locked ? (cell.hanzi || '').normalize('NFC') : (cell.lomaji || '').normalize('NFC');
+
+                div.addEventListener('click', () => handleCellClick(idx, cell, isMyTurn, me));
+                boardEl.appendChild(div);
+            });
+        }
+
+        async function handleCellClick(idx, cell, isMyTurn, me) {
+            if (!currentRoom || cell.locked) return;
+
+            if (isMyTurn && currentRoom.status === 'selecting') {
+                await update(ref(db, 'gameRoom'), {
+                    selectedCell: { index: idx, hanzi: cell.hanzi, lomaji: cell.lomaji },
+                    status: 'judging'
+                });
+            }
+            else if (!isMyTurn && currentRoom.status === 'matching') {
+                if (hasAttemptedThisRound) return;
+                hasAttemptedThisRound = true;
+
+                const targetLomaji = currentRoom.selectedCell?.lomaji;
+                if (cell.lomaji === targetLomaji) {
+                    await update(ref(db, `gameRoom/players/${mySeatNo}/board/${idx}`), { locked: true });
+                    await update(ref(db, `gameRoom/matchedPlayers/${mySeatNo}`), {
+                        seatNo: mySeatNo,
+                        name: formatPlayerNamesOnly(me),
+                        matchedAt: Date.now()
+                    });
+                } else {
+                    penaltyThisRound = true;
+                    renderStudentGame(currentRoom, currentRoom.players[mySeatNo]);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
