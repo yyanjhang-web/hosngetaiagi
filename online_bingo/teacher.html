@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台語賓果 - 教師裁判端</title>
+    <!-- 引入豆腐黑體 (Tauhu-Oo) 官方字型 -->
+    <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
+    <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'tauhu-oo', 'tauhu-oo-bold', 'Noto Sans TC', sans-serif; }
+        body { margin: 0; padding: 15px; background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); max-width: 500px; width: 100%; margin: 0 auto 15px auto; }
+        h2 { margin-top: 0; color: #0f172a; }
+        input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; border: 2px solid #cbd5e1; font-size: 1.2rem; text-align: center; }
+        
+        /* 頂部常駐資訊與管理選單列 */
+        .top-admin-bar { max-width: 500px; width: 100%; margin: 0 auto 12px auto; background: #1e293b; color: #f8fafc; padding: 10px 15px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+        .btn-gear { background: #334155; color: #fde047; border: 1px solid #64748b; padding: 7px 13px; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .btn-gear:active { transform: scale(0.96); }
+
+        .lesson-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .lesson-item { background: #e2e8f0; padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-weight: bold; cursor: pointer; }
+        .size-group { display: flex; gap: 10px; margin: 15px 0; }
+        .size-btn { flex: 1; padding: 12px; border: 2px solid #cbd5e1; border-radius: 10px; background: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        .size-btn.selected { border-color: #2563eb; background: #dbeafe; color: #1d4ed8; }
+        
+        .btn { width: 100%; padding: 15px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; margin-top: 10px; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: #2563eb; }
+        .btn-success { background: #10b981; }
+        .btn-danger { background: #ef4444; }
+        .btn-warning { background: #f59e0b; }
+        .btn-secondary { background: #64748b; }
+        .btn-purple { background: #8b5cf6; }
+        .judge-row { display: flex; gap: 10px; margin-top: 12px; }
+        
+        .word-box { background: #fef3c7; border: 2px solid #f59e0b; padding: 20px; border-radius: 12px; text-align: center; margin: 15px 0; }
+        .lomaji-text { font-size: 2.2rem; font-weight: 900; color: #b45309; }
+        .hanzi-hint { font-size: 1.2rem; color: #78350f; margin-top: 5px; }
+
+        /* 防手滑紅底白字強烈警告盒 */
+        .anti-slip-warning {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            color: #b91c1c;
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin: 14px 0 8px 0;
+            line-height: 1.4;
+        }
+
+        /* 彈窗共用樣式 */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); display: none; align-items: center; justify-content: center; z-index: 100; padding: 15px; }
+        .modal-box { background: white; padding: 22px; border-radius: 16px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 3px solid #f59e0b; max-height: 85vh; display: flex; flex-direction: column; }
+        
+        /* 管理選單內的學生列表 */
+        .manage-student-list { overflow-y: auto; max-height: 300px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px; text-align: left; }
+        .manage-student-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #f1f5f9; font-weight: bold; font-size: 1rem; }
+        .manage-student-item:last-child { border-bottom: none; }
+        .btn-kick-mini { background: #ef4444; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
+
+        .footer { position: relative; margin-top: 20px; padding-top: 10px; border-top: 1px solid #cbd5e1; text-align: center; color: #64748b; font-size: 11px; line-height: 1.4; max-width: 500px; width: 100%; margin-left: auto; margin-right: auto; }
+        .footer p { margin: 2px 0; }
+        .counter-container { margin-top: 4px; opacity: 0.8; }
+        .counter-container img { height: 16px; }
+        .version-tag { position: absolute; right: 4px; bottom: 4px; font-size: 11px; color: #64748b; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- 彈窗 1：新成員中途加入/異動審核彈窗 -->
+    <div id="modal-join-request" class="modal-overlay">
+        <div class="modal-box">
+            <h2 id="join-req-title" style="color: #d97706; margin-bottom: 8px;">🔔 新成員加入是否允許？</h2>
+            <p id="join-req-info" style="font-size: 1.2rem; font-weight: bold; color: #1e293b; margin: 12px 0;"></p>
+            <p id="join-req-sub" style="font-size: 0.95rem; color: #059669; font-weight: bold; margin: 6px 0;"></p>
+            <div class="judge-row">
+                <button id="btn-approve-join" class="btn btn-success" style="font-size: 1.3rem;">是（允許）</button>
+                <button id="btn-reject-join" class="btn btn-danger" style="font-size: 1.3rem;">否（拒絕）</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 彈窗 2：⚙️ 教師管理選單（名單剔除 & 結束複習 / 臨時中止遊戲） -->
+    <div id="modal-manage" class="modal-overlay">
+        <div class="modal-box" style="border-color: #3b82f6;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h2 style="margin: 0; font-size: 1.35rem;">⚙️ 班級管理選單</h2>
+                <button id="btn-close-manage" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">✕</button>
+            </div>
+
+            <div style="font-size: 0.95rem; color: #475569; text-align: left; font-weight: bold;">
+                👥 在場學生名單（共 <span id="manage-count">0</span> 組）：
+            </div>
+            <div id="manage-player-list" class="manage-student-list"></div>
+
+            <!-- 依據目前狀態動態顯示「立即結束複習」或「臨時中止遊戲」 -->
+            <div id="manage-action-area" style="margin-top: 8px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                <button id="btn-abort-review" class="btn btn-warning" style="display: none; margin-top: 0;">🛑 立即結束複習（回到大廳）</button>
+                <button id="btn-abort-game" class="btn btn-danger" style="display: none; margin-top: 0;">⏸️ 臨時中止遊戲（進入成績結算）</button>
+            </div>
+
+            <button id="btn-close-manage-bottom" class="btn btn-secondary" style="margin-top: 10px; padding: 12px;">關閉選單</button>
+        </div>
+    </div>
+
+    <div>
+        <!-- 畫面 0：教師密碼驗證鎖 -->
+        <div id="view-auth" class="card" style="text-align: center; margin-top: 40px;">
+            <h2>🔒 教師身分驗證</h2>
+            <p style="color: #475569;">請輸入教師專屬密碼以進入裁判畫面</p>
+            <input type="password" id="input-teacher-pwd" placeholder="請輸入密碼" autocomplete="off">
+            <button id="btn-auth-submit" class="btn btn-primary">驗證並進入</button>
+        </div>
+
+        <!-- 通過驗證後的主程式區 -->
+        <div id="teacher-main-app" style="display: none;">
+            
+            <!-- 常駐頂部管理列 -->
+            <div class="top-admin-bar">
+                <div>
+                    PIN: <strong id="room-pin" style="color: #38bdf8; font-size: 1.15rem;">----</strong>
+                    <span style="color: #cbd5e1; font-size: 0.9rem; margin-left: 8px;">(<span id="student-count">0</span> 組在場)</span>
+                </div>
+                <button id="btn-open-manage" class="btn-gear">⚙️ 管理選單</button>
+            </div>
+
+            <!-- 畫面 1：課別與圖表大小設定 -->
+            <div id="view-setup" class="card">
+                <h2>📋 遊戲設定（教師專用）</h2>
+                
+                <h3>1. 選擇課別詞庫（可複選）</h3>
+                <div id="lesson-container" class="lesson-list">正在從 Google 試算表讀取目錄...</div>
+
+                <h3>2. 選擇賓果圖大小</h3>
+                <div class="size-group">
+                    <button class="size-btn selected" data-size="3">3 x 3 (9格)</button>
+                    <button class="size-btn" data-size="4">4 x 4 (16格)</button>
+                    <button class="size-btn" data-size="5">5 x 5 (25格)</button>
+                </div>
+
+                <div class="judge-row">
+                    <button id="btn-start-review" class="btn btn-purple">📖 讓學生複習</button>
+                    <button id="btn-start-game" class="btn btn-primary">🚀 直接開始遊戲</button>
+                </div>
+            </div>
+
+            <!-- 畫面 1.5：學生自主複習監控畫面 -->
+            <div id="view-review" class="card" style="display: none; text-align: center;">
+                <h2>🎧 學生自主複習中</h2>
+                <p style="font-size: 1.15rem; color: #475569;">
+                    學生平板目前已顯示所選課別的生詞表，點擊即可聽發音練習。
+                </p>
+                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; margin: 15px 0;">
+                    <div>本局詞庫總數：<strong id="review-vocab-total" style="color: #2563eb;">0</strong> 個語詞</div>
+                    <div style="margin-top: 6px;">預定賓果大小：<strong id="review-grid-info" style="color: #059669;">3 x 3</strong></div>
+                </div>
+                <button id="btn-review-to-game" class="btn btn-primary" style="font-size: 1.35rem; padding: 18px;">🚀 結束複習，開始賓果遊戲</button>
+                <button id="btn-review-back" class="btn btn-secondary">🛑 立即結束複習（回到大廳）</button>
+            </div>
+
+            <!-- 畫面 2：裁判控制面板 -->
+            <div id="view-control" class="card" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h2 style="margin: 0;">⚖️ 教師裁判控制台</h2>
+                    <span id="draw-pool-badge" style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">籤筒剩餘: 0 組</span>
+                </div>
+                <div id="control-status" style="font-size: 1.1rem; color: #475569; margin-bottom: 10px;"></div>
+
+                <div id="area-draw">
+                    <button id="btn-draw" class="btn btn-primary" style="font-size: 1.5rem; padding: 25px;">🎲 抽籤選學生</button>
+                </div>
+
+                <div id="area-judge" style="display: none;">
+                    <div style="font-size: 1.25rem; font-weight: bold;">
+                        目前學生：<span id="current-student-name" style="color: #2563eb;"></span>
+                    </div>
+
+                    <div id="word-display" class="word-box" style="display: none;">
+                        <div id="judge-lomaji" class="lomaji-text"></div>
+                        <div id="judge-hanzi" class="hanzi-hint"></div>
+                        <div class="judge-row">
+                            <button id="btn-correct" class="btn btn-success" style="font-size: 2rem;">○ 正確</button>
+                            <button id="btn-wrong" class="btn btn-danger" style="font-size: 2rem;">✕ 錯誤</button>
+                        </div>
+                        <button id="btn-retry" class="btn btn-warning">↩️ 恢復重按（學生按錯格）</button>
+                    </div>
+
+                    <button id="btn-skip" class="btn btn-secondary">⏭️ 跳過該生（不在場/重抽）</button>
+                </div>
+            </div>
+
+            <!-- 畫面 3：正常 BINGO 結算確認 -->
+            <div id="view-ended" class="card" style="display: none; text-align: center;">
+                <h2>🎉 遊戲結束（BINGO）！</h2>
+                <p id="teacher-winner-msg" style="font-size: 1.3rem; font-weight: bold; color: #059669;"></p>
+                <div id="step-confirm">
+                    <button id="btn-confirm-end" class="btn btn-primary">確認</button>
+                </div>
+                <div id="step-next-game" style="display: none; margin-top: 15px;">
+                    <div class="anti-slip-warning">
+                        ⚠️ 請確認您已於大屏匯出成績，再按下方的離開按鈕！
+                    </div>
+                    <p style="font-size: 1.15rem; font-weight: bold; margin: 10px 0 5px 0;">請選擇下一步操作：</p>
+                    <button id="btn-next-yes" class="btn btn-success">🔄 回到大廳（再玩一局）</button>
+                    <button id="btn-next-review" class="btn btn-purple">📖 再讓學生複習一次</button>
+                    <button id="btn-next-no" class="btn btn-secondary">🚪 結束遊戲</button>
+                </div>
+            </div>
+
+            <!-- 畫面 4：臨時中止遊戲結算畫面 -->
+            <div id="view-aborted" class="card" style="display: none; text-align: center; border: 3px solid #f59e0b;">
+                <h2 style="color: #b45309;">🛑 已中止，可至大屏儲存成績</h2>
+                <p style="color: #475569; font-size: 1.05rem;">目前所有學生平板已鎖定凍結，大屏已顯示匯出成績按鈕。</p>
+                <div class="anti-slip-warning">
+                    ⚠️ 請確認您已於大屏匯出成績，再按下方的離開按鈕！
+                </div>
+                <button id="btn-aborted-lobby" class="btn btn-success">🔄 回到大廳（再玩一局）</button>
+                <button id="btn-aborted-terminate" class="btn btn-secondary">🚪 結束遊戲</button>
+            </div>
+
+            <!-- 畫面 5：遊戲已徹底結束（全員已踢出房間） -->
+            <div id="view-terminated" class="card" style="display: none; text-align: center;">
+                <h2>📢 遊戲已結束</h2>
+                <p style="color: #475569; font-size: 1.1rem;">大屏與學生平板皆已顯示「遊戲結束，請聽教師指示」，且所有學生已登出房間。</p>
+                <button id="btn-reopen-lobby" class="btn btn-primary">🔄 重新開啟大廳（迎接下一班）</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+        <p style="font-size: 10px; color: #64748b; margin-top: 2px;">
+            Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>
+            未經授權，嚴禁任何形式之重製、改作、散布或用於商業用途。
+        </p>
+        <div class="counter-container">
+            <a href="https://www.hitwebcounter.com/" target="_blank">
+                <img src="https://hitwebcounter.com/counter/counter.php?page=21440561&style=0008&nbdigits=6&type=page&initCount=0" title="Counters" border="0" />
+            </a>
+        </div>
+        <div class="version-tag">Ver. 2.4</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const SHEET_ID = "1pIB6s4APHncaES1E_fkymAohd855-cTBK3gGAAFzlEE";
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6GwHly2Rwvu-NiJMgR7IWZXhXnfFMb8g",
+            authDomain: "bingo-79a84.firebaseapp.com",
+            projectId: "bingo-79a84",
+            databaseURL: "https://bingo-79a84-default-rtdb.asia-southeast1.firebasedatabase.app",
+            storageBucket: "bingo-79a84.firebasestorage.app",
+            messagingSenderId: "298491471622",
+            appId: "1:298491471622:web:7e30bd2e6c326c46e92087"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const AVATARS = ['🐶','🐱','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐧','🐤','🦄','🐝','🐢','🐙','🐬'];
+        let selectedSize = 3;
+        let roomData = null;
+        let currentPendingRequest = null;
+
+        function formatPlayerTitle(p) {
+            if (!p) return '';
+            if (p.seatNo2 && p.name2) {
+                return `${p.seatNo}號 ${p.name} & ${p.seatNo2}號 ${p.name2}`;
+            }
+            return `${p.seatNo}號 ${p.name}`;
+        }
+
+        function verifyTeacherPassword() {
+            const pwd = document.getElementById('input-teacher-pwd').value.trim();
+            if (pwd === 'taigi') {
+                document.getElementById('view-auth').style.display = 'none';
+                document.getElementById('teacher-main-app').style.display = 'block';
+                loadCatalog();
+            } else {
+                alert('密碼錯誤，請重新輸入！');
+            }
+        }
+        document.getElementById('btn-auth-submit').addEventListener('click', verifyTeacherPassword);
+        document.getElementById('input-teacher-pwd').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') verifyTeacherPassword();
+        });
+
+        function parseCSV(text) {
+            return text.trim().split(/\r?\n/).map(line => {
+                return line.split(',').map(cell => cell.replace(/^"|"$/g, '').trim().normalize('NFC'));
+            });
+        }
+
+        async function loadCatalog() {
+            const container = document.getElementById('lesson-container');
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('目錄')}`;
+                const res = await fetch(url);
+                const text = await res.text();
+                const rows = parseCSV(text);
+                container.innerHTML = '';
+                rows.forEach(r => {
+                    const sheetName = r[0];
+                    if (sheetName) {
+                        const label = document.createElement('label');
+                        label.className = 'lesson-item';
+                        label.innerHTML = `<input type="checkbox" value="${sheetName}" style="transform: scale(1.3);"> ${sheetName}`;
+                        container.appendChild(label);
+                    }
+                });
+            } catch (e) {
+                container.textContent = '目錄讀取失敗，請確認試算表共用權限。';
+            }
+        }
+
+        document.querySelectorAll('.size-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedSize = Number(btn.dataset.size);
+            });
+        });
+
+        // ⚙️ 管理選單開關控制
+        const modalManage = document.getElementById('modal-manage');
+        document.getElementById('btn-open-manage').addEventListener('click', () => {
+            modalManage.style.display = 'flex';
+        });
+        document.getElementById('btn-close-manage').addEventListener('click', () => {
+            modalManage.style.display = 'none';
+        });
+        document.getElementById('btn-close-manage-bottom').addEventListener('click', () => {
+            modalManage.style.display = 'none';
+        });
+
+        // 管理選單內：立即結束複習回到大廳
+        document.getElementById('btn-abort-review').addEventListener('click', async () => {
+            if (!confirm('確定要立即結束複習並讓大屏與學生回到大廳嗎？')) return;
+            modalManage.style.display = 'none';
+            await update(ref(db, 'gameRoom'), { status: 'waiting' });
+        });
+
+        // 管理選單內：臨時中止遊戲並進入成績結算
+        document.getElementById('btn-abort-game').addEventListener('click', async () => {
+            if (!confirm('確定要臨時中止本局遊戲嗎？（中止後可至大屏儲存目前成績）')) return;
+            modalManage.style.display = 'none';
+            await update(ref(db, 'gameRoom'), {
+                status: 'aborted',
+                selectedCell: null
+            });
+        });
+
+        onValue(ref(db, 'gameRoom'), (snap) => {
+            roomData = snap.val();
+            if (!roomData) return;
+
+            document.getElementById('room-pin').textContent = roomData.pin || '----';
+            const players = Object.values(roomData.players || {}).sort((a, b) => Number(a.seatNo) - Number(b.seatNo));
+            document.getElementById('student-count').textContent = players.length;
+
+            // 更新管理選單內的名單與狀態按鈕
+            renderManageModal(players, roomData.status);
+
+            // 檢查中途加入申請
+            checkJoinRequests(roomData.joinRequests || {});
+
+            // 計算不放回籤筒目前剩餘有效組數
+            const allSeatKeys = Object.keys(roomData.players || {});
+            const validPool = Array.isArray(roomData.drawPool)
+                ? roomData.drawPool.map(String).filter(s => allSeatKeys.includes(s))
+                : [];
+            document.getElementById('draw-pool-badge').textContent = `本輪籤筒剩餘: ${validPool.length} / ${allSeatKeys.length} 組`;
+
+            const views = ['view-setup', 'view-review', 'view-control', 'view-ended', 'view-aborted', 'view-terminated'];
+            views.forEach(id => document.getElementById(id).style.display = 'none');
+
+            if (roomData.status === 'waiting') {
+                document.getElementById('view-setup').style.display = 'block';
+            } else if (roomData.status === 'reviewing') {
+                document.getElementById('view-review').style.display = 'block';
+                const size = roomData.gridSize || 3;
+                document.getElementById('review-vocab-total').textContent = (roomData.vocabPool || []).length;
+                document.getElementById('review-grid-info').textContent = `${size} x ${size} (${size * size}格)`;
+            } else if (roomData.status === 'ended') {
+                document.getElementById('view-ended').style.display = 'block';
+                const winners = (roomData.winners || []).join('、');
+                document.getElementById('teacher-winner-msg').textContent = `${winners} BINGO，請至大屏儲存成績`;
+            } else if (roomData.status === 'aborted') {
+                document.getElementById('view-aborted').style.display = 'block';
+            } else if (roomData.status === 'terminated') {
+                document.getElementById('view-terminated').style.display = 'block';
+            } else {
+                document.getElementById('view-control').style.display = 'block';
+                updateControlPanel(roomData);
+            }
+        });
+
+        // 渲染管理選單內的學生列表與剔除功能
+        function renderManageModal(playerList, status) {
+            document.getElementById('manage-count').textContent = playerList.length;
+            const listEl = document.getElementById('manage-player-list');
+            listEl.innerHTML = '';
+
+            if (playerList.length === 0) {
+                listEl.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:15px;">目前尚無學生在房間內</div>';
+            } else {
+                playerList.forEach(p => {
+                    const row = document.createElement('div');
+                    row.className = 'manage-student-item';
+                    row.innerHTML = `<span>${p.avatar || '🙂'} ${formatPlayerTitle(p)}</span>`;
+                    const kickBtn = document.createElement('button');
+                    kickBtn.className = 'btn-kick-mini';
+                    kickBtn.textContent = '剔除';
+                    kickBtn.addEventListener('click', async () => {
+                        if (!confirm(`確定要剔除「${formatPlayerTitle(p)}」嗎？`)) return;
+                        await remove(ref(db, `gameRoom/players/${p.seatNo}`));
+                        // 若剔除的剛好是正在作答的學生，自動重置回抽籤待機以免卡死
+                        if (roomData && String(roomData.currentDrawer) === String(p.seatNo) && ['drawing', 'selecting', 'judging'].includes(roomData.status)) {
+                            await update(ref(db, 'gameRoom'), {
+                                status: 'idle',
+                                currentDrawer: null,
+                                selectedCell: null
+                            });
+                        }
+                    });
+                    row.appendChild(kickBtn);
+                    listEl.appendChild(row);
+                });
+            }
+
+            const btnAbortReview = document.getElementById('btn-abort-review');
+            const btnAbortGame = document.getElementById('btn-abort-game');
+            const isGameRunning = ['idle', 'drawing', 'selecting', 'judging', 'wrong', 'matching', 'round_done'].includes(status);
+
+            btnAbortReview.style.display = (status === 'reviewing') ? 'block' : 'none';
+            btnAbortGame.style.display = isGameRunning ? 'block' : 'none';
+        }
+
+        function checkJoinRequests(requestsObj) {
+            const pendingList = Object.values(requestsObj).filter(r => r && r.status === 'pending');
+            const modal = document.getElementById('modal-join-request');
+            if (pendingList.length === 0) {
+                modal.style.display = 'none';
+                currentPendingRequest = null;
+                return;
+            }
+            currentPendingRequest = pendingList[0];
+            const existing = roomData?.players?.[currentPendingRequest.seatNo];
+
+            document.getElementById('join-req-title').textContent = existing
+                ? '🔔 成員異動/重連是否允許？'
+                : '🔔 新成員加入是否允許？';
+            document.getElementById('join-req-info').textContent =
+                `班級：${currentPendingRequest.classNo}｜${formatPlayerTitle(currentPendingRequest)}（平板：${currentPendingRequest.tabletNo}）`;
+            document.getElementById('join-req-sub').textContent = existing
+                ? `💡 允許後將保留 ${currentPendingRequest.seatNo}號 原有的賓果卡與翻牌進度`
+                : '';
+            modal.style.display = 'flex';
+        }
+
+        // 允許中途加入：若是全新成員，同步將其座號遞補進當前的虛擬籤筒 drawPool
+        document.getElementById('btn-approve-join').addEventListener('click', async () => {
+            if (!currentPendingRequest || !roomData) return;
+            const req = currentPendingRequest;
+            const seat = String(req.seatNo);
+            const existing = roomData.players?.[seat];
+
+            const avatar = existing?.avatar || AVATARS[Number(seat) % AVATARS.length];
+            const theme = existing?.theme !== undefined ? existing.theme : (Number(seat) % 4);
+            let board = existing?.board || [];
+
+            if ((!board || board.length === 0) && roomData.vocabPool && roomData.vocabPool.length > 0 && roomData.status !== 'waiting' && roomData.status !== 'reviewing') {
+                const size = roomData.gridSize || 3;
+                const needed = size * size;
+                board = [...roomData.vocabPool].sort(() => Math.random() - 0.5).slice(0, needed).map(w => ({
+                    hanzi: w.hanzi,
+                    lomaji: w.lomaji,
+                    audio: w.audio || '',
+                    locked: false
+                }));
+            }
+
+            await update(ref(db, `gameRoom/players/${seat}`), {
+                classNo: req.classNo,
+                seatNo: seat,
+                name: req.name,
+                seatNo2: req.seatNo2 || '',
+                name2: req.name2 || '',
+                tabletNo: req.tabletNo,
+                avatar: avatar,
+                theme: theme,
+                board: board
+            });
+
+            // 若為新加入的組別，自動將其補進本輪籤筒
+            if (!existing) {
+                const currentPool = Array.isArray(roomData.drawPool) ? roomData.drawPool.map(String) : [];
+                if (!currentPool.includes(seat)) {
+                    currentPool.push(seat);
+                    await update(ref(db, 'gameRoom'), { drawPool: currentPool });
+                }
+            }
+
+            await remove(ref(db, `gameRoom/joinRequests/${seat}`));
+        });
+
+        document.getElementById('btn-reject-join').addEventListener('click', async () => {
+            if (!currentPendingRequest) return;
+            const seat = String(currentPendingRequest.seatNo);
+            await update(ref(db, `gameRoom/joinRequests/${seat}`), { status: 'rejected' });
+        });
+
+        async function fetchSelectedVocabPool() {
+            const checked = Array.from(document.querySelectorAll('#lesson-container input:checked')).map(el => el.value);
+            if (checked.length === 0) {
+                alert('請至少勾選一個課別！');
+                return null;
+            }
+            if (!roomData || !roomData.players || Object.keys(roomData.players).length === 0) {
+                alert('目前還沒有學生加入房間喔！');
+                return null;
+            }
+
+            let vocabPool = [];
+            for (const sheet of checked) {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
+                const res = await fetch(url);
+                const rows = parseCSV(await res.text());
+                rows.forEach(r => {
+                    if (r[0] && r[1] && r[0] !== '漢字' && r[0] !== '台語漢字') {
+                        vocabPool.push({
+                            hanzi: (r[0] || '').normalize('NFC'),
+                            lomaji: (r[1] || '').normalize('NFC'),
+                            audio: r[2] || ''
+                        });
+                    }
+                });
+            }
+
+            const neededCells = selectedSize * selectedSize;
+            if (vocabPool.length < neededCells) {
+                alert('所選詞彙數量不足以填滿賓果表格');
+                return null;
+            }
+            return vocabPool;
+        }
+
+        document.getElementById('btn-start-review').addEventListener('click', async () => {
+            const vocabPool = await fetchSelectedVocabPool();
+            if (!vocabPool) return;
+
+            await update(ref(db, 'gameRoom'), {
+                gridSize: selectedSize,
+                vocabPool: vocabPool,
+                status: 'reviewing',
+                currentDrawer: null,
+                selectedCell: null,
+                matchedPlayers: null,
+                winners: null
+            });
+        });
+
+        document.getElementById('btn-start-game').addEventListener('click', async () => {
+            const vocabPool = await fetchSelectedVocabPool();
+            if (!vocabPool) return;
+            await distributeCardsAndStart(vocabPool, selectedSize);
+        });
+
+        document.getElementById('btn-review-to-game').addEventListener('click', async () => {
+            if (!roomData || !roomData.vocabPool) return;
+            const size = roomData.gridSize || selectedSize;
+            if (roomData.vocabPool.length < size * size) {
+                alert('所選詞彙數量不足以填滿賓果表格');
+                return;
+            }
+            await distributeCardsAndStart(roomData.vocabPool, size);
+        });
+
+        document.getElementById('btn-review-back').addEventListener('click', async () => {
+            await update(ref(db, 'gameRoom'), { status: 'waiting' });
+        });
+
+        // 派發賓果卡並初始化「不放回虛擬籤筒 (drawPool)」
+        async function distributeCardsAndStart(vocabPool, size) {
+            const neededCells = size * size;
+            const updatedPlayers = { ...(roomData.players || {}) };
+            const allSeatKeys = Object.keys(updatedPlayers);
+
+            allSeatKeys.forEach(seatNo => {
+                const shuffled = [...vocabPool].sort(() => Math.random() - 0.5).slice(0, neededCells);
+                updatedPlayers[seatNo].board = shuffled.map(w => ({
+                    hanzi: w.hanzi,
+                    lomaji: w.lomaji,
+                    audio: w.audio || '',
+                    locked: false
+                }));
+            });
+
+            // 將全班座號洗牌放進第一輪籤筒
+            const initialDrawPool = [...allSeatKeys].sort(() => Math.random() - 0.5);
+
+            await update(ref(db, 'gameRoom'), {
+                gridSize: size,
+                vocabPool: vocabPool,
+                players: updatedPlayers,
+                drawPool: initialDrawPool,
+                status: 'idle',
+                currentDrawer: null,
+                selectedCell: null,
+                matchedPlayers: null,
+                winners: null
+            });
+        }
+
+        function updateControlPanel(data) {
+            const areaDraw = document.getElementById('area-draw');
+            const areaJudge = document.getElementById('area-judge');
+            const wordDisplay = document.getElementById('word-display');
+            const statusText = document.getElementById('control-status');
+
+            if (['idle', 'wrong', 'round_done'].includes(data.status)) {
+                areaDraw.style.display = 'block';
+                areaJudge.style.display = 'none';
+                statusText.textContent = data.status === 'idle' ? '請點擊下方按鈕抽出第一位學生' : '本回合結束，請抽下一位學生';
+            } else if (data.status === 'drawing') {
+                areaDraw.style.display = 'none';
+                areaJudge.style.display = 'none';
+                statusText.textContent = '🎲 大屏正在執行抽籤動畫...';
+            } else if (data.status === 'selecting') {
+                areaDraw.style.display = 'none';
+                areaJudge.style.display = 'block';
+                wordDisplay.style.display = 'none';
+                const p = data.players?.[data.currentDrawer];
+                document.getElementById('current-student-name').textContent = formatPlayerTitle(p);
+                statusText.textContent = '等待該組學生在平板點選並唸出語詞...';
+            } else if (data.status === 'judging') {
+                areaDraw.style.display = 'none';
+                areaJudge.style.display = 'block';
+                wordDisplay.style.display = 'block';
+                const p = data.players?.[data.currentDrawer];
+                document.getElementById('current-student-name').textContent = formatPlayerTitle(p);
+                document.getElementById('judge-lomaji').textContent = (data.selectedCell?.lomaji || '').normalize('NFC');
+                document.getElementById('judge-hanzi').textContent = `（漢字參考：${(data.selectedCell?.hanzi || '').normalize('NFC')}）`;
+                statusText.textContent = '請聽學生發音並評判：';
+            } else if (data.status === 'matching') {
+                areaDraw.style.display = 'none';
+                areaJudge.style.display = 'none';
+                statusText.textContent = '⏳ 大屏正在倒數 8 秒讓全班搶答相同語詞...';
+            }
+        }
+
+        // 🎲 不放回公平抽籤邏輯（保證全班輪過一輪前絕不重複）
+        document.getElementById('btn-draw').addEventListener('click', async () => {
+            const allPlayers = Object.keys(roomData.players || {});
+            if (allPlayers.length === 0) return;
+
+            // 取出目前籤筒並過濾掉已被踢除的座號
+            let pool = Array.isArray(roomData.drawPool)
+                ? roomData.drawPool.map(String).filter(s => allPlayers.includes(s))
+                : [];
+
+            // 若籤筒已抽空，自動將全班重新洗牌倒回籤筒開啟新一輪
+            if (pool.length === 0) {
+                pool = [...allPlayers].sort(() => Math.random() - 0.5);
+                // 避免上一輪最後一位在下一輪第一抽馬上重複
+                if (pool.length > 1 && String(pool[0]) === String(roomData.currentDrawer)) {
+                    const first = pool.shift();
+                    pool.push(first);
+                }
+            }
+
+            // 從籤筒隨機抽出一組並將其從籤筒移除
+            const pickIndex = Math.floor(Math.random() * pool.length);
+            const chosenSeat = pool[pickIndex];
+            pool.splice(pickIndex, 1);
+
+            await update(ref(db, 'gameRoom'), {
+                currentDrawer: chosenSeat,
+                drawPool: pool,
+                selectedCell: null,
+                matchedPlayers: null,
+                roundId: Date.now(),
+                status: 'drawing'
+            });
+        });
+
+        document.getElementById('btn-correct').addEventListener('click', async () => {
+            const seatNo = roomData.currentDrawer;
+            const cellIndex = roomData.selectedCell.index;
+            await update(ref(db, `gameRoom/players/${seatNo}/board/${cellIndex}`), { locked: true });
+            await update(ref(db, 'gameRoom'), {
+                status: 'matching',
+                matchEndTime: Date.now() + 8000,
+                matchedPlayers: {}
+            });
+        });
+
+        document.getElementById('btn-wrong').addEventListener('click', async () => {
+            await update(ref(db, 'gameRoom'), {
+                status: 'wrong',
+                selectedCell: null
+            });
+        });
+
+        document.getElementById('btn-retry').addEventListener('click', async () => {
+            await update(ref(db, 'gameRoom'), {
+                status: 'selecting',
+                selectedCell: null
+            });
+        });
+
+        document.getElementById('btn-skip').addEventListener('click', async () => {
+            await update(ref(db, 'gameRoom'), {
+                status: 'idle',
+                currentDrawer: null,
+                selectedCell: null
+            });
+        });
+
+        document.getElementById('btn-confirm-end').addEventListener('click', () => {
+            document.getElementById('step-confirm').style.display = 'none';
+            document.getElementById('step-next-game').style.display = 'block';
+        });
+
+        // 共用動作 A：回到大廳（保留在場學生名單，清空賓果盤與成績，含防手滑二次確認）
+        async function returnToLobbyKeepPlayers() {
+            if (!confirm('成績即將清空，確定已儲存成績了嗎？')) return;
+
+            document.getElementById('step-confirm').style.display = 'block';
+            document.getElementById('step-next-game').style.display = 'none';
+            
+            const keptPlayers = { ...(roomData.players || {}) };
+            Object.keys(keptPlayers).forEach(seat => {
+                keptPlayers[seat].board = [];
+            });
+
+            await update(ref(db, 'gameRoom'), {
+                status: 'waiting',
+                players: keptPlayers,
+                drawPool: [],
+                currentDrawer: null,
+                selectedCell: null,
+                matchedPlayers: null,
+                winners: null
+            });
+        }
+
+        // 共用動作 B：結束遊戲（踢出所有學生，大屏與平板顯示「遊戲結束，請聽教師指示」）
+        async function terminateGameAndKickAll() {
+            if (!confirm('成績即將清空且所有學生將被移出房間，確定已於大屏儲存成績並要結束遊戲嗎？')) return;
+
+            document.getElementById('step-confirm').style.display = 'block';
+            document.getElementById('step-next-game').style.display = 'none';
+
+            await update(ref(db, 'gameRoom'), {
+                status: 'terminated',
+                players: null,
+                drawPool: null,
+                joinRequests: null,
+                currentDrawer: null,
+                selectedCell: null,
+                matchedPlayers: null,
+                winners: null
+            });
+        }
+
+        // 正常 BINGO 結算畫面的三個按鈕
+        document.getElementById('btn-next-yes').addEventListener('click', returnToLobbyKeepPlayers);
+        document.getElementById('btn-next-no').addEventListener('click', terminateGameAndKickAll);
+
+        document.getElementById('btn-next-review').addEventListener('click', async () => {
+            if (!confirm('成績即將清空並進入複習模式，確定已儲存成績了嗎？')) return;
+
+            document.getElementById('step-confirm').style.display = 'block';
+            document.getElementById('step-next-game').style.display = 'none';
+
+            const keptPlayers = { ...(roomData.players || {}) };
+            Object.keys(keptPlayers).forEach(seat => {
+                keptPlayers[seat].board = [];
+            });
+
+            await update(ref(db, 'gameRoom'), {
+                status: 'reviewing',
+                players: keptPlayers,
+                drawPool: [],
+                currentDrawer: null,
+                selectedCell: null,
+                matchedPlayers: null,
+                winners: null
+            });
+        });
+
+        // 臨時中止結算畫面的兩個按鈕
+        document.getElementById('btn-aborted-lobby').addEventListener('click', returnToLobbyKeepPlayers);
+        document.getElementById('btn-aborted-terminate').addEventListener('click', terminateGameAndKickAll);
+
+        // 遊戲已結束畫面的重新開啟大廳按鈕
+        document.getElementById('btn-reopen-lobby').addEventListener('click', async () => {
+            const newPin = Math.floor(1000 + Math.random() * 9000).toString();
+            await update(ref(db, 'gameRoom'), {
+                pin: newPin,
+                status: 'waiting',
+                players: {},
+                drawPool: [],
+                joinRequests: {},
+                currentDrawer: null,
+                selectedCell: null,
+                matchedPlayers: null,
+                winners: null
+            });
+        });
+    </script>
+</body>
+</html>
