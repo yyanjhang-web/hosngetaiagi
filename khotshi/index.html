@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>台語互動派題系統 - 學生端</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+    
+    :root { 
+        --primary: #5c7c99; --student: #f8fafc; --danger: #ef4444; --success: #22c55e; --accent: #93c5fd; 
+        --text-dark: #334155; --text-light: #94a3b8;
+        /* 選項色塊：沿用莫蘭迪的低飽和度，但加深明度，讓白字對比度 ≥ 4.5:1（教師端須同步） */
+        --c-red: #b0524f;   /* 磚紅 */
+        --c-blue: #4a78a0;  /* 灰藍 */
+        --c-yellow: #926d10;/* 赭黃 */
+        --c-green: #517d51; /* 苔綠 */
+        /* 底邊界顏色 */
+        --c-red-b: #8a3a38;
+        --c-blue-b: #345a7e;
+        --c-yellow-b: #6f5209;
+        --c-green-b: #3b5e3b;
+    }
+    
+    body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 20px; background: #f1f5f9; color: var(--text-dark); min-height: 100vh; position: relative; padding-bottom: 120px;}
+    .hidden { display: none !important; }
+    button { cursor: pointer; border-radius: 12px; border: none; font-weight: bold; transition: all 0.2s ease; font-family: 'Noto Sans TC', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+    button:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    
+    .version-tag { position: absolute; top: 10px; right: 10px; background: var(--text-light); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; }
+    .footer { position: absolute; bottom: 10px; left: 0; width: 100%; text-align: center; color: var(--text-light); font-size: 12px; line-height: 1.4; }
+    
+    #lobby { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .role-btn { padding: 14px 28px; font-size: 18px; margin: 10px auto; background: var(--primary); color: white; width: 85%; display: block;}
+    
+    .input-group { margin-bottom: 20px; text-align: left; width: 85%; margin-left: auto; margin-right: auto; }
+    .input-group label { display: block; font-size: 14px; color: var(--text-dark); margin-bottom: 8px; font-weight: bold;}
+    input[type="text"] { padding: 12px 15px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center; transition: border-color 0.3s ease;}
+    input[type="text"]:focus { outline: none; border-color: var(--accent); }
+    input:disabled { background-color: #f8fafc; cursor: not-allowed; color: var(--text-light); font-weight: bold; border-color: #f1f5f9;}
+
+    #studentView { max-width: 800px; margin: 0 auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); min-height: 60vh; display: flex; flex-direction: column; justify-content: center; position: relative;}
+    
+    /* 學生平板右上角資訊列：精準三行排版 */
+    .student-info-bar { position: absolute; top: 15px; right: 20px; text-align: right; line-height: 1.4; display: flex; flex-direction: column; align-items: flex-end;}
+    .info-line-1 { font-size: 13px; color: var(--text-light); font-weight: bold; }
+    .info-line-2 { font-size: 16px; font-weight: bold; color: var(--primary); margin: 2px 0;}
+    .info-line-3 { font-size: 13px; color: var(--text-dark); font-weight: bold;}
+
+    #studentQuestion { font-size: 26px; font-weight: bold; margin-bottom: 25px; color: var(--primary); line-height: 1.5; margin-top: 40px;}
+    #myAnswerDisplay { margin-bottom: 25px; font-size: 18px; font-weight: bold; color: var(--primary); min-height: 30px; padding: 10px; border-radius: 8px; background: #f8fafc;}
+    
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-bottom: 25px;}
+    .option-btn { padding: 25px 15px; font-size: 22px; color: white; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .option-btn span.shape { font-size: 32px; margin-right: 15px; width: 35px; text-align: center; color: white;}
+    .option-btn span.text { text-shadow: 1px 1px 2px rgba(0,0,0,0.3);}
+    
+    .opt-0 { background-color: var(--c-red); border-bottom: 5px solid var(--c-red-b); }
+    .opt-1 { background-color: var(--c-blue); border-bottom: 5px solid var(--c-blue-b); }
+    .opt-2 { background-color: var(--c-yellow); border-bottom: 5px solid var(--c-yellow-b); }
+    .opt-3 { background-color: var(--c-green); border-bottom: 5px solid var(--c-green-b); }
+    
+    .option-btn.selected { opacity: 1 !important; transform: scale(1.02); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-bottom-width: 2px; margin-top: 3px;}
+    .option-btn.dimmed { opacity: 0.4 !important; filter: grayscale(50%); cursor: not-allowed; }
+    .option-btn.reveal-correct { opacity: 1 !important; outline: 6px solid #4ade80; outline-offset: 2px;}
+    .option-btn.reveal-wrong { opacity: 0.3 !important; filter: grayscale(100%); }
+
+    .nav-btn { padding: 10px 20px; font-size: 16px; background: var(--text-light); color: white; }
+    .nav-btn:hover { background: #64748b; }
+    .nav-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+    
+    #offlineOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.95); color: var(--primary); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align:center;}
+  </style>
+</head>
+<body>
+  <div class="version-tag">Ver 2.18 (Student)</div>
+  
+  <div id="lobby">
+    <h1 style="color:var(--primary); margin-bottom: 5px;">台語互動派題系統</h1>
+    <h3 style="color:var(--text-light); margin-top: 0; margin-bottom: 30px;">考生報到</h3>
+    
+    <div class="input-group">
+        <label>試場編號</label>
+        <input type="text" id="pinInput" placeholder="輸入 4 碼編號">
+    </div>
+    <div class="input-group" style="display: flex; gap: 15px;">
+        <div style="flex: 1;">
+            <label>班級</label>
+            <input type="text" id="classInput" placeholder="例如：701">
+        </div>
+        <div style="flex: 1;">
+            <label>座號 <span style="font-size:11px; font-weight:normal; color:var(--text-light);">(個人或小組)</span></label>
+            <input type="text" id="seatInput" placeholder="例如：12">
+        </div>
+    </div>
+    <div class="input-group">
+        <label>真實姓名</label>
+        <input type="text" id="realNameInput" placeholder="輸入姓名 (必填)">
+    </div>
+    <div class="input-group">
+        <label>平板編號</label>
+        <input type="text" id="deviceInput" placeholder="例如：A15">
+    </div>
+
+    <button class="role-btn" onclick="joinAsStudent()" style="margin-top:30px; background:var(--accent); color:#0f172a;">進入教室</button>
+  </div>
+
+  <div id="studentView" class="hidden">
+    <div class="student-info-bar">
+      <div class="info-line-1" id="sPinDisplay">編號：----</div>
+      <div class="info-line-2" id="sNickname"></div>
+      <div class="info-line-3" id="sRealName"></div>
+    </div>
+    
+    <div id="studentMainContent">
+        <div id="studentQuestion">等待老師開始...</div>
+        <div id="myAnswerDisplay"></div>
+        <div id="optionsContainer" class="options-grid hidden"></div>
+        <div id="testNav" class="hidden" style="display: flex; justify-content: space-between; margin-top: 20px; align-items: center;">
+          <button class="nav-btn" onclick="navTest(-1)">上一題</button>
+          <span id="testProgress" style="font-size: 16px; font-weight: bold; color:var(--primary);"></span>
+          <button id="nextOrSubmitBtn" class="nav-btn" onclick="navTest(1)">下一題</button>
+        </div>
+    </div>
+    <audio id="studentAudio"></audio>
+  </div>
+
+  <div id="offlineOverlay" class="hidden">
+    <h1 style="font-size:40px; color:var(--danger); margin-bottom:10px;">臨時中止</h1>
+    <p style="font-size:18px;">老師大屏已離線，請等待重新連線...</p>
+  </div>
+
+  <div class="footer">
+    <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+    <p style="margin-top: 2px;">Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved.<br>未經授權，嚴禁重製、改作或商用。</p>
+  </div>
+
+  <script type="module">
+    const urlParams = new URLSearchParams(window.location.search);
+    const pinFromUrl = urlParams.get('pin');
+    if(pinFromUrl) {
+        document.getElementById('pinInput').value = pinFromUrl;
+        document.getElementById('pinInput').disabled = true; 
+    }
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyCXiyLVZfkGbKlBcFamVTjP3CfhSQfqy9c", authDomain: "tigitshikgiam.firebaseapp.com", databaseURL: "https://tigitshikgiam-default-rtdb.firebaseio.com", projectId: "tigitshikgiam", storageBucket: "tigitshikgiam.firebasestorage.app", messagingSenderId: "159559991455", appId: "1:159559991455:web:454559a0458d9ca461e2aa" };
+    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
+    
+    let selectedQuestions = [];
+    let myStudentId = null, roomMode = 'kahoot'; 
+    let currentSettings = { pin: '', showQuestion: true, status: 'waiting', audioSource: 'teacher', acceptAnswers: false };
+    let myTestAnswers = {}, hasSubmittedTest = false, myTestIndex = 0;
+    let testReviewStarted = false;   // 【線上測驗】是否已進入檢討畫面
+
+    // === 【線上測驗專用】依教師端狀態處理：時間到自動交卷、進入檢討 ===
+    // 選過的答案在點選當下就已存入資料庫，所以這裡只需要把畫面鎖住，不需要再補送答案。
+    function handleTestModeSettings() {
+      const s = currentSettings;
+      if(s.status === 'waiting') { testReviewStarted = false; return; }
+
+      // 收卷（時間到／老師提前收卷）但學生沒按交卷 → 視為已交卷
+      if(s.status === 'testing' && s.acceptAnswers === false && !hasSubmittedTest) {
+        hasSubmittedTest = true;
+        document.getElementById('studentQuestion').innerText = "作答時間結束，系統已自動為你交卷，請看大屏聽老師講解。";
+        document.getElementById('optionsContainer').classList.add('hidden');
+        document.getElementById('myAnswerDisplay').innerText = "";
+        document.getElementById('testNav').classList.add('hidden');
+      }
+
+      // 老師開放檢討：從第 1 題開始顯示解答（只執行一次）
+      if(s.status === 'reviewing' && s.showAnswer && !testReviewStarted && selectedQuestions.length > 0) {
+        testReviewStarted = true;
+        hasSubmittedTest = true;
+        myTestIndex = 0;
+        document.getElementById('studentMainContent').classList.remove('hidden');
+        document.getElementById('optionsContainer').classList.remove('hidden');
+        document.getElementById('testNav').classList.remove('hidden');
+        renderTestQuestion();
+      }
+    }
+
+    // === 【經典模式專用】結束後進入回顧：補抓題庫與自己的作答，從第 1 題開始逐題檢討 ===
+    // 經典模式派題時，題庫比狀態更早寫入，學生當下還在「等待」狀態，所以題庫要在這裡補抓。
+    let kahootReviewStarted = false;
+    async function handleKahootModeSettings() {
+      const s = currentSettings;
+      if(s.status === 'waiting' || s.status === 'kahoot_active' || s.status === 'ended') { kahootReviewStarted = false; }
+      if(s.status === 'reviewing' && s.showAnswer && !kahootReviewStarted) {
+        kahootReviewStarted = true;
+        try {
+          if(!selectedQuestions || selectedQuestions.length === 0) {
+            const paperSnap = await get(ref(db, 'room/testPaper'));
+            if(paperSnap.exists()) selectedQuestions = paperSnap.val();
+          }
+          const mySnap = await get(ref(db, `room/testAnswers/${myStudentId}`));
+          const mine = mySnap.val() || {};
+          Object.keys(mine).forEach(k => { if(mine[k] && mine[k].answer !== undefined) myTestAnswers[k] = mine[k].answer; });
+        } catch(e) { console.error(e); }
+        if(!selectedQuestions || selectedQuestions.length === 0) { kahootReviewStarted = false; return; }
+        myTestIndex = 0;
+        document.getElementById('studentMainContent').classList.remove('hidden');
+        document.getElementById('optionsContainer').classList.remove('hidden');
+        document.getElementById('testNav').classList.remove('hidden');
+        renderTestQuestion();
+      }
+    }
+
+    const shapes = ["♣", "♦", "♥", "♠"];
+    
+    const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
+    const names = ["巴克禮", "馬偕", "甘為霖", "鄧雨賢", "蔡培火", "賴和", "蔣渭水", "林獻堂", "陳澄波", "李臨秋", "連橫", "伊能嘉矩", "王育德", "黃石輝", "郭秋生", "鄭兒玉", "林茂生", "楊逵", "吳濁流", "鍾理和"];
+    const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
+
+    function unlockAudio() { const stuAud = document.getElementById('studentAudio'); if(stuAud) { stuAud.play().then(() => stuAud.pause()).catch(e=>{}); } }
+
+    window.joinAsStudent = async () => {
+      unlockAudio();
+      const pin = document.getElementById('pinInput').value.trim();
+      const realName = document.getElementById('realNameInput').value.trim();
+      const stuClass = document.getElementById('classInput').value.trim() || "";
+      const seat = document.getElementById('seatInput').value.trim() || "";
+      const device = document.getElementById('deviceInput').value.trim() || "";
+      
+      if(!pin || !realName) return alert("請確認「編號」與「姓名」皆已填寫！");
+
+      const settingsSnap = await get(ref(db, 'room/settings'));
+      if(!settingsSnap.exists() || settingsSnap.val().pin !== pin) return alert("試場編號錯誤或考試未建立！");
+
+      const avatar = avatars[Math.floor(Math.random() * avatars.length)];
+      const nickname = adjs[Math.floor(Math.random() * adjs.length)] + names[Math.floor(Math.random() * names.length)]; 
+      
+      myStudentId = 'student_' + Date.now();
+      
+      const myRef = ref(db, `room/students/${myStudentId}`);
+      set(myRef, { realName, nickname, avatar, score: 0, class: stuClass, seat: seat, device: device, isAI: false });
+      onDisconnect(myRef).remove();
+
+      document.getElementById('lobby').classList.add('hidden');
+      document.getElementById('studentView').classList.remove('hidden');
+      
+      document.getElementById('sPinDisplay').innerText = `編號：${pin}`;
+      document.getElementById('sNickname').innerText = `${avatar} ${nickname}`;
+      
+      let realNameDisplay = "";
+      if(stuClass) realNameDisplay += `${stuClass} `;
+      if(seat) realNameDisplay += `${seat} `;
+      realNameDisplay += `${realName}`;
+      document.getElementById('sRealName').innerText = realNameDisplay;
+
+      onValue(myRef, snap => { if (!snap.exists()) { alert("已被移出！"); window.location.reload(); }});
+      listenToRoom();
+    };
+
+    function listenToRoom() {
+      onValue(ref(db, 'room/settings/teacherOnline'), snap => {
+         if(snap.val() === false) document.getElementById('offlineOverlay').classList.remove('hidden');
+         else document.getElementById('offlineOverlay').classList.add('hidden');
+      });
+
+      onValue(ref(db, 'room/settings'), snap => {
+        if(snap.exists()) {
+          currentSettings = snap.val();
+          roomMode = currentSettings.mode || 'kahoot';
+          
+          if(currentSettings.status === 'waiting') {
+            document.getElementById('studentQuestion').innerText = "等待老師開始...";
+            document.getElementById('optionsContainer').classList.add('hidden');
+            document.getElementById('myAnswerDisplay').innerText = "";
+            document.getElementById('testNav').classList.add('hidden');
+            document.getElementById('studentMainContent').classList.remove('hidden');
+            hasSubmittedTest = false; myTestAnswers = {};
+          }
+          
+          if(currentSettings.status === 'ended' && !currentSettings.showAnswer) {
+             document.getElementById('studentQuestion').innerText = "測驗已結束，請看大屏聽老師講解。";
+             document.getElementById('optionsContainer').classList.add('hidden');
+             document.getElementById('testNav').classList.add('hidden');
+          }
+
+          if(roomMode === 'test') handleTestModeSettings();
+          if(roomMode === 'kahoot') handleKahootModeSettings();
+          updateStudentUI();
+        }
+      });
+
+      onValue(ref(db, 'room/currentKahootQ'), snap => {
+        if(roomMode === 'kahoot' && snap.exists() && currentSettings.status === 'kahoot_active') renderStudentQuestion(snap.val());
+      });
+
+      onValue(ref(db, 'room/testPaper'), snap => {
+        if(snap.exists() && currentSettings.status !== 'waiting') {
+          selectedQuestions = snap.val();
+          
+          if(currentSettings.status === 'testing' && !hasSubmittedTest) {
+              myTestIndex = 0;
+              document.getElementById('studentMainContent').classList.remove('hidden');
+              document.getElementById('testNav').classList.remove('hidden');
+              renderTestQuestion();
+          }
+          
+          if(currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
+              myTestIndex = 0; 
+              document.getElementById('studentMainContent').classList.remove('hidden');
+              document.getElementById('optionsContainer').classList.remove('hidden');
+              document.getElementById('testNav').classList.remove('hidden');
+              renderTestQuestion(); 
+          }
+        }
+      });
+    }
+
+    function renderStudentQuestion(qData) {
+      if(hasSubmittedTest && !currentSettings.showAnswer && currentSettings.status !== 'reviewing') return;
+      
+      if(currentSettings.status === 'reviewing') {
+          document.getElementById('studentQuestion').innerText = qData.question || qData.q;
+      } else {
+          document.getElementById('studentQuestion').innerText = currentSettings.showQuestion ? (qData.question || qData.q) : "請看大屏題目作答";
+      }
+      
+      document.getElementById('myAnswerDisplay').innerText = ""; 
+      
+      const optC = document.getElementById('optionsContainer');
+      optC.innerHTML = ''; 
+      
+      if (qData.options && qData.options.length > 0) {
+          optC.classList.remove('hidden');
+          qData.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = `option-btn opt-${idx % 4}`;
+            
+            // 修正 3：只有 kahoot 模式才顯示撲克花色，test 模式純文字
+            if (roomMode === 'kahoot') {
+                btn.innerHTML = `<span class="shape">${shapes[idx % 4]}</span><span class="text">${opt}</span>`;
+            } else {
+                btn.innerHTML = `<span class="text">${opt}</span>`;
+            }
+            
+            btn.onclick = () => {
+                if(!currentSettings.acceptAnswers) return;
+                document.querySelectorAll('.option-btn').forEach(b => b.classList.add('dimmed'));
+                btn.classList.remove('dimmed');
+                btn.classList.add('selected');
+                submitAnswer(opt, btn, qData.questionId);
+            };
+            optC.appendChild(btn);
+          });
+      } else {
+          optC.classList.add('hidden');
+      }
+
+      if(qData.audio && currentSettings.audioSource === 'student') { document.getElementById('studentAudio').src = qData.audio; document.getElementById('studentAudio').play().catch(e=>{}); }
+      updateStudentUI();
+    }
+
+    function submitAnswer(selectedOpt, btnElement, qId) {
+      if(!currentSettings.acceptAnswers) return;
+      
+      if(roomMode === 'kahoot') {
+        myTestAnswers[currentSettings.kahootIndex] = selectedOpt;
+        set(ref(db, `room/kahootAnswers/${myStudentId}`), { answer: selectedOpt, time: Date.now() - currentSettings.qStartTime });
+        set(ref(db, `room/testAnswers/${myStudentId}/${currentSettings.kahootIndex}`), {answer: selectedOpt});
+        
+        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+        const praises = ["手腳誠猛喔！", "水啦！", "讚喔！", "繼續保持！", "等待結算中...", "好勢好勢！", "真有氣勢！"];
+        document.getElementById('myAnswerDisplay').innerHTML = `<span style="color:var(--text-light);">${praises[Math.floor(Math.random()*praises.length)]}</span>`;
+      } else {
+        myTestAnswers[myTestIndex] = selectedOpt;
+        set(ref(db, `room/testAnswers/${myStudentId}/${myTestIndex}`), {answer: selectedOpt});
+      }
+    }
+
+    window.navTest = (dir) => {
+      if(currentSettings.status !== 'reviewing') {
+          if(hasSubmittedTest && !currentSettings.showAnswer) return; 
+      }
+      
+      if(dir === 1 && myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') {
+          if(confirm("交卷後不得修改答案，確定交卷？")) {
+            hasSubmittedTest = true;
+            set(ref(db, `room/testAnswers/${myStudentId}/isSubmitted`), true);
+            document.getElementById('studentQuestion').innerText = "請靜待所有考生作答完畢，勿關閉此畫面。";
+            document.getElementById('optionsContainer').classList.add('hidden');
+            document.getElementById('myAnswerDisplay').innerText = "";
+            document.getElementById('testNav').classList.add('hidden');
+          }
+          return;
+      }
+      myTestIndex += dir;
+      if(myTestIndex < 0) myTestIndex = 0;
+      if(myTestIndex > selectedQuestions.length - 1) myTestIndex = selectedQuestions.length - 1;
+      renderTestQuestion();
+    };
+
+    function renderTestQuestion() {
+      if(selectedQuestions.length === 0) return;
+      const qData = selectedQuestions[myTestIndex];
+      document.getElementById('testProgress').innerText = `${myTestIndex + 1} / ${selectedQuestions.length}`;
+      const nBtn = document.getElementById('nextOrSubmitBtn');
+      
+      if(currentSettings.status === 'reviewing') {
+          if(myTestIndex === selectedQuestions.length - 1) { 
+              nBtn.innerText = "已到最後一題"; 
+              nBtn.style.background = "#e2e8f0"; 
+              nBtn.style.color = "#94a3b8"; 
+              nBtn.disabled = true; 
+          } else { 
+              nBtn.innerText = "下一題"; 
+              nBtn.style.background = "var(--text-light)"; 
+              nBtn.style.color = "white"; 
+              nBtn.disabled = false; 
+          }
+      // 修正 4：交卷按鈕只有在 testing 狀態下才顯示
+      } else if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') { 
+          nBtn.innerText = "交卷"; 
+          nBtn.style.background = "var(--danger)"; 
+          nBtn.style.color = "white"; 
+          nBtn.disabled = false;
+      } else { 
+          nBtn.innerText = "下一題"; 
+          nBtn.style.background = "var(--text-light)"; 
+          nBtn.style.color = "white"; 
+          nBtn.disabled = false;
+      }
+
+      renderStudentQuestion(qData);
+      
+      if(myTestAnswers[myTestIndex] && currentSettings.status !== 'reviewing') {
+        document.getElementById('myAnswerDisplay').innerHTML = `已選擇：<span style="color:var(--primary);">${myTestAnswers[myTestIndex]}</span>`;
+        document.querySelectorAll('.option-btn').forEach(b => {
+          const optText = b.querySelector('.text').innerText;
+          if(optText !== myTestAnswers[myTestIndex]) { b.classList.add('dimmed'); }
+          else { b.classList.add('selected'); }
+        });
+      }
+
+      if(currentSettings.showAnswer && currentSettings.status === 'reviewing') {
+          const cAns = qData.correctAnswer;
+          let isCorrect = false;
+          
+          document.querySelectorAll('.option-btn').forEach(b => {
+             b.disabled = true; 
+             const optText = b.querySelector('.text').innerText;
+             
+             if(optText === cAns) {
+                 b.classList.add('reveal-correct');
+                 if(myTestAnswers[myTestIndex] === cAns) isCorrect = true;
+             } else if (optText === myTestAnswers[myTestIndex]) {
+                 b.classList.add('reveal-wrong');
+             } else {
+                 b.classList.add('dimmed');
+             }
+          });
+          
+          const ansText = myTestAnswers[myTestIndex] ? myTestAnswers[myTestIndex] : "未作答";
+          document.getElementById('myAnswerDisplay').innerHTML = isCorrect ? `<span style="color:var(--success);">🟢 答對了！</span> 您的答案：${ansText}` : `<span style="color:var(--danger);">🔴 答錯了！</span> 您的答案：${ansText}`;
+      }
+    }
+
+    function updateStudentUI() {
+      if (!currentSettings.acceptAnswers && currentSettings.status === 'kahoot_active') {
+        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+      }
+      
+      if (currentSettings.status === 'reviewing' && currentSettings.showAnswer) {
+          document.getElementById('studentMainContent').classList.remove('hidden');
+          document.getElementById('optionsContainer').classList.remove('hidden');
+          document.getElementById('testNav').classList.remove('hidden'); 
+          
+          if (document.getElementById('optionsContainer').innerHTML === '') {
+             renderTestQuestion();
+          }
+      }
+      
+      if(currentSettings.status === 'kahoot_result' && roomMode === 'kahoot') {
+          document.getElementById('myAnswerDisplay').innerText = "";
+          document.querySelectorAll('.option-btn').forEach(b => {
+             b.disabled = true;
+             const optText = b.querySelector('.text').innerText;
+             if(optText === currentSettings.currentCorrect) b.classList.add('reveal-correct');
+             else b.classList.add('reveal-wrong'); 
+          });
+      }
+    }
+  </script>
+</body>
+</html>
