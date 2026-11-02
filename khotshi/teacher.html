@@ -389,7 +389,7 @@
 
     function generateQRCode(pin) {
         document.getElementById('qrcode').innerHTML = "";
-        const studentUrl = `https://yyanjhang-web.github.io/hosngetaiagi/tshikgiam/index.html?pin=${pin}`;
+        const studentUrl = `https://yyanjhang-web.github.io/khotshi/tshikgiam/index.html?pin=${pin}`;
         new QRCode(document.getElementById("qrcode"), { text: studentUrl, width: 64, height: 64, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.L });
     }
 
