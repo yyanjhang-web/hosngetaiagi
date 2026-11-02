@@ -6,6 +6,10 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <title>台語互動派題系統 - 學生端</title>
+  <!-- 引入豆腐黑體 (Tauhu-Oo) 官方字型，完美支援台羅聲調與罕用字 -->
+  <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
+  <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
     
@@ -22,11 +26,12 @@
         --c-blue-b: #345a7e;
         --c-yellow-b: #6f5209;
         --c-green-b: #3b5e3b;
+        --main-font: 'Tauhu-oo', 'Noto Sans TC', sans-serif;
     }
     
-    body { font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 20px; background: #f1f5f9; color: var(--text-dark); min-height: 100vh; position: relative; padding-bottom: 120px;}
+    body { font-family: var(--main-font); margin: 0; padding: 20px; background: #f1f5f9; color: var(--text-dark); min-height: 100vh; position: relative; padding-bottom: 120px;}
     .hidden { display: none !important; }
-    button { cursor: pointer; border-radius: 12px; border: none; font-weight: bold; transition: all 0.2s ease; font-family: 'Noto Sans TC', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+    button { cursor: pointer; border-radius: 12px; border: none; font-weight: bold; transition: all 0.2s ease; font-family: var(--main-font); box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
     button:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     
     .version-tag { position: absolute; top: 10px; right: 10px; background: var(--text-light); color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; }
@@ -37,7 +42,7 @@
     
     .input-group { margin-bottom: 20px; text-align: left; width: 85%; margin-left: auto; margin-right: auto; }
     .input-group label { display: block; font-size: 14px; color: var(--text-dark); margin-bottom: 8px; font-weight: bold;}
-    input[type="text"] { padding: 12px 15px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Noto Sans TC', sans-serif; width: 100%; box-sizing: border-box; text-align:center; transition: border-color 0.3s ease;}
+    input[type="text"] { padding: 12px 15px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: var(--main-font); width: 100%; box-sizing: border-box; text-align:center; transition: border-color 0.3s ease;}
     input[type="text"]:focus { outline: none; border-color: var(--accent); }
     input:disabled { background-color: #f8fafc; cursor: not-allowed; color: var(--text-light); font-weight: bold; border-color: #f1f5f9;}
 
@@ -75,30 +80,45 @@
   </style>
 </head>
 <body>
-  <div class="version-tag">Ver 2.18 (Student)</div>
+  <div class="version-tag">Ver 2.22 (Student)</div>
   
   <div id="lobby">
     <h1 style="color:var(--primary); margin-bottom: 5px;">台語互動派題系統</h1>
     <h3 style="color:var(--text-light); margin-top: 0; margin-bottom: 30px;">考生報到</h3>
     
+    <!-- 第 1 行：試場編號 -->
     <div class="input-group">
         <label>試場編號</label>
         <input type="text" id="pinInput" placeholder="輸入 4 碼編號">
     </div>
+    <!-- 第 2 行：僅保留班級 -->
+    <div class="input-group">
+        <label>班級</label>
+        <input type="text" id="classInput" placeholder="例如：701">
+    </div>
+    <!-- 第 3 行：座號1 與 座號2 -->
     <div class="input-group" style="display: flex; gap: 15px;">
         <div style="flex: 1;">
-            <label>班級</label>
-            <input type="text" id="classInput" placeholder="例如：701">
+            <label>座號1</label>
+            <input type="text" id="seatInput1" placeholder="第1位的座號">
         </div>
         <div style="flex: 1;">
-            <label>座號 <span style="font-size:11px; font-weight:normal; color:var(--text-light);">(個人或小組)</span></label>
-            <input type="text" id="seatInput" placeholder="例如：12">
+            <label>座號2</label>
+            <input type="text" id="seatInput2" placeholder="無則免填">
         </div>
     </div>
-    <div class="input-group">
-        <label>真實姓名</label>
-        <input type="text" id="realNameInput" placeholder="輸入姓名 (必填)">
+    <!-- 第 4 行：姓名1 與 姓名2 -->
+    <div class="input-group" style="display: flex; gap: 15px;">
+        <div style="flex: 1;">
+            <label>姓名1</label>
+            <input type="text" id="realNameInput1" placeholder="第1位的姓名">
+        </div>
+        <div style="flex: 1;">
+            <label>姓名2</label>
+            <input type="text" id="realNameInput2" placeholder="無則免填">
+        </div>
     </div>
+    <!-- 第 5 行：平板編號 -->
     <div class="input-group">
         <label>平板編號</label>
         <input type="text" id="deviceInput" placeholder="例如：A15">
@@ -146,24 +166,80 @@
     }
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
     const firebaseConfig = { apiKey: "AIzaSyCXiyLVZfkGbKlBcFamVTjP3CfhSQfqy9c", authDomain: "tigitshikgiam.firebaseapp.com", databaseURL: "https://tigitshikgiam-default-rtdb.firebaseio.com", projectId: "tigitshikgiam", storageBucket: "tigitshikgiam.firebasestorage.app", messagingSenderId: "159559991455", appId: "1:159559991455:web:454559a0458d9ca461e2aa" };
     const app = initializeApp(firebaseConfig); const db = getDatabase(app);
     
     let selectedQuestions = [];
     let myStudentId = null, roomMode = 'kahoot'; 
-    let currentSettings = { pin: '', showQuestion: true, status: 'waiting', audioSource: 'teacher', acceptAnswers: false };
+    let currentSettings = { pin: '', showQuestion: true, status: 'waiting', audioSource: 'teacher', acceptAnswers: false, roundId: 0 };
     let myTestAnswers = {}, hasSubmittedTest = false, myTestIndex = 0;
+    let testPaperRendered = false;   // 【線上測驗】是否已渲染本輪考卷選項
     let testReviewStarted = false;   // 【線上測驗】是否已進入檢討畫面
+    let kahootReviewStarted = false; // 【經典模式】是否已進入檢討畫面
+    let lastRoundId = 0;             // 追蹤測驗輪次，支援不重整網頁連續考第二輪
+    let latestKahootQ = null;        // 快取最新經典模式題目
+    let lastRenderedKahootIndex = -1;// 避免老師切換設定時洗掉學生已作答的按鈕狀態
+    let localQStartTime = 0;         // 使用學生本地時間差計算反應速度
+
+    // 注意：不可在 resetRoundState 清空 latestKahootQ 或 selectedQuestions，避免覆蓋剛抵達的題庫資料
+    function resetRoundState() {
+        hasSubmittedTest = false;
+        myTestAnswers = {};
+        myTestIndex = 0;
+        testPaperRendered = false;
+        testReviewStarted = false;
+        kahootReviewStarted = false;
+        lastRenderedKahootIndex = -1;
+    }
+
+    // 【經典模式專用】確保新題號與新題目內容完全同步後立即渲染
+    function tryRenderKahootQuestion() {
+        if(roomMode !== 'kahoot' || currentSettings.status !== 'kahoot_active') return;
+        const qObj = (currentSettings.currentQ && currentSettings.currentQ.kahootIndex === currentSettings.kahootIndex)
+            ? currentSettings.currentQ
+            : latestKahootQ;
+        if(!qObj) return;
+
+        const qIdx = qObj.kahootIndex !== undefined ? qObj.kahootIndex : currentSettings.kahootIndex;
+        if(qIdx !== currentSettings.kahootIndex) return;
+
+        document.getElementById('testNav').classList.add('hidden');
+        if(lastRenderedKahootIndex !== qIdx) {
+            lastRenderedKahootIndex = qIdx;
+            localQStartTime = Date.now();
+            renderStudentQuestion(qObj);
+        } else {
+            document.getElementById('studentQuestion').innerText = currentSettings.showQuestion ? (qObj.question || qObj.q) : "請看大屏題目作答";
+        }
+    }
+
+    // 【線上測驗專用】確保無論 testPaper 與 settings 哪個先抵達，都會渲染題目、選項與導覽列
+    function tryStartTestPaper() {
+        if(roomMode !== 'test' || currentSettings.status !== 'testing' || hasSubmittedTest) return;
+        if(!selectedQuestions || selectedQuestions.length === 0) return;
+
+        if(!testPaperRendered) {
+            testPaperRendered = true;
+            myTestIndex = 0;
+            document.getElementById('studentMainContent').classList.remove('hidden');
+            document.getElementById('optionsContainer').classList.remove('hidden');
+            document.getElementById('testNav').classList.remove('hidden');
+            renderTestQuestion();
+        } else {
+            const qData = selectedQuestions[myTestIndex];
+            if(qData) {
+                document.getElementById('studentQuestion').innerText = currentSettings.showQuestion ? (qData.question || qData.q) : "請看大屏題目作答";
+            }
+        }
+    }
 
     // === 【線上測驗專用】依教師端狀態處理：時間到自動交卷、進入檢討 ===
-    // 選過的答案在點選當下就已存入資料庫，所以這裡只需要把畫面鎖住，不需要再補送答案。
     function handleTestModeSettings() {
       const s = currentSettings;
       if(s.status === 'waiting') { testReviewStarted = false; return; }
 
-      // 收卷（時間到／老師提前收卷）但學生沒按交卷 → 視為已交卷
       if(s.status === 'testing' && s.acceptAnswers === false && !hasSubmittedTest) {
         hasSubmittedTest = true;
         document.getElementById('studentQuestion').innerText = "作答時間結束，系統已自動為你交卷，請看大屏聽老師講解。";
@@ -172,7 +248,6 @@
         document.getElementById('testNav').classList.add('hidden');
       }
 
-      // 老師開放檢討：從第 1 題開始顯示解答（只執行一次）
       if(s.status === 'reviewing' && s.showAnswer && !testReviewStarted && selectedQuestions.length > 0) {
         testReviewStarted = true;
         hasSubmittedTest = true;
@@ -184,9 +259,7 @@
       }
     }
 
-    // === 【經典模式專用】結束後進入回顧：補抓題庫與自己的作答，從第 1 題開始逐題檢討 ===
-    // 經典模式派題時，題庫比狀態更早寫入，學生當下還在「等待」狀態，所以題庫要在這裡補抓。
-    let kahootReviewStarted = false;
+    // === 【經典模式專用】結束後進入回顧 ===
     async function handleKahootModeSettings() {
       const s = currentSettings;
       if(s.status === 'waiting' || s.status === 'kahoot_active' || s.status === 'ended') { kahootReviewStarted = false; }
@@ -211,7 +284,6 @@
     }
 
     const shapes = ["♣", "♦", "♥", "♠"];
-    
     const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
     const names = ["巴克禮", "馬偕", "甘為霖", "鄧雨賢", "蔡培火", "賴和", "蔣渭水", "林獻堂", "陳澄波", "李臨秋", "連橫", "伊能嘉矩", "王育德", "黃石輝", "郭秋生", "鄭兒玉", "林茂生", "楊逵", "吳濁流", "鍾理和"];
     const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
@@ -221,24 +293,53 @@
     window.joinAsStudent = async () => {
       unlockAudio();
       const pin = document.getElementById('pinInput').value.trim();
-      const realName = document.getElementById('realNameInput').value.trim();
       const stuClass = document.getElementById('classInput').value.trim() || "";
-      const seat = document.getElementById('seatInput').value.trim() || "";
+      const seat1 = document.getElementById('seatInput1').value.trim() || "";
+      const seat2 = document.getElementById('seatInput2').value.trim() || "";
+      const realName1 = document.getElementById('realNameInput1').value.trim() || "";
+      const realName2 = document.getElementById('realNameInput2').value.trim() || "";
       const device = document.getElementById('deviceInput').value.trim() || "";
       
-      if(!pin || !realName) return alert("請確認「編號」與「姓名」皆已填寫！");
+      if(!pin || !realName1) return alert("請確認「試場編號」與「姓名1」皆已填寫！");
 
       const settingsSnap = await get(ref(db, 'room/settings'));
       if(!settingsSnap.exists() || settingsSnap.val().pin !== pin) return alert("試場編號錯誤或考試未建立！");
 
-      const avatar = avatars[Math.floor(Math.random() * avatars.length)];
-      const nickname = adjs[Math.floor(Math.random() * adjs.length)] + names[Math.floor(Math.random() * names.length)]; 
-      
-      myStudentId = 'student_' + Date.now();
+      const combinedRealName = realName2 ? `${realName1}、${realName2}` : realName1;
+
+      // 檢查 sessionStorage 是否已有同考場、同姓名的連線紀錄（防止平板誤觸重整產生分身）
+      let savedSession = null;
+      try { savedSession = JSON.parse(sessionStorage.getItem('taigi_quiz_student')); } catch(e) {}
+
+      let avatar, nickname, initialScore = 0;
+      if(savedSession && savedSession.pin === pin && savedSession.realName1 === realName1 && savedSession.realName2 === realName2) {
+          myStudentId = savedSession.studentId;
+          avatar = savedSession.avatar;
+          nickname = savedSession.nickname;
+          const existSnap = await get(ref(db, `room/students/${myStudentId}`));
+          if(existSnap.exists()) initialScore = existSnap.val().score || 0;
+      } else {
+          avatar = avatars[Math.floor(Math.random() * avatars.length)];
+          nickname = adjs[Math.floor(Math.random() * adjs.length)] + names[Math.floor(Math.random() * names.length)]; 
+          myStudentId = `student_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+          sessionStorage.setItem('taigi_quiz_student', JSON.stringify({ pin, realName1, realName2, studentId: myStudentId, avatar, nickname }));
+      }
       
       const myRef = ref(db, `room/students/${myStudentId}`);
-      set(myRef, { realName, nickname, avatar, score: 0, class: stuClass, seat: seat, device: device, isAI: false });
-      onDisconnect(myRef).remove();
+      await set(myRef, { 
+          realName: combinedRealName, 
+          realName1: realName1, 
+          realName2: realName2, 
+          nickname: nickname, 
+          avatar: avatar, 
+          score: initialScore, 
+          class: stuClass, 
+          seat: seat1, 
+          seat1: seat1, 
+          seat2: seat2, 
+          device: device, 
+          isAI: false 
+      });
 
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('studentView').classList.remove('hidden');
@@ -246,13 +347,19 @@
       document.getElementById('sPinDisplay').innerText = `編號：${pin}`;
       document.getElementById('sNickname').innerText = `${avatar} ${nickname}`;
       
-      let realNameDisplay = "";
-      if(stuClass) realNameDisplay += `${stuClass} `;
-      if(seat) realNameDisplay += `${seat} `;
-      realNameDisplay += `${realName}`;
+      const p1Str = [seat1, realName1].filter(Boolean).join(' ');
+      const p2Str = [seat2, realName2].filter(Boolean).join(' ');
+      let realNameDisplay = stuClass ? `${stuClass} ` : "";
+      realNameDisplay += p2Str ? `${p1Str} / ${p2Str}` : p1Str;
       document.getElementById('sRealName').innerText = realNameDisplay;
 
-      onValue(myRef, snap => { if (!snap.exists()) { alert("已被移出！"); window.location.reload(); }});
+      onValue(myRef, snap => { 
+          if (!snap.exists()) { 
+              sessionStorage.removeItem('taigi_quiz_student');
+              alert("已被老師移出考場！"); 
+              window.location.reload(); 
+          }
+      });
       listenToRoom();
     };
 
@@ -264,8 +371,17 @@
 
       onValue(ref(db, 'room/settings'), snap => {
         if(snap.exists()) {
-          currentSettings = snap.val();
+          const newSettings = snap.val();
+          // 若老師發起新一輪測驗，自動重置學生端作答狀態
+          if(newSettings.roundId && newSettings.roundId !== lastRoundId) {
+              lastRoundId = newSettings.roundId;
+              resetRoundState();
+          }
+          currentSettings = newSettings;
           roomMode = currentSettings.mode || 'kahoot';
+          if(newSettings.currentQ) {
+              latestKahootQ = newSettings.currentQ;
+          }
           
           if(currentSettings.status === 'waiting') {
             document.getElementById('studentQuestion').innerText = "等待老師開始...";
@@ -273,32 +389,45 @@
             document.getElementById('myAnswerDisplay').innerText = "";
             document.getElementById('testNav').classList.add('hidden');
             document.getElementById('studentMainContent').classList.remove('hidden');
-            hasSubmittedTest = false; myTestAnswers = {};
+            resetRoundState();
           }
           
           if(currentSettings.status === 'ended' && !currentSettings.showAnswer) {
              document.getElementById('studentQuestion').innerText = "測驗已結束，請看大屏聽老師講解。";
              document.getElementById('optionsContainer').classList.add('hidden');
+             document.getElementById('myAnswerDisplay').innerText = "";
              document.getElementById('testNav').classList.add('hidden');
           }
 
-          if(roomMode === 'test') handleTestModeSettings();
-          if(roomMode === 'kahoot') handleKahootModeSettings();
+          if(roomMode === 'kahoot') {
+             tryRenderKahootQuestion();
+             handleKahootModeSettings();
+          }
+
+          if(roomMode === 'test') {
+             tryStartTestPaper();
+             handleTestModeSettings();
+          }
           updateStudentUI();
         }
       });
 
       onValue(ref(db, 'room/currentKahootQ'), snap => {
-        if(roomMode === 'kahoot' && snap.exists() && currentSettings.status === 'kahoot_active') renderStudentQuestion(snap.val());
+        if(snap.exists()) {
+            latestKahootQ = snap.val();
+            tryRenderKahootQuestion();
+        }
       });
 
       onValue(ref(db, 'room/testPaper'), snap => {
-        if(snap.exists() && currentSettings.status !== 'waiting') {
+        if(snap.exists()) {
           selectedQuestions = snap.val();
           
-          if(currentSettings.status === 'testing' && !hasSubmittedTest) {
+          if(roomMode === 'test' && currentSettings.status === 'testing' && !hasSubmittedTest) {
+              testPaperRendered = true;
               myTestIndex = 0;
               document.getElementById('studentMainContent').classList.remove('hidden');
+              document.getElementById('optionsContainer').classList.remove('hidden');
               document.getElementById('testNav').classList.remove('hidden');
               renderTestQuestion();
           }
@@ -334,7 +463,6 @@
             const btn = document.createElement('button');
             btn.className = `option-btn opt-${idx % 4}`;
             
-            // 修正 3：只有 kahoot 模式才顯示撲克花色，test 模式純文字
             if (roomMode === 'kahoot') {
                 btn.innerHTML = `<span class="shape">${shapes[idx % 4]}</span><span class="text">${opt}</span>`;
             } else {
@@ -343,7 +471,10 @@
             
             btn.onclick = () => {
                 if(!currentSettings.acceptAnswers) return;
-                document.querySelectorAll('.option-btn').forEach(b => b.classList.add('dimmed'));
+                document.querySelectorAll('.option-btn').forEach(b => {
+                    b.classList.remove('selected');
+                    b.classList.add('dimmed');
+                });
                 btn.classList.remove('dimmed');
                 btn.classList.add('selected');
                 submitAnswer(opt, btn, qData.questionId);
@@ -363,15 +494,17 @@
       
       if(roomMode === 'kahoot') {
         myTestAnswers[currentSettings.kahootIndex] = selectedOpt;
-        set(ref(db, `room/kahootAnswers/${myStudentId}`), { answer: selectedOpt, time: Date.now() - currentSettings.qStartTime });
-        set(ref(db, `room/testAnswers/${myStudentId}/${currentSettings.kahootIndex}`), {answer: selectedOpt});
+        const elapsed = Math.max(0, Date.now() - (localQStartTime || Date.now()));
+        set(ref(db, `room/kahootAnswers/${myStudentId}`), { answer: selectedOpt, time: elapsed });
+        set(ref(db, `room/testAnswers/${myStudentId}/${currentSettings.kahootIndex}`), { answer: selectedOpt });
         
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
         const praises = ["手腳誠猛喔！", "水啦！", "讚喔！", "繼續保持！", "等待結算中...", "好勢好勢！", "真有氣勢！"];
         document.getElementById('myAnswerDisplay').innerHTML = `<span style="color:var(--text-light);">${praises[Math.floor(Math.random()*praises.length)]}</span>`;
       } else {
         myTestAnswers[myTestIndex] = selectedOpt;
-        set(ref(db, `room/testAnswers/${myStudentId}/${myTestIndex}`), {answer: selectedOpt});
+        document.getElementById('myAnswerDisplay').innerHTML = `已選擇：<span style="color:var(--primary);">${selectedOpt}</span>`;
+        set(ref(db, `room/testAnswers/${myStudentId}/${myTestIndex}`), { answer: selectedOpt });
       }
     }
 
@@ -415,7 +548,6 @@
               nBtn.style.color = "white"; 
               nBtn.disabled = false; 
           }
-      // 修正 4：交卷按鈕只有在 testing 狀態下才顯示
       } else if(myTestIndex === selectedQuestions.length - 1 && !hasSubmittedTest && currentSettings.status === 'testing') { 
           nBtn.innerText = "交卷"; 
           nBtn.style.background = "var(--danger)"; 
@@ -478,7 +610,12 @@
       }
       
       if(currentSettings.status === 'kahoot_result' && roomMode === 'kahoot') {
-          document.getElementById('myAnswerDisplay').innerText = "";
+          const myAns = myTestAnswers[currentSettings.kahootIndex];
+          const isCorrect = myAns && (myAns === currentSettings.currentCorrect);
+          document.getElementById('myAnswerDisplay').innerHTML = myAns 
+              ? (isCorrect ? `<span style="color:var(--success);">🟢 答對了！</span>` : `<span style="color:var(--danger);">🔴 答錯了！</span>`)
+              : `<span style="color:var(--text-light);">⏰ 時間到，未作答</span>`;
+
           document.querySelectorAll('.option-btn').forEach(b => {
              b.disabled = true;
              const optText = b.querySelector('.text').innerText;
