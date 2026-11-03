@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>教師控制台 - 台語互動派題系統</title>
+  <!-- 引入豆腐黑體 (Tauhu-Oo) 官方字型，完美支援台羅聲調與罕用字 -->
+  <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
+  <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+    
+    :root { 
+        --primary: #5c7c99; --teacher: #ffffff; --danger: #fca5a5; --success: #86efac; --accent: #93c5fd; 
+        --bg-color: #f1f5f9; --text-dark: #334155; --text-light: #94a3b8;
+        /* 選項色塊：與學生端同步（白字對比度 ≥ 4.5:1） */
+        --c-red: #b0524f;
+        --c-blue: #4a78a0;
+        --c-yellow: #926d10;
+        --c-green: #517d51;
+        --c-red-b: #8a3a38;
+        --c-blue-b: #345a7e;
+        --c-yellow-b: #6f5209;
+        --c-green-b: #3b5e3b;
+        --main-font: 'Tauhu-oo', 'Noto Sans TC', sans-serif;
+    }
+    
+    body { font-family: var(--main-font); margin: 0; padding: 10px 18px 54px; background: var(--bg-color); color: var(--text-dark); min-height: 100vh; position: relative; box-sizing: border-box;}
+    .hidden { display: none !important; }
+    button, select { cursor: pointer; border-radius: 20px; border: none; font-weight: bold; transition: all 0.3s ease; font-family: var(--main-font); box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+    button:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    
+    .version-tag { position: absolute; top: 8px; right: 18px; background: var(--text-light); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; z-index: 10;}
+    .footer { position: absolute; bottom: 5px; left: 0; width: 100%; text-align: center; color: var(--text-light); font-size: 11px; line-height: 1.25; }
+    .footer p { margin: 1px 0; }
+    input[type="number"] { padding: 6px 8px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-family: var(--main-font); width: 60px; text-align: center;}
+
+    #lobby { max-width: 700px; margin: 40px auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .role-btn { padding: 14px 28px; font-size: 18px; margin: 10px; background: var(--primary); color: white; min-width: 150px;}
+
+    #teacherView { max-width: 1440px; margin: 0 auto; }
+    .teacher-header { background: white; padding: 10px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;}
+    
+    .pin-container { display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 6px 14px; border-radius: 12px; border: 1px solid #e2e8f0;}
+    .pin-display { font-size: 16px; font-weight: bold; color: var(--primary); }
+    #qrcode { width: 54px; height: 54px; background: white; padding: 3px; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer; transition: transform 0.2s ease; display: flex; align-items: center; justify-content: center;}
+    #qrcode:hover { transform: scale(1.06); border-color: var(--accent); }
+
+    /* QR Code 放大視窗：僅覆蓋左側區域，完全不遮擋、不模糊右側考生名單 */
+    #qrModal { position: fixed; top: 0; left: 0; bottom: 0; width: 72%; z-index: 9999; background: rgba(15,23,42,0.18); display: flex; align-items: center; justify-content: center; }
+    .qr-modal-card { background: white; padding: 28px 36px; border-radius: 20px; box-shadow: 0 20px 50px rgba(15,23,42,0.28); text-align: center; display: flex; flex-direction: column; align-items: center; border-top: 6px solid var(--accent); border: 2px solid #cbd5e1;}
+    #qrcodeLarge { width: 290px; height: 290px; background: white; padding: 10px; border-radius: 12px; border: 2px solid #e2e8f0; margin: 12px 0; display: flex; align-items: center; justify-content: center; }
+
+    .workspace { display: grid; grid-template-columns: 3fr 1fr; gap: 16px; align-items: start; }
+    .panel { background: white; padding: 14px 18px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; border: 1px solid #f1f5f9;}
+    
+    .control-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; padding: 12px 15px; background: #f8fafc; border-radius: 12px; align-items: center; border: 1px solid #e2e8f0;}
+    .toggle-btn { padding: 7px 14px; background: white; color: var(--primary); font-size: 14px; border: 1px solid #cbd5e1; box-shadow: none;}
+    .toggle-btn:hover { background: #f1f5f9; transform: none;}
+    .toggle-btn.active { background: var(--primary); color: white; border-color: var(--primary);}
+    .stop-btn { background: #e07a7a; color: white; padding: 8px 16px; font-size: 14px; }
+    .stop-btn:hover { background: #c66060; }
+    .skip-btn { background: #f59e0b; color: white; padding: 8px 16px; font-size: 14px; }
+    .skip-btn:hover { background: #d97706; }
+    .hide-panel-btn { position: absolute; top: 14px; right: 16px; background: var(--text-light); color: white; padding: 5px 12px; font-size: 12px; z-index: 5;}
+
+    .sheet-group { border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: white;}
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #f8fafc; cursor: pointer; transition: background 0.3s;}
+    .sheet-header:hover { background: #f1f5f9; }
+    .sheet-title { font-weight: bold; font-size: 17px; color: var(--primary); display: flex; align-items: center;}
+    .sheet-content { padding: 12px 15px; background: white;}
+    .question-item { border: 1px solid #f1f5f9; padding: 12px; margin-bottom: 8px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; background: #ffffff;}
+    
+    .accordion-main { cursor: pointer; padding: 12px 18px; background: #f8fafc; border-radius: 12px; font-weight: bold; font-size: 17px; color: var(--primary); border: 1px solid #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; justify-content: flex-start; transition: background 0.3s;}
+    
+    .send-btn { background: var(--accent); color: #0f172a; padding: 8px 18px; font-size: 15px; }
+    .send-btn:disabled { background: #e2e8f0; color: var(--text-light); cursor: not-allowed;}
+    
+    #animationPanel { text-align: center; padding: 12px 16px; background: #f8fafc; border-radius: 12px; min-height: 360px; border: 1px solid #e2e8f0; display:flex; flex-direction:column; justify-content:center; box-sizing: border-box;}
+    .timer-display { font-size: 86px; font-weight: bold; color: var(--primary); font-family: monospace; margin: 8px 0; line-height:1;}
+    .timer-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;}
+    .timer-btn { padding: 7px 14px; font-size: 14px; background: white; color: var(--primary); border: 1px solid #cbd5e1; border-radius: 20px;}
+    
+    /* 大屏選項網格：自適應高度，確保 100% 縮放全螢幕一頁完整顯示 */
+    .k-question-text { font-size: 28px; font-weight: bold; color: var(--text-dark); margin: 2px 0 6px; line-height: 1.25;}
+    .k-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 6px;}
+    .k-option-box { padding: 12px 16px; font-size: 24px; color: white; display: flex; flex-direction: column; align-items: stretch; border-radius: 14px; position: relative; min-height: clamp(105px, 16vh, 145px); text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-align: left; box-sizing: border-box;}
+    .k-opt-head { display: flex; align-items: center; gap: 12px; font-weight: bold; line-height: 1.25; }
+    .k-opt-text { flex: 1; word-break: break-word; }
+    .k-shape { font-size: 32px; color: white; flex: none; width: 38px; text-align: center;}
+    .k-avatars-area { display: flex; flex-wrap: wrap; justify-content: flex-start; align-content: flex-end; gap: 5px; margin-top: auto; padding-top: 8px; width: 100%; min-height: 44px; padding-right: 105px; box-sizing: border-box;}
+    .k-avatar-badge { font-size: 20px; background: white; border-radius: 50%; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.25); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-shadow: none;}
+    
+    @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+    
+    .k-result-count { position: absolute; bottom: 8px; right: 10px; font-size: 22px; font-weight: bold; background: rgba(0,0,0,0.6); padding: 4px 12px; border-radius: 8px;}
+    
+    .opt-0 { background-color: var(--c-red); border-bottom: 5px solid var(--c-red-b); }
+    .opt-1 { background-color: var(--c-blue); border-bottom: 5px solid var(--c-blue-b); }
+    .opt-2 { background-color: var(--c-yellow); border-bottom: 5px solid var(--c-yellow-b); }
+    .opt-3 { background-color: var(--c-green); border-bottom: 5px solid var(--c-green-b); }
+    .dimmed-box { opacity: 0.3 !important; filter: grayscale(80%); }
+
+    /* 頒獎台 */
+    .podium-container { display: flex; justify-content: center; align-items: flex-end; height: 290px; margin-top: 20px; gap:10px; position: relative;}
+    .podium-step { display: flex; flex-direction: column; align-items: center; width: 130px; border-radius: 8px 8px 0 0; box-shadow: inset 0 -10px 20px rgba(0,0,0,0.1); position: relative;}
+    .step-1 { height: 185px; background: #fbbf24; z-index: 3;}
+    .step-2 { height: 135px; background: #94a3b8; z-index: 2;}
+    .step-3 { height: 100px; background: #b45309; z-index: 1;}
+    .podium-number { font-size: 50px; font-weight: bold; color: white; margin-top: auto; margin-bottom: 15px; opacity: 0.8;}
+    .podium-avatar-box { position: absolute; top: -92px; display: flex; flex-direction: column; align-items: center; width: 100%; text-align: center;}
+    .p-avatar { font-size: 42px; background: white; border-radius: 50%; width: 62px; height: 62px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 4px solid var(--primary);}
+    .p-name { font-size: 15px; font-weight: bold; margin-top: 4px; color: var(--text-dark); background: rgba(255,255,255,0.85); padding:2px 6px; border-radius:4px;}
+    .p-crown { position: absolute; top: -28px; font-size: 30px; }
+    
+    .runner-up-container { display: flex; justify-content: space-around; margin-top: 15px; border-top: 2px dashed #cbd5e1; padding-top: 15px;}
+    .runner-up { font-size: 16px; font-weight: bold; color: var(--text-dark); background: white; padding: 8px 16px; border-radius: 8px; border: 1px solid #e2e8f0;}
+
+    #statisticsContainer { margin-top: 20px; border-top: 2px dashed #cbd5e1; padding-top: 15px; text-align: left; }
+    .stat-container { margin-bottom: 18px; padding: 16px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+    .stat-q-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; color: var(--primary);}
+    .stat-bar-wrapper { display: flex; align-items: center; margin-bottom: 10px; font-size: 15px;}
+    .stat-label { width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px; text-align: right; color: var(--text-dark);}
+    .stat-bar-bg { flex-grow: 1; background: #f1f5f9; height: 22px; border-radius: 11px; position: relative; overflow: hidden;}
+    .stat-bar-fill { height: 100%; background: var(--text-light); transition: width 0.5s ease-out; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-size: 13px; font-weight: bold;}
+    .stat-bar-fill.correct { background: var(--success); color: #064e3b;}
+
+    .student-list { max-height: calc(100vh - 210px); overflow-y: auto; padding-right: 5px;}
+    .student-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 15px; transition: all 0.2s; color: var(--text-dark); border-radius: 8px;}
+    .student-item:hover { text-decoration: line-through; color: #7f1d1d; cursor: pointer; background: #fef2f2; }
+    .score-display { font-weight: bold; color: var(--primary); background: #e2e8f0; padding: 2px 8px; border-radius: 10px; font-size: 13px;}
+    .ai-badge { background: #93c5fd; color: #0f172a; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; vertical-align: middle;}
+    /* 線上測驗：考生狀態標籤 */
+    .status-badge { font-weight: bold; padding: 2px 10px; border-radius: 10px; font-size: 13px; white-space: nowrap;}
+    .status-wait { background: #e2e8f0; color: var(--text-light); }
+    .status-doing { background: #fef3c7; color: #92400e; }
+    .status-done { background: #dcfce7; color: #166534; }
+
+    .sub-mode-container { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;}
+    .sub-mode-btn { padding: 10px 20px; font-size: 16px; background: #e2e8f0; color: var(--text-dark); border: 2px solid transparent;}
+    .sub-mode-btn:hover { background: #cbd5e1; }
+    .sub-mode-btn.active { background: white; border-color: var(--accent); color: var(--primary); box-shadow: 0 0 0 2px var(--accent) inset;}
+
+    /* 經典模式：作答標題、時間與操作列（整合略過、下一題與中止按鈕，避免超出螢幕底部） */
+    .anim-title-sm { font-size: 16px !important; margin-bottom: 2px !important; }
+    #animationPanel.k-top { justify-content: flex-start; }
+    .k-action-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 42px; margin: 4px 0 8px; background: white; padding: 6px 14px; border-radius: 10px; border: 1px solid #e2e8f0; box-sizing: border-box;}
+    .k-timer-group { display: flex; align-items: center; gap: 12px; flex: 1; }
+    .k-timebar-bg { flex: 1; height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden; }
+    .k-timebar-fill { height: 100%; width: 100%; background: var(--primary); border-radius: 6px; }
+    .k-timebar-fill.urgent { background: #e07a7a; }
+    .k-timer-num { font-size: 28px; font-weight: bold; font-family: monospace; color: var(--primary); min-width: 44px; text-align: right; line-height: 1; }
+    .k-settle-hint { font-size: 15px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+    .k-btn-group { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+    /* 教師密碼視窗 */
+    #pwdModal { position: fixed; inset: 0; z-index: 10000; background: rgba(15,23,42,0.45); backdrop-filter: blur(6px); display: flex; align-items: flex-start; justify-content: center; padding-top: 22vh; }
+    .pwd-card { background: white; width: min(380px, 90vw); border-radius: 18px; padding: 28px 32px 26px; box-shadow: 0 24px 48px rgba(15,23,42,0.3); text-align: center; border-top: 6px solid var(--accent); }
+    .pwd-card h2 { margin: 0 0 6px; color: var(--primary); font-size: 22px; }
+    .pwd-card p { margin: 0 0 18px; color: var(--text-dark); font-size: 16px; }
+    #pwdInput { width: 100%; box-sizing: border-box; padding: 12px 14px; font-size: 18px; border: 2px solid #e2e8f0; border-radius: 12px; text-align: center; letter-spacing: 4px; font-family: var(--main-font); }
+    #pwdInput:focus { outline: none; border-color: var(--accent); }
+    .pwd-btns { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- 教師密碼視窗 -->
+  <div id="pwdModal">
+    <div class="pwd-card">
+      <h2>🔐 教師控制台</h2>
+      <p>請輸入教師控制台密碼</p>
+      <input type="password" id="pwdInput" autocomplete="off">
+      <div class="pwd-btns">
+        <button id="pwdOk" class="send-btn" style="padding:10px 28px;">確定</button>
+        <button id="pwdCancel" class="toggle-btn">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code 點擊放大視窗（僅覆蓋左欄，保持右欄考生名單清晰可見） -->
+  <div id="qrModal" class="hidden" onclick="closeQRModal(event)">
+    <div class="qr-modal-card" onclick="event.stopPropagation()">
+      <h2 style="margin:0 0 4px; color:var(--primary); font-size:24px;">📱 掃描 QR Code 進入考場</h2>
+      <p style="margin:0; color:var(--text-light); font-size:14px;">右側可即時查看進場名單（點擊空白處或下方按鈕關閉）</p>
+      <div id="qrcodeLarge"></div>
+      <div style="font-size:20px; color:var(--text-dark); font-weight:bold; margin-bottom:14px;">
+        試場編號：<span id="qrModalPin" style="font-size:34px; color:var(--primary); font-family:monospace;">----</span>
+      </div>
+      <button class="send-btn" style="padding:8px 34px; font-size:16px;" onclick="closeQRModal()">關閉</button>
+    </div>
+  </div>
+
+  <div class="version-tag">Ver 2.26 (Teacher)</div>
+  
+  <div id="lobby">
+    <h1 style="color:var(--primary); margin-bottom: 10px;">請選擇本次測驗模式</h1>
+    <p style="color:var(--text-light); margin-bottom: 30px;">選擇後將建立專屬考場</p>
+    
+    <div>
+        <button class="role-btn" style="background:var(--accent); color:#0f172a;" onclick="showSubModes('feedback')">即時回饋</button>
+        <button class="role-btn" style="background:var(--primary);" onclick="joinAsTeacher('test')">線上測驗</button>
+    </div>
+    
+    <div id="feedbackSubModes" class="sub-mode-container hidden">
+        <button class="sub-mode-btn" onclick="joinAsTeacher('kahoot')">⚡ 經典</button>
+        <button class="sub-mode-btn" onclick="alert('划船模式開發中，敬請期待！')">🚣 划船</button>
+        <button class="sub-mode-btn" onclick="alert('除魔模式開發中，敬請期待！')">⚔️ 除魔</button>
+    </div>
+  </div>
+
+  <div id="teacherView" class="hidden">
+    <div class="teacher-header">
+      <div style="display:flex; align-items:center; gap:16px;">
+          <h2 style="margin:0; font-size:22px; color:var(--primary);">控制台 (<span id="modeDisplay"></span>)</h2>
+      </div>
+      <div class="pin-container">
+          <div id="qrcode" onclick="openQRModal()" title="點擊放大 QR Code"></div>
+          <div class="pin-display">
+              <span style="font-size:12px; font-weight:normal; color:var(--text-light);">試場編號 (點擊左圖放大)</span><br>
+              <span id="tPinDisplay" style="font-size:28px; line-height:1;">----</span>
+          </div>
+      </div>
+    </div>
+    
+    <div class="workspace">
+      <!-- 左欄 -->
+      <div class="panel" id="leftPanel">
+        <button id="viewToggleBtn" class="hide-panel-btn" onclick="toggleLeftPanel()">👁️ 切換為考場畫面</button>
+        
+        <div id="questionListWrapper">
+          <div class="control-group">
+            <button id="toggleQText" class="toggle-btn active" onclick="toggleSetting('showQuestion', this)">平板題目：開</button>
+            <select id="audioSource" class="toggle-btn" onchange="updateSettings('audioSource', this.value)">
+              <option value="teacher">聽力大屏播放</option>
+              <option value="student">聽力平板播放</option>
+            </select>
+            <span style="margin-left:10px; color:var(--text-light); font-size:14px; font-weight:bold;">🎵 BGM：</span>
+            <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">開啟</button>
+            <button id="nextBgmBtn" class="toggle-btn hidden" onclick="nextBGMTrack()" title="隨機切換下一首 BGM">🔀 換首</button>
+            <span style="margin-left:10px; color:var(--text-light); font-size:14px; font-weight:bold;">🔊 音效：</span>
+            <button id="sfxBtn" class="toggle-btn" onclick="toggleSFX()">關閉</button>
+            <audio id="bgmAudio" preload="auto"></audio>
+            <audio id="teacherQAudio"></audio>
+          </div>
+          
+          <div class="control-group" id="testModeControls">
+            <div id="kahootControls" class="hidden" style="width:100%; display:flex; align-items:center; gap:10px;">
+              <span style="font-weight:bold; color:var(--primary);">經典模式：</span>
+              <span>每題 <input type="number" id="kahootTime" value="15"> 秒</span>
+              <button class="send-btn" onclick="startKahoot()">開始派題！</button>
+            </div>
+            <div id="testControls" class="hidden" style="width:100%; display:flex; align-items:center; gap:10px;">
+              <span style="font-weight:bold; color:var(--primary);">測驗模式：</span>
+              <span>總計 <input type="number" id="testMinutes" value="5"> 分</span>
+              <button class="send-btn" onclick="startTestMode()">派題並開始考試</button>
+            </div>
+          </div>
+          
+          <div class="accordion-main" onclick="toggleMainQList()">
+              <span id="mainAccordionArrow" style="margin-right:10px; color:var(--accent);">▶</span> 勾選要派送的題目
+          </div>
+          <div id="questionListContainer" class="hidden">
+              <div id="questionList" style="color:var(--text-light);">正在從 Google 試算表載入多工作表題庫...</div>
+          </div>
+        </div>
+
+        <div id="animationPanel" class="hidden">
+          <h2 id="animTitle" style="font-size:24px; color:var(--primary); text-align:center; margin-bottom:4px; margin-top:0;">測驗狀態</h2>
+          
+          <div id="timerControlsDiv" class="timer-controls hidden">
+              <button class="timer-btn" onclick="adjustTimer(60)">+1 分鐘</button>
+              <button class="timer-btn" onclick="adjustTimer(-60)">-1 分鐘</button>
+              <button id="pauseTimerBtn" class="timer-btn" onclick="togglePauseTimer()">暫停倒數</button>
+              <button id="manualStopBtn" class="stop-btn hidden" onclick="triggerTestStop('manual')">⏹️ 提前中止／收卷 (儲存成績)</button>
+          </div>
+          
+          <div id="animContent" style="width:100%;">等待中...</div>
+          
+          <div id="statisticsContainer" class="hidden"></div>
+        </div>
+      </div>
+
+      <!-- 右欄 -->
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <div>
+                <h3 style="margin:0; font-size:17px; color:var(--primary);">暱稱 (<span id="studentCount">0</span>)</h3>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="toggle-btn" style="background:#fde68a; color:#92400e; padding:5px 10px; border:none; font-size:13px;" onclick="window.addAIStudent()">🤖 加入AI考生</button>
+                <button class="toggle-btn" style="background:var(--success); color:#064e3b; padding:5px 10px; border:none; font-size:13px;" onclick="exportCSV()">匯出成績</button>
+            </div>
+        </div>
+        <!-- 【線上測驗專用】收卷後才出現：開放學生平板回顧作答 -->
+        <div id="reviewControlDiv" class="hidden" style="margin-bottom:12px; padding:10px; background:#eff6ff; border:2px solid var(--accent); border-radius:12px; text-align:center;">
+            <div style="font-size:13px; color:var(--text-light); margin-bottom:6px; font-weight:bold;">測驗已收卷（可點擊上方「匯出成績」）</div>
+            <button id="openReviewBtn" class="send-btn" style="width:100%; font-size:14px;" onclick="openStudentReview()">📖 開放學生平板回顧作答</button>
+        </div>
+        <!-- 【經典模式專用】結束後：開關學生平板回顧（可隨時開／關） -->
+        <div id="kahootReviewControlDiv" class="hidden" style="margin-bottom:12px; padding:10px; background:#eff6ff; border:2px solid var(--accent); border-radius:12px; text-align:center;">
+            <div id="kahootReviewInfo" style="font-size:13px; color:var(--text-light); margin-bottom:6px; font-weight:bold;"></div>
+            <button id="kahootReviewBtn" class="send-btn" style="width:100%; font-size:14px;" onclick="toggleKahootReview()"></button>
+        </div>
+        <div id="studentList" class="student-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 【線上測驗專用】收卷後詢問是否開放學生回顧 -->
+  <div id="reviewModal" class="hidden" style="position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9998; display:flex; align-items:center; justify-content:center;">
+    <div style="background:white; padding:30px 35px; border-radius:16px; max-width:480px; box-shadow:0 20px 40px rgba(0,0,0,0.25); text-align:center;">
+      <h2 style="margin:0 0 15px; color:var(--primary);">測驗結束！</h2>
+      <p style="font-size:17px; line-height:1.7; margin:0 0 25px;">目前成績已自動儲存並顯示全班統計。<br>是否要讓「學生平板」也同步顯示正確答案與個人成績？</p>
+      <button class="send-btn" style="margin-right:12px;" onclick="answerReviewModal(true)">確定，開放學生回顧</button>
+      <button class="toggle-btn" onclick="answerReviewModal(false)">取消</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+    <p>BGM取自:甘茶の工房</p>
+    <p>Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved. 未經授權，嚴禁重製、改作或商用。</p>
+  </div>
+
+  <script type="module">
+    function askTeacherPassword() {
+        return new Promise(resolve => {
+            const modal = document.getElementById('pwdModal'), input = document.getElementById('pwdInput');
+            const done = v => { modal.classList.add('hidden'); input.value = ''; resolve(v); };
+            document.getElementById('pwdOk').onclick = () => done(input.value);
+            document.getElementById('pwdCancel').onclick = () => done(null);
+            input.onkeydown = e => { if(e.key === 'Enter') done(input.value); };
+            setTimeout(() => input.focus(), 50);
+        });
+    }
+    const pwd = await askTeacherPassword();
+    if(pwd !== "taigi") {
+        document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px; color:#ef4444;'>密碼錯誤，拒絕存取。</h1>";
+        throw new Error("Unauthorized");
+    }
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, onDisconnect, remove, get, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyCXiyLVZfkGbKlBcFamVTjP3CfhSQfqy9c", authDomain: "tigitshikgiam.firebaseapp.com", databaseURL: "https://tigitshikgiam-default-rtdb.firebaseio.com", projectId: "tigitshikgiam", storageBucket: "tigitshikgiam.firebasestorage.app", messagingSenderId: "159559991455", appId: "1:159559991455:web:454559a0458d9ca461e2aa" };
+    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
+    const sheetId = `1qe2gPJA_feyOCjUNz5iMHkeCWDHxTefQZ5d8QCBsrZA`;
+    
+    // === BGM 系統：GitHub spelling_group/bgm 音檔清單 (-01.mp3 ~ -16.mp3) ===
+    // 採用洗牌佇列 (Shuffle Bag)：隨機播放且不重複，待 16 首全部播完後再重新洗牌
+    const bgmTracks = Array.from({ length: 16 }, (_, i) => {
+        const num = String(i + 1).padStart(2, '0');
+        return `https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-${num}.mp3`;
+    });
+    let bgmQueue = [];
+    let lastPlayedBgmUrl = null;
+
+    const BGM_VOL_NORMAL = 1.0;
+    const BGM_VOL_LOW = 0.15; // 單題答完後、老師檢查與講解題目時的降低音量
+    const bgmAudioEl = document.getElementById('bgmAudio');
+    bgmAudioEl.addEventListener('ended', () => {
+        playRandomBGM();
+    });
+
+    function setBGMVolume(targetVol) {
+        if (!bgmAudioEl) return;
+        bgmAudioEl.volume = Math.max(0, Math.min(1, targetVol));
+    }
+
+    function refillBgmQueue() {
+        bgmQueue = [...bgmTracks];
+        for (let i = bgmQueue.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [bgmQueue[i], bgmQueue[j]] = [bgmQueue[j], bgmQueue[i]];
+        }
+        // 避免新一輪的第一首與上一輪最後一首重複
+        if (bgmQueue.length > 1 && bgmQueue[0] === lastPlayedBgmUrl) {
+            [bgmQueue[0], bgmQueue[bgmQueue.length - 1]] = [bgmQueue[bgmQueue.length - 1], bgmQueue[0]];
+        }
+    }
+
+    function playRandomBGM() {
+        if (bgmQueue.length === 0) refillBgmQueue();
+        const nextUrl = bgmQueue.shift();
+        lastPlayedBgmUrl = nextUrl;
+        bgmAudioEl.src = nextUrl;
+        return bgmAudioEl.play();
+    }
+
+    // === 作答音效系統 (Web Audio API)：預設關閉，每位玩家擁有獨特音高與微小隨機差異 ===
+    let sfxEnabled = false;
+    let sfxAudioCtx = null;
+    const pentatonicNotes = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51]; // C5 ~ E6 五聲音階
+
+    function getAudioCtx() {
+        if (!sfxAudioCtx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) sfxAudioCtx = new AudioCtx();
+        }
+        if (sfxAudioCtx && sfxAudioCtx.state === 'suspended') {
+            sfxAudioCtx.resume().catch(() => {});
+        }
+        return sfxAudioCtx;
+    }
+
+    // 根據學生 ID 產生專屬但帶有細微隨機變化的清脆氣泡／木琴回饋音
+    function playAnswerSFX(sid = '') {
+        if (!sfxEnabled) return;
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+
+        let hash = 0;
+        const str = String(sid);
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0;
+        }
+        const noteIdx = Math.abs(hash) % pentatonicNotes.length;
+        const baseFreq = pentatonicNotes[noteIdx];
+        // 加入 ±3% 微幅隨機頻率偏移與泛音比例差異，讓每次作答生動自然
+        const detuneFactor = 1 + ((Math.random() - 0.5) * 0.06);
+        const startFreq = baseFreq * detuneFactor;
+        const endFreq = startFreq * (1.22 + (Math.abs(hash % 5) * 0.03));
+
+        const now = ctx.currentTime;
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        const waveTypes = ['sine', 'triangle'];
+        osc1.type = waveTypes[Math.abs(hash) % 2];
+        osc2.type = 'sine';
+
+        osc1.frequency.setValueAtTime(startFreq, now);
+        osc1.frequency.exponentialRampToValueAtTime(endFreq, now + 0.11);
+
+        osc2.frequency.setValueAtTime(startFreq * 1.5, now);
+        osc2.frequency.exponentialRampToValueAtTime(endFreq * 1.5, now + 0.11);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.24, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.17);
+        osc2.stop(now + 0.17);
+    }
+
+    window.toggleSFX = () => {
+        sfxEnabled = !sfxEnabled;
+        const btn = document.getElementById('sfxBtn');
+        if (sfxEnabled) {
+            btn.innerText = "開啟";
+            btn.classList.add('active');
+            playAnswerSFX('preview_' + Date.now()); // 開啟時播放一次提示音效並解鎖音訊
+        } else {
+            btn.innerText = "關閉";
+            btn.classList.remove('active');
+        }
+    };
+
+    let allQuestions = [], selectedQuestions = [], currentPaper = [];
+    let roomMode = 'kahoot'; 
+    let currentSettings = { pin: '', showQuestion: true, showAnswer: false, status: 'waiting', audioSource: 'teacher', acceptAnswers: false, roundId: 0 };
+    
+    let testCountdownTimer = null, kahootTimer = null;
+    let kahootIndex = 0, globalTimeLeft = 0, isTimerPaused = false;
+    let isEndingKahootQ = false;       // 【經典模式】防止單題重複結算與重複加分
+    let aiKahootTimers = [];           // 【經典模式】AI 考生計時器
+    let renderedKahootAnswerSids = new Set(); // 【經典模式】記錄本題已顯示頭像與播放過音效的玩家
+    
+    window.activeAIStudents = [];
+    let studentsCache = {}, answersCache = {}, kahootAnswersCache = {};
+    let autoSubmittedNames = [];       // 【線上測驗】被系統代為交卷的考生暱稱
+    let testStopping = false;          // 【線上測驗】避免重複收卷／重複彈窗
+    let aiTestTimers = [];             // 【線上測驗】AI 考生專用計時器
+    const AI_NO_SUBMIT_RATE = 0.25;    // 【線上測驗】AI 考生「不會交卷」的比例
+
+    // 檢查線上測驗是否全班皆已交卷
+    function checkTestAllSubmitted() {
+        if(roomMode === 'test' && currentSettings.status === 'testing' && currentSettings.acceptAnswers) {
+            const stuIds = Object.keys(studentsCache);
+            const submitCount = stuIds.filter(id => answersCache[id] && answersCache[id].isSubmitted).length;
+            if(stuIds.length > 0 && submitCount >= stuIds.length) {
+                triggerTestStop('auto');
+            }
+        }
+    }
+
+    // 檢查經典模式是否全班皆已作答
+    function checkKahootAllAnswered() {
+        if(roomMode === 'kahoot' && currentSettings.status === 'kahoot_active' && !isEndingKahootQ) {
+            const stuIds = Object.keys(studentsCache);
+            const ansCount = stuIds.filter(id => kahootAnswersCache[id] !== undefined).length;
+            if(stuIds.length > 0 && ansCount >= stuIds.length) {
+                clearInterval(kahootTimer);
+                endKahootQuestion();
+            }
+        }
+    }
+
+    // 右側考生名單：經典模式顯示分數、線上測驗顯示作答狀態（收卷後一併顯示百分制成績）
+    function renderStudentList() {
+        const sList = document.getElementById('studentList');
+        let entries = Object.entries(studentsCache);
+        window.activeAIStudents = entries.filter(([k, s]) => s.isAI).map(([k]) => k);
+        document.getElementById('studentCount').innerText = entries.length;
+
+        if (roomMode === 'test') {
+            const joinTime = k => parseInt(k.split('_')[1]) || 0;
+            entries.sort((a, b) => joinTime(a[0]) - joinTime(b[0]));
+        } else {
+            entries.sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+        }
+
+        sList.innerHTML = entries.map(([key, s]) => {
+            let right;
+            if (roomMode === 'test') {
+                if (currentSettings.status === 'waiting') {
+                    right = `<span class="status-badge status-wait">等待開始</span>`;
+                } else if (currentSettings.status === 'ended' || currentSettings.status === 'reviewing' || !currentSettings.acceptAnswers) {
+                    right = `<span class="status-badge status-done">已交卷 (${s.score || 0}分)</span>`;
+                } else if (answersCache[key] && answersCache[key].isSubmitted) {
+                    right = `<span class="status-badge status-done">已交卷</span>`;
+                } else {
+                    right = `<span class="status-badge status-doing">作答中</span>`;
+                }
+            } else {
+                right = `<span class="score-display">${s.score || 0} 分</span>`;
+            }
+            return `<div class="student-item" onclick="kickStudent('${key}')" title="點擊剔除">
+                        <div>${s.avatar || '👤'} ${s.nickname} ${s.isAI ? '<span class="ai-badge">AI</span>' : ''}</div>
+                        ${right}
+                    </div>`;
+        }).join('');
+    }
+    
+    const shapes = ["♣", "♦", "♥", "♠"];
+    const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
+    const names = ["巴克禮", "馬偕", "甘為霖", "鄧雨賢", "蔡培火", "賴和", "蔣渭水", "林獻堂", "陳澄波", "李臨秋", "連橫", "伊能嘉矩", "王育德", "黃石輝", "郭秋生", "鄭兒玉", "林茂生", "楊逵", "吳濁流", "鍾理和"];
+    const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
+
+    window.addAIStudent = () => {
+        const nickname = adjs[Math.floor(Math.random()*adjs.length)] + names[Math.floor(Math.random()*names.length)];
+        const aiId = `ai_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        set(ref(db, `room/students/${aiId}`), { 
+            realName: 'AI Robot',
+            realName1: 'AI Robot',
+            realName2: '',
+            seat1: '',
+            seat2: '',
+            nickname: nickname, 
+            avatar: avatars[Math.floor(Math.random()*avatars.length)], 
+            score: 0, 
+            isAI: true 
+        });
+    };
+
+    function unlockAudio() {
+        const qAud = document.getElementById('teacherQAudio');
+        if(qAud) { qAud.play().then(() => qAud.pause()).catch(e=>{}); }
+        getAudioCtx();
+    }
+    window.showSubModes = (type) => { if(type === 'feedback') document.getElementById('feedbackSubModes').classList.remove('hidden'); };
+    window.toggleMainQList = () => { const container = document.getElementById('questionListContainer'); const arrow = document.getElementById('mainAccordionArrow'); if(container.classList.contains('hidden')) { container.classList.remove('hidden'); arrow.innerText = "▼"; } else { container.classList.add('hidden'); arrow.innerText = "▶"; } };
+    window.toggleSheetContent = (e, idx) => { if(e.target.tagName.toLowerCase() === 'input') return; const content = document.getElementById(`sheet-content-${idx}`); const arrow = document.getElementById(`sheet-arrow-${idx}`); if(content.classList.contains('hidden')) { content.classList.remove('hidden'); arrow.innerText = "▼"; } else { content.classList.add('hidden'); arrow.innerText = "▶"; } };
+    window.toggleSheetAll = (e, idx) => { e.stopPropagation(); const isChecked = e.target.checked; document.querySelectorAll(`.q-checkbox-${idx}`).forEach(cb => { cb.checked = isChecked; }); };
+
+    // 產生小圖與點擊放大的大圖
+    function generateQRCode(pin) {
+        document.getElementById('qrcode').innerHTML = "";
+        document.getElementById('qrcodeLarge').innerHTML = "";
+        document.getElementById('qrModalPin').innerText = pin;
+        const studentUrl = `https://yyanjhang-web.github.io/hosngetaiagi/khotshi/index.html?pin=${pin}`;
+        new QRCode(document.getElementById("qrcode"), { text: studentUrl, width: 54, height: 54, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.L });
+        new QRCode(document.getElementById("qrcodeLarge"), { text: studentUrl, width: 290, height: 290, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
+    }
+
+    window.openQRModal = () => {
+        document.getElementById('qrModal').classList.remove('hidden');
+    };
+    window.closeQRModal = () => {
+        document.getElementById('qrModal').classList.add('hidden');
+    };
+
+    window.playTeacherAudio = (url) => {
+        const aud = document.getElementById('teacherQAudio');
+        if(aud && url) {
+            aud.src = url;
+            aud.play().catch(e => console.warn("音檔播放受阻：", e));
+        }
+    };
+
+    window.joinAsTeacher = async (mode) => {
+      unlockAudio();
+      roomMode = mode;
+      document.getElementById('lobby').classList.add('hidden');
+      document.getElementById('teacherView').classList.remove('hidden');
+      document.getElementById('modeDisplay').innerText = mode === 'kahoot' ? '經典即時回饋' : '線上測驗';
+      if(mode === 'kahoot') { document.getElementById('kahootControls').classList.remove('hidden'); document.getElementById('kahootControls').style.display = 'flex'; }
+      if(mode === 'test') { document.getElementById('testControls').classList.remove('hidden'); document.getElementById('testControls').style.display = 'flex'; }
+
+      const pin = Math.floor(1000 + Math.random() * 9000).toString();
+      document.getElementById('tPinDisplay').innerText = pin;
+      generateQRCode(pin); 
+
+      currentSettings = { mode: mode, pin: pin, showQuestion: true, showAnswer: false, status: 'waiting', audioSource: 'teacher', teacherOnline: true, acceptAnswers: false, roundId: Date.now() };
+      
+      set(ref(db, 'room/settings'), currentSettings);
+      remove(ref(db, 'room/students')); remove(ref(db, 'room/testAnswers')); remove(ref(db, 'room/testPaper'));
+      remove(ref(db, 'room/kahootAnswers')); remove(ref(db, 'room/currentKahootQ'));
+
+      onValue(ref(db, ".info/connected"), (snap) => {
+        if (snap.val() === true) { const tRef = ref(db, 'room/settings/teacherOnline'); onDisconnect(tRef).set(false); set(tRef, true); }
+      });
+      
+      await loadGoogleSheets();
+
+      onValue(ref(db, 'room/students'), snap => {
+        studentsCache = snap.val() || {};
+        renderStudentList();
+        checkTestAllSubmitted();
+        checkKahootAllAnswered();
+      });
+
+      // 【線上測驗專用】監聽作答資料：更新名單狀態、判斷是否全數交卷
+      onValue(ref(db, 'room/testAnswers'), snap => {
+         if(roomMode !== 'test') return;
+         answersCache = snap.val() || {};
+         renderStudentList();
+         checkTestAllSubmitted();
+      });
+      
+      // 【經典模式專用】監聽單題搶答：增量加入新頭像並同步播放該玩家專屬作答音效
+      onValue(ref(db, 'room/kahootAnswers'), snap => {
+         kahootAnswersCache = snap.val() || {};
+         if(roomMode === 'kahoot' && currentSettings.status === 'kahoot_active' && !isEndingKahootQ) {
+             const shuffledStrs = (currentSettings.shuffledOpts || []).map(o => String(o).trim());
+             for(let sid in kahootAnswersCache) {
+                 if(!studentsCache[sid]) continue; // 忽略已被剔除的學生
+                 if(renderedKahootAnswerSids.has(sid)) continue; // 已顯示過頭像的玩家不重複觸發動畫與音效
+
+                 const ansStr = String(kahootAnswersCache[sid].answer ?? '').trim();
+                 const avatar = studentsCache[sid]?.avatar || '👤';
+                 const optIndex = shuffledStrs.indexOf(ansStr);
+
+                 if(optIndex !== -1) {
+                     const box = document.getElementById(`k-avatar-area-${optIndex}`);
+                     if(box) {
+                         renderedKahootAnswerSids.add(sid);
+                         const badge = document.createElement('div');
+                         badge.className = 'k-avatar-badge';
+                         badge.dataset.sid = sid;
+                         badge.innerText = avatar;
+                         box.appendChild(badge);
+                         // 連同頭像出現動畫一併播放該玩家的專屬回饋音效
+                         playAnswerSFX(sid);
+                     }
+                 }
+             }
+             checkKahootAllAnswered();
+         }
+      });
+    };
+
+    // 安全讀取 Google 試算表儲存格並一律轉為字串
+    function cellVal(cell) {
+        if (!cell) return '';
+        if (cell.f !== undefined && cell.f !== null && String(cell.f).trim() !== '') return String(cell.f).trim();
+        if (cell.v !== undefined && cell.v !== null) return String(cell.v).trim();
+        return '';
+    }
+
+    // 單列範圍讀取：當某列因「文字與數字混用」被 Google gviz API 設為 null 時，針對該列單獨抓取
+    async function fetchSingleRowCells(sName, rowNum) {
+        try {
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sName)}&range=A${rowNum}:F${rowNum}`;
+            const res = await fetch(url);
+            const data = JSON.parse((await res.text()).substring(47).slice(0, -2));
+            if (data.table.rows && data.table.rows.length > 0 && data.table.rows[0].c) {
+                return [0, 1, 2, 3, 4, 5].map(i => cellVal(data.table.rows[0].c[i]));
+            }
+            if (data.table.cols && data.table.cols.some(col => col && col.label)) {
+                return [0, 1, 2, 3, 4, 5].map(i => (data.table.cols[i]?.label !== undefined) ? String(data.table.cols[i].label).trim() : '');
+            }
+        } catch (e) { console.error(`補抓 ${sName} 第 ${rowNum} 列失敗:`, e); }
+        return null;
+    }
+
+    async function loadGoogleSheets() {
+        const listDiv = document.getElementById('questionList');
+        listDiv.innerHTML = "正在讀取目錄頁...";
+        allQuestions = []; let globalQIndex = 0; let finalHtml = "";
+        try {
+            const dirRes = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0`);
+            const dirData = JSON.parse((await dirRes.text()).substring(47).slice(0, -2));
+            const sheetNames = [];
+            if (dirData.table.cols && dirData.table.cols[0]?.label) {
+                const lbl = String(dirData.table.cols[0].label).trim();
+                if (lbl) sheetNames.push(lbl);
+            }
+            (dirData.table.rows || []).forEach(row => {
+                const val = cellVal(row.c?.[0]);
+                if (val && !sheetNames.includes(val)) sheetNames.push(val);
+            });
+
+            if(sheetNames.length === 0) { listDiv.innerHTML = "目錄頁是空的！請在 A 欄填寫工作表名稱。"; return; }
+
+            for (let sIdx = 0; sIdx < sheetNames.length; sIdx++) {
+                const sName = sheetNames[sIdx];
+                listDiv.innerHTML = `正在讀取工作表：${sName} (${sIdx+1}/${sheetNames.length})...`;
+                try {
+                    const sRes = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sName)}`);
+                    const sData = JSON.parse((await sRes.text()).substring(47).slice(0, -2));
+                    const rawRows = sData.table.rows || [];
+
+                    const parsedRows = await Promise.all(rawRows.map(async (row, rIdx) => {
+                        const c = row.c || [];
+                        let q = cellVal(c[0]);
+                        let o1 = cellVal(c[1]), o2 = cellVal(c[2]), o3 = cellVal(c[3]), o4 = cellVal(c[4]);
+                        let audio = cellVal(c[5]) || null;
+                        let opts = [o1, o2, o3, o4].filter(v => v !== '');
+
+                        if ((q !== '' && opts.length < 4) || (q === '' && opts.length > 0)) {
+                            const fixed = await fetchSingleRowCells(sName, rIdx + 1);
+                            if (fixed) {
+                                q = fixed[0] || q;
+                                o1 = fixed[1] !== '' ? fixed[1] : o1;
+                                o2 = fixed[2] !== '' ? fixed[2] : o2;
+                                o3 = fixed[3] !== '' ? fixed[3] : o3;
+                                o4 = fixed[4] !== '' ? fixed[4] : o4;
+                                audio = fixed[5] || audio;
+                                opts = [o1, o2, o3, o4].filter(v => v !== '');
+                            }
+                        }
+                        return { q, ans: o1, opts, audio };
+                    }));
+
+                    const qRows = parsedRows.filter(item => item.q !== '' && item.opts.length > 0);
+                    if (qRows.length === 0) continue; 
+                    
+                    finalHtml += `<div class="sheet-group"><div class="sheet-header" id="sheet-header-${sIdx}" onclick="toggleSheetContent(event, ${sIdx})"><div class="sheet-title"><input type="checkbox" onchange="toggleSheetAll(event, ${sIdx})" style="width:20px; height:20px; margin-right:15px; cursor:pointer;">${sName} <span style="font-size:14px; font-weight:normal; margin-left:10px; color:var(--text-light);">(${qRows.length}題)</span></div><span id="sheet-arrow-${sIdx}" style="color:var(--text-light);">▶</span></div><div id="sheet-content-${sIdx}" class="sheet-content hidden">`;
+                    qRows.forEach((item) => {
+                        item.questionId = globalQIndex++; item.sheetName = sName; allQuestions.push(item);
+                        finalHtml += `<div class="question-item"><label style="cursor:pointer; display:flex; align-items:center; width:100%;"><input type="checkbox" class="q-checkbox q-checkbox-${sIdx}" value="${item.questionId}" style="margin-right:15px; width:18px; height:18px;"><span style="font-size:16px;"><b>${item.q}</b> ${item.audio ? '🎵' : ''}</span></label></div>`;
+                    });
+                    finalHtml += `</div></div>`;
+                } catch (e) { console.error(e); }
+            }
+            listDiv.innerHTML = finalHtml || "所有工作表都沒有題目資料。";
+        } catch(err) { listDiv.innerHTML = "讀取試算表失敗，請確定網址正確。"; }
+    }
+
+    function getSelectedQs() {
+       const cb = document.querySelectorAll('.q-checkbox:checked');
+       if(cb.length === 0) { alert("請至少勾選一題！"); return []; }
+       return Array.from(cb).map(c => allQuestions[c.value]);
+    }
+
+    window.toggleLeftPanel = () => { 
+        const qw = document.getElementById('questionListWrapper'); const ap = document.getElementById('animationPanel'); const btn = document.getElementById('viewToggleBtn');
+        if(qw.classList.contains('hidden')) { qw.classList.remove('hidden'); ap.classList.add('hidden'); btn.innerText = "👁️ 切換為考場畫面"; } 
+        else { qw.classList.add('hidden'); ap.classList.remove('hidden'); btn.innerText = "👁️ 切換為考題設定"; }
+    };
+
+    function stopAIKahootTimers() {
+        aiKahootTimers.forEach(t => clearTimeout(t));
+        aiKahootTimers = [];
+    }
+
+    function triggerAIAnswers(qData) {
+        stopAIKahootTimers();
+        if(window.activeAIStudents.length === 0 || !qData.options || qData.options.length === 0) return;
+        const targetQIndex = kahootIndex;
+        window.activeAIStudents.forEach(aiId => {
+            const randomDelay = Math.floor(Math.random() * 5000) + 500; 
+            const tId = setTimeout(() => {
+                if(currentSettings.status !== 'kahoot_active' || kahootIndex !== targetQIndex) return;
+                const randomOpt = String(qData.options[Math.floor(Math.random() * qData.options.length)]);
+                
+                if(roomMode === 'kahoot') {
+                    set(ref(db, `room/kahootAnswers/${aiId}`), { answer: randomOpt, time: randomDelay });
+                    set(ref(db, `room/testAnswers/${aiId}/${targetQIndex}`), { answer: randomOpt });
+                }
+            }, randomDelay);
+            aiKahootTimers.push(tId);
+        });
+    }
+
+    // === 【線上測驗專用】AI 考生：逐題作答，作答完畢後交卷 ===
+    function stopAITestTimers() { aiTestTimers.forEach(t => clearTimeout(t)); aiTestTimers = []; }
+    function runAITestStudents(paper) {
+        stopAITestTimers();
+        window.activeAIStudents.forEach(aiId => {
+            let qIdx = 0;
+            const willFinish = Math.random() >= AI_NO_SUBMIT_RATE;
+            const stopAt = willFinish ? paper.length : Math.max(1, Math.floor(Math.random() * paper.length));
+            const step = () => {
+                if(currentSettings.status !== 'testing' || !currentSettings.acceptAnswers) return;
+                if(qIdx >= stopAt) {
+                    if(willFinish) set(ref(db, `room/testAnswers/${aiId}/isSubmitted`), true);
+                    return;
+                }
+                const opts = paper[qIdx]?.options || [];
+                if(opts.length > 0) {
+                    set(ref(db, `room/testAnswers/${aiId}/${qIdx}`), { answer: String(opts[Math.floor(Math.random() * opts.length)]) });
+                }
+                qIdx++;
+                aiTestTimers.push(setTimeout(step, 1500 + Math.random() * 3500));
+            };
+            aiTestTimers.push(setTimeout(step, 1000 + Math.random() * 3000));
+        });
+    }
+
+    // === Kahoot 經典模式 ===
+    window.startKahoot = async () => { 
+        selectedQuestions = getSelectedQs(); 
+        if(selectedQuestions.length > 0){ 
+            kahootIndex = 0; 
+            
+            currentPaper = selectedQuestions.map((q) => ({ 
+                questionId: q.questionId, 
+                question: String(q.q), 
+                options: [...q.opts].map(o => String(o)).sort(() => Math.random() - 0.5), 
+                correctAnswer: String(q.ans), 
+                audio: q.audio || null
+            }));
+
+            await remove(ref(db, 'room/testAnswers'));
+            const resetUpdates = {};
+            for(let sid in studentsCache) {
+                resetUpdates[`students/${sid}/score`] = 0;
+            }
+            if(Object.keys(resetUpdates).length > 0) await update(ref(db, 'room'), resetUpdates);
+
+            currentSettings.roundId = Date.now();
+            currentSettings.showAnswer = false;
+            await set(ref(db, 'room/testPaper'), currentPaper);
+
+            document.getElementById('statisticsContainer').classList.add('hidden');
+            document.getElementById('manualStopBtn').classList.add('hidden');
+            document.getElementById('kahootReviewControlDiv').classList.add('hidden');
+            document.getElementById('animationPanel').classList.add('k-top');
+            if(document.getElementById('animationPanel').classList.contains('hidden')) toggleLeftPanel(); 
+            playKahootQuestion(); 
+        }
+    };
+    
+    function playKahootQuestion() {
+      isEndingKahootQ = false;
+      kahootAnswersCache = {};
+      renderedKahootAnswerSids.clear();
+      remove(ref(db, 'room/kahootAnswers')); 
+      
+      // 開始新題目作答時，恢復 BGM 正常音量
+      setBGMVolume(BGM_VOL_NORMAL);
+
+      const qData = selectedQuestions[kahootIndex]; 
+      const paperItem = currentPaper[kahootIndex];
+      const shuffledOpts = paperItem.options;
+      const t = parseInt(document.getElementById('kahootTime').value) || 15;
+      
+      const qPayload = { 
+          questionId: qData.questionId, 
+          question: String(qData.q), 
+          options: shuffledOpts, 
+          audio: qData.audio || null, 
+          kahootIndex: kahootIndex
+      };
+
+      currentSettings.status = 'kahoot_active'; 
+      currentSettings.qStartTime = Date.now(); 
+      currentSettings.currentCorrect = String(qData.ans);
+      currentSettings.kahootIndex = kahootIndex; 
+      currentSettings.acceptAnswers = true;  
+      currentSettings.shuffledOpts = shuffledOpts; 
+      currentSettings.currentQ = qPayload;
+
+      set(ref(db, 'room/currentKahootQ'), qPayload);
+      update(ref(db, 'room/settings'), currentSettings);
+
+      const animTitleEl = document.getElementById('animTitle');
+      animTitleEl.classList.add('anim-title-sm');
+      animTitleEl.innerText = `第 ${kahootIndex + 1} 題 / 共 ${selectedQuestions.length} 題`; 
+      
+      const audioBtnHtml = qData.audio ? ` <button class="timer-btn" style="font-size:14px; padding:4px 12px; vertical-align:middle; margin-left:8px;" onclick="playTeacherAudio('${qData.audio}')">🔊 重播音檔</button>` : '';
+      let html = `<div class="k-question-text">${qData.q}${audioBtnHtml}</div>`;
+      html += `<div class="k-action-bar" id="kActionBar">
+                  <div class="k-timer-group" id="kTimerGroup">
+                      <div class="k-timebar-bg"><div class="k-timebar-fill" id="kTimeBar"></div></div>
+                      <div class="k-timer-num" id="kTimerDisplay">${t}</div>
+                  </div>
+                  <div class="k-settle-hint hidden" id="kSettleHint">✔️ 本題已結算（BGM 已自動降低）</div>
+                  <div class="k-btn-group">
+                      <button id="kahootSkipBtn" class="skip-btn" style="padding:7px 14px; font-size:14px;" onclick="skipKahootQuestion()">⏭️ 略過</button>
+                      <button class="stop-btn" style="padding:7px 14px; font-size:14px;" onclick="stopKahootEarly()">⏹️ 中止並結算</button>
+                      <button id="kahootNextBtn" class="send-btn hidden" style="padding:7px 22px; font-size:16px;" onclick="nextKahootQuestion()">下一題 ➡️</button>
+                  </div>
+               </div>`;
+      html += `<div class="k-options-grid">`;
+      shuffledOpts.forEach((opt, idx) => {
+          html += `<div class="k-option-box opt-${idx % 4}" id="k-optbox-${idx}">
+                      <div class="k-opt-head"><span class="k-shape">${shapes[idx % 4]}</span><span class="k-opt-text">${opt}</span></div>
+                      <div class="k-avatars-area" id="k-avatar-area-${idx}"></div>
+                   </div>`;
+      });
+      html += `</div>`;
+      document.getElementById('animContent').innerHTML = html;
+
+      if(qData.audio && currentSettings.audioSource === 'teacher') {
+          window.playTeacherAudio(qData.audio);
+      }
+
+      triggerAIAnswers({ options: shuffledOpts });
+
+      // 時間條與秒數同步
+      const timeBar = document.getElementById('kTimeBar');
+      requestAnimationFrame(() => requestAnimationFrame(() => { if(timeBar) { timeBar.style.transition = `width ${t}s linear`; timeBar.style.width = '0%'; } }));
+      const endAt = Date.now() + t * 1000;
+      globalTimeLeft = t; 
+      clearInterval(kahootTimer);
+      kahootTimer = setInterval(() => {
+         const left = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+         globalTimeLeft = left;
+         const numEl = document.getElementById('kTimerDisplay'); if(numEl) numEl.innerText = left;
+         if(left <= 5 && timeBar) timeBar.classList.add('urgent');
+         if(Date.now() >= endAt) { clearInterval(kahootTimer); endKahootQuestion(); }
+      }, 200);
+    }
+
+    // 【經典模式專用】略過本題剩餘倒數：強制結算目前已作答玩家，尚未作答者不予給分
+    window.skipKahootQuestion = () => {
+       endKahootQuestion();
+    };
+
+    // 結算當前經典模式題目的分數並回傳各選項人數統計（僅計分已作答者，未作答者不給分）
+    async function scoreCurrentKahootQuestion() {
+       const aSnap = await get(ref(db, 'room/kahootAnswers')), sSnap = await get(ref(db, 'room/students'));
+       const answers = aSnap.val() || {}, students = sSnap.val() || {};
+       const maxTimeMs = (parseInt(document.getElementById('kahootTime').value) || 15) * 1000;
+       const correctStr = String(currentSettings.currentCorrect ?? '').trim();
+       
+       let optCounts = {};
+       (currentSettings.shuffledOpts || []).forEach(o => optCounts[String(o).trim()] = 0);
+       
+       for(let sid in answers) {
+           if(!students[sid]) continue;
+           const ans = String(answers[sid].answer ?? '').trim();
+           if(optCounts[ans] !== undefined) optCounts[ans]++;
+           if(ans === correctStr) {
+               const clampedTime = Math.min(maxTimeMs, Math.max(0, Number(answers[sid].time) || 0));
+               students[sid].score = (students[sid].score || 0) + Math.max(10, 1000 - Math.floor(clampedTime / 20)); 
+           }
+       }
+       await set(ref(db, 'room/students'), students); 
+       return { optCounts, correctStr };
+    }
+
+    async function endKahootQuestion() {
+       if(isEndingKahootQ || currentSettings.status !== 'kahoot_active') return;
+       isEndingKahootQ = true;
+       clearInterval(kahootTimer);
+       stopAIKahootTimers();
+
+       // 單題答完進入結算空檔：自動降低 BGM 音量方便老師檢查題目與講解
+       setBGMVolume(BGM_VOL_LOW);
+
+       currentSettings.status = 'kahoot_result'; 
+       currentSettings.acceptAnswers = false; 
+       update(ref(db, 'room/settings'), currentSettings);
+       
+       const skipBtn = document.getElementById('kahootSkipBtn');
+       if(skipBtn) skipBtn.classList.add('hidden');
+
+       const { optCounts, correctStr } = await scoreCurrentKahootQuestion();
+       
+       const tGroup = document.getElementById('kTimerGroup'); if(tGroup) tGroup.classList.add('hidden');
+       const sHint = document.getElementById('kSettleHint'); if(sHint) sHint.classList.remove('hidden');
+       document.getElementById('animTitle').innerText = `第 ${kahootIndex + 1} 題 / 共 ${selectedQuestions.length} 題・結算`;
+       
+       currentSettings.shuffledOpts.forEach((opt, idx) => {
+           const box = document.getElementById(`k-optbox-${idx}`);
+           if(!box) return;
+           const optStr = String(opt).trim();
+           const count = optCounts[optStr] || 0;
+           const avatarArea = document.getElementById(`k-avatar-area-${idx}`);
+           if(avatarArea) avatarArea.innerHTML = ''; 
+           
+           box.querySelectorAll('.k-result-count').forEach(el => el.remove());
+
+           if(optStr === correctStr) {
+               box.innerHTML += `<div class="k-result-count">✔️ ${count} 人</div>`;
+           } else {
+               box.classList.add('dimmed-box');
+               box.innerHTML += `<div class="k-result-count">❌ ${count} 人</div>`;
+           }
+       });
+       
+       const nextBtn = document.getElementById('kahootNextBtn');
+       if(nextBtn) {
+           nextBtn.innerText = (kahootIndex + 1 >= selectedQuestions.length) ? "查看總成績 🏆" : "下一題 ➡️";
+           nextBtn.classList.remove('hidden');
+       }
+    }
+
+    // 【經典模式專用】隨時提前中止測驗並儲存結算目前成績
+    window.stopKahootEarly = async () => {
+        if(!confirm("確定要提前中止測驗，並儲存結算目前的成績嗎？")) return;
+        clearInterval(kahootTimer);
+        stopAIKahootTimers();
+        setBGMVolume(BGM_VOL_LOW);
+
+        // 若在題目倒數中途按中止，先將該題目前已作答的學生計分儲存
+        if(currentSettings.status === 'kahoot_active' && !isEndingKahootQ) {
+            isEndingKahootQ = true;
+            currentSettings.acceptAnswers = false;
+            await scoreCurrentKahootQuestion();
+        }
+
+        // 將本輪題庫裁切至目前已進行的題目數量，確保後續統計與匯出 CSV 準確對應
+        const completedCount = Math.min(selectedQuestions.length, kahootIndex + 1);
+        selectedQuestions = selectedQuestions.slice(0, completedCount);
+        currentPaper = currentPaper.slice(0, completedCount);
+        await set(ref(db, 'room/testPaper'), currentPaper);
+
+        await finishKahootGame(true);
+    };
+
+    window.nextKahootQuestion = async () => {
+       kahootIndex++;
+       if(kahootIndex < selectedQuestions.length) {
+           playKahootQuestion();
+       } else {
+           await finishKahootGame(false);
+       }
+    };
+
+    // 經典模式最終排行榜與統計結算（正常結束與提前中止共用）
+    async function finishKahootGame(isEarlyStop) {
+       setBGMVolume(BGM_VOL_LOW);
+
+       if(confirm(`${isEarlyStop ? '已提前中止測驗並儲存目前成績！' : '所有題目已完成！'}\n是否要讓「學生平板」同步顯示解答並允許他們自由翻閱考題？`)) {
+           currentSettings.status = 'reviewing'; 
+           currentSettings.showAnswer = true;
+       } else {
+           currentSettings.status = 'ended'; 
+           currentSettings.showAnswer = false;
+       }
+       await update(ref(db, 'room/settings'), currentSettings);
+       document.getElementById('kahootReviewControlDiv').classList.remove('hidden');
+       renderKahootReviewControl();
+
+       const sSnap = await get(ref(db, 'room/students')); const st = sSnap.val() || {};
+       const sorted = Object.values(st).sort((a,b) => (b.score || 0) - (a.score || 0));
+       
+       let html = `<div><h2 style="color:var(--accent); text-align:center; margin-bottom:0;">🏆 最終排行榜（點擊右欄「匯出成績」可下載 CSV）</h2>`; 
+       html += `<div class="podium-container">`;
+       
+       const p1 = sorted.length > 0 ? sorted[0] : null;
+       const p2 = sorted.length > 1 ? sorted[1] : null;
+       const p3 = sorted.length > 2 ? sorted[2] : null;
+
+       html += `<div class="podium-step step-2">
+                   ${p2 ? `<div class="podium-avatar-box"><div class="p-crown">🥈</div><div class="p-avatar">${p2.avatar||'👤'}</div><div class="p-name">${p2.nickname}</div></div>` : ''}
+                   <div class="podium-number">2</div>
+                </div>`;
+       html += `<div class="podium-step step-1">
+                   ${p1 ? `<div class="podium-avatar-box"><div class="p-crown">👑</div><div class="p-avatar" style="border-color:#fbbf24;">${p1.avatar||'👤'}</div><div class="p-name">${p1.nickname}</div></div>` : ''}
+                   <div class="podium-number">1</div>
+                </div>`;
+       html += `<div class="podium-step step-3">
+                   ${p3 ? `<div class="podium-avatar-box"><div class="p-crown">🥉</div><div class="p-avatar">${p3.avatar||'👤'}</div><div class="p-name">${p3.nickname}</div></div>` : ''}
+                   <div class="podium-number">3</div>
+                </div>`;
+       html += `</div>`; 
+       
+       const p4 = sorted.length > 3 ? sorted[3] : null;
+       const p5 = sorted.length > 4 ? sorted[4] : null;
+       if(p4 || p5) {
+           html += `<div class="runner-up-container">`;
+           if(p4) html += `<div class="runner-up">#4 ${p4.avatar||'👤'} ${p4.nickname}</div>`;
+           if(p5) html += `<div class="runner-up">#5 ${p5.avatar||'👤'} ${p5.nickname}</div>`;
+           html += `</div>`;
+       }
+       html += `</div>`;
+       document.getElementById('animTitle').classList.remove('anim-title-sm');
+       document.getElementById('animTitle').innerText = isEarlyStop ? `🏁 測驗已中止（共結算 ${selectedQuestions.length} 題）` : "🏁 測驗結束";
+       document.getElementById('animContent').innerHTML = html;
+       
+       if(typeof confetti === 'function') {
+           confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+       }
+
+       await renderTestStatistics();
+    }
+
+
+    // === 【經典模式專用】學生平板回顧開關 ===
+    function renderKahootReviewControl() {
+        const open = currentSettings.status === 'reviewing' && currentSettings.showAnswer;
+        document.getElementById('kahootReviewBtn').innerText = open ? '🔒 關閉學生回顧' : '📖 開放學生平板回顧作答';
+        document.getElementById('kahootReviewInfo').innerText = open ? '學生平板目前：可逐題回顧' : '學生平板目前：只顯示「測驗已結束」';
+    }
+    window.toggleKahootReview = () => {
+        const open = currentSettings.status === 'reviewing' && currentSettings.showAnswer;
+        currentSettings.status = open ? 'ended' : 'reviewing';
+        currentSettings.showAnswer = !open;
+        update(ref(db, 'room/settings'), currentSettings);
+        renderKahootReviewControl();
+    };
+
+    // === 測驗模式 ===
+    window.startTestMode = async () => {
+      selectedQuestions = getSelectedQs(); if(selectedQuestions.length === 0) return;
+      const mins = parseInt(document.getElementById('testMinutes').value) || 5;
+      
+      testStopping = false; autoSubmittedNames = [];
+      document.getElementById('reviewControlDiv').classList.add('hidden');
+      document.getElementById('reviewModal').classList.add('hidden');
+      answersCache = {};
+      await remove(ref(db, 'room/testAnswers'));
+      
+      // 測驗開始時恢復 BGM 正常音量
+      setBGMVolume(BGM_VOL_NORMAL);
+
+      currentPaper = selectedQuestions.map((q) => ({ 
+          questionId: q.questionId, 
+          question: String(q.q), 
+          options: [...q.opts].map(o => String(o)).sort(() => Math.random() - 0.5), 
+          correctAnswer: String(q.ans), 
+          audio: q.audio || null 
+      }));
+      await set(ref(db, 'room/testPaper'), currentPaper);
+
+      currentSettings.roundId = Date.now();
+      currentSettings.status = 'testing'; 
+      currentSettings.acceptAnswers = true;
+      currentSettings.showAnswer = false;
+      await update(ref(db, 'room/settings'), currentSettings);
+      
+      renderStudentList();
+      
+      if(document.getElementById('animationPanel').classList.contains('hidden')) toggleLeftPanel();
+      document.getElementById('timerControlsDiv').classList.remove('hidden');
+      document.getElementById('manualStopBtn').classList.remove('hidden');
+      document.getElementById('animTitle').innerText = "測驗倒數中"; 
+      
+      globalTimeLeft = mins * 60; isTimerPaused = false;
+      document.getElementById('pauseTimerBtn').innerText = "暫停倒數";
+      document.getElementById('statisticsContainer').classList.add('hidden'); 
+      
+      updateTimerDisplay();
+      runAITestStudents(currentPaper);
+      runTestTimer();
+    };
+
+    function runTestTimer() {
+        clearInterval(testCountdownTimer);
+        testCountdownTimer = setInterval(() => {
+            if(isTimerPaused) return; 
+            globalTimeLeft--; updateTimerDisplay();
+            if(globalTimeLeft <= 0) triggerTestStop('timeup');
+        }, 1000);
+    }
+    
+    function updateTimerDisplay() {
+        if(globalTimeLeft < 0) globalTimeLeft = 0;
+        const m = Math.floor(globalTimeLeft / 60).toString().padStart(2, '0');
+        const s = (globalTimeLeft % 60).toString().padStart(2, '0');
+        document.getElementById('animContent').innerHTML = `<div class="timer-display">${m}:${s}</div>`;
+    }
+
+    window.adjustTimer = (seconds) => {
+        globalTimeLeft += seconds; if(globalTimeLeft < 0) globalTimeLeft = 0; updateTimerDisplay();
+        if(globalTimeLeft <= 0) triggerTestStop('timeup');
+    };
+    window.togglePauseTimer = () => {
+        isTimerPaused = !isTimerPaused;
+        const btn = document.getElementById('pauseTimerBtn');
+        if(isTimerPaused) { btn.innerText = "繼續倒數"; btn.style.background = "var(--danger)"; btn.style.color = "white"; } 
+        else { btn.innerText = "暫停倒數"; btn.style.background = "white"; btn.style.color = "var(--primary)"; }
+    };
+
+    window.triggerTestStop = async (reason) => {
+       if(testStopping) return;
+       if(reason === 'manual' && !confirm("確定要提前中止測驗並收卷嗎？（系統將自動儲存所有學生目前已作答的成績）")) return;
+       testStopping = true;
+       clearInterval(testCountdownTimer);
+       stopAITestTimers();
+       setBGMVolume(BGM_VOL_LOW);
+
+       document.getElementById('animTitle').innerText = "測驗結束";
+       document.getElementById('timerControlsDiv').classList.add('hidden'); 
+       let msg = reason === 'auto' ? "已全數交卷（成績已儲存）" : (reason === 'timeup' ? "時間到（成績已儲存）" : "已手動中止收卷（成績已儲存）");
+       document.getElementById('animContent').innerHTML = `<div class="timer-display" style="color:var(--danger);">00:00</div><h3 style="text-align:center;">${msg}</h3>`;
+       
+       const finishWork = (async () => {
+           currentSettings.acceptAnswers = false;
+           await update(ref(db, 'room/settings'), currentSettings);
+
+           const stuSnap = await get(ref(db, 'room/students')), ansSnap = await get(ref(db, 'room/testAnswers'));
+           const stuNow = stuSnap.val() || {}, ansNow = ansSnap.val() || {};
+           const autoUpdates = {};
+           autoSubmittedNames = [];
+
+           // 為未交卷學生自動交卷，並計算每位學生目前答對率換算為百分制分數存入資料庫
+           for(const sid in stuNow) {
+               if(!(ansNow[sid] && ansNow[sid].isSubmitted)) {
+                   autoUpdates[`testAnswers/${sid}/isSubmitted`] = true;
+                   autoSubmittedNames.push(stuNow[sid].nickname);
+               }
+               let correctCount = 0;
+               selectedQuestions.forEach((q, idx) => {
+                   if(ansNow[sid] && ansNow[sid][idx]) {
+                       const aTxt = String(ansNow[sid][idx].answer ?? '').trim();
+                       if(aTxt === String(q.ans).trim()) correctCount++;
+                   }
+               });
+               const testScore = selectedQuestions.length > 0 ? Math.round((correctCount / selectedQuestions.length) * 100) : 0;
+               autoUpdates[`students/${sid}/score`] = testScore;
+           }
+           if(Object.keys(autoUpdates).length > 0) await update(ref(db, 'room'), autoUpdates);
+           await renderTestStatistics();
+       })().catch(err => console.error('收卷處理發生錯誤：', err));
+       await Promise.race([finishWork, new Promise(r => setTimeout(r, 4000))]);
+
+       renderStudentList();
+       const reviewBtn = document.getElementById('openReviewBtn');
+       reviewBtn.disabled = false; reviewBtn.innerText = "📖 開放學生平板回顧作答";
+       document.getElementById('reviewControlDiv').classList.remove('hidden');
+       document.getElementById('reviewModal').classList.remove('hidden');
+    };
+
+    window.answerReviewModal = (yes) => {
+        document.getElementById('reviewModal').classList.add('hidden');
+        if(yes) openStudentReview();
+        else { currentSettings.status = 'ended'; currentSettings.showAnswer = false; update(ref(db, 'room/settings'), currentSettings); }
+    };
+
+    window.openStudentReview = () => {
+        currentSettings.status = 'reviewing'; currentSettings.showAnswer = true;
+        update(ref(db, 'room/settings'), currentSettings);
+        document.getElementById('reviewModal').classList.add('hidden');
+        const btn = document.getElementById('openReviewBtn');
+        btn.innerText = "✅ 已開放學生平板回顧"; btn.disabled = true;
+    };
+
+    async function renderTestStatistics() {
+        const statContainer = document.getElementById('statisticsContainer');
+        statContainer.classList.remove('hidden'); 
+        
+        const aSnap = await get(ref(db, 'room/testAnswers')), sSnap = await get(ref(db, 'room/students'));
+        const answers = aSnap.val() || {}, students = sSnap.val() || {};
+        
+        let html = `<h2 style="color:var(--primary); font-size:22px; margin-bottom:12px; border-top: 2px solid #cbd5e1; padding-top:20px;">📈 題目作答統計與分析</h2>`;
+        
+        if (roomMode === 'test' && autoSubmittedNames.length > 0) {
+            html += `<div style="color:var(--text-light); margin-bottom:16px; font-weight:bold; font-size:15px;">系統代為交卷（未按交卷，已選答案照常計算）：${autoSubmittedNames.join('、')}</div>`;
+        }
+
+        selectedQuestions.forEach((q, qIdx) => {
+            let totalAnswers = 0, correctAnswers = 0;
+            let optCounts = {}; q.opts.forEach(o => optCounts[String(o).trim()] = 0);
+            const qAnsStr = String(q.ans).trim();
+            
+            for(let sid in answers) {
+                if(!students[sid]) continue;
+                if(answers[sid][qIdx]) {
+                    totalAnswers++; const ansStr = String(answers[sid][qIdx].answer ?? '').trim();
+                    if(optCounts[ansStr] !== undefined) optCounts[ansStr]++;
+                    if(ansStr === qAnsStr) correctAnswers++;
+                }
+            }
+            
+            let accuracy = totalAnswers > 0 ? Math.round((correctAnswers/totalAnswers)*100) : 0;
+            const audioBtnHtml = q.audio ? ` <button class="timer-btn" style="font-size:13px; padding:4px 10px; margin-left:8px;" onclick="playTeacherAudio('${q.audio}')">🔊 播放音檔</button>` : '';
+            html += `<div class="stat-container"><div class="stat-q-title">Q${qIdx+1} <span style="font-size:14px;color:var(--text-light);">[${q.sheetName}]</span> : ${q.q}${audioBtnHtml} <span style="color:var(--primary); font-size:14px; font-weight:normal; float:right;">答對率: ${accuracy}%</span></div>`;
+            
+            q.opts.forEach(opt => {
+                const optStr = String(opt).trim();
+                let count = optCounts[optStr] || 0, pct = totalAnswers > 0 ? Math.round((count/totalAnswers)*100) : 0, isCorrect = (optStr === qAnsStr);
+                html += `<div class="stat-bar-wrapper">
+                            <div class="stat-label" style="${isCorrect ? 'color:var(--success); font-weight:bold;' : ''}">${optStr}</div>
+                            <div class="stat-bar-bg"><div class="stat-bar-fill ${isCorrect ? 'correct' : ''}" style="width: ${pct > 0 ? Math.max(pct, 5) : 0}%;">${count > 0 ? count : ''}</div></div>
+                         </div>`;
+            });
+            html += `</div>`;
+        });
+        statContainer.innerHTML = html;
+    }
+
+    window.toggleSetting = (key, btn) => { currentSettings[key] = !currentSettings[key]; btn.innerText = (key === 'showQuestion' ? '平板題目：' : '公布解答：') + (currentSettings[key] ? '開' : '關'); btn.classList.toggle('active', currentSettings[key]); update(ref(db, 'room/settings'), currentSettings); };
+    
+    window.kickStudent = (id) => {
+        const s = studentsCache[id];
+        if(!s) return;
+        if(!confirm(`確定要將「${s.nickname} (${s.realName})」移出考場嗎？`)) return;
+        remove(ref(db, `room/students/${id}`));
+        remove(ref(db, `room/testAnswers/${id}`));
+        remove(ref(db, `room/kahootAnswers/${id}`));
+    };
+
+    window.updateSettings = (k, v) => { currentSettings[k] = v; update(ref(db, 'room/settings'), currentSettings); };
+    
+    window.toggleBGM = () => { 
+        const btn = document.getElementById('bgmBtn'); 
+        const nextBtn = document.getElementById('nextBgmBtn');
+        if(bgmAudioEl.paused) {
+            const isLowVolState = (currentSettings.status === 'kahoot_result' || currentSettings.status === 'ended' || currentSettings.status === 'reviewing');
+            setBGMVolume(isLowVolState ? BGM_VOL_LOW : BGM_VOL_NORMAL);
+            const playPromise = !lastPlayedBgmUrl ? playRandomBGM() : bgmAudioEl.play();
+            playPromise.then(() => { 
+                btn.innerText = "暫停"; 
+                btn.classList.add('active'); 
+                nextBtn.classList.remove('hidden');
+            }).catch(e => { 
+                console.warn("BGM 播放失敗：", e);
+                alert("無法播放背景音樂，請確認網路連線或點擊畫面後重試。"); 
+            });
+        } else {
+            bgmAudioEl.pause(); 
+            btn.innerText = "開啟"; 
+            btn.classList.remove('active');
+            nextBtn.classList.add('hidden');
+        }
+    };
+
+    window.nextBGMTrack = () => {
+        const btn = document.getElementById('bgmBtn');
+        playRandomBGM().then(() => {
+            btn.innerText = "暫停";
+            btn.classList.add('active');
+        }).catch(e => console.warn("切換 BGM 失敗：", e));
+    };
+
+    function getFormattedTime() {
+        const now = new Date();
+        return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function escapeCSV(val) {
+        const str = String(val ?? '');
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+    }
+
+    // 匯出成績：座號1+姓名1 為第1列；若有填寫座號2或姓名2，自動拆為第2列並共用相同成績與作答紀錄
+    window.exportCSV = async () => {
+      const stuSnap = await get(ref(db, 'room/students')), tAnsSnap = await get(ref(db, 'room/testAnswers'));
+      if(!stuSnap.exists()) return alert("無考生資料可匯出！");
+      let csv = "\uFEFF班級,座號,真實姓名,暱稱,平板編號,遊戲總積分,答對率(%)"; 
+      selectedQuestions.forEach((q,i) => csv += `,${escapeCSV(`Q${i+1} [${q.sheetName}]`)}`); 
+      csv += "\n";
+      
+      stuSnap.forEach(c => {
+        let correctCount = 0, row = "";
+        const sData = c.val();
+        selectedQuestions.forEach((_,i) => {
+           let isC = false, aTxt = "未答";
+           if(tAnsSnap.exists() && tAnsSnap.val()[c.key] && tAnsSnap.val()[c.key][i]) { 
+               aTxt = String(tAnsSnap.val()[c.key][i].answer ?? '').trim(); 
+               isC = (aTxt === String(selectedQuestions[i].ans).trim()); 
+           }
+           if(isC) correctCount++; 
+           row += `,${escapeCSV(aTxt)}`;
+        });
+        
+        let accPct = selectedQuestions.length > 0 ? Math.round((correctCount / selectedQuestions.length) * 100) : 0;
+        const seat1 = sData.seat1 !== undefined ? sData.seat1 : (sData.seat || '');
+        const name1 = sData.realName1 !== undefined ? sData.realName1 : (sData.realName || '');
+        csv += `${escapeCSV(sData.class || '')},${escapeCSV(seat1)},${escapeCSV(name1)},${escapeCSV(sData.nickname)},${escapeCSV(sData.device || '')},${escapeCSV(sData.score || 0)},${accPct}%${row}\n`;
+
+        const seat2 = (sData.seat2 || '').trim();
+        const name2 = (sData.realName2 || '').trim();
+        if(seat2 || name2) {
+            csv += `${escapeCSV(sData.class || '')},${escapeCSV(seat2)},${escapeCSV(name2)},${escapeCSV(sData.nickname)},${escapeCSV(sData.device || '')},${escapeCSV(sData.score || 0)},${accPct}%${row}\n`;
+        }
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = `成績_${getFormattedTime()}.csv`; document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    };
+  </script>
+</body>
+</html>
