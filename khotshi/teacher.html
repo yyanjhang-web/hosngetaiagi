@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>教師控制台 - 台語互動派題系統</title>
+  <!-- 引入豆腐黑體 (Tauhu-Oo) 官方字型，完美支援台羅聲調與罕用字 -->
+  <link href="https://tauhu.tw/tauhu-oo.css" rel="stylesheet">
+  <link href="https://tauhu.tw/tauhu-oo-bold.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+    
+    :root { 
+        --primary: #5c7c99; --teacher: #ffffff; --danger: #fca5a5; --success: #86efac; --accent: #93c5fd; 
+        --bg-color: #f1f5f9; --text-dark: #334155; --text-light: #94a3b8;
+        /* 選項色塊：與學生端同步（白字對比度 ≥ 4.5:1） */
+        --c-red: #b0524f;
+        --c-blue: #4a78a0;
+        --c-yellow: #926d10;
+        --c-green: #517d51;
+        --c-red-b: #8a3a38;
+        --c-blue-b: #345a7e;
+        --c-yellow-b: #6f5209;
+        --c-green-b: #3b5e3b;
+        --main-font: 'Tauhu-oo', 'Noto Sans TC', sans-serif;
+    }
+    
+    body { font-family: var(--main-font); margin: 0; padding: 10px 18px 54px; background: var(--bg-color); color: var(--text-dark); min-height: 100vh; position: relative; box-sizing: border-box;}
+    .hidden { display: none !important; }
+    button, select { cursor: pointer; border-radius: 20px; border: none; font-weight: bold; transition: all 0.3s ease; font-family: var(--main-font); box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+    button:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    
+    .version-tag { position: absolute; top: 8px; right: 18px; background: var(--text-light); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; z-index: 10;}
+    .footer { position: absolute; bottom: 5px; left: 0; width: 100%; text-align: center; color: var(--text-light); font-size: 11px; line-height: 1.25; }
+    .footer p { margin: 1px 0; }
+    input[type="number"] { padding: 6px 8px; font-size: 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-family: var(--main-font); width: 60px; text-align: center;}
+
+    #lobby { max-width: 700px; margin: 40px auto; text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+    .role-btn { padding: 14px 28px; font-size: 18px; margin: 10px; background: var(--primary); color: white; min-width: 150px;}
+    .resume-room-box { margin-bottom: 25px; padding: 18px 20px; background: #eff6ff; border: 2px solid var(--accent); border-radius: 14px; }
+
+    #teacherView { max-width: 1440px; margin: 0 auto; }
+    .teacher-header { background: white; padding: 10px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; gap: 12px; flex-wrap: wrap;}
+    
+    /* 常駐「全員黑屏」按鈕樣式 */
+    .blackout-btn { background: #1e293b; color: #f8fafc; padding: 9px 20px; font-size: 15px; border: 2px solid #0f172a; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(15,23,42,0.15); }
+    .blackout-btn:hover { background: #334155; }
+    .blackout-btn.active { background: #dc2626; color: #ffffff; border-color: #991b1b; animation: pulseBlackout 1.5s infinite; }
+    @keyframes pulseBlackout {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
+        50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+    }
+
+    .sync-badge { font-size: 12px; font-weight: bold; color: #166534; background: #dcfce7; padding: 4px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; }
+    .sync-badge.offline { color: #991b1b; background: #fee2e2; }
+    .reset-room-btn { background: #f1f5f9; color: var(--text-dark); padding: 7px 14px; font-size: 13px; border: 1px solid #cbd5e1; box-shadow: none; }
+    .reset-room-btn:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; transform: none; }
+
+    .pin-container { display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 6px 14px; border-radius: 12px; border: 1px solid #e2e8f0;}
+    .pin-display { font-size: 16px; font-weight: bold; color: var(--primary); }
+    #qrcode { width: 54px; height: 54px; background: white; padding: 3px; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer; transition: transform 0.2s ease; display: flex; align-items: center; justify-content: center;}
+    #qrcode:hover { transform: scale(1.06); border-color: var(--accent); }
+
+    /* QR Code 放大視窗：僅覆蓋左側區域，完全不遮擋、不模糊右側考生名單 */
+    #qrModal { position: fixed; top: 0; left: 0; bottom: 0; width: 72%; z-index: 9999; background: rgba(15,23,42,0.18); display: flex; align-items: center; justify-content: center; }
+    .qr-modal-card { background: white; padding: 28px 36px; border-radius: 20px; box-shadow: 0 20px 50px rgba(15,23,42,0.28); text-align: center; display: flex; flex-direction: column; align-items: center; border-top: 6px solid var(--accent); border: 2px solid #cbd5e1;}
+    #qrcodeLarge { width: 290px; height: 290px; background: white; padding: 10px; border-radius: 12px; border: 2px solid #e2e8f0; margin: 12px 0; display: flex; align-items: center; justify-content: center; }
+
+    .workspace { display: grid; grid-template-columns: 3fr 1fr; gap: 16px; align-items: start; }
+    .panel { background: white; padding: 14px 18px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; border: 1px solid #f1f5f9;}
+    
+    .control-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; padding: 12px 15px; background: #f8fafc; border-radius: 12px; align-items: center; border: 1px solid #e2e8f0;}
+    .toggle-btn { padding: 7px 14px; background: white; color: var(--primary); font-size: 14px; border: 1px solid #cbd5e1; box-shadow: none;}
+    .toggle-btn:hover { background: #f1f5f9; transform: none;}
+    .toggle-btn.active { background: var(--primary); color: white; border-color: var(--primary);}
+    .stop-btn { background: #e07a7a; color: white; padding: 8px 16px; font-size: 14px; }
+    .stop-btn:hover { background: #c66060; }
+    .skip-btn { background: #f59e0b; color: white; padding: 8px 16px; font-size: 14px; }
+    .skip-btn:hover { background: #d97706; }
+    .hide-panel-btn { position: absolute; top: 14px; right: 16px; background: var(--text-light); color: white; padding: 5px 12px; font-size: 12px; z-index: 5;}
+
+    .sheet-group { border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; overflow: hidden; background: white;}
+    .sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #f8fafc; cursor: pointer; transition: background 0.3s;}
+    .sheet-header:hover { background: #f1f5f9; }
+    .sheet-title { font-weight: bold; font-size: 17px; color: var(--primary); display: flex; align-items: center;}
+    .sheet-content { padding: 12px 15px; background: white;}
+    .question-item { border: 1px solid #f1f5f9; padding: 12px; margin-bottom: 8px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; background: #ffffff;}
+    
+    .accordion-main { cursor: pointer; padding: 12px 18px; background: #f8fafc; border-radius: 12px; font-weight: bold; font-size: 17px; color: var(--primary); border: 1px solid #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; justify-content: flex-start; transition: background 0.3s;}
+    
+    .send-btn { background: var(--accent); color: #0f172a; padding: 8px 18px; font-size: 15px; }
+    .send-btn:disabled { background: #e2e8f0; color: var(--text-light); cursor: not-allowed;}
+    
+    #animationPanel { text-align: center; padding: 12px 16px; background: #f8fafc; border-radius: 12px; min-height: 360px; border: 1px solid #e2e8f0; display:flex; flex-direction:column; justify-content:center; box-sizing: border-box;}
+    .timer-display { font-size: 86px; font-weight: bold; color: var(--primary); font-family: monospace; margin: 8px 0; line-height:1;}
+    .timer-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;}
+    .timer-btn { padding: 7px 14px; font-size: 14px; background: white; color: var(--primary); border: 1px solid #cbd5e1; border-radius: 20px;}
+    
+    /* 大屏選項網格：自適應高度，確保 100% 縮放全螢幕一頁完整顯示 */
+    .k-question-text { font-size: 28px; font-weight: bold; color: var(--text-dark); margin: 2px 0 6px; line-height: 1.25;}
+    .k-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 6px;}
+    .k-option-box { padding: 12px 16px; font-size: 24px; color: white; display: flex; flex-direction: column; align-items: stretch; border-radius: 14px; position: relative; min-height: clamp(105px, 16vh, 145px); text-shadow: 1px 1px 2px rgba(0,0,0,0.5); text-align: left; box-sizing: border-box;}
+    .k-opt-head { display: flex; align-items: center; gap: 12px; font-weight: bold; line-height: 1.25; }
+    .k-opt-text { flex: 1; word-break: break-word; }
+    .k-shape { font-size: 32px; color: white; flex: none; width: 38px; text-align: center;}
+    .k-avatars-area { display: flex; flex-wrap: wrap; justify-content: flex-start; align-content: flex-end; gap: 5px; margin-top: auto; padding-top: 8px; width: 100%; min-height: 44px; padding-right: 105px; box-sizing: border-box;}
+    .k-avatar-badge { font-size: 20px; background: white; border-radius: 50%; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.25); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-shadow: none;}
+    
+    @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+    
+    .k-result-count { position: absolute; bottom: 8px; right: 10px; font-size: 22px; font-weight: bold; background: rgba(0,0,0,0.6); padding: 4px 12px; border-radius: 8px;}
+    
+    .opt-0 { background-color: var(--c-red); border-bottom: 5px solid var(--c-red-b); }
+    .opt-1 { background-color: var(--c-blue); border-bottom: 5px solid var(--c-blue-b); }
+    .opt-2 { background-color: var(--c-yellow); border-bottom: 5px solid var(--c-yellow-b); }
+    .opt-3 { background-color: var(--c-green); border-bottom: 5px solid var(--c-green-b); }
+    .dimmed-box { opacity: 0.3 !important; filter: grayscale(80%); }
+
+    /* 頒獎台 */
+    .podium-container { display: flex; justify-content: center; align-items: flex-end; height: 290px; margin-top: 20px; gap:10px; position: relative;}
+    .podium-step { display: flex; flex-direction: column; align-items: center; width: 130px; border-radius: 8px 8px 0 0; box-shadow: inset 0 -10px 20px rgba(0,0,0,0.1); position: relative;}
+    .step-1 { height: 185px; background: #fbbf24; z-index: 3;}
+    .step-2 { height: 135px; background: #94a3b8; z-index: 2;}
+    .step-3 { height: 100px; background: #b45309; z-index: 1;}
+    .podium-number { font-size: 50px; font-weight: bold; color: white; margin-top: auto; margin-bottom: 15px; opacity: 0.8;}
+    .podium-avatar-box { position: absolute; top: -92px; display: flex; flex-direction: column; align-items: center; width: 100%; text-align: center;}
+    .p-avatar { font-size: 42px; background: white; border-radius: 50%; width: 62px; height: 62px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 4px solid var(--primary);}
+    .p-name { font-size: 15px; font-weight: bold; margin-top: 4px; color: var(--text-dark); background: rgba(255,255,255,0.85); padding:2px 6px; border-radius:4px;}
+    .p-crown { position: absolute; top: -28px; font-size: 30px; }
+    
+    .runner-up-container { display: flex; justify-content: space-around; margin-top: 15px; border-top: 2px dashed #cbd5e1; padding-top: 15px; flex-wrap: wrap; gap: 8px;}
+    .runner-up { font-size: 16px; font-weight: bold; color: var(--text-dark); background: white; padding: 8px 16px; border-radius: 8px; border: 1px solid #e2e8f0;}
+
+    #statisticsContainer { margin-top: 20px; border-top: 2px dashed #cbd5e1; padding-top: 15px; text-align: left; }
+    .stat-container { margin-bottom: 18px; padding: 16px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+    .stat-q-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; color: var(--primary);}
+    .stat-bar-wrapper { display: flex; align-items: center; margin-bottom: 10px; font-size: 15px;}
+    .stat-label { width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px; text-align: right; color: var(--text-dark);}
+    .stat-bar-bg { flex-grow: 1; background: #f1f5f9; height: 22px; border-radius: 11px; position: relative; overflow: hidden;}
+    .stat-bar-fill { height: 100%; background: var(--text-light); transition: width 0.5s ease-out; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-size: 13px; font-weight: bold;}
+    .stat-bar-fill.correct { background: var(--success); color: #064e3b;}
+
+    .student-list { max-height: calc(100vh - 210px); overflow-y: auto; padding-right: 5px;}
+    .student-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 10px; border-bottom: 1px solid #f1f5f9; font-size: 15px; transition: all 0.2s; color: var(--text-dark); border-radius: 8px;}
+    .student-item:hover { text-decoration: line-through; color: #7f1d1d; cursor: pointer; background: #fef2f2; }
+    .score-display { font-weight: bold; color: var(--primary); background: #e2e8f0; padding: 2px 8px; border-radius: 10px; font-size: 13px;}
+    .ai-badge { background: #93c5fd; color: #0f172a; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; vertical-align: middle;}
+    /* 線上測驗：考生狀態標籤 */
+    .status-badge { font-weight: bold; padding: 2px 10px; border-radius: 10px; font-size: 13px; white-space: nowrap;}
+    .status-wait { background: #e2e8f0; color: var(--text-light); }
+    .status-doing { background: #fef3c7; color: #92400e; }
+    .status-done { background: #dcfce7; color: #166534; }
+
+    .sub-mode-container { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;}
+    .sub-mode-btn { padding: 10px 20px; font-size: 16px; background: #e2e8f0; color: var(--text-dark); border: 2px solid transparent;}
+    .sub-mode-btn:hover { background: #cbd5e1; }
+    .sub-mode-btn.active { background: white; border-color: var(--accent); color: var(--primary); box-shadow: 0 0 0 2px var(--accent) inset;}
+
+    /* 經典模式：作答標題、時間與操作列 */
+    .anim-title-sm { font-size: 16px !important; margin-bottom: 2px !important; }
+    #animationPanel.k-top { justify-content: flex-start; }
+    .k-action-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 42px; margin: 4px 0 8px; background: white; padding: 6px 14px; border-radius: 10px; border: 1px solid #e2e8f0; box-sizing: border-box; flex-wrap: wrap;}
+    .k-timer-group { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 140px;}
+    .k-timebar-bg { flex: 1; height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden; }
+    .k-timebar-fill { height: 100%; width: 100%; background: var(--primary); border-radius: 6px; }
+    .k-timebar-fill.urgent { background: #e07a7a; }
+    .k-timer-num { font-size: 28px; font-weight: bold; font-family: monospace; color: var(--primary); min-width: 44px; text-align: right; line-height: 1; }
+    .k-settle-hint { font-size: 15px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+    .k-btn-group { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap;}
+
+    /* 教師密碼視窗 */
+    #pwdModal { position: fixed; inset: 0; z-index: 10000; background: rgba(15,23,42,0.45); backdrop-filter: blur(6px); display: flex; align-items: flex-start; justify-content: center; padding-top: 22vh; }
+    .pwd-card { background: white; width: min(380px, 90vw); border-radius: 18px; padding: 28px 32px 26px; box-shadow: 0 24px 48px rgba(15,23,42,0.3); text-align: center; border-top: 6px solid var(--accent); }
+    .pwd-card h2 { margin: 0 0 6px; color: var(--primary); font-size: 22px; }
+    .pwd-card p { margin: 0 0 18px; color: var(--text-dark); font-size: 16px; }
+    #pwdInput { width: 100%; box-sizing: border-box; padding: 12px 14px; font-size: 18px; border: 2px solid #e2e8f0; border-radius: 12px; text-align: center; letter-spacing: 4px; font-family: var(--main-font); }
+    #pwdInput:focus { outline: none; border-color: var(--accent); }
+    .pwd-btns { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
+
+    /* 手機端自適應排版：方便老師拿手機在教室走動操作，不影響大屏版面 */
+    @media (max-width: 900px) {
+      body { padding: 8px 10px 64px; }
+      .workspace { grid-template-columns: 1fr; }
+      #qrModal { width: 100%; background: rgba(15,23,42,0.55); }
+      .hide-panel-btn { position: static; display: block; width: 100%; margin-bottom: 10px; padding: 8px; font-size: 14px; }
+      .k-options-grid { grid-template-columns: 1fr; }
+      .k-option-box { min-height: 90px; font-size: 20px; }
+      .k-question-text { font-size: 22px; }
+      .timer-display { font-size: 64px; }
+      .student-list { max-height: 360px; }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- 教師密碼視窗 -->
+  <div id="pwdModal">
+    <div class="pwd-card">
+      <h2>🔐 教師控制台</h2>
+      <p>請輸入教師控制台密碼</p>
+      <input type="password" id="pwdInput" autocomplete="off">
+      <div class="pwd-btns">
+        <button id="pwdOk" class="send-btn" style="padding:10px 28px;">確定</button>
+        <button id="pwdCancel" class="toggle-btn">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code 點擊放大視窗（大屏僅覆蓋左欄，保持右欄考生名單清晰可見） -->
+  <div id="qrModal" class="hidden" onclick="closeQRModal(event)">
+    <div class="qr-modal-card" onclick="event.stopPropagation()">
+      <h2 style="margin:0 0 4px; color:var(--primary); font-size:24px;">📱 掃描 QR Code 進入考場</h2>
+      <p style="margin:0; color:var(--text-light); font-size:14px;">右側可即時查看進場名單（點擊空白處或下方按鈕關閉）</p>
+      <div id="qrcodeLarge"></div>
+      <div style="font-size:20px; color:var(--text-dark); font-weight:bold; margin-bottom:14px;">
+        試場編號：<span id="qrModalPin" style="font-size:34px; color:var(--primary); font-family:monospace;">----</span>
+      </div>
+      <button class="send-btn" style="padding:8px 34px; font-size:16px;" onclick="closeQRModal()">關閉</button>
+    </div>
+  </div>
+
+  <div class="version-tag">Ver 2.32 (Teacher)</div>
+  
+  <div id="lobby">
+    <!-- 若雲端已有建立好的考場，顯示手動同步連入按鈕（絕不自動亂跳） -->
+    <div id="existingRoomBox" class="resume-room-box hidden">
+      <div style="font-size:16px; font-weight:bold; color:var(--primary); margin-bottom:10px;">
+        📡 偵測到現有考場（編號：<span id="existingPinText">----</span>｜模式：<span id="existingModeText">--</span>）
+      </div>
+      <button class="send-btn" style="padding:12px 28px; font-size:17px;" onclick="syncIntoExistingRoom()">📱 點此同步連入現有考場（手機遙控／雙機同步）</button>
+    </div>
+
+    <h1 style="color:var(--primary); margin-bottom: 10px;">請選擇本次測驗模式</h1>
+    <p style="color:var(--text-light); margin-bottom: 30px;">選擇下方模式將建立全新考場</p>
+    
+    <div>
+        <button class="role-btn" style="background:var(--accent); color:#0f172a;" onclick="showSubModes('feedback')">即時回饋</button>
+        <button class="role-btn" style="background:var(--primary);" onclick="joinAsTeacher('test')">線上測驗</button>
+    </div>
+    
+    <div id="feedbackSubModes" class="sub-mode-container hidden">
+        <button class="sub-mode-btn" onclick="joinAsTeacher('kahoot')">⚡ 經典</button>
+        <button class="sub-mode-btn" onclick="alert('划船模式開發中，敬請期待！')">🚣 划船</button>
+        <button class="sub-mode-btn" onclick="alert('除魔模式開發中，敬請期待！')">⚔️ 除魔</button>
+    </div>
+  </div>
+
+  <div id="teacherView" class="hidden">
+    <div class="teacher-header">
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <h2 style="margin:0; font-size:22px; color:var(--primary);">控制台 (<span id="modeDisplay"></span>)</h2>
+          <!-- 常駐「全員黑屏」按鈕：開始前、進行中、結束後皆可隨時切換 -->
+          <button id="blackoutBtn" class="blackout-btn" onclick="toggleBlackout()" title="暫時黑屏所有學生平板，並將大屏BGM與音效降至最低">🌑 全員黑屏</button>
+          <span id="syncDeviceBadge" class="sync-badge" title="目前同步連線中的教師端裝置狀態">🟢 連線正常</span>
+          <button class="reset-room-btn" onclick="resetToLobby()" title="切換測驗模式或建立新考場">🔄 重開新局</button>
+      </div>
+      <div class="pin-container">
+          <div id="qrcode" onclick="openQRModal()" title="點擊放大 QR Code"></div>
+          <div class="pin-display">
+              <span style="font-size:12px; font-weight:normal; color:var(--text-light);">試場編號 (點擊左圖放大)</span><br>
+              <span id="tPinDisplay" style="font-size:28px; line-height:1;">----</span>
+          </div>
+      </div>
+    </div>
+    
+    <div class="workspace">
+      <!-- 左欄 -->
+      <div class="panel" id="leftPanel">
+        <button id="viewToggleBtn" class="hide-panel-btn" onclick="toggleLeftPanel()">👁️ 切換為考場畫面</button>
+        
+        <div id="questionListWrapper">
+          <div class="control-group">
+            <button id="toggleQText" class="toggle-btn active" onclick="toggleSetting('showQuestion', this)">平板題目：開</button>
+            <select id="audioSource" class="toggle-btn" onchange="updateSettings('audioSource', this.value)">
+              <option value="teacher">聽力大屏播放</option>
+              <option value="student">聽力平板播放</option>
+            </select>
+            <span style="margin-left:10px; color:var(--text-light); font-size:14px; font-weight:bold;">🎵 BGM：</span>
+            <button id="bgmBtn" class="toggle-btn" onclick="toggleBGM()">開啟</button>
+            <button id="nextBgmBtn" class="toggle-btn hidden" onclick="nextBGMTrack()" title="隨機切換下一首 BGM">🔀 換首</button>
+            <span style="margin-left:10px; color:var(--text-light); font-size:14px; font-weight:bold;">🔊 音效：</span>
+            <button id="sfxBtn" class="toggle-btn" onclick="toggleSFX()">關閉</button>
+            <audio id="bgmAudio" preload="auto"></audio>
+            <audio id="teacherQAudio"></audio>
+          </div>
+          
+          <div class="control-group" id="testModeControls">
+            <!-- 經典模式控制列 -->
+            <div id="kahootControls" class="hidden" style="width:100%; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span style="font-weight:bold; color:var(--primary);">經典模式：</span>
+              <span>每題 <input type="number" id="kahootTime" value="15" onchange="updateSettings('kahootTime', parseInt(this.value)||15)"> 秒</span>
+              <button id="toggleKahootShuffle" class="toggle-btn" onclick="toggleKahootShuffleBtn()">🔀 亂序出題：關</button>
+              <button class="send-btn" onclick="startKahoot()">開始派題！</button>
+            </div>
+            <!-- 線上測驗控制列 -->
+            <div id="testControls" class="hidden" style="width:100%; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span style="font-weight:bold; color:var(--primary);">測驗模式：</span>
+              <span>總計 <input type="number" id="testMinutes" value="5" onchange="updateSettings('testMinutes', parseInt(this.value)||5)"> 分</span>
+              <button id="toggleDiffQOrder" class="toggle-btn" onclick="toggleTestRandSetting('diffQOrder')">🔀 題序各異：關</button>
+              <button id="toggleDiffOptOrder" class="toggle-btn" onclick="toggleTestRandSetting('diffOptOrder')">🎲 選項序各異：關</button>
+              <button class="send-btn" onclick="startTestMode()">派題並開始考試</button>
+            </div>
+          </div>
+          
+          <div class="accordion-main" onclick="toggleMainQList()">
+              <span id="mainAccordionArrow" style="margin-right:10px; color:var(--accent);">▶</span> 勾選要派送的題目 (<span id="selectedQCount">0</span> 題)
+          </div>
+          <div id="questionListContainer" class="hidden">
+              <div id="questionList" style="color:var(--text-light);">正在從 Google 試算表載入多工作表題庫...</div>
+          </div>
+        </div>
+
+        <div id="animationPanel" class="hidden">
+          <h2 id="animTitle" style="font-size:24px; color:var(--primary); text-align:center; margin-bottom:4px; margin-top:0;">測驗狀態</h2>
+          
+          <div id="timerControlsDiv" class="timer-controls hidden">
+              <button class="timer-btn" onclick="adjustTimer(60)">+1 分鐘</button>
+              <button class="timer-btn" onclick="adjustTimer(-60)">-1 分鐘</button>
+              <button id="pauseTimerBtn" class="timer-btn" onclick="togglePauseTimer()">暫停倒數</button>
+              <button id="manualStopBtn" class="stop-btn hidden" onclick="triggerTestStop('manual')">⏹️ 提前中止／收卷 (儲存成績)</button>
+          </div>
+          
+          <div id="animContent" style="width:100%;">等待中...</div>
+          
+          <div id="statisticsContainer" class="hidden"></div>
+        </div>
+      </div>
+
+      <!-- 右欄 -->
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <div>
+                <h3 style="margin:0; font-size:17px; color:var(--primary);">暱稱 (<span id="studentCount">0</span>)</h3>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="toggle-btn" style="background:#fde68a; color:#92400e; padding:5px 10px; border:none; font-size:13px;" onclick="window.addAIStudent()">🤖 加入AI考生</button>
+                <button class="toggle-btn" style="background:var(--success); color:#064e3b; padding:5px 10px; border:none; font-size:13px;" onclick="exportCSV()">匯出成績</button>
+            </div>
+        </div>
+        <!-- 【線上測驗專用】收卷後才出現：開放學生平板回顧作答 -->
+        <div id="reviewControlDiv" class="hidden" style="margin-bottom:12px; padding:10px; background:#eff6ff; border:2px solid var(--accent); border-radius:12px; text-align:center;">
+            <div style="font-size:13px; color:var(--text-light); margin-bottom:6px; font-weight:bold;">測驗已收卷（可點擊上方「匯出成績」）</div>
+            <button id="openReviewBtn" class="send-btn" style="width:100%; font-size:14px;" onclick="openStudentReview()">📖 開放學生平板回顧作答</button>
+        </div>
+        <!-- 【經典模式專用】結束後：開關學生平板回顧（可隨時開／關） -->
+        <div id="kahootReviewControlDiv" class="hidden" style="margin-bottom:12px; padding:10px; background:#eff6ff; border:2px solid var(--accent); border-radius:12px; text-align:center;">
+            <div id="kahootReviewInfo" style="font-size:13px; color:var(--text-light); margin-bottom:6px; font-weight:bold;"></div>
+            <button id="kahootReviewBtn" class="send-btn" style="width:100%; font-size:14px;" onclick="toggleKahootReview()"></button>
+        </div>
+        <div id="studentList" class="student-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 【經典模式與線上測驗共用】結束或收卷後同步詢問是否開放學生回顧 -->
+  <div id="reviewModal" class="hidden" style="position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9998; display:flex; align-items:center; justify-content:center;">
+    <div style="background:white; padding:30px 35px; border-radius:16px; max-width:480px; width:90%; box-shadow:0 20px 40px rgba(0,0,0,0.25); text-align:center;">
+      <h2 id="reviewModalTitle" style="margin:0 0 15px; color:var(--primary);">測驗結束！</h2>
+      <p style="font-size:17px; line-height:1.7; margin:0 0 25px;">目前成績已自動儲存並顯示全班統計。<br>是否要讓「學生平板」也同步顯示正確答案與允許翻閱考題？</p>
+      <button class="send-btn" style="margin-right:12px;" onclick="answerReviewModal(true)">確定，開放學生回顧</button>
+      <button class="toggle-btn" onclick="answerReviewModal(false)">取消</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>設計者：Iônn, Àn-tsiong | 技術支援：Gemini</p>
+    <p>BGM取自:甘茶の工房</p>
+    <p>Copyright &copy; 2025-2026 Iônn, Àn-tsiong. All Rights Reserved. 未經授權，嚴禁重製、改作或商用。</p>
+  </div>
+
+  <script type="module">
+    function askTeacherPassword() {
+        return new Promise(resolve => {
+            const modal = document.getElementById('pwdModal'), input = document.getElementById('pwdInput');
+            const done = v => { modal.classList.add('hidden'); input.value = ''; resolve(v); };
+            document.getElementById('pwdOk').onclick = () => done(input.value);
+            document.getElementById('pwdCancel').onclick = () => done(null);
+            input.onkeydown = e => { if(e.key === 'Enter') done(input.value); };
+            setTimeout(() => input.focus(), 50);
+        });
+    }
+    const pwd = await askTeacherPassword();
+    if(pwd !== "taigi") {
+        document.body.innerHTML = "<h1 style='text-align:center; margin-top:50px; color:#ef4444;'>密碼錯誤，拒絕存取。</h1>";
+        throw new Error("Unauthorized");
+    }
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, onDisconnect, remove, get, update } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyCXiyLVZfkGbKlBcFamVTjP3CfhSQfqy9c", authDomain: "tigitshikgiam.firebaseapp.com", databaseURL: "https://tigitshikgiam-default-rtdb.firebaseio.com", projectId: "tigitshikgiam", storageBucket: "tigitshikgiam.firebasestorage.app", messagingSenderId: "159559991455", appId: "1:159559991455:web:454559a0458d9ca461e2aa" };
+    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
+    const sheetId = `1qe2gPJA_feyOCjUNz5iMHkeCWDHxTefQZ5d8QCBsrZA`;
+    
+    // Firebase 伺服器時間差校正：確保大屏電腦與老師手機的倒數計時 100% 同步，不受裝置系統時鐘誤差影響
+    let serverTimeOffset = 0;
+    onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
+        serverTimeOffset = snap.val() || 0;
+    });
+    function serverNow() {
+        return Date.now() + serverTimeOffset;
+    }
+
+    // 本機專屬教師設備 ID 與啟動時間戳記
+    const myDeviceId = `tdev_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const myJoinTimestamp = Date.now();
+    let activeTeacherDevices = {};
+    let isPrimaryAudioDevice = true; // 第一台進入的裝置（大屏）負責發聲，避免手機同時發出回音
+    let hasEnteredConsole = false;
+    let sheetsLoaded = false;
+
+    let allQuestions = [], selectedQuestions = [], currentPaper = [];
+    let checkedQIdsCache = [];
+    let roomMode = 'kahoot'; 
+    let currentSettings = { 
+        mode: 'kahoot', pin: '', showQuestion: true, showAnswer: false, status: 'waiting', 
+        audioSource: 'teacher', acceptAnswers: false, roundId: 0, blackout: false,
+        kahootShuffleQ: false, diffQOrder: false, diffOptOrder: false,
+        kahootTime: 15, testMinutes: 5, viewMode: 'setup',
+        bgmPlaying: false, bgmTrackUrl: '', sfxEnabled: false,
+        reviewPromptOpen: false, roomCreatedAt: 0
+    };
+
+    // === BGM 系統：GitHub spelling_group/bgm 音檔清單 (-01.mp3 ~ -16.mp3) ===
+    const bgmTracks = Array.from({ length: 16 }, (_, i) => {
+        const num = String(i + 1).padStart(2, '0');
+        return `https://yyanjhang-web.github.io/hosngetaiagi/spelling_group/bgm/-${num}.mp3`;
+    });
+    let bgmQueue = [];
+    let lastPlayedBgmUrl = null;
+
+    const BGM_VOL_NORMAL = 1.0;
+    const BGM_VOL_LOW = 0.15;
+    const bgmAudioEl = document.getElementById('bgmAudio');
+    bgmAudioEl.addEventListener('ended', () => {
+        if (isPrimaryAudioDevice && currentSettings.bgmPlaying) {
+            window.nextBGMTrack();
+        }
+    });
+
+    function setBGMVolume(targetVol) {
+        if (!bgmAudioEl) return;
+        if (currentSettings.blackout || !isPrimaryAudioDevice) {
+            bgmAudioEl.volume = 0;
+            return;
+        }
+        if (targetVol !== undefined) {
+            bgmAudioEl.volume = Math.max(0, Math.min(1, targetVol));
+        } else {
+            const isLowVolState = (currentSettings.status === 'kahoot_result' || currentSettings.status === 'ended' || currentSettings.status === 'reviewing');
+            bgmAudioEl.volume = isLowVolState ? BGM_VOL_LOW : BGM_VOL_NORMAL;
+        }
+    }
+
+    function refillBgmQueue() {
+        bgmQueue = [...bgmTracks];
+        for (let i = bgmQueue.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [bgmQueue[i], bgmQueue[j]] = [bgmQueue[j], bgmQueue[i]];
+        }
+        if (bgmQueue.length > 1 && bgmQueue[0] === lastPlayedBgmUrl) {
+            [bgmQueue[0], bgmQueue[bgmQueue.length - 1]] = [bgmQueue[bgmQueue.length - 1], bgmQueue[0]];
+        }
+    }
+
+    function pickNextBgmUrl() {
+        if (bgmQueue.length === 0) refillBgmQueue();
+        const nextUrl = bgmQueue.shift();
+        lastPlayedBgmUrl = nextUrl;
+        return nextUrl;
+    }
+
+    // === 作答音效系統 (Web Audio API) ===
+    let sfxAudioCtx = null;
+    const pentatonicNotes = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51];
+
+    function getAudioCtx() {
+        if (!sfxAudioCtx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) sfxAudioCtx = new AudioCtx();
+        }
+        if (sfxAudioCtx && sfxAudioCtx.state === 'suspended') {
+            sfxAudioCtx.resume().catch(() => {});
+        }
+        return sfxAudioCtx;
+    }
+
+    function playAnswerSFX(sid = '') {
+        if (!currentSettings.sfxEnabled || currentSettings.blackout || !isPrimaryAudioDevice) return;
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+
+        let hash = 0;
+        const str = String(sid);
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0;
+        }
+        const noteIdx = Math.abs(hash) % pentatonicNotes.length;
+        const baseFreq = pentatonicNotes[noteIdx];
+        const detuneFactor = 1 + ((Math.random() - 0.5) * 0.06);
+        const startFreq = baseFreq * detuneFactor;
+        const endFreq = startFreq * (1.22 + (Math.abs(hash % 5) * 0.03));
+
+        const now = ctx.currentTime;
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        const waveTypes = ['sine', 'triangle'];
+        osc1.type = waveTypes[Math.abs(hash) % 2];
+        osc2.type = 'sine';
+
+        osc1.frequency.setValueAtTime(startFreq, now);
+        osc1.frequency.exponentialRampToValueAtTime(endFreq, now + 0.11);
+
+        osc2.frequency.setValueAtTime(startFreq * 1.5, now);
+        osc2.frequency.exponentialRampToValueAtTime(endFreq * 1.5, now + 0.11);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.24, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.17);
+        osc2.stop(now + 0.17);
+    }
+
+    window.toggleSFX = () => {
+        const nextVal = !currentSettings.sfxEnabled;
+        update(ref(db, 'room/settings'), { sfxEnabled: nextVal });
+        if (nextVal && isPrimaryAudioDevice) {
+            currentSettings.sfxEnabled = true;
+            playAnswerSFX('preview_' + Date.now());
+        }
+    };
+
+    window.toggleBlackout = () => {
+        const nextBlackout = !currentSettings.blackout;
+        update(ref(db, 'room/settings'), { blackout: nextBlackout });
+    };
+
+    window.toggleKahootShuffleBtn = () => {
+        const nextVal = !currentSettings.kahootShuffleQ;
+        update(ref(db, 'room/settings'), { kahootShuffleQ: nextVal });
+    };
+
+    window.toggleTestRandSetting = (key) => {
+        const nextVal = !currentSettings[key];
+        update(ref(db, 'room/settings'), { [key]: nextVal });
+    };
+    
+    let testCountdownTimer = null, kahootTimer = null;
+    let kahootIndex = 0, globalTimeLeft = 0, isTimerPaused = false;
+    let isEndingKahootQ = false;
+    let aiKahootTimers = [];
+    let renderedKahootAnswerSids = new Set();
+    let lastRenderedKey = '';
+    let lastReplayCmdTs = 0;
+    
+    window.activeAIStudents = [];
+    let studentsCache = {}, answersCache = {}, kahootAnswersCache = {};
+    let autoSubmittedNames = [];
+    let testStopping = false;
+    let aiTestTimers = [];
+    const AI_NO_SUBMIT_RATE = 0.25;
+
+    // 判斷本機是否為負責自動計時結算與 AI 的主控設備
+    function isLeaderDevice() {
+        if (currentSettings.leaderDeviceId && activeTeacherDevices[currentSettings.leaderDeviceId]) {
+            return currentSettings.leaderDeviceId === myDeviceId;
+        }
+        return isPrimaryAudioDevice;
+    }
+
+    function checkTestAllSubmitted() {
+        if(roomMode === 'test' && currentSettings.status === 'testing' && currentSettings.acceptAnswers && isLeaderDevice()) {
+            const stuIds = Object.keys(studentsCache);
+            const submitCount = stuIds.filter(id => answersCache[id] && answersCache[id].isSubmitted).length;
+            if(stuIds.length > 0 && submitCount >= stuIds.length) {
+                triggerTestStop('auto');
+            }
+        }
+    }
+
+    function checkKahootAllAnswered() {
+        if(roomMode === 'kahoot' && currentSettings.status === 'kahoot_active' && !isEndingKahootQ && isLeaderDevice()) {
+            const stuIds = Object.keys(studentsCache);
+            const ansCount = stuIds.filter(id => kahootAnswersCache[id] !== undefined).length;
+            if(stuIds.length > 0 && ansCount >= stuIds.length) {
+                clearInterval(kahootTimer);
+                endKahootQuestion(false);
+            }
+        }
+    }
+
+    function renderStudentList() {
+        const sList = document.getElementById('studentList');
+        let entries = Object.entries(studentsCache);
+        window.activeAIStudents = entries.filter(([k, s]) => s.isAI).map(([k]) => k);
+        document.getElementById('studentCount').innerText = entries.length;
+
+        if (roomMode === 'test') {
+            const joinTime = k => parseInt(k.split('_')[1]) || 0;
+            entries.sort((a, b) => joinTime(a[0]) - joinTime(b[0]));
+        } else {
+            entries.sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
+        }
+
+        sList.innerHTML = entries.map(([key, s]) => {
+            let right;
+            if (roomMode === 'test') {
+                if (currentSettings.status === 'waiting') {
+                    right = `<span class="status-badge status-wait">等待開始</span>`;
+                } else if (currentSettings.status === 'ended' || currentSettings.status === 'reviewing' || !currentSettings.acceptAnswers) {
+                    right = `<span class="status-badge status-done">已交卷 (${s.score || 0}分)</span>`;
+                } else if (answersCache[key] && answersCache[key].isSubmitted) {
+                    right = `<span class="status-badge status-done">已交卷</span>`;
+                } else {
+                    right = `<span class="status-badge status-doing">作答中</span>`;
+                }
+            } else {
+                right = `<span class="score-display">${s.score || 0} 分</span>`;
+            }
+            return `<div class="student-item" onclick="kickStudent('${key}')" title="點擊剔除">
+                        <div>${s.avatar || '👤'} ${s.nickname} ${s.isAI ? '<span class="ai-badge">AI</span>' : ''}</div>
+                        ${right}
+                    </div>`;
+        }).join('');
+    }
+    
+    const shapes = ["♣", "♦", "♥", "♠"];
+    const adjs = ["拍拚的", "骨力的", "緣投的", "上媠的", "蓋𠢕的", "溫柔的", "勇敢的", "熱情的", "活潑的", "聰明的", "古錐的", "善良的", "自信的", "實在的", "認真的", "堅強的", "大方的", "老實的", "快樂的", "熱心的"];
+    const names = [
+        "甘為霖", "巴克禮", "馬偕", "連橫", "蔡培火", "王育德", "黃石輝", "郭秋生",
+        "賴和", "蔣渭水", "鄭兒玉", "林茂生", "李臨秋", "鄧雨賢", "劉克明", "菅向榮",
+        "吳子光", "劉阿秀", "鍾理和", "吳濁流", "尤羅伯", "吉爾伯特斯·哈伯宜", "淺井惠倫", "伊能嘉矩",
+        "林獻堂", "楊逵"
+    ];
+    const avatars = ["🐱","🦁","🐮","🐨","🐻‍❄️","🦋","🦉","🦀","🐬","🐠","🐢","🐙","🐳","🐧","🐸","🐰","🐹","🦊","🐼","🐯","🐷","🐔","🐤","🦆","🦅","🦇","🐺","🐗","🐴","🦄"];
+
+    window.addAIStudent = () => {
+        const nickname = adjs[Math.floor(Math.random()*adjs.length)] + names[Math.floor(Math.random()*names.length)];
+        const aiId = `ai_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        set(ref(db, `room/students/${aiId}`), { 
+            realName: 'AI Robot',
+            realName1: 'AI Robot',
+            realName2: '',
+            seat1: '',
+            seat2: '',
+            nickname: nickname, 
+            avatar: avatars[Math.floor(Math.random()*avatars.length)], 
+            score: 0, 
+            isAI: true 
+        });
+    };
+
+    function unlockAudio() {
+        const qAud = document.getElementById('teacherQAudio');
+        if(qAud) { qAud.play().then(() => qAud.pause()).catch(e=>{}); }
+        getAudioCtx();
+    }
+    window.showSubModes = (type) => { if(type === 'feedback') document.getElementById('feedbackSubModes').classList.remove('hidden'); };
+    window.toggleMainQList = () => { const container = document.getElementById('questionListContainer'); const arrow = document.getElementById('mainAccordionArrow'); if(container.classList.contains('hidden')) { container.classList.remove('hidden'); arrow.innerText = "▼"; } else { container.classList.add('hidden'); arrow.innerText = "▶"; } };
+    window.toggleSheetContent = (e, idx) => { if(e.target.tagName.toLowerCase() === 'input') return; const content = document.getElementById(`sheet-content-${idx}`); const arrow = document.getElementById(`sheet-arrow-${idx}`); if(content.classList.contains('hidden')) { content.classList.remove('hidden'); arrow.innerText = "▼"; } else { content.classList.add('hidden'); arrow.innerText = "▶"; } };
+    
+    window.onQuestionCheckboxChange = () => {
+        const checkedIds = Array.from(document.querySelectorAll('.q-checkbox:checked')).map(cb => Number(cb.value));
+        document.getElementById('selectedQCount').innerText = checkedIds.length;
+        set(ref(db, 'room/teacherSync/checkedQIds'), checkedIds);
+    };
+
+    window.toggleSheetAll = (e, idx) => { 
+        e.stopPropagation(); 
+        const isChecked = e.target.checked; 
+        document.querySelectorAll(`.q-checkbox-${idx}`).forEach(cb => { cb.checked = isChecked; }); 
+        window.onQuestionCheckboxChange();
+    };
+
+    function applyCheckedQIdsToDOM(ids) {
+        const idSet = new Set((ids || []).map(v => Number(v)));
+        document.querySelectorAll('.q-checkbox').forEach(cb => {
+            cb.checked = idSet.has(Number(cb.value));
+        });
+        document.querySelectorAll('.sheet-master-cb').forEach(mcb => {
+            const sIdx = mcb.dataset.sidx;
+            const subCbs = Array.from(document.querySelectorAll(`.q-checkbox-${sIdx}`));
+            mcb.checked = subCbs.length > 0 && subCbs.every(cb => cb.checked);
+        });
+        document.getElementById('selectedQCount').innerText = idSet.size;
+    }
+
+    let lastGeneratedPin = '';
+    function generateQRCode(pin) {
+        if (!pin || pin === lastGeneratedPin) return;
+        lastGeneratedPin = pin;
+        document.getElementById('qrcode').innerHTML = "";
+        document.getElementById('qrcodeLarge').innerHTML = "";
+        document.getElementById('qrModalPin').innerText = pin;
+        const studentUrl = `https://yyanjhang-web.github.io/hosngetaiagi/khotshi/index.html?pin=${pin}`;
+        new QRCode(document.getElementById("qrcode"), { text: studentUrl, width: 54, height: 54, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.L });
+        new QRCode(document.getElementById("qrcodeLarge"), { text: studentUrl, width: 290, height: 290, colorDark : "#0f172a", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
+    }
+
+    window.openQRModal = () => {
+        document.getElementById('qrModal').classList.remove('hidden');
+    };
+    window.closeQRModal = () => {
+        document.getElementById('qrModal').classList.add('hidden');
+    };
+
+    function playLocalTeacherAudio(url) {
+        if (!isPrimaryAudioDevice) return;
+        const aud = document.getElementById('teacherQAudio');
+        if(aud && url) {
+            aud.volume = currentSettings.blackout ? 0 : 1;
+            aud.src = url;
+            aud.play().catch(e => console.warn("音檔播放受阻：", e));
+        }
+    }
+
+    window.playTeacherAudio = (url) => {
+        if(!url) return;
+        update(ref(db, 'room/teacherSync'), { replayAudioCmd: { url: url, ts: serverNow() } });
+    };
+
+    function enterConsoleUI(mode, pin) {
+        hasEnteredConsole = true;
+        roomMode = mode;
+        document.getElementById('lobby').classList.add('hidden');
+        document.getElementById('teacherView').classList.remove('hidden');
+        document.getElementById('modeDisplay').innerText = mode === 'kahoot' ? '經典即時回饋' : '線上測驗';
+        
+        if(mode === 'kahoot') {
+            document.getElementById('kahootControls').classList.remove('hidden');
+            document.getElementById('kahootControls').style.display = 'flex';
+            document.getElementById('testControls').classList.add('hidden');
+        } else {
+            document.getElementById('testControls').classList.remove('hidden');
+            document.getElementById('testControls').style.display = 'flex';
+            document.getElementById('kahootControls').classList.add('hidden');
+        }
+
+        if (pin) {
+            document.getElementById('tPinDisplay').innerText = pin;
+            generateQRCode(pin);
+        }
+    }
+
+    // 重開新局（切換模式或清空建立新考場）
+    window.resetToLobby = async () => {
+        if(!confirm("確定要重開新局嗎？（這將返回模式選擇畫面，讓你重新建立新考場）")) return;
+        clearInterval(kahootTimer);
+        clearInterval(testCountdownTimer);
+        stopAIKahootTimers();
+        stopAITestTimers();
+        bgmAudioEl.pause();
+        await update(ref(db, 'room/settings'), { status: 'lobby', bgmPlaying: false });
+    };
+
+    // 手動點擊「同步連入現有考場」（供教師手機或第二台設備一鍵進入同一個考場）
+    window.syncIntoExistingRoom = async () => {
+        unlockAudio();
+        const snap = await get(ref(db, 'room/settings'));
+        if(snap.exists() && snap.val().pin) {
+            const s = snap.val();
+            if(s.status === 'lobby') {
+                await update(ref(db, 'room/settings'), { status: 'waiting' });
+            }
+            enterConsoleUI(s.mode || 'kahoot', s.pin);
+            applySyncedSettings(s);
+        }
+    };
+
+    // 建立全新考場
+    window.joinAsTeacher = async (mode) => {
+      unlockAudio();
+      const pin = Math.floor(1000 + Math.random() * 9000).toString();
+      const now = serverNow();
+      enterConsoleUI(mode, pin);
+
+      currentSettings = { 
+          mode: mode, pin: pin, showQuestion: true, showAnswer: false, 
+          status: 'waiting', audioSource: 'teacher', teacherOnline: true, 
+          acceptAnswers: false, roundId: now, roomCreatedAt: now, blackout: false,
+          kahootShuffleQ: false, diffQOrder: false, diffOptOrder: false,
+          kahootTime: 15, testMinutes: 5, viewMode: 'setup',
+          bgmPlaying: false, bgmTrackUrl: '', sfxEnabled: false,
+          reviewPromptOpen: false, leaderDeviceId: myDeviceId,
+          settledKey: '', testSettledRound: 0
+      };
+      
+      await update(ref(db, 'room'), {
+          settings: currentSettings,
+          students: null,
+          testAnswers: null,
+          testPaper: null,
+          selectedQuestions: null,
+          kahootAnswers: null,
+          currentKahootQ: null,
+          'teacherSync/checkedQIds': null
+      });
+    };
+
+    // 根據 Firebase 同步過來的 settings 更新畫面
+    function applySyncedSettings(s) {
+        if (!s) return;
+        currentSettings = { ...currentSettings, ...s };
+        roomMode = currentSettings.mode || 'kahoot';
+
+        // 若收到重開新局 ('lobby')，同步退回大廳
+        if (s.status === 'lobby') {
+            hasEnteredConsole = false;
+            lastRenderedKey = '';
+            clearInterval(kahootTimer);
+            clearInterval(testCountdownTimer);
+            bgmAudioEl.pause();
+            document.getElementById('teacherView').classList.add('hidden');
+            document.getElementById('lobby').classList.remove('hidden');
+            document.getElementById('existingRoomBox').classList.add('hidden');
+            return;
+        }
+
+        // 若本機還在大廳：只有當另一台裝置在我們登入之後才新建考場，才自動跟著跳轉；否則只顯示上方藍框按鈕
+        if (!hasEnteredConsole) {
+            if (s.pin && s.status !== 'lobby') {
+                if (s.roomCreatedAt && s.roomCreatedAt > myJoinTimestamp) {
+                    enterConsoleUI(roomMode, s.pin);
+                } else {
+                    document.getElementById('existingPinText').innerText = s.pin;
+                    document.getElementById('existingModeText').innerText = s.mode === 'kahoot' ? '經典即時回饋' : '線上測驗';
+                    document.getElementById('existingRoomBox').classList.remove('hidden');
+                    return;
+                }
+            } else {
+                return;
+            }
+        }
+
+        if (s.pin) {
+            document.getElementById('tPinDisplay').innerText = s.pin;
+            generateQRCode(s.pin);
+        }
+        document.getElementById('modeDisplay').innerText = roomMode === 'kahoot' ? '經典即時回饋' : '線上測驗';
+        if(roomMode === 'kahoot') {
+            document.getElementById('kahootControls').classList.remove('hidden');
+            document.getElementById('kahootControls').style.display = 'flex';
+            document.getElementById('testControls').classList.add('hidden');
+        } else {
+            document.getElementById('testControls').classList.remove('hidden');
+            document.getElementById('testControls').style.display = 'flex';
+            document.getElementById('kahootControls').classList.add('hidden');
+        }
+
+        const qTextBtn = document.getElementById('toggleQText');
+        qTextBtn.innerText = `平板題目：${s.showQuestion ? '開' : '關'}`;
+        qTextBtn.classList.toggle('active', !!s.showQuestion);
+
+        document.getElementById('audioSource').value = s.audioSource || 'teacher';
+
+        const kShuffleBtn = document.getElementById('toggleKahootShuffle');
+        kShuffleBtn.innerText = `🔀 亂序出題：${s.kahootShuffleQ ? '開' : '關'}`;
+        kShuffleBtn.classList.toggle('active', !!s.kahootShuffleQ);
+
+        const diffQBtn = document.getElementById('toggleDiffQOrder');
+        diffQBtn.innerText = `🔀 題序各異：${s.diffQOrder ? '開' : '關'}`;
+        diffQBtn.classList.toggle('active', !!s.diffQOrder);
+
+        const diffOptBtn = document.getElementById('toggleDiffOptOrder');
+        diffOptBtn.innerText = `🎲 選項序各異：${s.diffOptOrder ? '開' : '關'}`;
+        diffOptBtn.classList.toggle('active', !!s.diffOptOrder);
+
+        if (s.kahootTime && document.activeElement !== document.getElementById('kahootTime')) {
+            document.getElementById('kahootTime').value = s.kahootTime;
+        }
+        if (s.testMinutes && document.activeElement !== document.getElementById('testMinutes')) {
+            document.getElementById('testMinutes').value = s.testMinutes;
+        }
+
+        const bBtn = document.getElementById('blackoutBtn');
+        if (s.blackout) {
+            bBtn.classList.add('active');
+            bBtn.innerText = "🌑 全員黑屏 (開啟中)";
+        } else {
+            bBtn.classList.remove('active');
+            bBtn.innerText = "🌑 全員黑屏";
+        }
+
+        const sfxBtn = document.getElementById('sfxBtn');
+        sfxBtn.innerText = s.sfxEnabled ? "開啟" : "關閉";
+        sfxBtn.classList.toggle('active', !!s.sfxEnabled);
+
+        const bgmBtn = document.getElementById('bgmBtn');
+        const nextBgmBtn = document.getElementById('nextBgmBtn');
+        if (s.bgmPlaying) {
+            bgmBtn.innerText = "暫停";
+            bgmBtn.classList.add('active');
+            nextBgmBtn.classList.remove('hidden');
+            setBGMVolume();
+            if (isPrimaryAudioDevice) {
+                if (s.bgmTrackUrl && bgmAudioEl.src !== s.bgmTrackUrl) {
+                    bgmAudioEl.src = s.bgmTrackUrl;
+                }
+                if (bgmAudioEl.paused && bgmAudioEl.src) {
+                    bgmAudioEl.play().catch(() => {});
+                }
+            } else {
+                bgmAudioEl.pause();
+            }
+        } else {
+            bgmBtn.innerText = "開啟";
+            bgmBtn.classList.remove('active');
+            nextBgmBtn.classList.add('hidden');
+            bgmAudioEl.pause();
+        }
+
+        const qAud = document.getElementById('teacherQAudio');
+        if (qAud) qAud.volume = (s.blackout || !isPrimaryAudioDevice) ? 0 : 1;
+
+        const qw = document.getElementById('questionListWrapper');
+        const ap = document.getElementById('animationPanel');
+        const vtBtn = document.getElementById('viewToggleBtn');
+        if (s.viewMode === 'arena') {
+            qw.classList.add('hidden');
+            ap.classList.remove('hidden');
+            vtBtn.innerText = "👁️ 切換為考題設定";
+        } else {
+            qw.classList.remove('hidden');
+            ap.classList.add('hidden');
+            vtBtn.innerText = "👁️ 切換為考場畫面";
+        }
+
+        const rModal = document.getElementById('reviewModal');
+        if (s.reviewPromptOpen) {
+            document.getElementById('reviewModalTitle').innerText = s.isEarlyStop ? '測驗已提前中止並結算！' : '測驗結束！';
+            rModal.classList.remove('hidden');
+        } else {
+            rModal.classList.add('hidden');
+        }
+
+        if (roomMode === 'kahoot') {
+            document.getElementById('reviewControlDiv').classList.add('hidden');
+            if (s.status === 'reviewing' || s.status === 'ended') {
+                document.getElementById('kahootReviewControlDiv').classList.remove('hidden');
+                renderKahootReviewControl();
+            } else {
+                document.getElementById('kahootReviewControlDiv').classList.add('hidden');
+            }
+        } else if (roomMode === 'test') {
+            document.getElementById('kahootReviewControlDiv').classList.add('hidden');
+            if ((s.status === 'testing' && !s.acceptAnswers) || s.status === 'reviewing' || s.status === 'ended') {
+                document.getElementById('reviewControlDiv').classList.remove('hidden');
+                const oBtn = document.getElementById('openReviewBtn');
+                if (s.status === 'reviewing' && s.showAnswer) {
+                    oBtn.innerText = "✅ 已開放學生平板回顧";
+                    oBtn.disabled = true;
+                } else {
+                    oBtn.innerText = "📖 開放學生平板回顧作答";
+                    oBtn.disabled = false;
+                }
+            } else {
+                document.getElementById('reviewControlDiv').classList.add('hidden');
+            }
+        }
+
+        syncArenaScreen();
+        renderStudentList();
+    }
+
+    function syncArenaScreen() {
+        const s = currentSettings;
+        if (s.status === 'waiting') {
+            lastRenderedKey = 'waiting';
+            clearInterval(kahootTimer);
+            clearInterval(testCountdownTimer);
+            document.getElementById('timerControlsDiv').classList.add('hidden');
+            document.getElementById('statisticsContainer').classList.add('hidden');
+            document.getElementById('animTitle').classList.remove('anim-title-sm');
+            document.getElementById('animTitle').innerText = "測驗狀態";
+            document.getElementById('animContent').innerHTML = "等待中...";
+            return;
+        }
+
+        if (roomMode === 'kahoot') {
+            document.getElementById('timerControlsDiv').classList.add('hidden');
+            document.getElementById('animationPanel').classList.add('k-top');
+            kahootIndex = s.kahootIndex || 0;
+
+            if (s.status === 'kahoot_active') {
+                const key = `kahoot_active_${s.roundId}_${kahootIndex}`;
+                if (lastRenderedKey !== key && s.currentQ) {
+                    lastRenderedKey = key;
+                    isEndingKahootQ = false;
+                    renderedKahootAnswerSids.clear();
+                    document.getElementById('statisticsContainer').classList.add('hidden');
+                    renderKahootActiveUI(s.currentQ, s.kahootTime || 15, s.qEndAt);
+                }
+            } else if (s.status === 'kahoot_result') {
+                const key = `kahoot_result_${s.roundId}_${kahootIndex}`;
+                if (lastRenderedKey !== key) {
+                    if (!document.getElementById('k-optbox-0') && s.currentQ) {
+                        renderKahootActiveUI(s.currentQ, s.kahootTime || 15, 0);
+                    }
+                    lastRenderedKey = key;
+                    clearInterval(kahootTimer);
+                    renderKahootResultUI(s.lastOptCounts || [], s.currentCorrect);
+                }
+            } else if (s.status === 'reviewing' || s.status === 'ended') {
+                const key = `kahoot_final_${s.roundId}_${selectedQuestions.length}`;
+                if (lastRenderedKey !== key && selectedQuestions.length > 0) {
+                    lastRenderedKey = key;
+                    clearInterval(kahootTimer);
+                    renderKahootFinalPodiumUI(!!s.isEarlyStop);
+                }
+            }
+        }
+
+        if (roomMode === 'test') {
+            document.getElementById('animationPanel').classList.remove('k-top');
+            if (s.status === 'testing' && s.acceptAnswers) {
+                document.getElementById('timerControlsDiv').classList.remove('hidden');
+                document.getElementById('manualStopBtn').classList.remove('hidden');
+                document.getElementById('statisticsContainer').classList.add('hidden');
+                document.getElementById('animTitle').innerText = "測驗倒數中";
+                
+                isTimerPaused = !!s.isTimerPaused;
+                const pBtn = document.getElementById('pauseTimerBtn');
+                if (isTimerPaused) {
+                    pBtn.innerText = "繼續倒數";
+                    pBtn.style.background = "var(--danger)";
+                    pBtn.style.color = "white";
+                    globalTimeLeft = s.pausedTimeLeft ?? 0;
+                    updateTimerDisplay();
+                } else {
+                    pBtn.innerText = "暫停倒數";
+                    pBtn.style.background = "white";
+                    pBtn.style.color = "var(--primary)";
+                    globalTimeLeft = Math.max(0, Math.ceil(((s.testEndAt || serverNow()) - serverNow()) / 1000));
+                    updateTimerDisplay();
+                }
+                const key = `test_active_${s.roundId}`;
+                if (lastRenderedKey !== key) {
+                    lastRenderedKey = key;
+                    testStopping = false;
+                    runTestTimer();
+                }
+            } else if ((s.status === 'testing' && !s.acceptAnswers) || s.status === 'reviewing' || s.status === 'ended') {
+                const key = `test_stopped_${s.roundId}_${s.statsReadyAt || 0}`;
+                if (lastRenderedKey !== key && selectedQuestions.length > 0) {
+                    lastRenderedKey = key;
+                    clearInterval(testCountdownTimer);
+                    document.getElementById('timerControlsDiv').classList.add('hidden');
+                    document.getElementById('animTitle').innerText = "測驗結束";
+                    const reason = s.testStopReason || 'manual';
+                    const msg = reason === 'auto' ? "已全數交卷（成績已儲存）" : (reason === 'timeup' ? "時間到（成績已儲存）" : "已手動中止收卷（成績已儲存）");
+                    document.getElementById('animContent').innerHTML = `<div class="timer-display" style="color:var(--danger);">00:00</div><h3 style="text-align:center;">${msg}</h3>`;
+                    autoSubmittedNames = s.autoSubmittedNames || [];
+                    renderTestStatistics();
+                }
+            }
+        }
+    }
+
+    // 啟動與高穩定度自動重連機制
+    async function initTeacherApp() {
+        const myDevRef = ref(db, `room/teachers/${myDeviceId}`);
+        const badge = document.getElementById('syncDeviceBadge');
+
+        onValue(ref(db, ".info/connected"), (snap) => {
+            if (snap.val() === true) {
+                onDisconnect(myDevRef).remove();
+                set(myDevRef, { joinedAt: myJoinTimestamp, lastSeen: serverNow() });
+                set(ref(db, 'room/settings/teacherOnline'), true);
+                if (badge) {
+                    badge.classList.remove('offline');
+                }
+            } else {
+                if (badge) {
+                    badge.classList.add('offline');
+                    badge.innerText = "🔴 網路重連中...";
+                }
+            }
+        });
+
+        setInterval(() => {
+            set(myDevRef, { joinedAt: myJoinTimestamp, lastSeen: serverNow() }).catch(() => {});
+            set(ref(db, 'room/settings/teacherOnline'), true).catch(() => {});
+        }, 12000);
+
+        onValue(ref(db, 'room/teachers'), snap => {
+            activeTeacherDevices = snap.val() || {};
+            const devIds = Object.keys(activeTeacherDevices).sort((a, b) => {
+                return (activeTeacherDevices[a]?.joinedAt || 0) - (activeTeacherDevices[b]?.joinedAt || 0);
+            });
+            const count = devIds.length;
+            isPrimaryAudioDevice = (count === 0) || (devIds[0] === myDeviceId);
+            if (badge && !badge.classList.contains('offline')) {
+                badge.innerText = `🟢 ${ Math.max(1, count) } 台教師裝置${ count > 1 ? '同步中' : '' }`;
+            }
+            setBGMVolume();
+        });
+
+        onValue(ref(db, 'room/teacherSync/checkedQIds'), snap => {
+            checkedQIdsCache = snap.val() || [];
+            if (sheetsLoaded) applyCheckedQIdsToDOM(checkedQIdsCache);
+        });
+
+        onValue(ref(db, 'room/teacherSync/replayAudioCmd'), snap => {
+            if (snap.exists()) {
+                const cmd = snap.val();
+                if (cmd.ts && cmd.ts > lastReplayCmdTs && serverNow() - cmd.ts < 8000) {
+                    lastReplayCmdTs = cmd.ts;
+                    playLocalTeacherAudio(cmd.url);
+                }
+            }
+        });
+
+        onValue(ref(db, 'room/selectedQuestions'), snap => {
+            if (snap.exists()) {
+                selectedQuestions = snap.val() || [];
+                if (hasEnteredConsole) syncArenaScreen();
+            }
+        });
+
+        onValue(ref(db, 'room/testPaper'), snap => {
+            if (snap.exists()) {
+                currentPaper = snap.val() || [];
+            }
+        });
+
+        onValue(ref(db, 'room/students'), snap => {
+            studentsCache = snap.val() || {};
+            renderStudentList();
+            checkTestAllSubmitted();
+            checkKahootAllAnswered();
+        });
+
+        onValue(ref(db, 'room/testAnswers'), snap => {
+            answersCache = snap.val() || {};
+            if (roomMode === 'test') {
+                renderStudentList();
+                checkTestAllSubmitted();
+            }
+        });
+
+        onValue(ref(db, 'room/kahootAnswers'), snap => {
+            kahootAnswersCache = snap.val() || {};
+            if (roomMode === 'kahoot' && currentSettings.status === 'kahoot_active' && !isEndingKahootQ) {
+                renderKahootAvatarsIncremental();
+                checkKahootAllAnswered();
+            }
+        });
+
+        onValue(ref(db, 'room/settings'), snap => {
+            if (snap.exists()) {
+                applySyncedSettings(snap.val());
+            }
+        });
+
+        await loadGoogleSheets();
+        sheetsLoaded = true;
+        applyCheckedQIdsToDOM(checkedQIdsCache);
+    }
+
+    function renderKahootAvatarsIncremental() {
+        const shuffledStrs = (currentSettings.shuffledOpts || []).map(o => String(o).trim());
+        for(let sid in kahootAnswersCache) {
+            if(!studentsCache[sid]) continue;
+            if(renderedKahootAnswerSids.has(sid)) continue;
+
+            const ansStr = String(kahootAnswersCache[sid].answer ?? '').trim();
+            const avatar = studentsCache[sid]?.avatar || '👤';
+            const optIndex = shuffledStrs.indexOf(ansStr);
+
+            if(optIndex !== -1) {
+                const box = document.getElementById(`k-avatar-area-${optIndex}`);
+                if(box) {
+                    renderedKahootAnswerSids.add(sid);
+                    const badge = document.createElement('div');
+                    badge.className = 'k-avatar-badge';
+                    badge.dataset.sid = sid;
+                    badge.innerText = avatar;
+                    box.appendChild(badge);
+                    playAnswerSFX(sid);
+                }
+            }
+        }
+    }
+
+    function cellVal(cell) {
+        if (!cell) return '';
+        if (cell.f !== undefined && cell.f !== null && String(cell.f).trim() !== '') return String(cell.f).trim();
+        if (cell.v !== undefined && cell.v !== null) return String(cell.v).trim();
+        return '';
+    }
+
+    async function fetchSingleRowCells(sName, rowNum) {
+        try {
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sName)}&range=A${rowNum}:F${rowNum}`;
+            const res = await fetch(url);
+            const data = JSON.parse((await res.text()).substring(47).slice(0, -2));
+            if (data.table.rows && data.table.rows.length > 0 && data.table.rows[0].c) {
+                return [0, 1, 2, 3, 4, 5].map(i => cellVal(data.table.rows[0].c[i]));
+            }
+            if (data.table.cols && data.table.cols.some(col => col && col.label)) {
+                return [0, 1, 2, 3, 4, 5].map(i => (data.table.cols[i]?.label !== undefined) ? String(data.table.cols[i].label).trim() : '');
+            }
+        } catch (e) { console.error(`補抓 ${sName} 第 ${rowNum} 列失敗:`, e); }
+        return null;
+    }
+
+    async function loadGoogleSheets() {
+        const listDiv = document.getElementById('questionList');
+        listDiv.innerHTML = "正在高速讀取目錄與各課工作表...";
+        allQuestions = []; let globalQIndex = 0; let finalHtml = "";
+        try {
+            const dirRes = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0`);
+            const dirData = JSON.parse((await dirRes.text()).substring(47).slice(0, -2));
+            const sheetNames = [];
+            if (dirData.table.cols && dirData.table.cols[0]?.label) {
+                const lbl = String(dirData.table.cols[0].label).trim();
+                if (lbl) sheetNames.push(lbl);
+            }
+            (dirData.table.rows || []).forEach(row => {
+                const val = cellVal(row.c?.[0]);
+                if (val && !sheetNames.includes(val)) sheetNames.push(val);
+            });
+
+            if(sheetNames.length === 0) { listDiv.innerHTML = "目錄頁是空的！請在 A 欄填寫工作表名稱。"; return; }
+
+            const sheetResults = await Promise.all(sheetNames.map(async (sName, sIdx) => {
+                try {
+                    const sRes = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(sName)}`);
+                    const sData = JSON.parse((await sRes.text()).substring(47).slice(0, -2));
+                    const rawRows = sData.table.rows || [];
+
+                    const parsedRows = await Promise.all(rawRows.map(async (row, rIdx) => {
+                        const c = row.c || [];
+                        let q = cellVal(c[0]);
+                        let o1 = cellVal(c[1]), o2 = cellVal(c[2]), o3 = cellVal(c[3]), o4 = cellVal(c[4]);
+                        let audio = cellVal(c[5]) || null;
+                        let opts = [o1, o2, o3, o4].filter(v => v !== '');
+
+                        if ((q !== '' && opts.length < 4) || (q === '' && opts.length > 0)) {
+                            const fixed = await fetchSingleRowCells(sName, rIdx + 1);
+                            if (fixed) {
+                                q = fixed[0] || q;
+                                o1 = fixed[1] !== '' ? fixed[1] : o1;
+                                o2 = fixed[2] !== '' ? fixed[2] : o2;
+                                o3 = fixed[3] !== '' ? fixed[3] : o3;
+                                o4 = fixed[4] !== '' ? fixed[4] : o4;
+                                audio = fixed[5] || audio;
+                                opts = [o1, o2, o3, o4].filter(v => v !== '');
+                            }
+                        }
+                        return { q, ans: o1, opts, audio };
+                    }));
+
+                    return { sIdx, sName, qRows: parsedRows.filter(item => item.q !== '' && item.opts.length > 0) };
+                } catch (e) {
+                    console.error(e);
+                    return { sIdx, sName, qRows: [] };
+                }
+            }));
+
+            sheetResults.forEach(({ sIdx, sName, qRows }) => {
+                if (qRows.length === 0) return;
+                finalHtml += `<div class="sheet-group"><div class="sheet-header" id="sheet-header-${sIdx}" onclick="toggleSheetContent(event, ${sIdx})"><div class="sheet-title"><input type="checkbox" class="sheet-master-cb" data-sidx="${sIdx}" onchange="toggleSheetAll(event, ${sIdx})" style="width:20px; height:20px; margin-right:15px; cursor:pointer;">${sName} <span style="font-size:14px; font-weight:normal; margin-left:10px; color:var(--text-light);">(${qRows.length}題)</span></div><span id="sheet-arrow-${sIdx}" style="color:var(--text-light);">▶</span></div><div id="sheet-content-${sIdx}" class="sheet-content hidden">`;
+                qRows.forEach((item) => {
+                    item.questionId = globalQIndex++; item.sheetName = sName; allQuestions.push(item);
+                    finalHtml += `<div class="question-item"><label style="cursor:pointer; display:flex; align-items:center; width:100%;"><input type="checkbox" class="q-checkbox q-checkbox-${sIdx}" value="${item.questionId}" onchange="onQuestionCheckboxChange()" style="margin-right:15px; width:18px; height:18px;"><span style="font-size:16px;"><b>${item.q}</b> ${item.audio ? '🎵' : ''}</span></label></div>`;
+                });
+                finalHtml += `</div></div>`;
+            });
+
+            listDiv.innerHTML = finalHtml || "所有工作表都沒有題目資料。";
+        } catch(err) { listDiv.innerHTML = "讀取試算表失敗，請確定網址正確。"; }
+    }
+
+    function getSelectedQs() {
+       const cb = document.querySelectorAll('.q-checkbox:checked');
+       if(cb.length === 0) { alert("請至少勾選一題！"); return []; }
+       return Array.from(cb).map(c => allQuestions[c.value]).filter(Boolean);
+    }
+
+    function shuffleArray(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
+
+    window.toggleLeftPanel = () => { 
+        const nextView = currentSettings.viewMode === 'arena' ? 'setup' : 'arena';
+        update(ref(db, 'room/settings'), { viewMode: nextView });
+    };
+
+    function stopAIKahootTimers() {
+        aiKahootTimers.forEach(t => clearTimeout(t));
+        aiKahootTimers = [];
+    }
+
+    function triggerAIAnswers(qData) {
+        stopAIKahootTimers();
+        if(!isLeaderDevice()) return;
+        if(window.activeAIStudents.length === 0 || !qData.options || qData.options.length === 0) return;
+        const targetQIndex = kahootIndex;
+        window.activeAIStudents.forEach(aiId => {
+            const randomDelay = Math.floor(Math.random() * 5000) + 500; 
+            const tId = setTimeout(() => {
+                if(currentSettings.status !== 'kahoot_active' || kahootIndex !== targetQIndex) return;
+                const randomOpt = String(qData.options[Math.floor(Math.random() * qData.options.length)]);
+                
+                if(roomMode === 'kahoot') {
+                    set(ref(db, `room/kahootAnswers/${aiId}`), { answer: randomOpt, time: randomDelay });
+                    set(ref(db, `room/testAnswers/${aiId}/${targetQIndex}`), { answer: randomOpt });
+                }
+            }, randomDelay);
+            aiKahootTimers.push(tId);
+        });
+    }
+
+    function stopAITestTimers() { aiTestTimers.forEach(t => clearTimeout(t)); aiTestTimers = []; }
+    function runAITestStudents(paper) {
+        stopAITestTimers();
+        if(!isLeaderDevice()) return;
+        window.activeAIStudents.forEach(aiId => {
+            let qIdx = 0;
+            const willFinish = Math.random() >= AI_NO_SUBMIT_RATE;
+            const stopAt = willFinish ? paper.length : Math.max(1, Math.floor(Math.random() * paper.length));
+            const step = () => {
+                if(currentSettings.status !== 'testing' || !currentSettings.acceptAnswers) return;
+                if(qIdx >= stopAt) {
+                    if(willFinish) set(ref(db, `room/testAnswers/${aiId}/isSubmitted`), true);
+                    return;
+                }
+                const opts = paper[qIdx]?.options || [];
+                if(opts.length > 0) {
+                    set(ref(db, `room/testAnswers/${aiId}/${qIdx}`), { answer: String(opts[Math.floor(Math.random() * opts.length)]) });
+                }
+                qIdx++;
+                aiTestTimers.push(setTimeout(step, 1500 + Math.random() * 3500));
+            };
+            aiTestTimers.push(setTimeout(step, 1000 + Math.random() * 3000));
+        });
+    }
+
+    // === Kahoot 經典模式 ===
+    window.startKahoot = async () => { 
+        let qs = getSelectedQs(); 
+        if(qs.length > 0){ 
+            if(currentSettings.kahootShuffleQ) {
+                qs = shuffleArray(qs);
+            }
+            selectedQuestions = qs;
+            kahootIndex = 0; 
+            
+            currentPaper = selectedQuestions.map((q, idx) => ({ 
+                questionId: q.questionId, 
+                question: String(q.q), 
+                options: shuffleArray(q.opts.map(o => String(o))), 
+                correctAnswer: String(q.ans), 
+                audio: q.audio || null,
+                origIdx: idx
+            }));
+
+            const resetUpdates = {
+                testAnswers: null,
+                selectedQuestions: selectedQuestions,
+                testPaper: currentPaper
+            };
+            for(let sid in studentsCache) {
+                resetUpdates[`students/${sid}/score`] = 0;
+            }
+            await update(ref(db, 'room'), resetUpdates);
+
+            currentSettings.roundId = serverNow();
+            currentSettings.showAnswer = false;
+            currentSettings.viewMode = 'arena';
+            currentSettings.isEarlyStop = false;
+            currentSettings.reviewPromptOpen = false;
+            currentSettings.leaderDeviceId = myDeviceId;
+            playKahootQuestion(); 
+        }
+    };
+    
+    function playKahootQuestion() {
+      isEndingKahootQ = false;
+      kahootAnswersCache = {};
+      renderedKahootAnswerSids.clear();
+
+      const qData = selectedQuestions[kahootIndex]; 
+      const paperItem = currentPaper[kahootIndex] || { options: shuffleArray((qData.opts || []).map(o => String(o))) };
+      const shuffledOpts = paperItem.options;
+      const t = parseInt(document.getElementById('kahootTime').value) || currentSettings.kahootTime || 15;
+      const now = serverNow();
+      
+      const qPayload = { 
+          questionId: qData.questionId, 
+          question: String(qData.q), 
+          options: shuffledOpts, 
+          audio: qData.audio || null, 
+          kahootIndex: kahootIndex
+      };
+
+      currentSettings.status = 'kahoot_active'; 
+      currentSettings.qStartTime = now; 
+      currentSettings.qEndAt = now + t * 1000;
+      currentSettings.kahootTime = t;
+      currentSettings.currentCorrect = String(qData.ans);
+      currentSettings.kahootIndex = kahootIndex; 
+      currentSettings.acceptAnswers = true;  
+      currentSettings.shuffledOpts = shuffledOpts; 
+      currentSettings.currentQ = qPayload;
+      currentSettings.settledKey = '';
+      currentSettings.lastOptCounts = [0, 0, 0, 0];
+      currentSettings.leaderDeviceId = myDeviceId;
+
+      update(ref(db, 'room'), {
+          kahootAnswers: null,
+          currentKahootQ: qPayload,
+          settings: currentSettings
+      });
+    }
+
+    function renderKahootActiveUI(qPayload, totalSec, qEndAt) {
+      setBGMVolume(BGM_VOL_NORMAL);
+      const shuffledOpts = qPayload.options || [];
+      const animTitleEl = document.getElementById('animTitle');
+      animTitleEl.classList.add('anim-title-sm');
+      animTitleEl.innerText = `第 ${kahootIndex + 1} 題 / 共 ${selectedQuestions.length || (kahootIndex + 1)} 題`; 
+      
+      const initLeft = qEndAt ? Math.max(0, Math.ceil((qEndAt - serverNow()) / 1000)) : totalSec;
+      const pctWidth = totalSec > 0 ? Math.min(100, Math.max(0, (initLeft / totalSec) * 100)) : 100;
+
+      const audioBtnHtml = qPayload.audio ? ` <button class="timer-btn" style="font-size:14px; padding:4px 12px; vertical-align:middle; margin-left:8px;" onclick="playTeacherAudio('${qPayload.audio}')">🔊 重播音檔</button>` : '';
+      let html = `<div class="k-question-text">${qPayload.question}${audioBtnHtml}</div>`;
+      html += `<div class="k-action-bar" id="kActionBar">
+                  <div class="k-timer-group" id="kTimerGroup">
+                      <div class="k-timebar-bg"><div class="k-timebar-fill" id="kTimeBar" style="width:${pctWidth}%;"></div></div>
+                      <div class="k-timer-num" id="kTimerDisplay">${initLeft}</div>
+                  </div>
+                  <div class="k-settle-hint hidden" id="kSettleHint">✔️ 本題已結算（BGM 已自動降低）</div>
+                  <div class="k-btn-group">
+                      <button id="kahootSkipBtn" class="skip-btn" style="padding:7px 14px; font-size:14px;" onclick="skipKahootQuestion()">⏭️ 略過</button>
+                      <button class="stop-btn" style="padding:7px 14px; font-size:14px;" onclick="stopKahootEarly()">⏹️ 中止並結算</button>
+                      <button id="kahootNextBtn" class="send-btn hidden" style="padding:7px 22px; font-size:16px;" onclick="nextKahootQuestion()">下一題 ➡️</button>
+                  </div>
+               </div>`;
+      html += `<div class="k-options-grid">`;
+      shuffledOpts.forEach((opt, idx) => {
+          html += `<div class="k-option-box opt-${idx % 4}" id="k-optbox-${idx}">
+                      <div class="k-opt-head"><span class="k-shape">${shapes[idx % 4]}</span><span class="k-opt-text">${opt}</span></div>
+                      <div class="k-avatars-area" id="k-avatar-area-${idx}"></div>
+                   </div>`;
+      });
+      html += `</div>`;
+      document.getElementById('animContent').innerHTML = html;
+
+      if (!qEndAt) return;
+
+      if(qPayload.audio && currentSettings.audioSource === 'teacher') {
+          playLocalTeacherAudio(qPayload.audio);
+      }
+
+      renderKahootAvatarsIncremental();
+      triggerAIAnswers({ options: shuffledOpts });
+
+      const timeBar = document.getElementById('kTimeBar');
+      requestAnimationFrame(() => requestAnimationFrame(() => { 
+          if(timeBar) { 
+              timeBar.style.transition = `width ${initLeft}s linear`; 
+              timeBar.style.width = '0%'; 
+          } 
+      }));
+      
+      clearInterval(kahootTimer);
+      kahootTimer = setInterval(() => {
+         const left = Math.max(0, Math.ceil((qEndAt - serverNow()) / 1000));
+         globalTimeLeft = left;
+         const numEl = document.getElementById('kTimerDisplay'); if(numEl) numEl.innerText = left;
+         if(left <= 5 && timeBar) timeBar.classList.add('urgent');
+         if(serverNow() >= qEndAt) { 
+             clearInterval(kahootTimer); 
+             if (isLeaderDevice()) endKahootQuestion(false); 
+         }
+      }, 200);
+    }
+
+    // 手動點擊「⏭️ 略過」：不論在手機或大屏點擊皆可立即強制結算
+    window.skipKahootQuestion = () => {
+       endKahootQuestion(true);
+    };
+
+    // 計算當前經典模式題目的分數與各選項人數陣列（使用純數字索引陣列，徹底避免選項含有 `/`、`.` 等特殊字元導致 Firebase 崩潰）
+    async function prepareKahootSettlementUpdates(targetKey, alreadyScored) {
+       const aSnap = await get(ref(db, 'room/kahootAnswers')), sSnap = await get(ref(db, 'room/students'));
+       const answers = aSnap.val() || {}, students = sSnap.val() || {};
+       const maxTimeMs = (currentSettings.kahootTime || 15) * 1000;
+       const correctStr = String(currentSettings.currentCorrect ?? '').trim();
+       const shuffledStrs = (currentSettings.shuffledOpts || []).map(o => String(o).trim());
+       const optCountsArr = shuffledStrs.map(() => 0);
+       
+       const roomUpdates = {};
+       for(let sid in answers) {
+           if(!students[sid]) continue;
+           const ans = String(answers[sid].answer ?? '').trim();
+           const optIdx = shuffledStrs.indexOf(ans);
+           if(optIdx !== -1) optCountsArr[optIdx]++;
+           if(!alreadyScored && ans === correctStr) {
+               const clampedTime = Math.min(maxTimeMs, Math.max(0, Number(answers[sid].time) || 0));
+               const newScore = (students[sid].score || 0) + Math.max(10, 1000 - Math.floor(clampedTime / 20));
+               roomUpdates[`students/${sid}/score`] = newScore;
+           }
+       }
+       roomUpdates['settings/settledKey'] = targetKey;
+       roomUpdates['settings/status'] = 'kahoot_result';
+       roomUpdates['settings/acceptAnswers'] = false;
+       roomUpdates['settings/lastOptCounts'] = optCountsArr;
+       return roomUpdates;
+    }
+
+    // 單次原子更新結算：絕不會發生「settledKey 已寫入但畫面沒切換為 kahoot_result」的半途卡死問題
+    async function endKahootQuestion(isManualClick = false) {
+       if(currentSettings.status !== 'kahoot_active') return;
+       if(isEndingKahootQ && !isManualClick) return;
+       if(!isManualClick && !isLeaderDevice()) return;
+       isEndingKahootQ = true;
+       clearInterval(kahootTimer);
+       stopAIKahootTimers();
+
+       try {
+           const targetKey = `${currentSettings.roundId}_${kahootIndex}`;
+           const sSnap = await get(ref(db, 'room/settings'));
+           const latestSettings = sSnap.val() || {};
+           if (latestSettings.status === 'kahoot_result' && latestSettings.settledKey === targetKey) {
+               isEndingKahootQ = false;
+               return;
+           }
+           const alreadyScored = (latestSettings.settledKey === targetKey);
+           const roomUpdates = await prepareKahootSettlementUpdates(targetKey, alreadyScored);
+           await update(ref(db, 'room'), roomUpdates);
+       } catch (err) {
+           console.error("結算單題時發生網路錯誤：", err);
+           isEndingKahootQ = false;
+       }
+    }
+
+    function renderKahootResultUI(optCountsData, correctAns) {
+       setBGMVolume(BGM_VOL_LOW);
+       const correctStr = String(correctAns ?? '').trim();
+       const skipBtn = document.getElementById('kahootSkipBtn');
+       if(skipBtn) skipBtn.classList.add('hidden');
+
+       const tGroup = document.getElementById('kTimerGroup'); if(tGroup) tGroup.classList.add('hidden');
+       const sHint = document.getElementById('kSettleHint'); if(sHint) sHint.classList.remove('hidden');
+       document.getElementById('animTitle').innerText = `第 ${kahootIndex + 1} 題 / 共 ${selectedQuestions.length} 題・結算`;
+       
+       (currentSettings.shuffledOpts || []).forEach((opt, idx) => {
+           const box = document.getElementById(`k-optbox-${idx}`);
+           if(!box) return;
+           const optStr = String(opt).trim();
+           const count = Array.isArray(optCountsData)
+               ? (optCountsData[idx] || 0)
+               : (optCountsData[idx] !== undefined ? optCountsData[idx] : (optCountsData[optStr] || 0));
+           const avatarArea = document.getElementById(`k-avatar-area-${idx}`);
+           if(avatarArea) avatarArea.innerHTML = ''; 
+           
+           box.querySelectorAll('.k-result-count').forEach(el => el.remove());
+
+           if(optStr === correctStr) {
+               box.innerHTML += `<div class="k-result-count">✔️ ${count} 人</div>`;
+           } else {
+               box.classList.add('dimmed-box');
+               box.innerHTML += `<div class="k-result-count">❌ ${count} 人</div>`;
+           }
+       });
+       
+       const nextBtn = document.getElementById('kahootNextBtn');
+       if(nextBtn) {
+           nextBtn.innerText = (kahootIndex + 1 >= selectedQuestions.length) ? "查看總成績 🏆" : "下一題 ➡️";
+           nextBtn.classList.remove('hidden');
+       }
+    }
+
+    window.stopKahootEarly = async () => {
+        if(!confirm("確定要提前中止測驗，並儲存結算目前的成績嗎？")) return;
+        clearInterval(kahootTimer);
+        stopAIKahootTimers();
+
+        try {
+            if(currentSettings.status === 'kahoot_active') {
+                isEndingKahootQ = true;
+                const targetKey = `${currentSettings.roundId}_${kahootIndex}`;
+                const sSnap = await get(ref(db, 'room/settings'));
+                const latestSettings = sSnap.val() || {};
+                const alreadyScored = (latestSettings.settledKey === targetKey);
+                const roomUpdates = await prepareKahootSettlementUpdates(targetKey, alreadyScored);
+                await update(ref(db, 'room'), roomUpdates);
+            }
+
+            const completedCount = Math.min(selectedQuestions.length, kahootIndex + 1);
+            selectedQuestions = selectedQuestions.slice(0, completedCount);
+            currentPaper = currentPaper.slice(0, completedCount);
+            await update(ref(db, 'room'), {
+                selectedQuestions: selectedQuestions,
+                testPaper: currentPaper
+            });
+
+            await finishKahootGame(true);
+        } catch (err) {
+            console.error("提前中止經典模式發生錯誤：", err);
+            isEndingKahootQ = false;
+        }
+    };
+
+    window.nextKahootQuestion = async () => {
+       kahootIndex++;
+       if(kahootIndex < selectedQuestions.length) {
+           playKahootQuestion();
+       } else {
+           await finishKahootGame(false);
+       }
+    };
+
+    async function finishKahootGame(isEarlyStop) {
+       await update(ref(db, 'room/settings'), {
+           status: 'ended',
+           showAnswer: false,
+           acceptAnswers: false,
+           isEarlyStop: !!isEarlyStop,
+           reviewPromptOpen: true
+       });
+    }
+
+    async function renderKahootFinalPodiumUI(isEarlyStop) {
+       setBGMVolume(BGM_VOL_LOW);
+       const sSnap = await get(ref(db, 'room/students')); const st = sSnap.val() || {};
+       const sorted = Object.values(st).sort((a,b) => (b.score || 0) - (a.score || 0));
+       
+       let html = `<div><h2 style="color:var(--accent); text-align:center; margin-bottom:0;">🏆 最終排行榜（點擊右欄「匯出成績」可下載 CSV）</h2>`; 
+       html += `<div class="podium-container">`;
+       
+       const p1 = sorted.length > 0 ? sorted[0] : null;
+       const p2 = sorted.length > 1 ? sorted[1] : null;
+       const p3 = sorted.length > 2 ? sorted[2] : null;
+
+       html += `<div class="podium-step step-2">
+                   ${p2 ? `<div class="podium-avatar-box"><div class="p-crown">🥈</div><div class="p-avatar">${p2.avatar||'👤'}</div><div class="p-name">${p2.nickname}</div></div>` : ''}
+                   <div class="podium-number">2</div>
+                </div>`;
+       html += `<div class="podium-step step-1">
+                   ${p1 ? `<div class="podium-avatar-box"><div class="p-crown">👑</div><div class="p-avatar" style="border-color:#fbbf24;">${p1.avatar||'👤'}</div><div class="p-name">${p1.nickname}</div></div>` : ''}
+                   <div class="podium-number">1</div>
+                </div>`;
+       html += `<div class="podium-step step-3">
+                   ${p3 ? `<div class="podium-avatar-box"><div class="p-crown">🥉</div><div class="p-avatar">${p3.avatar||'👤'}</div><div class="p-name">${p3.nickname}</div></div>` : ''}
+                   <div class="podium-number">3</div>
+                </div>`;
+       html += `</div>`; 
+       
+       const p4 = sorted.length > 3 ? sorted[3] : null;
+       const p5 = sorted.length > 4 ? sorted[4] : null;
+       if(p4 || p5) {
+           html += `<div class="runner-up-container">`;
+           if(p4) html += `<div class="runner-up">#4 ${p4.avatar||'👤'} ${p4.nickname}</div>`;
+           if(p5) html += `<div class="runner-up">#5 ${p5.avatar||'👤'} ${p5.nickname}</div>`;
+           html += `</div>`;
+       }
+       html += `</div>`;
+       document.getElementById('animTitle').classList.remove('anim-title-sm');
+       document.getElementById('animTitle').innerText = isEarlyStop ? `🏁 測驗已中止（共結算 ${selectedQuestions.length} 題）` : "🏁 測驗結束";
+       document.getElementById('animContent').innerHTML = html;
+       
+       if(typeof confetti === 'function') {
+           confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+       }
+
+       await renderTestStatistics();
+    }
+
+    function renderKahootReviewControl() {
+        const open = currentSettings.status === 'reviewing' && currentSettings.showAnswer;
+        document.getElementById('kahootReviewBtn').innerText = open ? '🔒 關閉學生回顧' : '📖 開放學生平板回顧作答';
+        document.getElementById('kahootReviewInfo').innerText = open ? '學生平板目前：可逐題回顧' : '學生平板目前：只顯示「測驗已結束」';
+    }
+    window.toggleKahootReview = () => {
+        const open = currentSettings.status === 'reviewing' && currentSettings.showAnswer;
+        update(ref(db, 'room/settings'), {
+            status: open ? 'ended' : 'reviewing',
+            showAnswer: !open,
+            reviewPromptOpen: false
+        });
+    };
+
+    // === 測驗模式 ===
+    window.startTestMode = async () => {
+      const qs = getSelectedQs(); if(qs.length === 0) return;
+      selectedQuestions = qs;
+      const mins = parseInt(document.getElementById('testMinutes').value) || currentSettings.testMinutes || 5;
+      const now = serverNow();
+      
+      testStopping = false; autoSubmittedNames = [];
+      answersCache = {};
+
+      currentPaper = selectedQuestions.map((q, idx) => ({ 
+          questionId: q.questionId, 
+          question: String(q.q), 
+          options: shuffleArray(q.opts.map(o => String(o))), 
+          correctAnswer: String(q.ans), 
+          audio: q.audio || null,
+          origIdx: idx
+      }));
+
+      currentSettings.roundId = now;
+      currentSettings.status = 'testing'; 
+      currentSettings.acceptAnswers = true;
+      currentSettings.showAnswer = false;
+      currentSettings.viewMode = 'arena';
+      currentSettings.testMinutes = mins;
+      currentSettings.testEndAt = now + mins * 60 * 1000;
+      currentSettings.isTimerPaused = false;
+      currentSettings.pausedTimeLeft = mins * 60;
+      currentSettings.reviewPromptOpen = false;
+      currentSettings.leaderDeviceId = myDeviceId;
+      currentSettings.testSettledRound = 0;
+      setBGMVolume(BGM_VOL_NORMAL);
+
+      await update(ref(db, 'room'), {
+          testAnswers: null,
+          selectedQuestions: selectedQuestions,
+          testPaper: currentPaper,
+          settings: currentSettings
+      });
+      
+      runAITestStudents(currentPaper);
+    };
+
+    function runTestTimer() {
+        clearInterval(testCountdownTimer);
+        testCountdownTimer = setInterval(() => {
+            if(currentSettings.status !== 'testing' || !currentSettings.acceptAnswers) {
+                clearInterval(testCountdownTimer);
+                return;
+            }
+            if(currentSettings.isTimerPaused) {
+                globalTimeLeft = currentSettings.pausedTimeLeft ?? globalTimeLeft;
+                updateTimerDisplay();
+                return; 
+            }
+            globalTimeLeft = Math.max(0, Math.ceil(((currentSettings.testEndAt || serverNow()) - serverNow()) / 1000));
+            updateTimerDisplay();
+            if(globalTimeLeft <= 0 && isLeaderDevice()) {
+                triggerTestStop('timeup');
+            }
+        }, 500);
+    }
+    
+    function updateTimerDisplay() {
+        if(globalTimeLeft < 0) globalTimeLeft = 0;
+        const m = Math.floor(globalTimeLeft / 60).toString().padStart(2, '0');
+        const s = (globalTimeLeft % 60).toString().padStart(2, '0');
+        document.getElementById('animContent').innerHTML = `<div class="timer-display">${m}:${s}</div>`;
+    }
+
+    window.adjustTimer = (seconds) => {
+        if (currentSettings.status !== 'testing' || !currentSettings.acceptAnswers) return;
+        if (currentSettings.isTimerPaused) {
+            const nextLeft = Math.max(0, (currentSettings.pausedTimeLeft || 0) + seconds);
+            update(ref(db, 'room/settings'), { pausedTimeLeft: nextLeft });
+            if (nextLeft <= 0) triggerTestStop('timeup');
+        } else {
+            const nextEndAt = Math.max(serverNow(), (currentSettings.testEndAt || serverNow()) + seconds * 1000);
+            update(ref(db, 'room/settings'), { testEndAt: nextEndAt });
+            if (nextEndAt <= serverNow()) triggerTestStop('timeup');
+        }
+    };
+
+    window.togglePauseTimer = () => {
+        if (currentSettings.status !== 'testing' || !currentSettings.acceptAnswers) return;
+        if (!currentSettings.isTimerPaused) {
+            const remaining = Math.max(0, Math.ceil(((currentSettings.testEndAt || serverNow()) - serverNow()) / 1000));
+            update(ref(db, 'room/settings'), {
+                isTimerPaused: true,
+                pausedTimeLeft: remaining
+            });
+        } else {
+            const remaining = currentSettings.pausedTimeLeft || 0;
+            update(ref(db, 'room/settings'), {
+                isTimerPaused: false,
+                testEndAt: serverNow() + remaining * 1000
+            });
+        }
+    };
+
+    // 單次原子更新線上測驗收卷：防止半途斷線卡死
+    window.triggerTestStop = async (reason) => {
+       if(testStopping && reason !== 'manual') return;
+       if(reason !== 'manual' && !isLeaderDevice()) return;
+       if(reason === 'manual' && !confirm("確定要提前中止測驗並收卷嗎？（系統將自動儲存所有學生目前已作答的成績）")) return;
+       testStopping = true;
+       clearInterval(testCountdownTimer);
+       stopAITestTimers();
+       setBGMVolume(BGM_VOL_LOW);
+
+       try {
+           const targetRound = currentSettings.roundId || 1;
+           const sSnap = await get(ref(db, 'room/settings'));
+           const latestSettings = sSnap.val() || {};
+           if (latestSettings.testSettledRound === targetRound && latestSettings.acceptAnswers === false) {
+               testStopping = false;
+               return;
+           }
+
+           const stuSnap = await get(ref(db, 'room/students')), ansSnap = await get(ref(db, 'room/testAnswers'));
+           const stuNow = stuSnap.val() || {}, ansNow = ansSnap.val() || {};
+           const autoUpdates = {};
+           const autoNames = [];
+
+           for(const sid in stuNow) {
+               if(!(ansNow[sid] && ansNow[sid].isSubmitted)) {
+                   autoUpdates[`testAnswers/${sid}/isSubmitted`] = true;
+                   autoNames.push(stuNow[sid].nickname);
+               }
+               let correctCount = 0;
+               selectedQuestions.forEach((q, idx) => {
+                   if(ansNow[sid] && ansNow[sid][idx]) {
+                       const aTxt = String(ansNow[sid][idx].answer ?? '').trim();
+                       if(aTxt === String(q.ans).trim()) correctCount++;
+                   }
+               });
+               const testScore = selectedQuestions.length > 0 ? Math.round((correctCount / selectedQuestions.length) * 100) : 0;
+               autoUpdates[`students/${sid}/score`] = testScore;
+           }
+
+           autoUpdates['settings/testSettledRound'] = targetRound;
+           autoUpdates['settings/acceptAnswers'] = false;
+           autoUpdates['settings/testStopReason'] = reason;
+           autoUpdates['settings/autoSubmittedNames'] = autoNames;
+           autoUpdates['settings/statsReadyAt'] = serverNow();
+           autoUpdates['settings/isEarlyStop'] = (reason === 'manual');
+           autoUpdates['settings/reviewPromptOpen'] = true;
+
+           await update(ref(db, 'room'), autoUpdates);
+       } catch (err) {
+           console.error("收卷處理發生錯誤：", err);
+           testStopping = false;
+       }
+    };
+
+    window.answerReviewModal = (yes) => {
+        if(yes) {
+            openStudentReview();
+        } else {
+            setBGMVolume(BGM_VOL_LOW);
+            update(ref(db, 'room/settings'), {
+                status: 'ended',
+                showAnswer: false,
+                reviewPromptOpen: false
+            });
+        }
+    };
+
+    window.openStudentReview = () => {
+        setBGMVolume(BGM_VOL_LOW);
+        update(ref(db, 'room/settings'), {
+            status: 'reviewing',
+            showAnswer: true,
+            reviewPromptOpen: false
+        });
+    };
+
+    async function renderTestStatistics() {
+        const statContainer = document.getElementById('statisticsContainer');
+        statContainer.classList.remove('hidden'); 
+        
+        const aSnap = await get(ref(db, 'room/testAnswers')), sSnap = await get(ref(db, 'room/students'));
+        const answers = aSnap.val() || {}, students = sSnap.val() || {};
+        
+        let html = `<h2 style="color:var(--primary); font-size:22px; margin-bottom:12px; border-top: 2px solid #cbd5e1; padding-top:20px;">📈 題目作答統計與分析</h2>`;
+        
+        if (roomMode === 'test' && autoSubmittedNames.length > 0) {
+            html += `<div style="color:var(--text-light); margin-bottom:16px; font-weight:bold; font-size:15px;">系統代為交卷（未按交卷，已選答案照常計算）：${autoSubmittedNames.join('、')}</div>`;
+        }
+
+        selectedQuestions.forEach((q, qIdx) => {
+            let totalAnswers = 0, correctAnswers = 0;
+            let optCounts = {}; q.opts.forEach(o => optCounts[String(o).trim()] = 0);
+            const qAnsStr = String(q.ans).trim();
+            
+            for(let sid in answers) {
+                if(!students[sid]) continue;
+                if(answers[sid][qIdx]) {
+                    totalAnswers++; const ansStr = String(answers[sid][qIdx].answer ?? '').trim();
+                    if(optCounts[ansStr] !== undefined) optCounts[ansStr]++;
+                    if(ansStr === qAnsStr) correctAnswers++;
+                }
+            }
+            
+            let accuracy = totalAnswers > 0 ? Math.round((correctAnswers/totalAnswers)*100) : 0;
+            const audioBtnHtml = q.audio ? ` <button class="timer-btn" style="font-size:13px; padding:4px 10px; margin-left:8px;" onclick="playTeacherAudio('${q.audio}')">🔊 播放音檔</button>` : '';
+            html += `<div class="stat-container"><div class="stat-q-title">Q${qIdx+1} <span style="font-size:14px;color:var(--text-light);">[${q.sheetName}]</span> : ${q.q}${audioBtnHtml} <span style="color:var(--primary); font-size:14px; font-weight:normal; float:right;">答對率: ${accuracy}%</span></div>`;
+            
+            q.opts.forEach(opt => {
+                const optStr = String(opt).trim();
+                let count = optCounts[optStr] || 0, pct = totalAnswers > 0 ? Math.round((count/totalAnswers)*100) : 0, isCorrect = (optStr === qAnsStr);
+                html += `<div class="stat-bar-wrapper">
+                            <div class="stat-label" style="${isCorrect ? 'color:var(--success); font-weight:bold;' : ''}">${optStr}</div>
+                            <div class="stat-bar-bg"><div class="stat-bar-fill ${isCorrect ? 'correct' : ''}" style="width: ${pct > 0 ? Math.max(pct, 5) : 0}%;">${count > 0 ? count : ''}</div></div>
+                         </div>`;
+            });
+            html += `</div>`;
+        });
+        statContainer.innerHTML = html;
+    }
+
+    window.toggleSetting = (key) => { 
+        const nextVal = !currentSettings[key]; 
+        update(ref(db, 'room/settings'), { [key]: nextVal }); 
+    };
+    
+    window.kickStudent = (id) => {
+        const s = studentsCache[id];
+        if(!s) return;
+        if(!confirm(`確定要將「${s.nickname} (${s.realName})」移出考場嗎？`)) return;
+        remove(ref(db, `room/students/${id}`));
+        remove(ref(db, `room/testAnswers/${id}`));
+        remove(ref(db, `room/kahootAnswers/${id}`));
+    };
+
+    window.updateSettings = (k, v) => { 
+        update(ref(db, 'room/settings'), { [k]: v }); 
+    };
+    
+    window.toggleBGM = () => { 
+        const nextPlaying = !currentSettings.bgmPlaying;
+        let trackUrl = currentSettings.bgmTrackUrl;
+        if (nextPlaying && !trackUrl) {
+            trackUrl = pickNextBgmUrl();
+        }
+        update(ref(db, 'room/settings'), {
+            bgmPlaying: nextPlaying,
+            bgmTrackUrl: trackUrl
+        });
+    };
+
+    window.nextBGMTrack = () => {
+        const trackUrl = pickNextBgmUrl();
+        update(ref(db, 'room/settings'), {
+            bgmPlaying: true,
+            bgmTrackUrl: trackUrl
+        });
+    };
+
+    function getFormattedTime() {
+        const now = new Date();
+        return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function escapeCSV(val) {
+        const str = String(val ?? '');
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+    }
+
+    window.exportCSV = async () => {
+      const stuSnap = await get(ref(db, 'room/students')), tAnsSnap = await get(ref(db, 'room/testAnswers'));
+      if(!stuSnap.exists()) return alert("無考生資料可匯出！");
+      let csv = "\uFEFF班級,座號,真實姓名,暱稱,平板編號,遊戲總積分,答對率(%)"; 
+      selectedQuestions.forEach((q,i) => csv += `,${escapeCSV(`Q${i+1} [${q.sheetName}]`)}`); 
+      csv += "\n";
+      
+      stuSnap.forEach(c => {
+        let correctCount = 0, row = "";
+        const sData = c.val();
+        selectedQuestions.forEach((_,i) => {
+           let isC = false, aTxt = "未答";
+           if(tAnsSnap.exists() && tAnsSnap.val()[c.key] && tAnsSnap.val()[c.key][i]) { 
+               aTxt = String(tAnsSnap.val()[c.key][i].answer ?? '').trim(); 
+               isC = (aTxt === String(selectedQuestions[i].ans).trim()); 
+           }
+           if(isC) correctCount++; 
+           row += `,${escapeCSV(aTxt)}`;
+        });
+        
+        let accPct = selectedQuestions.length > 0 ? Math.round((correctCount / selectedQuestions.length) * 100) : 0;
+        const seat1 = sData.seat1 !== undefined ? sData.seat1 : (sData.seat || '');
+        const name1 = sData.realName1 !== undefined ? sData.realName1 : (sData.realName || '');
+        csv += `${escapeCSV(sData.class || '')},${escapeCSV(seat1)},${escapeCSV(name1)},${escapeCSV(sData.nickname)},${escapeCSV(sData.device || '')},${escapeCSV(sData.score || 0)},${accPct}%${row}\n`;
+
+        const seat2 = (sData.seat2 || '').trim();
+        const name2 = (sData.realName2 || '').trim();
+        if(seat2 || name2) {
+            csv += `${escapeCSV(sData.class || '')},${escapeCSV(seat2)},${escapeCSV(name2)},${escapeCSV(sData.nickname)},${escapeCSV(sData.device || '')},${escapeCSV(sData.score || 0)},${accPct}%${row}\n`;
+        }
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = `成績_${getFormattedTime()}.csv`; document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    };
+
+    initTeacherApp();
+  </script>
+</body>
+</html>
